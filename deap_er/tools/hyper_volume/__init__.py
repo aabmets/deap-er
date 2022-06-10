@@ -23,3 +23,25 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from .hyper_volume import HyperVolume
+import warnings
+
+
+__all__ = ["hypervolume"]
+
+
+# ====================================================================================== #
+def hypervolume(point_set, ref_point):
+    """
+    Compute the absolute hypervolume of a *pointset*
+    according to the reference point *ref*.
+    """
+    warning_message = '' \
+        'Falling back to the python version of hyper_volume module. ' \
+        'Expect this to be very slow.'
+    warnings.warn(
+        message=warning_message,
+        category=RuntimeWarning
+    )
+    hv = HyperVolume(ref_point)
+    return hv.compute(point_set)

@@ -23,3 +23,19 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+class Node:
+    def __init__(self, dimensions: int, point: tuple = None):
+        self.cargo = point
+        self.next = [None] * dimensions
+        self.prev = [None] * dimensions
+        self.ignore = 0
+        self.area = [0.0] * dimensions
+        self.volume = [0.0] * dimensions
+
+    # -------------------------------------------------------------------------------------- #
+    def __str__(self):
+        return str(self.cargo)
+
+    # -------------------------------------------------------------------------------------- #
+    def __lt__(self, other):
+        return self.cargo < other.cargo

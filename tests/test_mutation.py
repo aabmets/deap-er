@@ -1,45 +1,25 @@
-import unittest
-from unittest import mock
-
-from deap.tools.mutation import mutInversion
-
-
-class MutationTest(unittest.TestCase):
-
-    def test_mutInverstion_size_zero_chromosome_returns_unchanged_chromosome_in_tuple(self):
-        chromosome = []
-        expected = []
-        self.assertEqual((expected,), mutInversion(chromosome))
-
-    def test_mutInversion_size_one_chromosome_returns_unchanged_chromosome_in_tuple(self):
-        chromosome = ["a"]
-        expected = ["a"]
-        self.assertEqual((expected,), mutInversion(chromosome))
-
-    @mock.patch("random.randrange")
-    def test_mutInversion_same_random_indices_returns_unchanged_chromosome_in_tuple(self, mock_randrange):
-        mock_randrange.side_effect = [2, 2]
-        chromosome = ["a", "b", "c", "d", "e"]
-        expected = ["a", "b", "c", "d", "e"]
-        self.assertEqual((expected,), mutInversion(chromosome))
-
-    @mock.patch("random.randrange")
-    def test_mutInversion_difference_of_one_random_indices_returns_unchanged_chromosome_in_tuple(self, mock_randrange):
-        mock_randrange.side_effect = [2, 3]
-        chromosome = ["a", "b", "c", "d", "e"]
-        expected = ["a", "b", "c", "d", "e"]
-        self.assertEqual((expected,), mutInversion(chromosome))
-
-    @mock.patch("random.randrange")
-    def test_mutInversion_full_length_random_indices_returns_reversed_chromosome_in_tuple(self, mock_randrange):
-        mock_randrange.side_effect = [0, 5]
-        chromosome = ["a", "b", "c", "d", "e"]
-        expected = ["e", "d", "c", "b", "a"]
-        self.assertEqual((expected,), mutInversion(chromosome))
-
-    @mock.patch("random.randrange")
-    def test_mutInversion_general_case_returns_correctly_mutated_chromosome_in_tuple(self, mock_randrange):
-        mock_randrange.side_effect = [1, 4]
-        chromosome = ["a", "b", "c", "d", "e"]
-        expected = ["a", "d", "c", "b", "e"]
-        self.assertEqual((expected,), mutInversion(chromosome))
+# ====================================================================================== #
+#                                                                                        #
+#   MIT License                                                                          #
+#                                                                                        #
+#   Copyright (c) 2022 The Original DEAP Team, Mattias Aabmets and Contributors          #
+#                                                                                        #
+#   Permission is hereby granted, free of charge, to any person obtaining a copy         #
+#   of this software and associated documentation files (the "Software"), to deal        #
+#   in the Software without restriction, including without limitation the rights         #
+#   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell            #
+#   copies of the Software, and to permit persons to whom the Software is                #
+#   furnished to do so, subject to the following conditions:                             #
+#                                                                                        #
+#   The above copyright notice and this permission notice shall be included in all       #
+#   copies or substantial portions of the Software.                                      #
+#                                                                                        #
+#   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR           #
+#   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,             #
+#   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE          #
+#   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER               #
+#   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,        #
+#   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE        #
+#   SOFTWARE.                                                                            #
+#                                                                                        #
+# ====================================================================================== #

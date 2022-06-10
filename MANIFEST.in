@@ -1,8 +1,0 @@
-include *.txt
-include *.md
-recursive-include examples *.py *.csv *.json *.txt
-recursive-include doc *
-recursive-include tests *
-prune doc/_build
-global-exclude .DS_Store
-global-exclude *.pyc

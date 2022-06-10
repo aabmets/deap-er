@@ -1,0 +1,65 @@
+# ====================================================================================== #
+[tool.poetry]
+name = "deap-er"
+version = "0.2.0"
+description = "DEAP port to Python 3.10"
+authors = ["Mattias Aabmets <mattias.aabmets@gmail.com>"]
+license = "MIT License"
+keywords = [
+    "deap",
+    "evolutionary algorithms",
+    "genetic algorithms",
+    "genetic programming"
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Software Development",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Operating System :: OS Independent"
+]
+include = [
+    "deap_er",
+    "deap_er.*",
+    "deap_er.*.*"
+]
+# Compiling the HyperVolume C code is broken
+# build = "build.py"
+
+
+# ====================================================================================== #
+[tool.poetry.urls]
+"Repository" = "https://github.com/aabmets/deap-er"
+"Documentation" = "https://deap-er.readthedocs.io"
+
+
+# ====================================================================================== #
+[tool.poetry.dependencies]
+python = "^3.10"
+numpy = "^1.22.4"
+
+
+# ====================================================================================== #
+[tool.poetry.dev-dependencies]
+pytest = "^7.1.2"
+pytest-benchmark = "^3.4.1"
+coverage = "^6.4.1"
+black = "^22.3.0"
+Sphinx = "^5.0.1"
+sphinx-rtd-theme = "^1.0.0"
+
+
+# ====================================================================================== #
+#   NOT IMPLEMENTED
+#   [tool.poetry.scripts]
+#   build = "utils.build_ext:build"
+
+
+# ====================================================================================== #
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
