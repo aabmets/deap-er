@@ -27,8 +27,7 @@ include = [
     "deap_er.*",
     "deap_er.*.*"
 ]
-# Compiling the HyperVolume C code is broken
-# build = "build.py"
+build = "build.py"
 
 
 # ====================================================================================== #
@@ -41,6 +40,7 @@ include = [
 [tool.poetry.dependencies]
 python = "^3.10"
 numpy = "^1.22.4"
+Cython = "^0.29.30"
 
 
 # ====================================================================================== #
@@ -54,12 +54,17 @@ sphinx-rtd-theme = "^1.0.0"
 
 
 # ====================================================================================== #
-#   NOT IMPLEMENTED
-#   [tool.poetry.scripts]
-#   build = "utils.build_ext:build"
+#[tool.poetry.build]
+#generate-setup-file = false
+#script = "build.py"
 
 
 # ====================================================================================== #
 [build-system]
-requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+requires = [
+    "poetry-core>=1.0.0",
+    "setuptools>=62.3.3",
+    "wheel>=0.37.1",
+    "Cython>=0.29.30"
+]
