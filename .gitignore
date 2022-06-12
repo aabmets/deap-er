@@ -3,6 +3,7 @@
 .idea
 .local
 .disabled
+.github
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
