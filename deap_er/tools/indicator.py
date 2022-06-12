@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from hyper_volume import hypervolume as compute_hv
+from tools.hyper_volume import hypervolume as compute_hv
 import numpy
 
 
