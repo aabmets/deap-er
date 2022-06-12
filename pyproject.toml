@@ -46,7 +46,6 @@ Cython = "^0.29.30"
 # ====================================================================================== #
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
-pytest-benchmark = "^3.4.1"
 coverage = "^6.4.1"
 black = "^22.3.0"
 Sphinx = "^5.0.1"
@@ -68,3 +67,10 @@ requires = [
     "wheel>=0.37.1",
     "Cython>=0.29.30"
 ]
+
+# ==================================================================================== #
+[tool.pytest.ini_options]
+cache_dir = ".cache"
+testpaths = ["tests"]
+console_output_style = "count"
+filterwarnings = ["ignore::DeprecationWarning"]

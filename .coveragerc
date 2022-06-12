@@ -27,3 +27,6 @@ exclude_lines =
 
     # Don't complain about abstract methods, they aren't run:
     @(abc\.)?abstractmethod
+
+[html]
+directory = .htmlcov

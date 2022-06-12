@@ -2,8 +2,10 @@
 .deap
 .idea
 .local
-.disabled
+.cache
 .github
+.htmlcov
+.disabled
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
