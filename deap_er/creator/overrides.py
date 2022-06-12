@@ -30,7 +30,7 @@ import numpy
 
 
 # ====================================================================================== #
-class NumpyOverride(numpy.ndarray):
+class _NumpyOverride(numpy.ndarray):
     """
     Class override for the *numpy.ndarray* class, because
     the *numpy.ndarray* class is problematic for DEAP-er.
@@ -57,7 +57,7 @@ class NumpyOverride(numpy.ndarray):
 
 
 # ====================================================================================== #
-class ArrayOverride(array.array):
+class _ArrayOverride(array.array):
     """
     Class override for the *array.array* class, because
     the *array.array* class is problematic for DEAP-er.

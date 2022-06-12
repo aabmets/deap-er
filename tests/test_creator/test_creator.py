@@ -30,55 +30,109 @@ import numpy
 import array
 
 
-# -------------------------------------------------------------------------------------- #
-def test_creator_create():
-    creator.create('TestClass_0', int)
-    assert hasattr(creator, 'TestClass_0')
-
-
-# -------------------------------------------------------------------------------------- #
-def test_creator_inheritance():
-    creator.create('TestClass_1', int)
-    assert isinstance(creator.TestClass_1(), int)
-
-
-# -------------------------------------------------------------------------------------- #
-def test_creator_warning():
-    creator.create('TestClass_2', int)
+# ====================================================================================== #
+def test_creator_overwrite_warning():
+    creator.create('_DevTestClass', int)
     with pytest.warns(RuntimeWarning):
-        creator.create('TestClass_2', int)
+        creator.create('_DevTestClass', int)
 
 
-# -------------------------------------------------------------------------------------- #
-def test_creator_custom_attr_class():
-    creator.create('TestClass_3', int, my_attr=set())
-    assert hasattr(creator.TestClass_3, 'my_attr')
+# ====================================================================================== #
+@pytest.mark.filterwarnings('ignore::RuntimeWarning')
+class TestCreatorBasicFunctionality:
+
+    def test_create(self):
+        creator.create('_DevTestClass', int)
+        assert hasattr(creator, '_DevTestClass')
+
+    # -------------------------------------------------------------------------------------- #
+    def test_inheritance(self):
+        creator.create('_DevTestClass', int)
+        assert isinstance(creator._DevTestClass(), int)
+
+    # -------------------------------------------------------------------------------------- #
+    def test_custom_class_attr(self):
+        creator.create('_DevTestClass', int, my_attr=int())
+        assert hasattr(creator._DevTestClass, 'my_attr')
+        assert hasattr(creator._DevTestClass(), 'my_attr')
+
+    # -------------------------------------------------------------------------------------- #
+    def test_custom_instance_attr(self):
+        creator.create('_DevTestClass', int, my_attr=int)
+        assert not hasattr(creator._DevTestClass, 'my_attr')
+        assert hasattr(creator._DevTestClass(), 'my_attr')
 
 
-# -------------------------------------------------------------------------------------- #
-def test_creator_custom_attr_instance():
-    creator.create('TestClass_4', int, my_attr=set)
-    assert hasattr(creator.TestClass_4(), 'my_attr')
+# ====================================================================================== #
+@pytest.mark.filterwarnings('ignore::RuntimeWarning')
+class TestCreatorNumpyNdarray:
+    data = (x for x in range(10))
+
+    def test_numpy_ndarray_class_override(self):
+        creator.create('_DevTestClass', numpy.ndarray)
+        a = creator._DevTestClass([])
+        b = overrides._NumpyOverride
+        assert isinstance(a, b)
+
+    # -------------------------------------------------------------------------------------- #
+    def test_numpy_ndarray_instance_override(self):
+        creator.create('_DevTestClass', numpy.ndarray([]))
+        a = creator._DevTestClass([])
+        b = overrides._NumpyOverride
+        assert isinstance(a, b)
+
+    # -------------------------------------------------------------------------------------- #
+    def test_numpy_ndarray_values(self):
+        creator.create('_DevTestClass', numpy.ndarray([]))
+        a = creator._DevTestClass(self.data)
+        assert all(a == b for b in self.data)
 
 
-# -------------------------------------------------------------------------------------- #
-def test_creator_numpy_override():
-    creator.create('TestClass_5', numpy.ndarray)
-    x = creator.TestClass_5([])
-    y = overrides.NumpyOverride
-    assert isinstance(x, y)
+# ====================================================================================== #
+@pytest.mark.filterwarnings('ignore::RuntimeWarning')
+class TestCreatorNumpyArray:
+    data = (x for x in range(10))
+
+    def test_numpy_array_class_override(self):
+        creator.create('_DevTestClass', numpy.array)
+        a = creator._DevTestClass([])
+        b = overrides._NumpyOverride
+        assert isinstance(a, b)
+
+    # -------------------------------------------------------------------------------------- #
+    def test_numpy_array_instance_override(self):
+        creator.create('_DevTestClass', numpy.array([]))
+        a = creator._DevTestClass([])
+        b = overrides._NumpyOverride
+        assert isinstance(a, b)
+
+    # -------------------------------------------------------------------------------------- #
+    def test_numpy_array_values(self):
+        creator.create('_DevTestClass', numpy.array([]))
+        a = creator._DevTestClass(self.data)
+        assert all(a == b for b in self.data)
 
 
-# -------------------------------------------------------------------------------------- #
-def test_creator_array_override():
-    creator.create('TestClass_6', array.array)
-    x = creator.TestClass_6('I', [])
-    y = overrides.ArrayOverride
-    assert isinstance(x, y)
+# ====================================================================================== #
+@pytest.mark.filterwarnings('ignore::RuntimeWarning')
+class TestCreatorBuiltinsArray:
+    data = (x for x in range(10))
 
+    def test_builtins_array_class_override(self):
+        creator.create('_DevTestClass', array.array)
+        a = creator._DevTestClass('I', [])
+        b = overrides._ArrayOverride
+        assert isinstance(a, b)
 
-# -------------------------------------------------------------------------------------- #
-def test_creator_base_class_instance():
-    creator.create('TestClass_7', int())
-    x = creator.TestClass_7()
-    assert isinstance(x, int)
+    # -------------------------------------------------------------------------------------- #
+    def test_builtins_array_instance_override(self):
+        creator.create('_DevTestClass', array.array('I', []))
+        a = creator._DevTestClass('I', [])
+        b = overrides._ArrayOverride
+        assert isinstance(a, b)
+
+    # -------------------------------------------------------------------------------------- #
+    def test_builtins_array_values(self):
+        creator.create('_DevTestClass', array.array('I', []))
+        a = creator._DevTestClass('I', self.data)
+        assert all(a == b for b in self.data)

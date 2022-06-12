@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .overrides import NumpyOverride, ArrayOverride
+from .overrides import _NumpyOverride, _ArrayOverride
 import warnings
 
 
@@ -57,23 +57,20 @@ def create(name: str, base: type | object, **kwargs) -> None:
         _dict = classes if type(value) is type else instances
         _dict[key] = value
 
-    # override array and numpy classes
-    if hasattr(base, '__module__'):
-        base = dict(
-            array=ArrayOverride,
-            numpy=NumpyOverride
-        ).get(base.__module__, base)
-
     # set base to class if base is an instance
-    if not isinstance(base, type):
+    if not hasattr(base, '__module__'):
         base = base.__class__
 
+    # override numpy and array classes
+    base = dict(
+        array=_ArrayOverride,
+        numpy=_NumpyOverride
+    ).get(base.__module__, base)
+
     # define the replacement init func
-    def new_init_func(self, *args, **kwargs_):
+    def new_init_func(self, *_, **__):
         for class_name, class_object in classes.items():
             setattr(self, class_name, class_object())
-        if base.__init__ is not object.__init__:
-            base.__init__(self, *args, **kwargs_)
 
     # create and register the new class
     new_class = type(name, (base,), instances)
