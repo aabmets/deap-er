@@ -2,7 +2,7 @@
 #                                                                                        #
 #   MIT License                                                                          #
 #                                                                                        #
-#   Copyright (c) 2022 The Original DEAP Team, Mattias Aabmets and Contributors          #
+#   Copyright (c) 2022 - Mattias Aabmets and Contributors                                #
 #                                                                                        #
 #   Permission is hereby granted, free of charge, to any person obtaining a copy         #
 #   of this software and associated documentation files (the "Software"), to deal        #
@@ -23,70 +23,61 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-__all__ = ['initRepeat', 'initIterate', 'initCycle']
+from deap_er.utils.deprecated import deprecated
+from collections.abc import Callable, Iterable
+from typing import Type
+
+
+Container = Type[list | tuple | set | str]
 
 
 # ====================================================================================== #
-def initRepeat(container, func, n):
+def init_repeat(container: Container, func: Callable, count: int) -> Iterable:
     """
-    Call the function *func* *n* times and return the results in a
-    container type `container`
+    Calls the *func* argument *count* times and puts the results in a type *container*.
+    This helper function can be used in conjunction with a Toolbox to register
+    a generator of filled containers, such as individuals or a population.
 
-    :param container: The type to put in the data from func.
-    :param func: The function that will be called n times to fill the
-                 container.
-    :param n: The number of times to repeat func.
-    :returns: An instance of the container filled with data from func.
-
-    This helper function can be used in conjunction with a Toolbox
-    to register a generator of filled containers, as individuals or
-    population.
-
-    See the :ref:`list-of-floats` and :ref:`population` tutorials for more examples.
+    :param container: A type of iterable to put the results in.
+    :param func: The function to be called count times.
+    :param count: The number of times to call the func.
+    :returns: An iterable filled with count results of func.
     """
-    return container(func() for _ in range(n))
+    return container(func() for _ in range(count))
 
 
 # -------------------------------------------------------------------------------------- #
-def initIterate(container, generator):
+def init_iterate(container: Container, generator: Callable[..., Container]) -> Iterable:
     """
-    Call the function *container* with an iterable as
-    its only argument. The iterable must be returned by
-    the method or the object *generator*.
+    Calls the *generator* function and puts the results in a type *container*.
+    The *generator* function should return an iterable. This helper function
+    can be used in conjunction with a Toolbox to register a generator of
+    filled containers, as individuals or a population.
 
-    :param container: The type to put in the data from func.
-    :param generator: A function returning an iterable (list, tuple, ...),
-                      the content of this iterable will fill the container.
-    :returns: An instance of the container filled with data from the
-              generator.
-
-    This helper function can be used in conjunction with a Toolbox
-    to register a generator of filled containers, as individuals or
-    population.
-
-    See the :ref:`permutation` and :ref:`arithmetic-expr` tutorials for
-    more examples.
+    :param container: A type of iterable to put the results in.
+    :param generator: A function returning an iterable to fill the container with.
+    :returns: An iterable filled with the results from the generator.
     """
     return container(generator())
 
 
 # -------------------------------------------------------------------------------------- #
-def initCycle(container, seq_func, n=1):
+def init_cycle(container: Container, funcs: Iterable, count: int = 1) -> Iterable:
     """
-    Call the function *container* with a generator function corresponding
-    to the calling *n* times the functions present in *seq_func*.
+    Calls each function in the *funcs* iterable *count* times and stores the
+    results from all function calls in a type *container*. This helper function
+    can be used in conjunction with a Toolbox to register a generator of filled
+    containers, as individuals or a population.
 
-    :param container: The type to put in the data from func.
-    :param seq_func: A list of function objects to be called in order to
-                     fill the container.
-    :param n: Number of times to iterate through the list of functions.
-    :returns: An instance of the container filled with data from the
-              returned by the functions.
-
-    This helper function can be used in conjunction with a Toolbox
-    to register a generator of filled containers, as individuals or
-    population.
-
-    See the :ref:`funky` tutorial for an example.
+    :param container: A type of iterable to put the results in.
+    :param funcs: A sequence of functions to be called.
+    :param count: Number of times to iterate through the sequence of functions.
+    :returns: An iterable filled with the results from the functions.
     """
-    return container(func() for _ in range(n) for func in seq_func)
+    return container(func() for _ in range(count) for func in funcs)
+
+
+# ====================================================================================== #
+initRepeat = deprecated('initRepeat', init_repeat)
+initIterate = deprecated('initIterate', init_iterate)
+initCycle = deprecated('initCycle', init_cycle)
