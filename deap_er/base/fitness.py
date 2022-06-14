@@ -122,7 +122,8 @@ class Fitness:
         return '{0}.{1}({2})'.format(
             self.__module__,
             self.__class__.__name__,
-            str(self.values))
+            str(self.values)
+        )
 
     def __deepcopy__(self, memo):
         copy = self.__class__()
