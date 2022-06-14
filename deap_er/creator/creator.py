@@ -34,6 +34,7 @@ def create(name: str, base: type | object, **kwargs) -> None:
     Any optional kwargs provided to this function will be set as attributes of the new class.
     If a kwarg is a class, an instance of it is added to an instance of the new class upon instantiation.
     Otherwise, if a kwarg is an instance, it is directly added to the new class as an attribute.
+    `Reference <https://deap.readthedocs.io/en/master/api/creator.html#module-deap.creator>`_
 
     :param name: The name of the new class to create.
     :param base: A base class from which to inherit.
@@ -51,12 +52,6 @@ def create(name: str, base: type | object, **kwargs) -> None:
             category=RuntimeWarning
         )
 
-    # separate kwargs by their type
-    classes, instances = dict(), dict()
-    for key, value in kwargs.items():
-        _dict = classes if type(value) is type else instances
-        _dict[key] = value
-
     # set base to class if base is an instance
     if not hasattr(base, '__module__'):
         base = base.__class__
@@ -67,12 +62,20 @@ def create(name: str, base: type | object, **kwargs) -> None:
         numpy=_NumpyOverride
     ).get(base.__module__, base)
 
+    # separate kwargs by their type
+    inst_attr, cls_attr = dict(), dict()
+    for key, value in kwargs.items():
+        condition = type(value) is type
+        _dict = inst_attr if condition else cls_attr
+        _dict[key] = value
+
+    # create the new class
+    new_class = type(name, tuple([base]), cls_attr)
+
     # define the replacement init func
     def new_init_func(self, *_, **__):
-        for class_name, class_object in classes.items():
-            setattr(self, class_name, class_object())
+        for attr_name, attr_obj in inst_attr.items():
+            setattr(self, attr_name, attr_obj())
 
-    # create and register the new class
-    new_class = type(name, (base,), instances)
     new_class.__init__ = new_init_func
     globals()[name] = new_class
