@@ -80,9 +80,9 @@ class Fitness:
         :return: True if other Fitness is worse.
         """
         obj = slice(None) if obj is None else obj
-        zipper = list(zip(self.wvalues[obj], other.wvalues[obj]))
-        lesser = [a < b for a, b in zipper]
-        equal = [a == b for a, b in zipper]
+        zipper = list(zip(self.wvalues, other.wvalues))
+        lesser = (a < b for a, b in zipper[obj])
+        equal = (a == b for a, b in zipper[obj])
         if any(lesser) or all(equal):
             return False
         return True
