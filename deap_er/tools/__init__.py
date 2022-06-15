@@ -32,12 +32,12 @@ also contains utility tools to enhance the basic algorithms with
 :class:`Statistics`, :class:`HallOfFame`, and :class:`History`.
 """
 
-from .constraint import *
-from .crossover import *
-from .emo import *
-from .indicator import *
+# from .constraint import *
+# from .crossover import *
+# from .emo import *
+# from .indicator import *
 from .helpers import *
-from .migration import *
-from .mutation import *
-from .selection import *
-from .support import *
+# from .migration import *
+# from .mutation import *
+# from .selection import *
+# from .support import *
