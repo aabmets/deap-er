@@ -23,21 +23,59 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-"""
-The :mod:`~deap.tools` module contains the operators for evolutionary
-algorithms. They are used to modify, select and move the individuals in their
-environment. The set of operators it contains are readily usable in the
-:class:`~deap.base.Toolbox`. In addition to the basic operators this module
-also contains utility tools to enhance the basic algorithms with
-:class:`Statistics`, :class:`HallOfFame`, and :class:`History`.
-"""
+from deap_er.tools import helpers as h
 
-from .constraint import *
-from .crossover import *
-from .emo import *
-from .indicator import *
-from .helpers import *
-from .migration import *
-from .mutation import *
-from .selection import *
-from .support import *
+
+# ====================================================================================== #
+def test_func_a() -> str:
+    return 'gene'
+
+
+def test_func_b() -> list:
+    return [i for i in range(3)]
+
+
+# ====================================================================================== #
+class TestHelpers:
+
+    def test_init_repeat_1(self):
+        rtype = list
+        count = 3
+        result = h.init_repeat(rtype, test_func_a, count)
+        assert isinstance(result, rtype)
+        assert result.count('gene') == count
+        assert len(result) == count
+
+    # -------------------------------------------------------------------------------------- #
+    def test_init_repeat_2(self):
+        rtype = tuple
+        count = 3
+        result = h.init_repeat(rtype, test_func_a, count)
+        assert isinstance(result, rtype)
+        assert len(result) == count
+        assert result.count('gene') == count
+
+    # -------------------------------------------------------------------------------------- #
+    def test_init_iterate_1(self):
+        rtype = list
+        result = h.init_iterate(rtype, test_func_b)
+        assert isinstance(result, rtype)
+        assert result == [0, 1, 2]
+
+    # -------------------------------------------------------------------------------------- #
+    def test_init_iterate_2(self):
+        rtype = tuple
+        result = h.init_iterate(rtype, test_func_b)
+        assert isinstance(result, rtype)
+        assert result == (0, 1, 2)
+
+    # -------------------------------------------------------------------------------------- #
+    def test_init_cycle(self):
+        rtype = list
+        count = 3
+        funcs = {test_func_a, test_func_b}
+        result = h.init_cycle(rtype, funcs, count)
+        assert isinstance(result, rtype)
+        assert len(result) == 6
+        assert result.count('gene') == 3
+        assert result.count([0, 1, 2]) == 3
