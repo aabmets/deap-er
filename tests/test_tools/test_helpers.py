@@ -70,8 +70,19 @@ class TestHelpers:
         assert result == (0, 1, 2)
 
     # -------------------------------------------------------------------------------------- #
-    def test_init_cycle(self):
+    def test_init_cycle_1(self):
         rtype = list
+        count = 3
+        funcs = {test_func_a, test_func_b}
+        result = h.init_cycle(rtype, funcs, count)
+        assert isinstance(result, rtype)
+        assert len(result) == 6
+        assert result.count('gene') == 3
+        assert result.count([0, 1, 2]) == 3
+
+    # -------------------------------------------------------------------------------------- #
+    def test_init_cycle_2(self):
+        rtype = tuple
         count = 3
         funcs = {test_func_a, test_func_b}
         result = h.init_cycle(rtype, funcs, count)
