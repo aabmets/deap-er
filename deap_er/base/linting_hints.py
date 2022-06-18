@@ -26,7 +26,7 @@
 from typing import Callable
 
 
-class DevLintingHints:
+class LintingHints:
 
     __test__: Callable
 
