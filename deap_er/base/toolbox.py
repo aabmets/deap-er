@@ -23,20 +23,20 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from .default_tools import DevLintingHints
 from typing import Callable
 from functools import partial
 from copy import deepcopy
 
 
 # ====================================================================================== #
-class Toolbox:
+class Toolbox(DevLintingHints):
     """
     A container for evolutionary operators.
     `Reference <https://deap.readthedocs.io/en/master/api/base.html#toolbox>`_
     """
 
     # -------------------------------------------------------------------------------------- #
-    __test__: Callable
     clone: partial
     map: partial
 
