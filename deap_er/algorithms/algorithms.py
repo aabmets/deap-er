@@ -2,7 +2,7 @@
 #                                                                                        #
 #   MIT License                                                                          #
 #                                                                                        #
-#   Copyright (c) 2022 The Original DEAP Team, Mattias Aabmets and Contributors          #
+#   Copyright (c) 2022 - Mattias Aabmets and Contributors                                #
 #                                                                                        #
 #   Permission is hereby granted, free of charge, to any person obtaining a copy         #
 #   of this software and associated documentation files (the "Software"), to deal        #
@@ -23,9 +23,9 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .utils.deprecated import deprecated
-from .tools import Logbook, Statistics, HallOfFame
-from .base.toolbox import Toolbox
+from deap_er.utils.deprecated import deprecated
+from deap_er.tools import Logbook, Statistics, HallOfFame
+from deap_er.base.toolbox import Toolbox
 import random
 
 
