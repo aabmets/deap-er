@@ -23,22 +23,56 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from typing import Callable
-from warnings import warn
+from typing import Any
+from pathlib import Path
+import traceback
+import warnings
+import inspect
 
 
 # ====================================================================================== #
-def deprecated(old_name: str, func: Callable) -> Callable:
-    """
-    This decorator wraps a function to notify developers of its old deprecated name.
+warnings.filterwarnings('once', category=DeprecationWarning)
 
-    :param func: Function to be wrapped.
-    :param old_name: The old deprecated name of the function.
+
+# ====================================================================================== #
+def deprecated(old_name: str, obj: Any) -> Any:
+    """
+    This decorator wraps an object to notify developers of its old deprecated name.
+
+    :param old_name: The old deprecated name of the object.
+    :param obj: Object to be wrapped with deprecation warning.
     :return: Function which warns against using the old deprecated name.
     """
-    def wrapper(*args, **kwargs):
-        msg = f'Deprecated function name: \'{old_name}\'. ' \
-              f'Use \'{func.__name__}\' instead.'
-        warn(message=msg, category=DeprecationWarning)
-        return func(*args, **kwargs)
-    return wrapper
+    def warn(obj_type: str, new_name: str):
+        msg = f'\nWARNING! {obj_type} name \'{old_name}\' is deprecated! ' \
+              f'Replace it with \'{new_name}\'!'
+        tb = traceback.extract_stack(limit=4)[0]
+        file = Path(tb.filename)
+        warnings.warn_explicit(
+            message=msg,
+            category=DeprecationWarning,
+            filename=file.name,
+            lineno=tb.lineno
+        )
+
+    if isinstance(obj, property):
+        def wrapper(self):
+            new_name = obj.fget.__name__
+            warn(obj_type='Property', new_name=new_name)
+            return getattr(self, new_name)
+        return property(wrapper)
+
+    elif inspect.isfunction(obj):
+        def wrapper(*args, **kwargs):
+            warn(obj_type='Function', new_name=obj.__name__)
+            return obj(*args, **kwargs)
+        return wrapper
+
+    elif inspect.isclass(obj):
+        class Wrapper(obj):
+            def __init__(self, *args, **kwargs):
+                warn(obj_type='Class', new_name=obj.__name__)
+                super().__init__(*args, **kwargs)
+        return Wrapper
+
+    return None
