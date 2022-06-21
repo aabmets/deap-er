@@ -2,7 +2,7 @@
 #                                                                                        #
 #   MIT License                                                                          #
 #                                                                                        #
-#   Copyright (c) 2022 - Mattias Aabmets and Contributors                                #
+#   Copyright (c) 2022 - Mattias Aabmets, The DEAP Team and Other Contributors           #
 #                                                                                        #
 #   Permission is hereby granted, free of charge, to any person obtaining a copy         #
 #   of this software and associated documentation files (the "Software"), to deal        #
@@ -29,6 +29,9 @@ from typing import Type
 
 
 Container = Type[list | tuple | set | str]
+
+__all__ = ['init_repeat', 'init_iterate', 'init_cycle',
+           'initRepeat', 'initIterate', 'initCycle']
 
 
 # ====================================================================================== #
