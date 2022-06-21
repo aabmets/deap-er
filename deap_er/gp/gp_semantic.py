@@ -25,7 +25,8 @@
 # ====================================================================================== #
 from deap_er.utils.deprecated import deprecated
 from .gp_generator import gen_grow
-from .gp_primitives import Terminal
+from .gp_primitives import *
+from typing import Callable
 import random
 
 
@@ -36,28 +37,31 @@ __all__ = [
 
 
 # ====================================================================================== #
-def mut_semantic(individual, gen_func=None, pset=None, ms=None, min_=2, max_=6):
-    _check(pset, 'mutation')
+def mut_semantic(individual: list, p_set: PrimitiveSetTyped,
+                 gen_func: Callable = None, mut_step: float = None,
+                 min_: int = 2, max_: int = 6) -> tuple:
+
+    _check(p_set, 'mutation')
 
     if gen_func is None:
         gen_func = gen_grow
 
-    tr1 = gen_func(pset, min_, max_)
-    tr2 = gen_func(pset, min_, max_)
+    if mut_step is None:
+        mut_step = random.uniform(0, 2)
 
-    tr1.insert(0, pset.mapping['lf'])
-    tr2.insert(0, pset.mapping['lf'])
+    tr1 = gen_func(p_set, min_, max_)
+    tr2 = gen_func(p_set, min_, max_)
 
-    if ms is None:
-        ms = random.uniform(0, 2)
+    tr1.insert(0, p_set.mapping['lf'])
+    tr2.insert(0, p_set.mapping['lf'])
 
     new_ind = individual
-    new_ind.insert(0, pset.mapping["add"])
-    new_ind.append(pset.mapping["mul"])
+    new_ind.insert(0, p_set.mapping["add"])
+    new_ind.append(p_set.mapping["mul"])
 
-    mutation_step = Terminal(ms, False, object)
+    mutation_step = Terminal(mut_step, False, object)
     new_ind.append(mutation_step)
-    new_ind.append(pset.mapping["sub"])
+    new_ind.append(p_set.mapping["sub"])
 
     new_ind.extend(tr1)
     new_ind.extend(tr2)
@@ -66,7 +70,9 @@ def mut_semantic(individual, gen_func=None, pset=None, ms=None, min_=2, max_=6):
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_semantic(ind1, ind2, gen_func=None, p_set=None, min_=2, max_=6):
+def cx_semantic(ind1: list, ind2: list, p_set: PrimitiveSetTyped,
+                gen_func: Callable = None, min_=2, max_=6) -> tuple:
+
     _check(p_set, 'crossover')
 
     if gen_func is None:
@@ -91,7 +97,7 @@ def cx_semantic(ind1, ind2, gen_func=None, p_set=None, min_=2, max_=6):
 
 
 # -------------------------------------------------------------------------------------- #
-def _check(p_set, op: str):
+def _check(p_set: PrimitiveSetTyped, op: str) -> None:
     for func in ['lf', 'mul', 'add', 'sub']:
         if func not in p_set.mapping:
             err_msg = f'A {func} function is required in order to perform semantic {op}.'

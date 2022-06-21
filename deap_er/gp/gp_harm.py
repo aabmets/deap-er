@@ -24,6 +24,9 @@
 #                                                                                        #
 # ====================================================================================== #
 from deap_er.tools import Logbook
+from deap_er.base.toolbox import Toolbox
+from collections.abc import Sequence
+from typing import Callable
 import random
 import math
 
@@ -32,25 +35,29 @@ __all__ = ['harm']
 
 
 # ====================================================================================== #
-def harm(population, toolbox, cx_prob, mut_prob, ngen,
-         alpha, beta, gamma, rho, nb_model=-1, min_cutoff=20,
-         stats=None, hof=None, verbose=__debug__):
+def harm(population: Sequence, toolbox: Toolbox,
+         cx_prob: float, mut_prob: float, ngen: int,
+         alpha: int, beta: int, gamma: int, rho: int,
+         nb_model: int = -1, min_cutoff: int = 20,
+         stats=None, hof=None, verbose=__debug__) -> tuple[Sequence, Logbook]:
 
     # -------------------------------------------------------------------------------------- #
-    def _harm_target_func(x):
+    def _harm_target_func(x: int) -> float:
         half_life = x * float(alpha) + beta
         hl_1 = gamma * len(population) * math.log(2) / half_life
         hl_2 = math.exp(-math.log(2) * (x - cutoff_size) / half_life)
         return hl_1 * hl_2
 
     # -------------------------------------------------------------------------------------- #
-    def _harm_accept_func(s) -> bool:
+    def _harm_accept_func(s: int) -> bool:
         prob_hist = [t / n if n > 0 else t for n, t in zip(natural_hist, target_hist)]
         prob = prob_hist[s] if s < len(prob_hist) else _harm_target_func(s)
         return random.random() <= prob
 
     # -------------------------------------------------------------------------------------- #
-    def _harm_gen_pop(n, pick_from=None, accept_func=lambda s: True):
+    def _harm_gen_pop(n: int, pick_from: list = None,
+                      accept_func: Callable = lambda s: True) -> tuple:
+
         if pick_from is None:
             pick_from = list()
 

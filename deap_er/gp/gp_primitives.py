@@ -35,7 +35,7 @@ __all__ = ['Terminal', 'Ephemeral', 'Primitive', 'PrimitiveTree',
 
 
 # ====================================================================================== #
-class Terminal(object):
+class Terminal:
     """
     Class that encapsulates terminal primitive in expression.
     Terminals can be values or 0-arity functions.
@@ -313,7 +313,7 @@ class PrimitiveTree(list):
     """
 
     def __init__(self, content):
-        list.__init__(self, content)
+        super().__init__(content)
 
     # -------------------------------------------------------------------------------------- #
     def __deepcopy__(self, memo):

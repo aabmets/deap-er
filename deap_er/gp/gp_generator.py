@@ -24,6 +24,8 @@
 #                                                                                        #
 # ====================================================================================== #
 from deap_er.utils.deprecated import deprecated
+from .gp_primitives import PrimitiveSetTyped
+from typing import Callable
 from inspect import isclass
 import random
 import sys
@@ -38,14 +40,18 @@ __all__ = [
 
 
 # ====================================================================================== #
-def gen_full(p_set, min_, max_, type_=None):
+def gen_full(p_set: PrimitiveSetTyped,
+             min_: int, max_: int, type_=None) -> list:
+
     def condition(height, depth):
-        return depth == height
+        return height == depth
     return generate(p_set, min_, max_, condition, type_)
 
 
 # -------------------------------------------------------------------------------------- #
-def gen_grow(p_set, min_, max_, type_=None):
+def gen_grow(p_set: PrimitiveSetTyped,
+             min_: int, max_: int, type_=None) -> list:
+
     def condition(height, depth):
         cond = random.random() < p_set.terminalRatio
         return depth == height or (depth >= min_ and cond)
@@ -53,13 +59,17 @@ def gen_grow(p_set, min_, max_, type_=None):
 
 
 # -------------------------------------------------------------------------------------- #
-def gen_half_and_half(p_set, min_, max_, type_=None):
-    method = random.choice((genGrow, genFull))
-    return method(p_set, min_, max_, type_)
+def gen_half_and_half(p_set: PrimitiveSetTyped,
+                      min_: int, max_: int, type_=None) -> list:
+
+    func = random.choice((genGrow, genFull))
+    return func(p_set, min_, max_, type_)
 
 
 # -------------------------------------------------------------------------------------- #
-def generate(p_set, min_, max_, condition, type_=None):
+def generate(p_set: PrimitiveSetTyped, min_: int,
+             max_: int, condition: Callable, type_=None) -> list:
+
     err_msg = f'The gp.generate function tried to add a terminal ' \
               f'of type \'{type_}\', but there is none available.'
     if type_ is None:

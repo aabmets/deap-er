@@ -33,8 +33,7 @@ import sys
 
 
 Expr = PrimitiveTree | str
-PSet = PrimitiveSetTyped | PrimitiveSet
-PSets = list[PSet]
+PSets = list[PrimitiveSetTyped]
 Graph = tuple[list, list, dict]
 
 
@@ -47,7 +46,7 @@ __all__ = [
 
 
 # ====================================================================================== #
-def compile_tree(expr: Expr, p_set: PSet) -> Any:
+def compile_tree(expr: Expr, p_set: PrimitiveSetTyped) -> Any:
     code = str(expr)
     if len(p_set.arguments) > 0:
         args = ",".join(arg for arg in p_set.arguments)
@@ -97,7 +96,7 @@ def build_tree_graph(expr: Expr) -> Graph:
 
 
 # -------------------------------------------------------------------------------------- #
-def static_limit(key, max_value):
+def static_limit(key: Callable, max_value: int | float) -> Callable:
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):

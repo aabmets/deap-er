@@ -24,6 +24,7 @@
 #                                                                                        #
 # ====================================================================================== #
 from deap_er.utils.deprecated import deprecated
+from .gp_primitives import PrimitiveTree
 from collections import defaultdict
 from functools import partial
 from operator import eq, lt
@@ -37,7 +38,7 @@ __all__ = [
 
 
 # ====================================================================================== #
-def cx_one_point(ind1, ind2):
+def cx_one_point(ind1: PrimitiveTree, ind2: PrimitiveTree) -> tuple:
     if len(ind1) < 2 or len(ind2) < 2:
         return ind1, ind2
 
@@ -66,14 +67,17 @@ def cx_one_point(ind1, ind2):
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_one_point_leaf_biased(ind1, ind2, term_pb):
+def cx_one_point_leaf_biased(ind1: PrimitiveTree,
+                             ind2: PrimitiveTree,
+                             term_prob: float) -> tuple:
+
     if len(ind1) < 2 or len(ind2) < 2:
         return ind1, ind2
 
     terminal_op = partial(eq, 0)
     primitive_op = partial(lt, 0)
-    arity_op1 = terminal_op if random.random() < term_pb else primitive_op
-    arity_op2 = terminal_op if random.random() < term_pb else primitive_op
+    arity_op1 = terminal_op if random.random() < term_prob else primitive_op
+    arity_op2 = terminal_op if random.random() < term_prob else primitive_op
 
     types1 = defaultdict(list)
     types2 = defaultdict(list)

@@ -24,7 +24,8 @@
 #                                                                                        #
 # ====================================================================================== #
 from deap_er.utils.deprecated import deprecated
-from .gp_primitives import Primitive, Ephemeral
+from .gp_primitives import *
+from typing import Callable
 from inspect import isclass
 import random
 
@@ -39,16 +40,20 @@ __all__ = [
 
 
 # ====================================================================================== #
-def mut_uniform(individual, expr, pset):
+def mut_uniform(individual: PrimitiveTree,
+                expr: Callable, p_set: PrimitiveSetTyped) -> tuple:
+
     index = random.randrange(len(individual))
     slice_ = individual.searchSubtree(index)
     type_ = individual[index].ret
-    individual[slice_] = expr(pset=pset, type_=type_)
+    individual[slice_] = expr(pset=p_set, type_=type_)
     return individual,
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_node_replacement(individual, pset):
+def mut_node_replacement(individual: PrimitiveTree,
+                         p_set: PrimitiveSetTyped) -> tuple:
+
     if len(individual) < 2:
         return individual,
 
@@ -56,19 +61,19 @@ def mut_node_replacement(individual, pset):
     node = individual[index]
 
     if node.arity == 0:
-        term = random.choice(pset.terminals[node.ret])
+        term = random.choice(p_set.terminals[node.ret])
         if isclass(term):
             term = term()
         individual[index] = term
     else:
-        prims = [p for p in pset.primitives[node.ret] if p.args == node.args]
+        prims = [p for p in p_set.primitives[node.ret] if p.args == node.args]
         individual[index] = random.choice(prims)
 
     return individual,
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_ephemeral(individual, mode):
+def mut_ephemeral(individual: PrimitiveTree, mode: str) -> tuple:
     if mode not in ["one", "all"]:
         raise ValueError('Mode must be one of \'one\' or \'all\'.')
 
@@ -88,14 +93,16 @@ def mut_ephemeral(individual, mode):
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_insert(individual, pset):
+def mut_insert(individual: PrimitiveTree,
+               p_set: PrimitiveSetTyped) -> tuple:
+
     index = random.randrange(len(individual))
     node = individual[index]
     slice_ = individual.searchSubtree(index)
     choice = random.choice
 
     primitives = list()
-    for p in pset.primitives[node.ret]:
+    for p in p_set.primitives[node.ret]:
         if node.ret in p.args:
             primitives.append(p)
 
@@ -113,7 +120,7 @@ def mut_insert(individual, pset):
 
     for i, arg_type in enumerate(new_node.args):
         if i != position:
-            term = choice(pset.terminals[arg_type])
+            term = choice(p_set.terminals[arg_type])
             if isclass(term):
                 term = term()
             new_subtree[i] = term
@@ -126,7 +133,7 @@ def mut_insert(individual, pset):
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_shrink(individual):
+def mut_shrink(individual: PrimitiveTree) -> tuple:
     if len(individual) < 3 or individual.height <= 1:
         return individual,
 
