@@ -23,5 +23,5 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .fitness import Fitness
-from .toolbox import Toolbox
+from .fitness import *
+from .toolbox import *

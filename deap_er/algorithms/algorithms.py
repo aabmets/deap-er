@@ -29,6 +29,16 @@ from deap_er.base.toolbox import Toolbox
 import random
 
 
+__all__ = [
+    'var_and', 'varAnd',
+    'var_or', 'varOr',
+    'ea_simple', 'eaSimple',
+    'ea_mu_plus_lambda', 'eaMuPlusLambda',
+    'ea_mu_comma_lambda', 'eaMuCommaLambda',
+    'ea_generate_update', 'eaGenerateUpdate'
+]
+
+
 # ====================================================================================== #
 def var_and(toolbox: Toolbox,
             population: list,

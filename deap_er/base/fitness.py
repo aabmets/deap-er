@@ -28,6 +28,9 @@ from typing import Sequence
 from operator import mul, truediv
 
 
+__all__ = ['Fitness']
+
+
 # ====================================================================================== #
 class Fitness:
     """

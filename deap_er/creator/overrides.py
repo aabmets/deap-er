@@ -29,6 +29,9 @@ import array
 import numpy
 
 
+__all__ = ['_NumpyOverride', '_ArrayOverride']
+
+
 # ====================================================================================== #
 class _NumpyOverride(numpy.ndarray):
     """
