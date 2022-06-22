@@ -23,3 +23,8 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from .hall_of_fame import *
+from .history import *
+from .initializers import *
+from .logbook import *
+from .statistics import *
