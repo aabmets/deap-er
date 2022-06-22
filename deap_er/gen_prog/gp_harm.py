@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.tools import Logbook
+from deap_er.utils import Logbook
 from deap_er.base.toolbox import Toolbox
 from collections.abc import Sequence
 from typing import Callable

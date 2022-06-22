@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.utils.deprecated import deprecated
+from deap_er._deprecated import deprecated
 from .gp_primitives import *
 from typing import Any, Callable
 from functools import wraps

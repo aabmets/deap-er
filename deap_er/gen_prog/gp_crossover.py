@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.utils.deprecated import deprecated
+from deap_er._deprecated import deprecated
 from .gp_primitives import PrimitiveTree
 from collections import defaultdict
 from functools import partial

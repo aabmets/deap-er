@@ -23,87 +23,85 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.utils.deprecated import deprecated
-from .gp_generator import gen_grow
-from .gp_primitives import *
+from deap_er._deprecated import deprecated
+from .gp_primitives import PrimitiveSetTyped
 from typing import Callable
+from inspect import isclass
 import random
+import sys
 
 
 __all__ = [
-    'mut_semantic', 'mutSemantic',
-    'cx_semantic', 'cxSemantic'
+    'gen_full', 'genFull',
+    'gen_grow', 'genGrow',
+    'gen_half_and_half', 'genHalfAndHalf', 'genRamped',
+    'generate'
 ]
 
 
 # ====================================================================================== #
-def mut_semantic(individual: list, p_set: PrimitiveSetTyped,
-                 gen_func: Callable = None, mut_step: float = None,
-                 min_: int = 2, max_: int = 6) -> tuple:
+def gen_full(p_set: PrimitiveSetTyped,
+             min_: int, max_: int, type_=None) -> list:
 
-    _check(p_set, 'mutation')
-
-    if gen_func is None:
-        gen_func = gen_grow
-
-    if mut_step is None:
-        mut_step = random.uniform(0, 2)
-
-    tr1 = gen_func(p_set, min_, max_)
-    tr2 = gen_func(p_set, min_, max_)
-
-    tr1.insert(0, p_set.mapping['lf'])
-    tr2.insert(0, p_set.mapping['lf'])
-
-    new_ind = individual
-    new_ind.insert(0, p_set.mapping["add"])
-    new_ind.append(p_set.mapping["mul"])
-
-    mutation_step = Terminal(mut_step, False, object)
-    new_ind.append(mutation_step)
-    new_ind.append(p_set.mapping["sub"])
-
-    new_ind.extend(tr1)
-    new_ind.extend(tr2)
-
-    return new_ind,
+    def condition(height, depth):
+        return height == depth
+    return generate(p_set, min_, max_, condition, type_)
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_semantic(ind1: list, ind2: list, p_set: PrimitiveSetTyped,
-                gen_func: Callable = None, min_=2, max_=6) -> tuple:
+def gen_grow(p_set: PrimitiveSetTyped,
+             min_: int, max_: int, type_=None) -> list:
 
-    _check(p_set, 'crossover')
-
-    if gen_func is None:
-        gen_func = gen_grow
-
-    tr = gen_func(p_set, min_, max_)
-    tr.insert(0, p_set.mapping['lf'])
-
-    def create_ind(ind, ind_ext):
-        new_ind = ind
-        new_ind.insert(0, p_set.mapping["mul"])
-        new_ind.insert(0, p_set.mapping["add"])
-        new_ind.extend(tr)
-        new_ind.append(p_set.mapping["mul"])
-        new_ind.append(p_set.mapping["sub"])
-        new_ind.append(Terminal(1.0, False, object))
-        new_ind.extend(tr)
-        new_ind.extend(ind_ext)
-        return new_ind
-
-    return create_ind(ind1, ind2), create_ind(ind2, ind1)
+    def condition(height, depth):
+        cond = random.random() < p_set.terminalRatio
+        return depth == height or (depth >= min_ and cond)
+    return generate(p_set, min_, max_, condition, type_)
 
 
 # -------------------------------------------------------------------------------------- #
-def _check(p_set: PrimitiveSetTyped, op: str) -> None:
-    for func in ['lf', 'mul', 'add', 'sub']:
-        if func not in p_set.mapping:
-            err_msg = f'A {func} function is required in order to perform semantic {op}.'
-            raise TypeError(err_msg)
+def gen_half_and_half(p_set: PrimitiveSetTyped,
+                      min_: int, max_: int, type_=None) -> list:
+
+    func = random.choice((genGrow, genFull))
+    return func(p_set, min_, max_, type_)
 
 
 # -------------------------------------------------------------------------------------- #
-mutSemantic = deprecated('mutSemantic', mut_semantic)
-cxSemantic = deprecated('cxSemantic', cx_semantic)
+def generate(p_set: PrimitiveSetTyped, min_: int,
+             max_: int, condition: Callable, type_=None) -> list:
+
+    err_msg = f'The gp.generate function tried to add a terminal ' \
+              f'of type \'{type_}\', but there is none available.'
+    if type_ is None:
+        type_ = p_set.ret
+    expr = list()
+    height = random.randint(min_, max_)
+    stack = [(0, type_)]
+    while len(stack) != 0:
+        depth, type_ = stack.pop()
+        if condition(height, depth):
+            try:
+                term = random.choice(p_set.terminals[type_])
+                if isclass(term):
+                    term = term()
+                expr.append(term)
+            except IndexError:
+                _, _, traceback = sys.exc_info()
+                raise IndexError(err_msg).with_traceback(traceback)
+        else:
+            try:
+                prim = random.choice(p_set.primitives[type_])
+                expr.append(prim)
+                for arg in reversed(prim.args):
+                    stack.append((depth + 1, arg))
+            except IndexError:
+                _, _, traceback = sys.exc_info()
+                raise IndexError(err_msg).with_traceback(traceback)
+    return expr
+
+
+# -------------------------------------------------------------------------------------- #
+genFull = deprecated('genFull', gen_full)
+genGrow = deprecated('genGrow', gen_grow)
+genHalfAndHalf = deprecated('genHalfAndHalf', gen_half_and_half)
+genRamped = deprecated('genRamped', gen_half_and_half)
