@@ -24,63 +24,52 @@
 #                                                                                        #
 # ====================================================================================== #
 from deap_er._deprecated import deprecated
-from copy import deepcopy
+from deap_er.utils import Logbook, Statistics, HallOfFame
+from deap_er.base.toolbox import Toolbox
 
 
-__all__ = ['History']
+__all__ = ['ea_generate_update', 'eaGenerateUpdate']
 
 
-# ====================================================================================== #
-class History:
-    def __init__(self):
-        self.genealogy_index = int()
-        self.genealogy_history = dict()
-        self.genealogy_tree = dict()
+# -------------------------------------------------------------------------------------- #
+def ea_generate_update(toolbox: Toolbox,
+                       ngen: int,
+                       hof: HallOfFame = None,
+                       stats: Statistics = None,
+                       verbose: bool = __debug__) -> tuple[list, Logbook]:
+    """
+    An evolutionary algorithm. This function expects the *generate*, *update*,
+    and *evaluate* operators to be registered in the toolbox.
 
-    # -------------------------------------------------------------------------------------- #
-    @property
-    def decorator(self):
-        def wrapper(func):
-            def wrapped(*args, **kwargs):
-                individuals = func(*args, **kwargs)
-                self.update(individuals)
-                return individuals
-            return wrapped
-        return wrapper
+    :param toolbox: A Toolbox which contains the evolution operators.
+    :param ngen: The number of generations to compute.
+    :param hof: A HallOfFame object, optional.
+    :param stats: A Statistics object, optional.
+    :param verbose: Whether to print debug messages, optional.
+    :return: Tuple of the final population and the logbook.
+    """
+    logbook = Logbook()
+    logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
+    population = None
 
-    # -------------------------------------------------------------------------------------- #
-    def update(self, individuals):
-        try:
-            parent_indices = tuple(ind.history_index for ind in individuals)
-        except AttributeError:
-            parent_indices = tuple()
+    for gen in range(ngen):
+        population = toolbox.generate()
+        fitness = toolbox.map(toolbox.evaluate, population)
+        for ind, fit in zip(population, fitness):
+            ind.fitness.values = fit
 
-        for ind in individuals:
-            self.genealogy_index += 1
-            ind.history_index = self.genealogy_index
-            self.genealogy_history[self.genealogy_index] = deepcopy(ind)
-            self.genealogy_tree[self.genealogy_index] = parent_indices
+        if hof is not None:
+            hof.update(population)
 
-    # -------------------------------------------------------------------------------------- #
-    def get_genealogy(self, individual, max_depth=float("inf")):
-        def _recursive(index, depth):
-            if index not in self.genealogy_tree:
-                return
-            depth += 1
-            if depth > max_depth:
-                return
-            parent_indices = self.genealogy_tree[index]
-            gtree[index] = parent_indices
-            for ind in parent_indices:
-                if ind not in visited:
-                    _recursive(ind, depth)
-                visited.add(ind)
+        toolbox.update(population)
 
-        visited = set()
-        gtree = dict()
+        record = stats.compile(population) if stats is not None else {}
+        logbook.record(gen=gen, nevals=len(population), **record)
+        if verbose:
+            print(logbook.stream)
 
-        _recursive(individual.history_index, 0)
-        return gtree
+    return population, logbook
 
-    # -------------------------------------------------------------------------------------- #
-    getGenealogy = deprecated('getGenealogy', get_genealogy)
+
+# -------------------------------------------------------------------------------------- #
+eaGenerateUpdate = deprecated('eaGenerateUpdate', ea_generate_update)

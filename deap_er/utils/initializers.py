@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.deprecated import deprecated
+from deap_er._deprecated import deprecated
 from collections.abc import Callable, Iterable
 from typing import Type
 
