@@ -23,15 +23,17 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.utils.deprecated import deprecated
+from deap_er.deprecated import deprecated
 from collections.abc import Callable, Iterable
 from typing import Type
 
 
 Container = Type[list | tuple | set | str]
-
-__all__ = ['init_repeat', 'init_iterate', 'init_cycle',
-           'initRepeat', 'initIterate', 'initCycle']
+__all__ = [
+    'init_repeat', 'initRepeat',
+    'init_iterate', 'initIterate',
+    'init_cycle', 'initCycle'
+]
 
 
 # ====================================================================================== #

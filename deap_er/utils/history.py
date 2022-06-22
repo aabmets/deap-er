@@ -23,3 +23,64 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from deap_er.deprecated import deprecated
+from copy import deepcopy
+
+
+__all__ = ['History']
+
+
+# ====================================================================================== #
+class History:
+    def __init__(self):
+        self.genealogy_index = int()
+        self.genealogy_history = dict()
+        self.genealogy_tree = dict()
+
+    # -------------------------------------------------------------------------------------- #
+    @property
+    def decorator(self):
+        def wrapper(func):
+            def wrapped(*args, **kwargs):
+                individuals = func(*args, **kwargs)
+                self.update(individuals)
+                return individuals
+            return wrapped
+        return wrapper
+
+    # -------------------------------------------------------------------------------------- #
+    def update(self, individuals):
+        try:
+            parent_indices = tuple(ind.history_index for ind in individuals)
+        except AttributeError:
+            parent_indices = tuple()
+
+        for ind in individuals:
+            self.genealogy_index += 1
+            ind.history_index = self.genealogy_index
+            self.genealogy_history[self.genealogy_index] = deepcopy(ind)
+            self.genealogy_tree[self.genealogy_index] = parent_indices
+
+    # -------------------------------------------------------------------------------------- #
+    def get_genealogy(self, individual, max_depth=float("inf")):
+        def _recursive(index, depth):
+            if index not in self.genealogy_tree:
+                return
+            depth += 1
+            if depth > max_depth:
+                return
+            parent_indices = self.genealogy_tree[index]
+            gtree[index] = parent_indices
+            for ind in parent_indices:
+                if ind not in visited:
+                    _recursive(ind, depth)
+                visited.add(ind)
+
+        visited = set()
+        gtree = dict()
+
+        _recursive(individual.history_index, 0)
+        return gtree
+
+    # -------------------------------------------------------------------------------------- #
+    getGenealogy = deprecated('getGenealogy', get_genealogy)

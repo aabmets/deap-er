@@ -23,3 +23,50 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from functools import partial
+from typing import Callable, Sequence
+
+
+__all__ = ['Statistics', 'MultiStatistics']
+
+
+# ====================================================================================== #
+class Statistics:
+
+    def __init__(self, key: Callable = None):
+        self.key = key if key else lambda obj: obj
+        self.functions = dict()
+        self.fields = list()
+
+    # -------------------------------------------------------------------------------------- #
+    def register(self, name: str, func: Callable, *args, **kwargs):
+        self.functions[name] = partial(func, *args, **kwargs)
+        self.fields.append(name)
+
+    # -------------------------------------------------------------------------------------- #
+    def compile(self, data: Sequence) -> dict:
+        entry = dict()
+        values = tuple(self.key(elem) for elem in data)
+        for key, func in self.functions.items():
+            entry[key] = func(values)
+        return entry
+
+
+# ====================================================================================== #
+class MultiStatistics(dict):
+
+    @property
+    def fields(self):
+        return sorted(self.keys())
+
+    # -------------------------------------------------------------------------------------- #
+    def register(self, name: str, func: Callable, *args, **kwargs) -> None:
+        for stats in self.values():
+            stats.register(name, func, *args, **kwargs)
+
+    # -------------------------------------------------------------------------------------- #
+    def compile(self, data: Sequence) -> dict:
+        record = dict()
+        for name, stats in self.items():
+            record[name] = stats.compile(data)
+        return record
