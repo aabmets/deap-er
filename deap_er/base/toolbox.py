@@ -23,7 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .linting_hints import LintingHints
 from typing import Callable
 from functools import partial
 from copy import deepcopy
@@ -33,7 +32,20 @@ __all__ = ['Toolbox']
 
 
 # ====================================================================================== #
-class Toolbox(LintingHints):
+class LintHints:
+
+    __test__: Callable
+
+    generate: Callable
+    evaluate: Callable
+    update: Callable
+    mutate: Callable
+    select: Callable
+    mate: Callable
+
+
+# ====================================================================================== #
+class Toolbox(LintHints):
     """
     A container for evolutionary operators.
     `Reference <https://deap.readthedocs.io/en/master/api/base.html#toolbox>`_
