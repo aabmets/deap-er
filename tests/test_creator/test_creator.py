@@ -24,7 +24,7 @@
 #                                                                                        #
 # ====================================================================================== #
 from deap_er.creator import overrides
-from deap_er import creator
+from deap_er.creator import creator
 import pytest
 import numpy
 import array
@@ -32,7 +32,6 @@ import array
 
 # ====================================================================================== #
 def test_creator_overwrite_warning():
-    creator.create('_DevTestClass', int)
     with pytest.warns(RuntimeWarning):
         creator.create('_DevTestClass', int)
 

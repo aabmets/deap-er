@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.tools import helpers as h
+from deap_er.utils import initializers as iz_ers
 
 
 # ====================================================================================== #
@@ -41,7 +41,7 @@ class TestHelpers:
     def test_init_repeat_1(self):
         rtype = list
         count = 3
-        result = h.init_repeat(rtype, test_func_a, count)
+        result = iz_ers.init_repeat(rtype, test_func_a, count)
         assert isinstance(result, rtype)
         assert result.count('gene') == count
         assert len(result) == count
@@ -50,7 +50,7 @@ class TestHelpers:
     def test_init_repeat_2(self):
         rtype = tuple
         count = 3
-        result = h.init_repeat(rtype, test_func_a, count)
+        result = iz_ers.init_repeat(rtype, test_func_a, count)
         assert isinstance(result, rtype)
         assert len(result) == count
         assert result.count('gene') == count
@@ -58,14 +58,14 @@ class TestHelpers:
     # -------------------------------------------------------------------------------------- #
     def test_init_iterate_1(self):
         rtype = list
-        result = h.init_iterate(rtype, test_func_b)
+        result = iz_ers.init_iterate(rtype, test_func_b)
         assert isinstance(result, rtype)
         assert result == [0, 1, 2]
 
     # -------------------------------------------------------------------------------------- #
     def test_init_iterate_2(self):
         rtype = tuple
-        result = h.init_iterate(rtype, test_func_b)
+        result = iz_ers.init_iterate(rtype, test_func_b)
         assert isinstance(result, rtype)
         assert result == (0, 1, 2)
 
@@ -74,7 +74,7 @@ class TestHelpers:
         rtype = list
         count = 3
         funcs = {test_func_a, test_func_b}
-        result = h.init_cycle(rtype, funcs, count)
+        result = iz_ers.init_cycle(rtype, funcs, count)
         assert isinstance(result, rtype)
         assert len(result) == 6
         assert result.count('gene') == 3
@@ -85,7 +85,7 @@ class TestHelpers:
         rtype = tuple
         count = 3
         funcs = {test_func_a, test_func_b}
-        result = h.init_cycle(rtype, funcs, count)
+        result = iz_ers.init_cycle(rtype, funcs, count)
         assert isinstance(result, rtype)
         assert len(result) == 6
         assert result.count('gene') == 3
