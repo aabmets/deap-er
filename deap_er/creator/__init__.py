@@ -23,6 +23,4 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-class _DevTestClass:  # pragma: no cover
-    def __init__(self, *_, **__):
-        pass
+from . import creator

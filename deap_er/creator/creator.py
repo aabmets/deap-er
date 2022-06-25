@@ -31,6 +31,12 @@ __all__ = ['create']
 
 
 # ====================================================================================== #
+class _DevTestClass:  # pragma: no cover
+    def __init__(self, *_, **__):
+        pass
+
+
+# ====================================================================================== #
 def create(name: str, base: type | object, **kwargs) -> None:
     """
     Creates a new class named *name*, which inherits from the *base* class.
