@@ -23,19 +23,14 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-"""
-A module that provides support for the Covariance Matrix Adaptation Evolution Strategy.
-"""
 from deap_er import tools
-from math import sqrt, log, exp
+from math import sqrt, exp
 import numpy
-import copy
 
 
 # ====================================================================================== #
-class StrategyMultiObjective(object):
-    """
-    Multiobjective CMA-ES strategy based on the paper [Voss2010]_. It
+class StrategyMultiObjective:
+    """Multiobjective CMA-ES strategy based on the paper [Voss2010]_. It
     is used similarly as the standard CMA-ES strategy with a generate-update
     scheme.
 
@@ -71,8 +66,6 @@ class StrategyMultiObjective(object):
        for the MO-CMA-ES", 2010.
 
     """
-
-    # -------------------------------------------------------------------------------------- #
     def __init__(self, population, sigma, **params):
         self.parents = population
         self.dim = len(self.parents[0])
@@ -102,7 +95,6 @@ class StrategyMultiObjective(object):
 
         self.indicator = params.get("indicator", tools.hypervolume)
 
-    # -------------------------------------------------------------------------------------- #
     def generate(self, ind_init):
         """Generate a population of :math:`\lambda` individuals of type
         *ind_init* from the current strategy.
@@ -139,7 +131,6 @@ class StrategyMultiObjective(object):
 
         return individuals
 
-    # -------------------------------------------------------------------------------------- #
     def _select(self, candidates):
         if len(candidates) <= self.mu:
             return candidates, []
@@ -150,30 +141,37 @@ class StrategyMultiObjective(object):
         mid_front = None
         not_chosen = list()
 
+        # Fill the next population (chosen) with the fronts until there is not enough space
+        # When an entire front does not fit in the space left we rely on the hypervolume
+        # for this front
+        # The remaining fronts are explicitly not chosen
         full = False
         for front in pareto_fronts:
             if len(chosen) + len(front) <= self.mu and not full:
                 chosen += front
             elif mid_front is None and len(chosen) < self.mu:
                 mid_front = front
+                # With this front, we selected enough individuals
                 full = True
             else:
                 not_chosen += front
 
+        # Separate the mid front to accept only k individuals
         k = self.mu - len(chosen)
         if k > 0:
-            ref_point = numpy.array([ind.fitness.wvalues for ind in candidates]) * -1
-            ref_point = numpy.max(ref_point, axis=0) + 1
+            # reference point is chosen in the complete population
+            # as the worst in each dimension +1
+            ref = numpy.array([ind.fitness.wvalues for ind in candidates]) * -1
+            ref = numpy.max(ref, axis=0) + 1
 
             for _ in range(len(mid_front) - k):
-                idx = self.indicator(mid_front, ref=ref_point)
+                idx = self.indicator(mid_front, ref=ref)
                 not_chosen.append(mid_front.pop(idx))
 
             chosen += mid_front
 
         return chosen, not_chosen
 
-    # -------------------------------------------------------------------------------------- #
     def _rankOneUpdate(self, invCholesky, A, alpha, beta, v):
         w = numpy.dot(invCholesky, v)
 
@@ -190,7 +188,6 @@ class StrategyMultiObjective(object):
 
         return invCholesky, A
 
-    # -------------------------------------------------------------------------------------- #
     def update(self, population):
         """Update the current covariance matrix strategies from the
         *population*.

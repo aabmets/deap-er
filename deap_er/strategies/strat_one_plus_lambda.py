@@ -23,17 +23,13 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-"""
-A module that provides support for the Covariance Matrix Adaptation Evolution Strategy.
-"""
-from deap_er import tools
-from math import sqrt, log, exp
+from math import sqrt, exp
 import numpy
 import copy
 
 
 # ====================================================================================== #
-class StrategyOnePlusLambda(object):
+class StrategyOnePlusLambda:
     """
     A CMA-ES strategy that uses the :math:`1 + \lambda` paradigm ([Igel2007]_).
 
@@ -71,8 +67,6 @@ class StrategyOnePlusLambda(object):
     multi-objective optimization. *Evolutionary Computation* Spring;15(1):1-28
 
     """
-
-    # -------------------------------------------------------------------------------------- #
     def __init__(self, parent, sigma, **kargs):
         self.parent = parent
         self.sigma = sigma
@@ -86,10 +80,8 @@ class StrategyOnePlusLambda(object):
         self.computeParams(kargs)
         self.psucc = self.ptarg
 
-    # -------------------------------------------------------------------------------------- #
     def computeParams(self, params):
-        """
-        Computes the parameters depending on :math:`\lambda`. It needs to
+        """Computes the parameters depending on :math:`\lambda`. It needs to
         be called again if :math:`\lambda` changes during evolution.
 
         :param params: A dictionary of the manually set parameters.
@@ -107,10 +99,8 @@ class StrategyOnePlusLambda(object):
         self.ccov = params.get("ccov", 2.0 / (self.dim ** 2 + 6.0))
         self.pthresh = params.get("pthresh", 0.44)
 
-    # -------------------------------------------------------------------------------------- #
     def generate(self, ind_init):
-        """
-        Generate a population of :math:`\lambda` individuals of type
+        """Generate a population of :math:`\lambda` individuals of type
         *ind_init* from the current strategy.
 
         :param ind_init: A function object that is able to initialize an
@@ -120,12 +110,10 @@ class StrategyOnePlusLambda(object):
         # self.y = numpy.dot(self.A, numpy.random.standard_normal(self.dim))
         arz = numpy.random.standard_normal((self.lambda_, self.dim))
         arz = self.parent + self.sigma * numpy.dot(arz, self.A.T)
-        return list(map(ind_init, arz))
+        return map(ind_init, arz)
 
-    # -------------------------------------------------------------------------------------- #
     def update(self, population):
-        """
-        Update the current covariance matrix strategy from the
+        """Update the current covariance matrix strategy from the
         *population*.
 
         :param population: A list of individuals from which to update the

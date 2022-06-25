@@ -23,13 +23,8 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-"""
-A module that provides support for the Covariance Matrix Adaptation Evolution Strategy.
-"""
-from deap_er import tools
-from math import sqrt, log, exp
+from math import sqrt, log
 import numpy
-import copy
 
 
 # ====================================================================================== #
@@ -87,8 +82,6 @@ class Strategy:
        Self-Adaptation in Evolution Strategies. *Evolutionary Computation*
 
     """
-
-    # -------------------------------------------------------------------------------------- #
     def __init__(self, centroid, sigma, **kargs):
         self.params = kargs
 
@@ -116,7 +109,6 @@ class Strategy:
         self.update_count = 0
         self.computeParams(self.params)
 
-    # -------------------------------------------------------------------------------------- #
     def generate(self, ind_init):
         """Generate a population of :math:`\lambda` individuals of type
         *ind_init* from the current strategy.
@@ -127,9 +119,8 @@ class Strategy:
         """
         arz = numpy.random.standard_normal((self.lambda_, self.dim))
         arz = self.centroid + self.sigma * numpy.dot(arz, self.BD.T)
-        return list(map(ind_init, arz))
+        return map(ind_init, arz)
 
-    # -------------------------------------------------------------------------------------- #
     def update(self, population):
         """Update the current covariance matrix strategy from the
         *population*.
@@ -180,7 +171,6 @@ class Strategy:
         self.B = self.B[:, indx]
         self.BD = self.B * self.diagD
 
-    # -------------------------------------------------------------------------------------- #
     def computeParams(self, params):
         """Computes the parameters depending on :math:`\lambda`. It needs to
         be called again if :math:`\lambda` changes during evolution.
@@ -203,14 +193,9 @@ class Strategy:
         self.mueff = 1. / sum(self.weights ** 2)
 
         self.cc = params.get("ccum", 4. / (self.dim + 4.))
-        self.cs = params.get("cs", (self.mueff + 2.) /
-                             (self.dim + self.mueff + 3.))
-        self.ccov1 = params.get("ccov1", 2. / ((self.dim + 1.3) ** 2 +
-                                               self.mueff))
-        self.ccovmu = params.get("ccovmu", 2. * (self.mueff - 2. +
-                                                 1. / self.mueff) /
-                                 ((self.dim + 2.) ** 2 + self.mueff))
+        self.cs = params.get("cs", (self.mueff + 2.) / (self.dim + self.mueff + 3.))
+        self.ccov1 = params.get("ccov1", 2. / ((self.dim + 1.3) ** 2 + self.mueff))
+        self.ccovmu = params.get("ccovmu", 2. * (self.mueff - 2. + 1. / self.mueff) / ((self.dim + 2.) ** 2 + self.mueff))
         self.ccovmu = min(1 - self.ccov1, self.ccovmu)
-        self.damps = 1. + 2. * max(0, sqrt((self.mueff - 1.) /
-                                           (self.dim + 1.)) - 1.) + self.cs
+        self.damps = 1. + 2. * max(0., sqrt((self.mueff - 1.) / (self.dim + 1.)) - 1.) + self.cs
         self.damps = params.get("damps", self.damps)

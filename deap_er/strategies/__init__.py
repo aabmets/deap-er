@@ -23,3 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from .strat_basic import *
+from .strat_multi_objective import *
+from .strat_one_plus_lambda import *
