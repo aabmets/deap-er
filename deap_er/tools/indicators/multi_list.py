@@ -2,7 +2,7 @@
 #                                                                                        #
 #   MIT License                                                                          #
 #                                                                                        #
-#   Copyright (c) 2022 The Original DEAP Team, Mattias Aabmets and Contributors          #
+#   Copyright (c) 2022 - Mattias Aabmets, The DEAP Team and Other Contributors           #
 #                                                                                        #
 #   Permission is hereby granted, free of charge, to any person obtaining a copy         #
 #   of this software and associated documentation files (the "Software"), to deal        #
@@ -23,94 +23,74 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from node import Node
+from deap_er._deprecated import deprecated
+from collections.abc import Iterable, MutableSequence
+from .node import Node
 
 
 # ====================================================================================== #
 class MultiList:
     """
-    A special data structure needed by FonsecaHyperVolume.
+    A special data structure needed by the Fonseca HyperVolume indicator.
     It consists of several doubly linked lists that share common nodes.
     Every node has multiple predecessors and successors, one in every list.
     """
 
     # -------------------------------------------------------------------------------------- #
-    def __init__(self, dimensions):
-        """
-        Constructor.
-        Builds 'numberLists' doubly linked lists.
-        """
-        self.numberLists = dimensions
+    def __init__(self, dimensions: int) -> None:
+        self.dimensions = dimensions
         self.sentinel = Node(dimensions)
         self.sentinel.next = [self.sentinel] * dimensions
         self.sentinel.prev = [self.sentinel] * dimensions
 
     # -------------------------------------------------------------------------------------- #
     def __str__(self):
-        """
-        Returns the string representation of the internal numberLists variable.
-        """
-        strings = []
-        for i in range(self.numberLists):
-            current_list = []
+        strings = list()
+        for i in range(self.dimensions):
+            current_list = list()
             node = self.sentinel.next[i]
             while node != self.sentinel:
                 current_list.append(str(node))
                 node = node.next[i]
             strings.append(str(current_list))
-        string_repr = ""
+        _repr = str()
         for string in strings:
-            string_repr += string + "\n"
-        return string_repr
+            _repr += string + "\n"
+        return _repr
 
     # -------------------------------------------------------------------------------------- #
     def __len__(self):
-        """
-        Returns the number of lists that are included in this MultiList.
-        """
-        return self.numberLists
+        return self.dimensions
 
     # -------------------------------------------------------------------------------------- #
-    def getLength(self, i):
-        """
-        Returns the length of the i-th list.
-        """
+    def get_length(self, index: int) -> int:
         length = 0
-        node = self.sentinel.next[i]
+        node = self.sentinel.next[index]
         while node != self.sentinel:
+            node = node.next[index]
             length += 1
-            node = node.next[i]
         return length
 
     # -------------------------------------------------------------------------------------- #
-    def append(self, node, index):
-        """
-        Appends a node to the end of the list at the given index.
-        """
-        last_but_one = self.sentinel.prev[index]
+    def append(self, node: Node, index: int) -> None:
+        penultimate = self.sentinel.prev[index]
         node.next[index] = self.sentinel
-        node.prev[index] = last_but_one
+        node.prev[index] = penultimate
         self.sentinel.prev[index] = node
-        last_but_one.next[index] = node
+        penultimate.next[index] = node
 
     # -------------------------------------------------------------------------------------- #
-    def extend(self, nodes, index):
-        """
-        Extends the list at the given index with the nodes.
-        """
-        sentinel = self.sentinel
+    def extend(self, nodes: Iterable[Node], index: int) -> None:
         for node in nodes:
-            last_but_one = sentinel.prev[index]
-            node.next[index] = sentinel
-            node.prev[index] = last_but_one
-            sentinel.prev[index] = node
-            last_but_one.next[index] = node
+            penultimate = self.sentinel.prev[index]
+            node.next[index] = self.sentinel
+            node.prev[index] = penultimate
+            self.sentinel.prev[index] = node
+            penultimate.next[index] = node
 
     # -------------------------------------------------------------------------------------- #
-    def remove(self, node, index, bounds):
-        """
-        Removes and returns 'node' from all lists in [0, 'index'[.
-        """
+    @staticmethod
+    def remove(node: Node, index: int, bounds: MutableSequence) -> Node:
         for i in range(index):
             predecessor = node.prev[i]
             successor = node.next[i]
@@ -121,14 +101,13 @@ class MultiList:
         return node
 
     # -------------------------------------------------------------------------------------- #
-    def reinsert(self, node, index, bounds):
-        """
-        Inserts 'node' at the position it had in all lists in [0, 'index'[
-        before it was removed. This method assumes that the next and previous
-        nodes of the node that is reinserted are in the list.
-        """
+    @staticmethod
+    def reinsert(node: Node, index: int, bounds: MutableSequence) -> None:
         for i in range(index):
             node.prev[i].next[i] = node
             node.next[i].prev[i] = node
             if bounds[i] > node.cargo[i]:
                 bounds[i] = node.cargo[i]
+
+    # -------------------------------------------------------------------------------------- #
+    getLength = deprecated('getLength', get_length)

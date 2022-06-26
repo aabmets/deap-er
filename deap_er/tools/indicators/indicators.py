@@ -2,7 +2,7 @@
 #                                                                                        #
 #   MIT License                                                                          #
 #                                                                                        #
-#   Copyright (c) 2022 The Original DEAP Team, Mattias Aabmets and Contributors          #
+#   Copyright (c) 2022 - Mattias Aabmets, The DEAP Team and Other Contributors           #
 #                                                                                        #
 #   Permission is hereby granted, free of charge, to any person obtaining a copy         #
 #   of this software and associated documentation files (the "Software"), to deal        #
@@ -23,35 +23,28 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from tools.hyper_volume import hypervolume as compute_hv
+from .hypervolume import hypervolume
+from collections.abc import Sequence
 import numpy
 
 
-__all__ = ["hypervolume"]
+__all__ = ['least_contrib']
 
 
 # ====================================================================================== #
-def hypervolume(front, **kwargs):
+def least_contrib(front: Sequence, **kwargs):
     """
-    Returns the index of the individual with the least the hypervolume
-    contribution. The provided *front* should be a set of non-dominated
-    individuals having each a :attr:`fitness` attribute.
+    Returns the index of the individual with the least hypervolume contribution.
+    The *individuals* argument should be a sequence of non-dominated
+    individuals each with a `fitness` attribute.
     """
-    # Must use w_values * -1 since hypervolume uses implicit
-    # minimization and minimization in deap use max on -obj
-    w_obj = numpy.array([ind.fitness.wvalues for ind in front]) * -1
-    ref_point = kwargs.get("ref", None)
-    if ref_point is None:
-        ref_point = numpy.max(w_obj, axis=0) + 1
+    wobj = numpy.array([ind.fitness.wvalues for ind in front]) * -1
+    ref = kwargs.get("ref", None)
+    if ref is None:
+        ref = numpy.max(wobj, axis=0) + 1
 
     def contribution(i):
-        # The contribution of point p_i in point set P
-        # is the hypervolume of P without p_i
-        point_set = numpy.concatenate((w_obj[:i], w_obj[i+1:]))
-        return compute_hv(point_set, ref_point)
+        return hypervolume(numpy.concatenate((wobj[:i], wobj[i+1:])), ref)
 
-    # Parallelization note: Cannot pickle local function
-    contrib_values = list(map(contribution, list(range(len(front)))))
-
-    # Select the maximum hypervolume value (correspond to the minimum difference)
+    contrib_values = map(contribution, range(len(front)))
     return numpy.argmax(contrib_values)

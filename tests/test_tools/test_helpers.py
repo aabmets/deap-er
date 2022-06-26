@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.utils import initializers as iz_ers
+from deap_er.tools import initializers as iz_ers
 
 
 # ====================================================================================== #

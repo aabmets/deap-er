@@ -23,6 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from deap_er._deprecated import deprecated
 from collections.abc import Sequence
 from itertools import repeat
 import random
@@ -30,79 +31,51 @@ import math
 
 
 __all__ = [
-    'mutGaussian', 'mutPolynomialBounded', 'mutShuffleIndexes',
-    'mutFlipBit', 'mutUniformInt', 'mutESLogNormal'
+    'mut_gaussian', 'mutGaussian',
+    'mut_polynomial_bounded', 'mutPolynomialBounded',
+    'mut_shuffle_indexes', 'mutShuffleIndexes',
+    'mut_flip_bit', 'mutFlipBit',
+    'mut_uniform_int', 'mutUniformInt',
+    'mut_es_log_normal', 'mutESLogNormal'
 ]
 
 
 # ====================================================================================== #
-#   GA Mutations                                                                         #
-# ====================================================================================== #
-def mutGaussian(individual, mu, sigma, indpb):
-    """
-    This function applies a gaussian mutation of mean *mu* and standard
-    deviation *sigma* on the input individual. This mutation expects a
-    :term:`sequence` individual composed of real valued attributes.
-    The *indpb* argument is the probability of each attribute to be mutated.
-
-    :param individual: Individual to be mutated.
-    :param mu: Mean or :term:`python:sequence` of means for the
-               gaussian addition mutation.
-    :param sigma: Standard deviation or :term:`python:sequence` of
-                  standard deviations for the gaussian addition mutation.
-    :param indpb: Independent probability for each attribute to be mutated.
-    :returns: A tuple of one individual.
-
-    This function uses the :func:`~random.random` and :func:`~random.gauss`
-    functions from the python base :mod:`random` module.
-    """
+def _check_bounds(individual, var1, var1_str, var2, var2_str) -> tuple:
+    err_msg = '{0} must be at least the size of individual: {1} < {2}'
     size = len(individual)
-    if not isinstance(mu, Sequence):
-        mu = repeat(mu, size)
-    elif len(mu) < size:
-        msg = f'Mu must be at least the size of individual: {len(mu)} < {size}'
-        raise IndexError(msg)
-    if not isinstance(sigma, Sequence):
-        sigma = repeat(sigma, size)
-    elif len(sigma) < size:
-        msg = f'Sigma must be at least the size of individual: {len(sigma)} < {size}'
+
+    if not isinstance(var1, Sequence):
+        var1 = repeat(var1, size)
+    elif len(var1) < size:
+        msg = err_msg.format(var1_str, len(var1), size)
         raise IndexError(msg)
 
-    for i, m, s in zip(list(range(size)), mu, sigma):
-        if random.random() < indpb:
+    if not isinstance(var2, Sequence):
+        var2 = repeat(var2, size)
+    elif len(var2) < size:
+        msg = err_msg.format(var2_str, len(var2), size)
+        raise IndexError(msg)
+
+    return var1, var2
+
+
+# -------------------------------------------------------------------------------------- #
+def mut_gaussian(individual, mu, sigma, ind_pb) -> tuple:
+    mu, sigma = _check_bounds(individual, mu, 'mu', sigma, 'sigma')
+
+    for i, m, s in zip(list(range(len(individual))), mu, sigma):
+        if random.random() < ind_pb:
             individual[i] += random.gauss(m, s)
 
     return individual,
 
 
 # -------------------------------------------------------------------------------------- #
-def mutPolynomialBounded(individual, eta, low, up, indpb):
-    """
-    Polynomial mutation as implemented in original NSGA-II algorithm in C by Deb.
+def mut_polynomial_bounded(individual, eta, low, up, indpb):
+    low, up = _check_bounds(individual, low, 'low', up, 'up')
 
-    :param individual: :term:`Sequence <sequence>` individual to be mutated.
-    :param eta: Crowding degree of the mutation. A high eta will produce
-                a mutant resembling its parent, while a small eta will
-                produce a solution much more different.
-    :param low: A value or a :term:`python:sequence` of values that
-                is the lower bound of the search space.
-    :param up: A value or a :term:`python:sequence` of values that
-               is the upper bound of the search space.
-    :returns: A tuple of one individual.
-    """
-    size = len(individual)
-    if not isinstance(low, Sequence):
-        low = repeat(low, size)
-    elif len(low) < size:
-        msg = f'Low must be at least the size of individual: {len(low)} < {size}.'
-        raise IndexError(msg)
-    if not isinstance(up, Sequence):
-        up = repeat(up, size)
-    elif len(up) < size:
-        msg = f'Up must be at least the size of individual: {len(up)} < {size}.'
-        raise IndexError(msg)
-
-    for i, xl, xu in zip(list(range(size)), low, up):
+    for i, xl, xu in zip(list(range(len(individual))), low, up):
         if random.random() <= indpb:
             x = individual[i]
             delta_1 = (x - xl) / (xu - xl)
@@ -122,28 +95,15 @@ def mutPolynomialBounded(individual, eta, low, up, indpb):
             x = x + delta_q * (xu - xl)
             x = min(max(x, xl), xu)
             individual[i] = x
+
     return individual,
 
 
 # -------------------------------------------------------------------------------------- #
-def mutShuffleIndexes(individual, indpb):
-    """
-    Shuffle the attributes of the input individual and return the mutant.
-    The *individual* is expected to be a :term:`sequence`. The *indpb* argument is the
-    probability of each attribute to be moved. Usually this mutation is applied on
-    vector of indices.
-
-    :param individual: Individual to be mutated.
-    :param indpb: Independent probability for each attribute to be exchanged to
-                  another position.
-    :returns: A tuple of one individual.
-
-    This function uses the :func:`~random.random` and :func:`~random.randint`
-    functions from the python base :mod:`random` module.
-    """
+def mut_shuffle_indexes(individual, ind_pb):
     size = len(individual)
     for i in range(size):
-        if random.random() < indpb:
+        if random.random() < ind_pb:
             swap_indx = random.randint(0, size - 2)
             if swap_indx >= i:
                 swap_indx += 1
@@ -154,91 +114,27 @@ def mutShuffleIndexes(individual, indpb):
 
 
 # -------------------------------------------------------------------------------------- #
-def mutFlipBit(individual, indpb):
-    """
-    Flip the value of the attributes of the input individual and return the
-    mutant. The *individual* is expected to be a :term:`sequence` and the values of the
-    attributes shall stay valid after the ``not`` operator is called on them.
-    The *indpb* argument is the probability of each attribute to be
-    flipped. This mutation is usually applied on boolean individuals.
-
-    :param individual: Individual to be mutated.
-    :param indpb: Independent probability for each attribute to be flipped.
-    :returns: A tuple of one individual.
-
-    This function uses the :func:`~random.random` function from the python base
-    :mod:`random` module.
-    """
+def mut_flip_bit(individual, ind_pb) -> tuple:
     for i in range(len(individual)):
-        if random.random() < indpb:
+        if random.random() < ind_pb:
             individual[i] = type(individual[i])(not individual[i])
 
     return individual,
 
 
 # -------------------------------------------------------------------------------------- #
-def mutUniformInt(individual, low, up, indpb):
-    """
-    Mutate an individual by replacing attributes, with probability *indpb*,
-    by a integer uniformly drawn between *low* and *up* inclusively.
+def mut_uniform_int(individual, low, up, ind_pb) -> tuple:
+    low, up = _check_bounds(individual, low, 'low', up, 'up')
 
-    :param individual: :term:`Sequence <sequence>` individual to be mutated.
-    :param low: The lower bound or a :term:`python:sequence` of
-                of lower bounds of the range from which to draw the new
-                integer.
-    :param up: The upper bound or a :term:`python:sequence` of
-               of upper bounds of the range from which to draw the new
-               integer.
-    :param indpb: Independent probability for each attribute to be mutated.
-    :returns: A tuple of one individual.
-    """
-    size = len(individual)
-    if not isinstance(low, Sequence):
-        low = repeat(low, size)
-    elif len(low) < size:
-        msg = f'Low must be at least the size of individual: {len(low)} < {size}.'
-        raise IndexError(msg)
-    if not isinstance(up, Sequence):
-        up = repeat(up, size)
-    elif len(up) < size:
-        msg = f'Up must be at least the size of individual: {len(up)} < {size}.'
-        raise IndexError(msg)
-
-    for i, xl, xu in zip(list(range(size)), low, up):
-        if random.random() < indpb:
+    for i, xl, xu in zip(list(range(len(individual))), low, up):
+        if random.random() < ind_pb:
             individual[i] = random.randint(xl, xu)
 
     return individual,
 
 
-# ====================================================================================== #
-#   ES Mutations                                                                         #
-# ====================================================================================== #
-def mutESLogNormal(individual, c, indpb):
-    r"""
-    Mutate an evolution strategy according to its :attr:`strategy`
-    attribute as described in [Beyer2002]_. First the strategy is mutated
-    according to an extended log normal rule, :math:`\\boldsymbol{\sigma}_t =
-    \\exp(\\tau_0 \mathcal{N}_0(0, 1)) \\left[ \\sigma_{t-1, 1}\\exp(\\tau
-    \mathcal{N}_1(0, 1)), \ldots, \\sigma_{t-1, n} \\exp(\\tau
-    \mathcal{N}_n(0, 1))\\right]`, with :math:`\\tau_0 =
-    \\frac{c}{\\sqrt{2n}}` and :math:`\\tau = \\frac{c}{\\sqrt{2\\sqrt{n}}}`,
-    the the individual is mutated by a normal distribution of mean 0 and
-    standard deviation of :math:`\\boldsymbol{\sigma}_{t}` (its current
-    strategy) then . A recommended choice is ``c=1`` when using a :math:`(10,
-    100)` evolution strategy [Beyer2002]_ [Schwefel1995]_.
-
-    :param individual: :term:`Sequence <sequence>` individual to be mutated.
-    :param c: The learning parameter.
-    :param indpb: Independent probability for each attribute to be mutated.
-    :returns: A tuple of one individual.
-
-    .. [Beyer2002] Beyer and Schwefel, 2002, Evolution strategies - A
-       Comprehensive Introduction
-
-    .. [Schwefel1995] Schwefel, 1995, Evolution and Optimum Seeking.
-       Wiley, New York, NY
-    """
+# -------------------------------------------------------------------------------------- #
+def mut_es_log_normal(individual, c, ind_pb):
     size = len(individual)
     t = c / math.sqrt(2. * math.sqrt(size))
     t0 = c / math.sqrt(2. * size)
@@ -246,8 +142,17 @@ def mutESLogNormal(individual, c, indpb):
     t0_n = t0 * n
 
     for indx in range(size):
-        if random.random() < indpb:
+        if random.random() < ind_pb:
             individual.strategy[indx] *= math.exp(t0_n + t * random.gauss(0, 1))
             individual[indx] += individual.strategy[indx] * random.gauss(0, 1)
 
     return individual,
+
+
+# -------------------------------------------------------------------------------------- #
+mutGaussian = deprecated('mutGaussian', mut_gaussian)
+mutPolynomialBounded = deprecated('mutPolynomialBounded', mut_polynomial_bounded)
+mutShuffleIndexes = deprecated('mutShuffleIndexes', mut_shuffle_indexes)
+mutFlipBit = deprecated('mutFlipBit', mut_flip_bit)
+mutUniformInt = deprecated('mutUniformInt', mut_uniform_int)
+mutESLogNormal = deprecated('mutESLogNormal', mut_es_log_normal)

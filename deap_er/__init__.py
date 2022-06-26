@@ -23,8 +23,10 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .creator import creator
+from . import algorithms
 from . import base
-# from . import gp
-# from . import algorithms
-# from . import tools
+from . import creator
+from . import gen_prog
+from . import strategies
+from . import tools
+from . import utils

@@ -2,7 +2,7 @@
 #                                                                                        #
 #   MIT License                                                                          #
 #                                                                                        #
-#   Copyright (c) 2022 The Original DEAP Team, Mattias Aabmets and Contributors          #
+#   Copyright (c) 2022 - Mattias Aabmets, The DEAP Team and Other Contributors           #
 #                                                                                        #
 #   Permission is hereby granted, free of charge, to any person obtaining a copy         #
 #   of this software and associated documentation files (the "Software"), to deal        #
@@ -23,25 +23,5 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .hyper_volume import HyperVolume
-import warnings
-
-
-__all__ = ["hypervolume"]
-
-
-# ====================================================================================== #
-def hypervolume(point_set, ref_point):
-    """
-    Compute the absolute hypervolume of a *pointset*
-    according to the reference point *ref*.
-    """
-    warning_message = '' \
-        'Falling back to the python version of hyper_volume module. ' \
-        'Expect this to be very slow.'
-    warnings.warn(
-        message=warning_message,
-        category=RuntimeWarning
-    )
-    hv = HyperVolume(ref_point)
-    return hv.compute(point_set)
+from .hypervolume import *
+from .indicators import *

@@ -23,5 +23,5 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from sort_non_dominated import *
-from sort_log_non_dominated import *
+from .sort_non_dominated import *
+from .sort_log_non_dominated import *

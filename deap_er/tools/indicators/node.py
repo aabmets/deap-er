@@ -2,7 +2,7 @@
 #                                                                                        #
 #   MIT License                                                                          #
 #                                                                                        #
-#   Copyright (c) 2022 The Original DEAP Team, Mattias Aabmets and Contributors          #
+#   Copyright (c) 2022 - Mattias Aabmets, The DEAP Team and Other Contributors           #
 #                                                                                        #
 #   Permission is hereby granted, free of charge, to any person obtaining a copy         #
 #   of this software and associated documentation files (the "Software"), to deal        #
@@ -23,6 +23,12 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from __future__ import annotations
+from typing import Callable
+from operator import gt, ge, le, lt, eq, ne
+
+
+# ====================================================================================== #
 class Node:
     def __init__(self, dimensions: int, point: tuple = None):
         self.cargo = point
@@ -33,9 +39,36 @@ class Node:
         self.volume = [0.0] * dimensions
 
     # -------------------------------------------------------------------------------------- #
-    def __str__(self):
+    def compare(self, other: Node, op: Callable) -> bool:
+        if self.cargo and other.cargo:
+            zipper = zip(self.cargo, other.cargo)
+            true = [op(a, b) for a, b in zipper]
+            return all(true)
+        return False
+
+    # -------------------------------------------------------------------------------------- #
+    def __gt__(self, other: Node) -> bool:
+        return self.compare(other, gt)
+
+    def __ge__(self, other: Node) -> bool:
+        return self.compare(other, ge)
+
+    def __le__(self, other: Node) -> bool:
+        return self.compare(other, le)
+
+    def __lt__(self, other: Node) -> bool:
+        return self.compare(other, lt)
+
+    def __eq__(self, other: Node) -> bool:
+        return self.compare(other, eq)
+
+    def __ne__(self, other: Node) -> bool:
+        return self.compare(other, ne)
+
+    # -------------------------------------------------------------------------------------- #
+    def __str__(self) -> str:
         return str(self.cargo)
 
     # -------------------------------------------------------------------------------------- #
-    def __lt__(self, other):
-        return self.cargo < other.cargo
+    def __hash__(self) -> int:
+        return hash(self.cargo)
