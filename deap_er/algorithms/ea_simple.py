@@ -26,7 +26,7 @@
 from deap_er._deprecated import deprecated
 from deap_er.utils import Logbook, Statistics, HallOfFame
 from deap_er.base.toolbox import Toolbox
-from .ea_parts import *
+from .ea_various import *
 
 
 __all__ = ['ea_simple', 'eaSimple']
@@ -37,7 +37,7 @@ def ea_simple(toolbox: Toolbox,
               population: list,
               cx_prob: float,
               mut_prob: float,
-              ngen: int,
+              n_gen: int,
               hof: HallOfFame = None,
               stats: Statistics = None,
               verbose: bool = __debug__) -> tuple[list, Logbook]:
@@ -49,7 +49,7 @@ def ea_simple(toolbox: Toolbox,
     :param population: A list of individuals to vary.
     :param cx_prob: The probability of mating two individuals.
     :param mut_prob: The probability of mutating an individual.
-    :param ngen: The number of generations to compute.
+    :param n_gen: The number of generations to compute.
     :param hof: A HallOfFame object, optional.
     :param stats: A Statistics object, optional.
     :param verbose: Whether to print debug messages, optional.
@@ -72,7 +72,7 @@ def ea_simple(toolbox: Toolbox,
     if verbose:
         print(logbook.stream)
 
-    for gen in range(1, ngen + 1):
+    for gen in range(1, n_gen + 1):
         offspring = toolbox.select(population, len(population))
         offspring = var_and(toolbox, offspring, cx_prob, mut_prob)
 

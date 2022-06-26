@@ -38,15 +38,18 @@ def var_and(toolbox: Toolbox,
             mut_prob: float) -> list:
     """
     Part of an evolutionary algorithm applying only the variation part
-    (crossover **and** mutation). The modified individuals have their
-    fitness invalidated. The individuals are cloned so returned
+    (crossover **and** mutation). Note that both operators are not applied
+    systematically, the resulting individuals can be generated from crossover only,
+    mutation only, or crossover and mutation according to the given probabilities.
+    Both probabilities should be in the range of [0, 1]. The modified individuals
+    have their fitness invalidated. The individuals are cloned, so the returned
     population is independent of the input population.
 
     :param toolbox: A Toolbox which contains the evolution operators.
     :param population: A list of individuals to vary.
     :param cx_prob: The probability of mating two individuals.
     :param mut_prob: The probability of mutating an individual.
-    :return: A list of varied individuals.
+    :returns: A list of varied individuals.
     """
     offspring = [toolbox.clone(ind) for ind in population]
 
@@ -66,25 +69,28 @@ def var_and(toolbox: Toolbox,
 # -------------------------------------------------------------------------------------- #
 def var_or(toolbox: Toolbox,
            population: list,
-           child_count: int,
+           lambda_: int,
            cx_prob: float,
            mut_prob: float) -> list:
     """
-    Part of an evolutionary algorithm applying only the variation part
-    (crossover, mutation **or** reproduction). The modified individuals have
-    their fitness invalidated. The individuals are cloned so returned
+    Part of an evolutionary algorithm applying only the variation part (crossover,
+    mutation **or** reproduction). Note that both operators are not applied
+    systematically, the resulting individuals can be generated from crossover only,
+    mutation only, or reproduction according to the given probabilities.
+    Both probabilities should be in the range of [0, 1]. The modified individuals
+    have their fitness invalidated. The individuals are cloned, so the returned
     population is independent of the input population.
 
     :param toolbox: A Toolbox which contains the evolution operators.
     :param population: A list of individuals to vary.
-    :param child_count: The number of children to produce.
+    :param lambda_: The number of children to produce.
     :param cx_prob: The probability of mating two individuals.
     :param mut_prob: The probability of mutating an individual.
     :return: A list of varied individuals.
     """
     offspring = []
     total_prob = cx_prob + mut_prob
-    for _ in range(child_count):
+    for _ in range(lambda_):
         op_choice = random.uniform(0, total_prob)
         if op_choice < cx_prob:
             ind1, ind2 = list(map(toolbox.clone, random.sample(population, 2)))

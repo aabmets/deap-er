@@ -33,7 +33,7 @@ __all__ = ['ea_generate_update', 'eaGenerateUpdate']
 
 # -------------------------------------------------------------------------------------- #
 def ea_generate_update(toolbox: Toolbox,
-                       ngen: int,
+                       n_gen: int,
                        hof: HallOfFame = None,
                        stats: Statistics = None,
                        verbose: bool = __debug__) -> tuple[list, Logbook]:
@@ -42,17 +42,17 @@ def ea_generate_update(toolbox: Toolbox,
     and *evaluate* operators to be registered in the toolbox.
 
     :param toolbox: A Toolbox which contains the evolution operators.
-    :param ngen: The number of generations to compute.
+    :param n_gen: The number of generations to compute.
     :param hof: A HallOfFame object, optional.
     :param stats: A Statistics object, optional.
     :param verbose: Whether to print debug messages, optional.
-    :return: Tuple of the final population and the logbook.
+    :returns: Tuple of the final population and the logbook.
     """
     logbook = Logbook()
     logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
     population = None
 
-    for gen in range(ngen):
+    for gen in range(n_gen):
         population = toolbox.generate()
         fitness = toolbox.map(toolbox.evaluate, population)
         for ind, fit in zip(population, fitness):

@@ -23,8 +23,8 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .ea_parts import *
-from .ea_simple import *
-from .ea_mu_plus_lambda import *
-from .ea_mu_comma_lambda import *
 from .ea_generate_update import *
+from .ea_mu_comma_lambda import *
+from .ea_mu_plus_lambda import *
+from .ea_simple import *
+from .ea_various import *
