@@ -93,7 +93,7 @@ def var_or(toolbox: Toolbox,
     for _ in range(lambda_):
         op_choice = random.uniform(0, total_prob)
         if op_choice < cx_prob:
-            ind1, ind2 = list(map(toolbox.clone, random.sample(population, 2)))
+            ind1, ind2 = map(toolbox.clone, random.sample(population, 2))
             ind1, ind2 = toolbox.mate(ind1, ind2)
             del ind1.fitness.values
             offspring.append(ind1)
