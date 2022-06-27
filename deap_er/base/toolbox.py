@@ -62,13 +62,13 @@ class Toolbox(LintHints):
         Sets the *func* param with the name *alias* as an attribute to
         the *Toolbox* instance that this method is called on.
 
-        :param alias: Name of the operator to make the func available from. If a toolbox
-                    already has an operator with the same name, it will be overwritten.
+        :param alias: Name of the operator to make the func available from.
+            If a toolbox already has an operator with the same name, it will be overwritten.
         :param func: The function to which the alias is going to refer.
         :param args: Positional arguments which get automatically passed
-                    to the func when it's called, optional.
+            to the func when it's called, optional.
         :param kwargs: Keyword arguments which get automatically passed
-                    to the func when it's called, optional.
+            to the func when it's called, optional.
         :returns: None
         """
         p_func = partial(func, *args, **kwargs)

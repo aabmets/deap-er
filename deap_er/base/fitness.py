@@ -81,7 +81,7 @@ class Fitness:
         
         :param other: An instance of Fitness to test against.
         :param obj: A slice of objectives to test for domination.
-                    If None, all objectives are tested.
+            If None, all objectives are tested.
         :return: True if other Fitness is worse.
         """
         obj = slice(None) if obj is None else obj
