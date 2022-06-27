@@ -33,7 +33,6 @@ __all__ = ['Toolbox']
 
 # ====================================================================================== #
 class LintHints:
-
     __test__: Callable
 
     generate: Callable
@@ -43,18 +42,15 @@ class LintHints:
     select: Callable
     mate: Callable
 
+    clone: partial
+    map: partial
+
 
 # ====================================================================================== #
 class Toolbox(LintHints):
     """
     A container for evolutionary operators.
-    `Reference <https://deap.readthedocs.io/en/master/api/base.html#toolbox>`_
     """
-
-    # -------------------------------------------------------------------------------------- #
-    clone: partial
-    map: partial
-
     # -------------------------------------------------------------------------------------- #
     def __init__(self):
         self.register("clone", deepcopy)
@@ -64,14 +60,16 @@ class Toolbox(LintHints):
     def register(self, alias: str, func: Callable, *args, **kwargs) -> None:
         """
         Sets the *func* param with the name *alias* as an attribute to
-        the *Toolbox* instance this method is called on.
+        the *Toolbox* instance that this method is called on.
 
-        :param alias: Name of the operator to make the func available from.
-            If a toolbox already has an operator with the same name, it will be overwritten.
+        :param alias: Name of the operator to make the func available from. If a toolbox
+                    already has an operator with the same name, it will be overwritten.
         :param func: The function to which the alias is going to refer.
-        :param args: Positional arguments which get passed to the func when it's called.
-        :param kwargs: Keyword arguments which get passed to the func when it's called.
-        :return: None
+        :param args: Positional arguments which get automatically passed
+                    to the func when it's called, optional.
+        :param kwargs: Keyword arguments which get automatically passed
+                    to the func when it's called, optional.
+        :returns: None
         """
         p_func = partial(func, *args, **kwargs)
         p_func.__name__ = alias
@@ -86,8 +84,8 @@ class Toolbox(LintHints):
         """
         Removes an operator with the name *alias* from the toolbox.
 
-        :param alias: Name of the alias to remove from the toolbox.
-        :return: None
+        :param alias: The name of the operator to remove from the toolbox.
+        :returns: None
         """
         delattr(self, alias)
 
