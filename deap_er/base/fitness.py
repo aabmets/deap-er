@@ -35,9 +35,9 @@ __all__ = ['Fitness']
 class Fitness:
     """
     A fitness object represents the measure of quality of a solution.
-    `Reference <https://deap.readthedocs.io/en/master/api/base.html#fitness>`_
+    The class attribute 'weights' tuple must be set before a Fitness object can be instantiated.
     """
-    _err_msg_1 = "Can't instantiate 'Fitness', when class attribute 'weights' is empty."
+    _err_msg_1 = "Can't instantiate 'Fitness', when class attribute 'weights' tuple is not set."
     _err_msg_2 = "The assigned values tuple must have the same length as " \
                  "the 'weights' attribute of the 'Fitness' class."
 
@@ -54,6 +54,7 @@ class Fitness:
     # -------------------------------------------------------------------------------------- #
     @property
     def values(self) -> tuple:
+        """Fitness values of the individual."""
         if self.is_valid():
             values = map(truediv, self.wvalues, self.weights)
             return tuple(values)
@@ -79,7 +80,8 @@ class Fitness:
         objective of the *other* and at least one objective is better.
         
         :param other: An instance of Fitness to test against.
-        :param obj: A slice of objectives to test.
+        :param obj: A slice of objectives to test for domination.
+                    If None, all objectives are tested.
         :return: True if other Fitness is worse.
         """
         obj = slice(None) if obj is None else obj
@@ -92,6 +94,7 @@ class Fitness:
 
     # -------------------------------------------------------------------------------------- #
     def is_valid(self) -> bool:
+        """Returns True if the Fitness instance is valid."""
         a = len(self.weights)
         b = len(self.wvalues)
         return a == b and a > 0
