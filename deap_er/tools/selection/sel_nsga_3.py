@@ -136,9 +136,9 @@ def sel_nsga_3(individuals: Sequence, k: int,
 
     err_msg = f'selNSGA3: The choice of non-dominated sorting method \'{nd}\' is invalid.'
     if nd == "standard":
-        pareto_fronts = sortNondominated(individuals, k)
+        pareto_fronts = sort_non_dominated(individuals, k)
     elif nd == "log":
-        pareto_fronts = sortLogNondominated(individuals, k)
+        pareto_fronts = sort_log_non_dominated(individuals, k)
     else:
         raise RuntimeError(err_msg)
 
