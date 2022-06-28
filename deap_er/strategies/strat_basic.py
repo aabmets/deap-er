@@ -29,73 +29,25 @@ import numpy
 
 # ====================================================================================== #
 class Strategy:
-    """
-    A strategy that will keep track of the basic parameters of the CMA-ES
-    algorithm ([Hansen2001]_).
 
-    :param centroid: An iterable object that indicates where to start the
-                     evolution.
-    :param sigma: The initial standard deviation of the distribution.
-    :param parameter: One or more parameter to pass to the strategy as
-                      described in the following table, optional.
+    def __init__(self, centroid, sigma, **kwargs):
+        """
+        A strategy that will keep track of the basic parameters of the CMA-ES algorithm.
 
-    +----------------+---------------------------+----------------------------+
-    | Parameter      | Default                   | Details                    |
-    +================+===========================+============================+
-    | ``lambda_``    | ``int(4 + 3 * log(N))``   | Number of children to      |
-    |                |                           | produce at each generation,|
-    |                |                           | ``N`` is the individual's  |
-    |                |                           | size (integer).            |
-    +----------------+---------------------------+----------------------------+
-    | ``mu``         | ``int(lambda_ / 2)``      | The number of parents to   |
-    |                |                           | keep from the              |
-    |                |                           | lambda children (integer). |
-    +----------------+---------------------------+----------------------------+
-    | ``cmatrix``    | ``identity(N)``           | The initial covariance     |
-    |                |                           | matrix of the distribution |
-    |                |                           | that will be sampled.      |
-    +----------------+---------------------------+----------------------------+
-    | ``weights``    | ``"superlinear"``         | Decrease speed, can be     |
-    |                |                           | ``"superlinear"``,         |
-    |                |                           | ``"linear"`` or            |
-    |                |                           | ``"equal"``.               |
-    +----------------+---------------------------+----------------------------+
-    | ``cs``         | ``(mueff + 2) /           | Cumulation constant for    |
-    |                | (N + mueff + 3)``         | step-size.                 |
-    +----------------+---------------------------+----------------------------+
-    | ``damps``      | ``1 + 2 * max(0, sqrt((   | Damping for step-size.     |
-    |                | mueff - 1) / (N + 1)) - 1)|                            |
-    |                | + cs``                    |                            |
-    +----------------+---------------------------+----------------------------+
-    | ``ccum``       | ``4 / (N + 4)``           | Cumulation constant for    |
-    |                |                           | covariance matrix.         |
-    +----------------+---------------------------+----------------------------+
-    | ``ccov1``      | ``2 / ((N + 1.3)^2 +      | Learning rate for rank-one |
-    |                | mueff)``                  | update.                    |
-    +----------------+---------------------------+----------------------------+
-    | ``ccovmu``     | ``2 * (mueff - 2 + 1 /    | Learning rate for rank-mu  |
-    |                | mueff) / ((N + 2)^2 +     | update.                    |
-    |                | mueff)``                  |                            |
-    +----------------+---------------------------+----------------------------+
-
-    .. [Hansen2001] Hansen and Ostermeier, 2001. Completely Derandomized
-       Self-Adaptation in Evolution Strategies. *Evolutionary Computation*
-
-    """
-    def __init__(self, centroid, sigma, **kargs):
-        self.params = kargs
-
-        # Create a centroid as a numpy array
+        :param centroid: An iterable object that indicates where to start the evolution.
+        :param sigma: The initial standard deviation of the distribution.
+        :param kwargs: One or more optional keyword arguments described in the documentation.
+        """
+        self.update_count = 0
         self.centroid = numpy.array(centroid)
 
         self.dim = len(self.centroid)
         self.sigma = sigma
         self.pc = numpy.zeros(self.dim)
         self.ps = numpy.zeros(self.dim)
-        self.chiN = sqrt(self.dim) * (1 - 1. / (4. * self.dim) +
-                                      1. / (21. * self.dim ** 2))
+        self.chiN = sqrt(self.dim) * (1 - 1. / (4. * self.dim) + 1. / (21. * self.dim ** 2))
 
-        self.C = self.params.get("cmatrix", numpy.identity(self.dim))
+        self.C = kwargs.get("cmatrix", numpy.identity(self.dim))
         self.diagD, self.B = numpy.linalg.eigh(self.C)
 
         indx = numpy.argsort(self.diagD)
@@ -105,29 +57,40 @@ class Strategy:
 
         self.cond = self.diagD[indx[-1]] / self.diagD[indx[0]]
 
-        self.lambda_ = self.params.get("lambda_", int(4 + 3 * log(self.dim)))
-        self.update_count = 0
-        self.computeParams(self.params)
+        self.lambda_ = kwargs.get("lambda_", int(4 + 3 * log(self.dim)))
 
+        self.mu = kwargs.get("mu", int(self.lambda_ / 2))
+
+        r_weights = kwargs.get("weights", "superlinear")
+        if r_weights == "superlinear":
+            self.weights = log(self.mu + 0.5) - numpy.log(numpy.arange(1, self.mu + 1))
+        elif r_weights == "linear":
+            self.weights = self.mu + 0.5 - numpy.arange(1, self.mu + 1)
+        elif r_weights == "equal":
+            self.weights = numpy.ones(self.mu)
+        else:
+            raise RuntimeError("Unknown weights : %s" % r_weights)
+
+        self.weights /= sum(self.weights)
+        self.mu_eff = 1. / sum(self.weights ** 2)
+
+        self.cc = kwargs.get("ccum", 4. / (self.dim + 4.))
+        self.cs = kwargs.get("cs", (self.mu_eff + 2.) / (self.dim + self.mu_eff + 3.))
+        self.ccov1 = kwargs.get("ccov1", 2. / ((self.dim + 1.3) ** 2 + self.mu_eff))
+        self.ccovmu = kwargs.get("ccovmu", 2. * (self.mu_eff - 2. + 1. / self.mu_eff)
+                                 / ((self.dim + 2.) ** 2 + self.mu_eff))
+        self.ccovmu = min(1 - self.ccov1, self.ccovmu)
+        self.damps = 1. + 2. * max(0., sqrt((self.mu_eff - 1.) / (self.dim + 1.)) - 1.) + self.cs
+        self.damps = kwargs.get("damps", self.damps)
+
+    # -------------------------------------------------------------------------------------- #
     def generate(self, ind_init):
-        """Generate a population of :math:`\lambda` individuals of type
-        *ind_init* from the current strategy.
-
-        :param ind_init: A function object that is able to initialize an
-                         individual from a list.
-        :returns: A list of individuals.
-        """
         arz = numpy.random.standard_normal((self.lambda_, self.dim))
         arz = self.centroid + self.sigma * numpy.dot(arz, self.BD.T)
         return map(ind_init, arz)
 
+    # -------------------------------------------------------------------------------------- #
     def update(self, population):
-        """Update the current covariance matrix strategy from the
-        *population*.
-
-        :param population: A list of individuals from which to update the
-                           parameters.
-        """
         population.sort(key=lambda ind: ind.fitness, reverse=True)
 
         old_centroid = self.centroid
@@ -135,32 +98,22 @@ class Strategy:
 
         c_diff = self.centroid - old_centroid
 
-        # Cumulation : update evolution path
-        self.ps = (1 - self.cs) * self.ps \
-            + sqrt(self.cs * (2 - self.cs) * self.mueff) / self.sigma \
-            * numpy.dot(self.B, (1. / self.diagD) *
-                        numpy.dot(self.B.T, c_diff))
+        self.ps = (1 - self.cs) * self.ps + sqrt(self.cs * (2 - self.cs) * self.mu_eff) / \
+            self.sigma * numpy.dot(self.B, (1. / self.diagD) * numpy.dot(self.B.T, c_diff))
 
-        hsig = float((numpy.linalg.norm(self.ps) /
-                      sqrt(1. - (1. - self.cs) ** (2. * (self.update_count + 1.))) / self.chiN <
-                      (1.4 + 2. / (self.dim + 1.))))
+        temp = sqrt(1. - (1. - self.cs) ** (2. * (self.update_count + 1.)))
+        temp = numpy.linalg.norm(self.ps) / temp / self.chiN < (1.4 + 2. / (self.dim + 1.))
+        hsig = float(temp)
 
-        self.update_count += 1
+        temp = sqrt(self.cc * (2 - self.cc) * self.mu_eff)
+        self.pc = (1 - self.cc) * self.pc + hsig * temp / self.sigma * c_diff
 
-        self.pc = (1 - self.cc) * self.pc + hsig \
-            * sqrt(self.cc * (2 - self.cc) * self.mueff) / self.sigma \
-            * c_diff
+        ar_tmp = population[0:self.mu] - old_centroid
+        self.C = (1 - self.ccov1 - self.ccovmu + (1 - hsig) * self.ccov1 * self.cc * (2 - self.cc)) * \
+            self.C + self.ccov1 * numpy.outer(self.pc, self.pc) + self.ccovmu * \
+            numpy.dot((self.weights * ar_tmp.T), ar_tmp) / self.sigma ** 2
 
-        # Update covariance matrix
-        artmp = population[0:self.mu] - old_centroid
-        self.C = (1 - self.ccov1 - self.ccovmu + (1 - hsig) *
-                  self.ccov1 * self.cc * (2 - self.cc)) * self.C \
-            + self.ccov1 * numpy.outer(self.pc, self.pc) \
-            + self.ccovmu * numpy.dot((self.weights * artmp.T), artmp) \
-            / self.sigma ** 2
-
-        self.sigma *= numpy.exp((numpy.linalg.norm(self.ps) / self.chiN - 1.) *
-                                self.cs / self.damps)
+        self.sigma *= numpy.exp((numpy.linalg.norm(self.ps) / self.chiN - 1.) * self.cs / self.damps)
 
         self.diagD, self.B = numpy.linalg.eigh(self.C)
         indx = numpy.argsort(self.diagD)
@@ -171,31 +124,4 @@ class Strategy:
         self.B = self.B[:, indx]
         self.BD = self.B * self.diagD
 
-    def computeParams(self, params):
-        """Computes the parameters depending on :math:`\lambda`. It needs to
-        be called again if :math:`\lambda` changes during evolution.
-
-        :param params: A dictionary of the manually set parameters.
-        """
-        self.mu = params.get("mu", int(self.lambda_ / 2))
-        rweights = params.get("weights", "superlinear")
-        if rweights == "superlinear":
-            self.weights = log(self.mu + 0.5) - \
-                numpy.log(numpy.arange(1, self.mu + 1))
-        elif rweights == "linear":
-            self.weights = self.mu + 0.5 - numpy.arange(1, self.mu + 1)
-        elif rweights == "equal":
-            self.weights = numpy.ones(self.mu)
-        else:
-            raise RuntimeError("Unknown weights : %s" % rweights)
-
-        self.weights /= sum(self.weights)
-        self.mueff = 1. / sum(self.weights ** 2)
-
-        self.cc = params.get("ccum", 4. / (self.dim + 4.))
-        self.cs = params.get("cs", (self.mueff + 2.) / (self.dim + self.mueff + 3.))
-        self.ccov1 = params.get("ccov1", 2. / ((self.dim + 1.3) ** 2 + self.mueff))
-        self.ccovmu = params.get("ccovmu", 2. * (self.mueff - 2. + 1. / self.mueff) / ((self.dim + 2.) ** 2 + self.mueff))
-        self.ccovmu = min(1 - self.ccov1, self.ccovmu)
-        self.damps = 1. + 2. * max(0., sqrt((self.mueff - 1.) / (self.dim + 1.)) - 1.) + self.cs
-        self.damps = params.get("damps", self.damps)
+        self.update_count += 1
