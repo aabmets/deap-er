@@ -23,10 +23,9 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.utils import Logbook
-from deap_er.base.toolbox import Toolbox
-from collections.abc import Sequence
-from typing import Callable
+from deap_er.utils import Logbook, Statistics, HallOfFame
+from deap_er.base import Toolbox
+from typing import Callable, Sequence
 import random
 import math
 
@@ -35,12 +34,38 @@ __all__ = ['harm']
 
 
 # ====================================================================================== #
-def harm(population: Sequence, toolbox: Toolbox,
-         cx_prob: float, mut_prob: float, ngen: int,
-         alpha: int, beta: int, gamma: int, rho: int,
+def harm(toolbox: Toolbox, population: Sequence,
+         cx_prob: float, mut_prob: float, n_gen: int,
+         alpha: float = 0.05, beta: float = 10.0,
+         gamma: float = 0.25, rho: float = 0.9,
          nb_model: int = -1, min_cutoff: int = 20,
-         stats=None, hof=None, verbose=__debug__) -> tuple[Sequence, Logbook]:
+         hof: HallOfFame = None, stats: Statistics = None,
+         verbose=__debug__) -> tuple[Sequence, Logbook]:
+    """
+    Implements bloat control by an evolution algorithm on a genetic program.
+    While the default values of the HARM parameters are recommended for most
+    use-cases, they can be adjusted to perform better on specific problems.
 
+    :param toolbox: A Toolbox which contains the evolution operators.
+    :param population: A list of individuals to vary.
+    :param cx_prob: The probability of mating two individuals.
+    :param mut_prob: The probability of mutating an individual.
+    :param n_gen: The number of generations to compute.
+    :param alpha: The HARM *alpha* parameter.
+    :param beta: The HARM *beta* parameter.
+    :param gamma: The HARM *gamma* parameter.
+    :param rho: The HARM *rho* parameter.
+    :param nb_model: The number of individuals to generate in order to
+        model the natural distribution. The default value -1 sets the
+        nb_model to max(2000, len(population)).
+    :param min_cutoff: The absolute minimum value for the cutoff point.
+        It ensures that HARM does not shrink the population too much at the
+        beginning of the evolution. The default value is usually fine.
+    :param hof: A HallOfFame object, optional.
+    :param stats: A Statistics object, optional.
+    :param verbose: Whether to print debug messages, optional.
+    :returns: A tuple of the final population and the Logbook
+    """
     # -------------------------------------------------------------------------------------- #
     def _harm_target_func(x: int) -> float:
         half_life = x * float(alpha) + beta
@@ -73,8 +98,9 @@ def harm(population: Sequence, toolbox: Toolbox,
             else:
                 op_random = random.random()
                 if op_random < cx_prob:
-                    aspirant1, aspirant2 = toolbox.mate(*map(toolbox.clone,
-                                                             toolbox.select(population, 2)))
+                    aspirant1, aspirant2 = toolbox.mate(
+                        *map(toolbox.clone, toolbox.select(population, 2))
+                    )
                     del aspirant1.fitness.values, aspirant2.fitness.values
                     if accept_func(len(aspirant1)):
                         produced_pop.append(aspirant1)
@@ -114,14 +140,10 @@ def harm(population: Sequence, toolbox: Toolbox,
     if nb_model == -1:
         nb_model = max(2000, len(population))
 
-    for gen in range(1, ngen + 1):
+    for gen in range(1, n_gen + 1):
         natural_pop, natural_pop_sizes = _harm_gen_pop(n=nb_model)
-
-        sorted_natural = sorted(natural_pop, key=lambda ind: ind.fitness)
-        cutoff_candidates = sorted_natural[int(len(population) * rho - 1):]
-        cutoff_size = max(min_cutoff, len(min(cutoff_candidates, key=len)))
-
         natural_hist = [0] * (max(natural_pop_sizes) + 3)
+
         for ind_size in natural_pop_sizes:
             natural_hist[ind_size] += 0.4
             natural_hist[ind_size - 1] += 0.2
@@ -131,6 +153,9 @@ def harm(population: Sequence, toolbox: Toolbox,
                 natural_hist[ind_size - 2] += 0.1
 
         natural_hist = [val * len(population) / nb_model for val in natural_hist]
+        sorted_natural = sorted(natural_pop, key=lambda ind: ind.fitness)
+        cutoff_candidates = sorted_natural[int(len(population) * rho - 1):]
+        cutoff_size = max(min_cutoff, len(min(cutoff_candidates, key=len)))
 
         target_hist = list()
         for bin_idx in range(len(natural_hist)):

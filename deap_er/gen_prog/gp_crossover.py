@@ -39,6 +39,13 @@ __all__ = [
 
 # ====================================================================================== #
 def cx_one_point(ind1: PrimitiveTree, ind2: PrimitiveTree) -> tuple:
+    """
+    Performs a single-point crossover on the input individuals.
+
+    :param ind1: The first individual to mate.
+    :param ind2: The second individual to mate.
+    :returns: A tuple of two individuals.
+    """
     if len(ind1) < 2 or len(ind2) < 2:
         return ind1, ind2
 
@@ -57,10 +64,11 @@ def cx_one_point(ind1: PrimitiveTree, ind2: PrimitiveTree) -> tuple:
 
     if len(common_types) > 0:
         type_ = random.choice(list(common_types))
+
         index1 = random.choice(types1[type_])
         index2 = random.choice(types2[type_])
-        slice1 = ind1.searchSubtree(index1)
-        slice2 = ind2.searchSubtree(index2)
+        slice1 = ind1.search_subtree(index1)
+        slice2 = ind2.search_subtree(index2)
         ind1[slice1], ind2[slice2] = ind2[slice2], ind1[slice1]
 
     return ind1, ind2
@@ -70,7 +78,15 @@ def cx_one_point(ind1: PrimitiveTree, ind2: PrimitiveTree) -> tuple:
 def cx_one_point_leaf_biased(ind1: PrimitiveTree,
                              ind2: PrimitiveTree,
                              term_prob: float) -> tuple:
+    """
+    Performs a single-point crossover on the input individuals.
 
+    :param ind1: The first individual to mate.
+    :param ind2: The second individual to mate.
+    :param term_prob: The probability of selecting
+        a terminal node as the crossover point.
+    :returns: A tuple of two individuals.
+    """
     if len(ind1) < 2 or len(ind2) < 2:
         return ind1, ind2
 
@@ -94,10 +110,11 @@ def cx_one_point_leaf_biased(ind1: PrimitiveTree,
 
     if len(common_types) > 0:
         type_ = random.sample(common_types, 1)[0]
+
         index1 = random.choice(types1[type_])
         index2 = random.choice(types2[type_])
-        slice1 = ind1.searchSubtree(index1)
-        slice2 = ind2.searchSubtree(index2)
+        slice1 = ind1.search_subtree(index1)
+        slice2 = ind2.search_subtree(index2)
         ind1[slice1], ind2[slice2] = ind2[slice2], ind1[slice1]
 
     return ind1, ind2

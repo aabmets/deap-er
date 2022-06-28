@@ -41,21 +41,36 @@ __all__ = [
 
 # ====================================================================================== #
 def mut_uniform(individual: PrimitiveTree,
-                expr: Callable, p_set: PrimitiveSetTyped) -> tuple:
+                expr: Callable, p_set: PrimitiveSetTyped) -> PrimitiveTree:
+    """
+    Mutates an individual by replacing a random subtree with
+    an expression generated from the given *expr*.
 
+    :param individual: The GP tree to be mutated.
+    :param expr: A callable that, when called, returns a random GP subtree.
+    :param p_set: The PrimitiveSet to be used for the mutation.
+    :returns: The mutated individual.
+    """
     index = random.randrange(len(individual))
-    slice_ = individual.searchSubtree(index)
+    slice_ = individual.search_subtree(index)
     type_ = individual[index].ret
     individual[slice_] = expr(pset=p_set, type_=type_)
-    return individual,
+    return individual
 
 
 # -------------------------------------------------------------------------------------- #
 def mut_node_replacement(individual: PrimitiveTree,
-                         p_set: PrimitiveSetTyped) -> tuple:
+                         p_set: PrimitiveSetTyped) -> PrimitiveTree:
+    """
+    Mutates an individual by replacing a random primitive
+    with a random primitive from the given PrimitiveSet.
 
+    :param individual: The GP tree to be mutated.
+    :param p_set: The PrimitiveSet to be used for the mutation.
+    :returns: The mutated individual.
+    """
     if len(individual) < 2:
-        return individual,
+        return individual
 
     index = random.randrange(1, len(individual))
     node = individual[index]
@@ -69,11 +84,21 @@ def mut_node_replacement(individual: PrimitiveTree,
         prims = [p for p in p_set.primitives[node.ret] if p.args == node.args]
         individual[index] = random.choice(prims)
 
-    return individual,
+    return individual
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_ephemeral(individual: PrimitiveTree, mode: str) -> tuple:
+def mut_ephemeral(individual: PrimitiveTree,
+                  mode: str = 'all') -> PrimitiveTree:
+    """
+    Mutates an individual by replacing either
+    one random or all ephemeral constants.
+
+    :param individual: The GP tree to be mutated.
+    :param mode: A string indicating the mode of mutation.
+        Valid values are either 'one' or 'all'.
+    :returns: The mutated individual.
+    """
     if mode not in ["one", "all"]:
         raise ValueError('Mode must be one of \'one\' or \'all\'.')
 
@@ -89,16 +114,22 @@ def mut_ephemeral(individual: PrimitiveTree, mode: str) -> tuple:
         for i in ephemera_idx:
             individual[i] = type(individual[i])()
 
-    return individual,
+    return individual
 
 
 # -------------------------------------------------------------------------------------- #
 def mut_insert(individual: PrimitiveTree,
-               p_set: PrimitiveSetTyped) -> tuple:
+               p_set: PrimitiveSetTyped) -> PrimitiveTree:
+    """
+    Inserts a new branch at a random position in the tree.
 
+    :param individual: The GP tree to be mutated.
+    :param p_set: The PrimitiveSet to be used for the mutation.
+    :returns: The mutated individual.
+    """
     index = random.randrange(len(individual))
     node = individual[index]
-    slice_ = individual.searchSubtree(index)
+    slice_ = individual.search_subtree(index)
     choice = random.choice
 
     primitives = list()
@@ -107,7 +138,7 @@ def mut_insert(individual: PrimitiveTree,
             primitives.append(p)
 
     if len(primitives) == 0:
-        return individual,
+        return individual
 
     new_node = choice(primitives)
     new_subtree = [None] * len(new_node.args)
@@ -129,13 +160,20 @@ def mut_insert(individual: PrimitiveTree,
     new_subtree.insert(0, new_node)
     individual[slice_] = new_subtree
 
-    return individual,
+    return individual
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_shrink(individual: PrimitiveTree) -> tuple:
+def mut_shrink(individual: PrimitiveTree) -> PrimitiveTree:
+    """
+    Shrinks a tree by removing a random branch, replacing
+    it with a random argument of the branch.
+
+    :param individual: The GP tree to be mutated.
+    :returns: The mutated individual.
+    """
     if len(individual) < 3 or individual.height <= 1:
-        return individual,
+        return individual
 
     i_prims = []
     for i, node in enumerate(individual[1:], 1):
@@ -144,19 +182,22 @@ def mut_shrink(individual: PrimitiveTree) -> tuple:
 
     if len(i_prims) != 0:
         index, prim = random.choice(i_prims)
-        choices = [i for i, type_ in enumerate(prim.args) if type_ == prim.ret]
+        choices = list()
+        for i, type_ in enumerate(prim.args):
+            if type_ != prim.ret:
+                choices.append(i)
         arg_idx = random.choice(choices)
         r_index = index + 1
         subtree = list()
         for _ in range(arg_idx + 1):
-            r_slice = individual.searchSubtree(r_index)
+            r_slice = individual.search_subtree(r_index)
             subtree = individual[r_slice]
             r_index += len(subtree)
 
-        slice_ = individual.searchSubtree(index)
+        slice_ = individual.search_subtree(index)
         individual[slice_] = subtree
 
-    return individual,
+    return individual
 
 
 # -------------------------------------------------------------------------------------- #

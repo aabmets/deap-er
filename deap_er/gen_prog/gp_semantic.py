@@ -39,8 +39,18 @@ __all__ = [
 # ====================================================================================== #
 def mut_semantic(individual: list, p_set: PrimitiveSetTyped,
                  gen_func: Callable = None, mut_step: float = None,
-                 min_: int = 2, max_: int = 6) -> tuple:
+                 min_: int = 2, max_: int = 6) -> list:
+    """
+    Perform a semantic mutation on the given individual.
 
+    :param individual: The individual to be mutated.
+    :param p_set: The PrimitiveSet to be used.
+    :param gen_func: The function which generates the random tree.
+    :param mut_step: The mutation step.
+    :param min_: Minimum depth of the random tree.
+    :param max_: Maximum depth of the random tree.
+    :returns: A new individual.
+    """
     _check(p_set, 'mutation')
 
     if gen_func is None:
@@ -66,13 +76,23 @@ def mut_semantic(individual: list, p_set: PrimitiveSetTyped,
     new_ind.extend(tr1)
     new_ind.extend(tr2)
 
-    return new_ind,
+    return new_ind
 
 
 # -------------------------------------------------------------------------------------- #
 def cx_semantic(ind1: list, ind2: list, p_set: PrimitiveSetTyped,
                 gen_func: Callable = None, min_=2, max_=6) -> tuple:
+    """
+    Perform a semantic crossover on the given individuals.
 
+    :param ind1: The first individual.
+    :param ind2: The second individual.
+    :param p_set: The PrimitiveSet to be used.
+    :param gen_func: The function which generates the random tree.
+    :param min_: Minimum depth of the random tree.
+    :param max_: Maximum depth of the random tree.
+    :returns: A tuple of two individuals.
+    """
     _check(p_set, 'crossover')
 
     if gen_func is None:
@@ -93,15 +113,18 @@ def cx_semantic(ind1: list, ind2: list, p_set: PrimitiveSetTyped,
         new_ind.extend(ind_ext)
         return new_ind
 
-    return create_ind(ind1, ind2), create_ind(ind2, ind1)
+    new_ind1 = create_ind(ind1, ind2)
+    new_ind2 = create_ind(ind2, ind1)
+    return new_ind1, new_ind2
 
 
 # -------------------------------------------------------------------------------------- #
 def _check(p_set: PrimitiveSetTyped, op: str) -> None:
     for func in ['lf', 'mul', 'add', 'sub']:
         if func not in p_set.mapping:
-            err_msg = f'A {func} function is required in order to perform semantic {op}.'
-            raise TypeError(err_msg)
+            raise TypeError(
+                f'A \'{func}\' function is required to perform semantic \'{op}\'.'
+            )
 
 
 # -------------------------------------------------------------------------------------- #

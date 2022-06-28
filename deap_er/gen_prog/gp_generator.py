@@ -32,46 +32,35 @@ import sys
 
 
 __all__ = [
+    'generate',
     'gen_full', 'genFull',
     'gen_grow', 'genGrow',
-    'gen_half_and_half', 'genHalfAndHalf', 'genRamped',
-    'generate'
+    'gen_half_and_half', 'genHalfAndHalf', 'genRamped'
 ]
 
 
 # ====================================================================================== #
-def gen_full(p_set: PrimitiveSetTyped,
-             min_: int, max_: int, type_=None) -> list:
+def generate(p_set: PrimitiveSetTyped,
+             min_: int, max_: int,
+             condition: Callable, type_=None) -> list:
+    """
+    Generates a tree as a list of primitives and terminals in a depth-first order.
+    The tree is built from the root to the leaves. It recursively grows each branch
+    until the *condition* is fulfilled. The returned list can then be used to
+    instantiate a *PrimitiveTree* object to build the actual tree object.
 
-    def condition(height, depth):
-        return height == depth
-    return generate(p_set, min_, max_, condition, type_)
-
-
-# -------------------------------------------------------------------------------------- #
-def gen_grow(p_set: PrimitiveSetTyped,
-             min_: int, max_: int, type_=None) -> list:
-
-    def condition(height, depth):
-        cond = random.random() < p_set.terminalRatio
-        return depth == height or (depth >= min_ and cond)
-    return generate(p_set, min_, max_, condition, type_)
-
-
-# -------------------------------------------------------------------------------------- #
-def gen_half_and_half(p_set: PrimitiveSetTyped,
-                      min_: int, max_: int, type_=None) -> list:
-
-    func = random.choice((genGrow, genFull))
-    return func(p_set, min_, max_, type_)
-
-
-# -------------------------------------------------------------------------------------- #
-def generate(p_set: PrimitiveSetTyped, min_: int,
-             max_: int, condition: Callable, type_=None) -> list:
-
-    err_msg = f'The gp.generate function tried to add a terminal ' \
-              f'of type \'{type_}\', but there is none available.'
+    :param p_set: Primitive set from which primitives are selected.
+    :param min_: Minimum height of the produced trees.
+    :param max_: Maximum height of the produced trees.
+    :param condition: A function that takes two arguments: the height
+        of the branch to grow and the current depth in the tree.
+    :param type_: The type that should return the tree when called.
+        If None, the type of pset.ret is used.
+    :returns: A grown tree with leaves at possibly different
+        depths depending on the condition function.
+    """
+    err_msg = "The gp.generate function tried to add a {0} " \
+              "of type \'{1}\', but there is none available."
     if type_ is None:
         type_ = p_set.ret
     expr = list()
@@ -87,7 +76,9 @@ def generate(p_set: PrimitiveSetTyped, min_: int,
                 expr.append(term)
             except IndexError:
                 _, _, traceback = sys.exc_info()
-                raise IndexError(err_msg).with_traceback(traceback)
+                raise IndexError(
+                    err_msg.format('terminal', type_)
+                ).with_traceback(traceback)
         else:
             try:
                 prim = random.choice(p_set.primitives[type_])
@@ -96,8 +87,69 @@ def generate(p_set: PrimitiveSetTyped, min_: int,
                     stack.append((depth + 1, arg))
             except IndexError:
                 _, _, traceback = sys.exc_info()
-                raise IndexError(err_msg).with_traceback(traceback)
+                raise IndexError(
+                    err_msg.format('primitive', type_)
+                ).with_traceback(traceback)
     return expr
+
+
+# -------------------------------------------------------------------------------------- #
+def gen_full(p_set: PrimitiveSetTyped,
+             min_: int, max_: int,
+             type_=None) -> list:
+    """
+    Generates an expression where each leaf has
+    the same depth between *min* and *max*.
+
+    :param p_set: Primitive set from which primitives are selected.
+    :param min_: Minimum height of the produced trees.
+    :param max_: Maximum height of the produced trees.
+    :param type_: The type that should return the tree when called.
+        If None, the type of pset.ret is used.
+    :returns: A full tree with all leaves at the same depth.
+    """
+    def condition(height, depth):
+        return height == depth
+    return generate(p_set, min_, max_, condition, type_)
+
+
+# -------------------------------------------------------------------------------------- #
+def gen_grow(p_set: PrimitiveSetTyped,
+             min_: int, max_: int,
+             type_=None) -> list:
+    """
+    Generates an expression where each leaf might have
+    a different depth between *min* and *max*.
+
+    :param p_set: Primitive set from which primitives are selected.
+    :param min_: Minimum height of the produced trees.
+    :param max_: Maximum height of the produced trees.
+    :param type_: The type that should return the tree when called.
+        If None, the type of pset.ret is used.
+    :returns: A grown tree with leaves at possibly different depths.
+    """
+    def condition(height, depth):
+        cond = random.random() < p_set.terminalRatio
+        return depth == height or (depth >= min_ and cond)
+    return generate(p_set, min_, max_, condition, type_)
+
+
+# -------------------------------------------------------------------------------------- #
+def gen_half_and_half(p_set: PrimitiveSetTyped,
+                      min_: int, max_: int,
+                      type_=None) -> list:
+    """
+    Generates an expression with a random choice between *gen_grow* and *gen_full*.
+
+    :param p_set: Primitive set from which primitives are selected.
+    :param min_: Minimum height of the produced trees.
+    :param max_: Maximum height of the produced trees.
+    :param type_: The type that should return the tree when called.
+        If None, the type of pset.ret is used.
+    :returns: Either a full tree or a grown tree.
+    """
+    func = random.choice((genGrow, genFull))
+    return func(p_set, min_, max_, type_)
 
 
 # -------------------------------------------------------------------------------------- #

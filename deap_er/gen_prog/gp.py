@@ -27,8 +27,8 @@ from deap_er._deprecated import deprecated
 from .gp_primitives import *
 from typing import Any, Callable
 from functools import wraps
+from copy import deepcopy
 import random
-import copy
 import sys
 
 
@@ -47,6 +47,16 @@ __all__ = [
 
 # ====================================================================================== #
 def compile_tree(expr: Expr, p_set: PrimitiveSetTyped) -> Any:
+    """
+    Evaluates the expression on the given primitive set.
+
+    :param expr: The expression to compile. It can be a string,
+        a PrimitiveTree or any object which produces a valid
+        Python expression when converted into a string.
+    :param p_set: The primitive set to evaluate the expression on.
+    :returns: A callable if the *p_set* has 1 or more arguments,
+        otherwise the result of the evaluation.
+    """
     code = str(expr)
     if len(p_set.arguments) > 0:
         args = ",".join(arg for arg in p_set.arguments)
@@ -56,16 +66,27 @@ def compile_tree(expr: Expr, p_set: PrimitiveSetTyped) -> Any:
     except MemoryError:
         _, _, traceback = sys.exc_info()
         raise MemoryError(
-            "DEAP : Error in tree evaluation : "
-            "Python cannot evaluate a tree higher than 90. "
-            "To avoid this problem, you should use bloat control on your operators. "
-            "See the DEAP documentation for more information. "
-            "DEAP will now abort."
+            "Recursion depth of 90 exceeded. "
+            "Use bloat control on your operators.\n"
         ).with_traceback(traceback)
 
 
 # -------------------------------------------------------------------------------------- #
-def compile_adf_tree(expr: Expr, p_sets: PSets) -> Callable:
+def compile_adf_tree(expr: Expr, p_sets: PSets) -> Any:
+    """
+    Evaluates the expression on the given primitive sets.
+
+    :param expr: The expression to compile. It can be a string,
+        a PrimitiveTree or any object which produces a valid
+        Python expression when converted into a string.
+    :param p_sets: List of primitive sets. The first element is
+        the main tree and the others are automatically defined
+        functions (ADF) that can be called by the first tree.
+        The last element is associated with the *expr* and
+        should contain a reference to the preceding ADFs.
+    :returns: A callable if the main primitive set has 1 or
+        more arguments, otherwise the result of the evaluation.
+    """
     adf_dict = dict()
     func = None
     for p_set, sub_expr in reversed(list(zip(p_sets, expr))):
@@ -77,6 +98,16 @@ def compile_adf_tree(expr: Expr, p_sets: PSets) -> Callable:
 
 # -------------------------------------------------------------------------------------- #
 def build_tree_graph(expr: Expr) -> Graph:
+    """
+    Builds a graph representation of the given expression. The graph
+    is a tuple of three elements: a list of nodes, a list of edges and a
+    dictionary of node labels. The nodes are the leaves of the tree and
+    the edges are the connections between the nodes. The dictionary
+    contains the leaves values, where the keys are the leaves indices.
+
+    :param expr: A tree expression to convert into a graph.
+    :returns: A list of nodes, a list of edges and a dictionary of labels.
+    """
     nodes = list(range(len(expr)))
     edges = list()
     stack = list()
@@ -97,10 +128,20 @@ def build_tree_graph(expr: Expr) -> Graph:
 
 # -------------------------------------------------------------------------------------- #
 def static_limit(key: Callable, max_value: int | float) -> Callable:
+    """
+    Provides a decorator to limit the production of offspring.
+    It may be used to decorate both crossover and mutation operators.
+    When an invalid child is generated, it is replaced by one of its
+    parents, which is randomly selected.
+
+    :param key: The function which obtains the measurement from an individual.
+    :param max_value: The maximum value allowed for the given measurement.
+    :returns: A decorator which can be applied to a GP operator in a Toolbox.
+    """
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            keep_individuals = [copy.deepcopy(ind) for ind in args]
+            keep_individuals = [deepcopy(ind) for ind in args]
             new_individuals = list(func(*args, **kwargs))
             for i, ind in enumerate(new_individuals):
                 if key(ind) > max_value:
