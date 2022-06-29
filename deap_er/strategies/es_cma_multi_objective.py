@@ -28,6 +28,9 @@ from math import sqrt, exp
 import numpy
 
 
+__all__ = ['StrategyMultiObjective']
+
+
 # ====================================================================================== #
 class StrategyMultiObjective:
 

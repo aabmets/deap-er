@@ -28,6 +28,9 @@ from math import sqrt, log
 import numpy
 
 
+__all__ = ['Strategy']
+
+
 # ====================================================================================== #
 class Strategy:
 

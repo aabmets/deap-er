@@ -29,6 +29,9 @@ import numpy
 import copy
 
 
+__all__ = ['StrategyOnePlusLambda']
+
+
 # ====================================================================================== #
 class StrategyOnePlusLambda:
 
