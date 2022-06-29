@@ -44,8 +44,8 @@ def uniform_reference_points(n_obj, p=4, scaling=None):
         else:
             for i in range(left + 1):
                 ref[depth] = i / total
-                temp = gen_refs_recursive(ref.copy(), n_obj_, left - i, total, depth + 1)
-                points.extend(temp)
+                temp_ = gen_refs_recursive(ref.copy(), n_obj_, left - i, total, depth + 1)
+                points.extend(temp_)
         return points
 
     temp = gen_refs_recursive(numpy.zeros(n_obj), n_obj, p, p, 0)
