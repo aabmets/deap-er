@@ -45,7 +45,9 @@ class Strategy:
         self.sigma = sigma
         self.pc = numpy.zeros(self.dim)
         self.ps = numpy.zeros(self.dim)
-        self.chiN = sqrt(self.dim) * (1 - 1. / (4. * self.dim) + 1. / (21. * self.dim ** 2))
+
+        temp_1 = 1 - 1. / (4. * self.dim) + 1. / (21. * self.dim ** 2)
+        self.chiN = sqrt(self.dim) * temp_1
 
         self.C = kwargs.get("cmatrix", numpy.identity(self.dim))
         self.diagD, self.B = numpy.linalg.eigh(self.C)
@@ -56,9 +58,7 @@ class Strategy:
         self.BD = self.B * self.diagD
 
         self.cond = self.diagD[indx[-1]] / self.diagD[indx[0]]
-
         self.lambda_ = kwargs.get("lambda_", int(4 + 3 * log(self.dim)))
-
         self.mu = kwargs.get("mu", int(self.lambda_ / 2))
 
         r_weights = kwargs.get("weights", "superlinear")
@@ -74,14 +74,25 @@ class Strategy:
         self.weights /= sum(self.weights)
         self.mu_eff = 1. / sum(self.weights ** 2)
 
-        self.cc = kwargs.get("ccum", 4. / (self.dim + 4.))
-        self.cs = kwargs.get("cs", (self.mu_eff + 2.) / (self.dim + self.mu_eff + 3.))
-        self.ccov1 = kwargs.get("ccov1", 2. / ((self.dim + 1.3) ** 2 + self.mu_eff))
-        self.ccovmu = kwargs.get("ccovmu", 2. * (self.mu_eff - 2. + 1. / self.mu_eff)
-                                 / ((self.dim + 2.) ** 2 + self.mu_eff))
-        self.ccovmu = min(1 - self.ccov1, self.ccovmu)
-        self.damps = 1. + 2. * max(0., sqrt((self.mu_eff - 1.) / (self.dim + 1.)) - 1.) + self.cs
-        self.damps = kwargs.get("damps", self.damps)
+        default = 4. / (self.dim + 4.)
+        self.c_cum = kwargs.get("ccum", default)
+
+        default = (self.mu_eff + 2.) / (self.dim + self.mu_eff + 3.)
+        self.cs = kwargs.get("cs", default)
+
+        default = 2. / ((self.dim + 1.3) ** 2 + self.mu_eff)
+        self.c_cov_1 = kwargs.get("ccov1", default)
+
+        temp_1 = self.mu_eff - 2. + 1. / self.mu_eff
+        temp_2 = (self.dim + 2.) ** 2 + self.mu_eff
+        default = 2. * temp_1 / temp_2
+        self.c_cov_mu = kwargs.get("ccovmu", default)
+        self.c_cov_mu = min(1 - self.c_cov_1, self.c_cov_mu)
+
+        temp_1 = sqrt((self.mu_eff - 1.) / (self.dim + 1.))
+        temp_2 = max(0., temp_1 - 1.)
+        default = 1. + 2. * temp_2 + self.cs
+        self.damps = kwargs.get("damps", default)
 
     # -------------------------------------------------------------------------------------- #
     def generate(self, ind_init):
@@ -98,22 +109,26 @@ class Strategy:
 
         c_diff = self.centroid - old_centroid
 
-        self.ps = (1 - self.cs) * self.ps + sqrt(self.cs * (2 - self.cs) * self.mu_eff) / \
-            self.sigma * numpy.dot(self.B, (1. / self.diagD) * numpy.dot(self.B.T, c_diff))
+        temp_1 = sqrt(self.cs * (2 - self.cs) * self.mu_eff)
+        temp_2 = numpy.dot(self.B, (1. / self.diagD) * numpy.dot(self.B.T, c_diff))
+        self.ps = (1 - self.cs) * self.ps + temp_1 / self.sigma * temp_2
 
-        temp = sqrt(1. - (1. - self.cs) ** (2. * (self.update_count + 1.)))
-        temp = numpy.linalg.norm(self.ps) / temp / self.chiN < (1.4 + 2. / (self.dim + 1.))
-        hsig = float(temp)
+        temp_1 = sqrt(1. - (1. - self.cs) ** (2. * (self.update_count + 1.)))
+        temp_2 = numpy.linalg.norm(self.ps) / temp_1 / self.chiN < (1.4 + 2. / (self.dim + 1.))
+        hsig = float(temp_2)
 
-        temp = sqrt(self.cc * (2 - self.cc) * self.mu_eff)
-        self.pc = (1 - self.cc) * self.pc + hsig * temp / self.sigma * c_diff
+        temp_1 = sqrt(self.c_cum * (2 - self.c_cum) * self.mu_eff)
+        self.pc = (1 - self.c_cum) * self.pc + hsig * temp_1 / self.sigma * c_diff
 
         ar_tmp = population[0:self.mu] - old_centroid
-        self.C = (1 - self.ccov1 - self.ccovmu + (1 - hsig) * self.ccov1 * self.cc * (2 - self.cc)) * \
-            self.C + self.ccov1 * numpy.outer(self.pc, self.pc) + self.ccovmu * \
-            numpy.dot((self.weights * ar_tmp.T), ar_tmp) / self.sigma ** 2
+        temp_0 = (1 - hsig) * self.c_cov_1 * self.c_cum * (2 - self.c_cum)
+        temp_1 = 1 - self.c_cov_1 - self.c_cov_mu + temp_0
+        temp_2 = numpy.outer(self.pc, self.pc)
+        temp_3 = numpy.dot((self.weights * ar_tmp.T), ar_tmp)
+        self.C = temp_1 * self.C + self.c_cov_1 * temp_2 + self.c_cov_mu * temp_3 / self.sigma ** 2
 
-        self.sigma *= numpy.exp((numpy.linalg.norm(self.ps) / self.chiN - 1.) * self.cs / self.damps)
+        temp = (numpy.linalg.norm(self.ps) / self.chiN - 1.)
+        self.sigma *= numpy.exp(temp * self.cs / self.damps)
 
         self.diagD, self.B = numpy.linalg.eigh(self.C)
         indx = numpy.argsort(self.diagD)
