@@ -32,6 +32,11 @@ __all__ = ['Logbook']
 
 # ====================================================================================== #
 class Logbook(list):
+    """
+    Contains evolution records as a chronological list of dictionaries.
+    Data can be retrieved using the *select* method with the appropriate names.
+    """
+    # -------------------------------------------------------------------------------------- #
     def __init__(self):
         self.chapters = defaultdict(Logbook)
         self.buff_index: int = 0
@@ -42,12 +47,23 @@ class Logbook(list):
 
     # -------------------------------------------------------------------------------------- #
     @property
-    def stream(self):
+    def stream(self) -> str:
+        """
+        Returns a stream of the logbook.
+
+        :returns: A stream of the logbook.
+        """
         start_index, self.buff_index = self.buff_index, len(self)
         return self.__str__(start_index)
 
     # -------------------------------------------------------------------------------------- #
-    def record(self, **infos):
+    def record(self, **infos) -> None:
+        """
+        Adds a new entry to the logbook as a list of dictionaries.
+
+        :param infos: The new entry.
+        :returns: None
+        """
         apply_to_all = {k: v for k, v in infos.items() if not isinstance(v, dict)}
         for key, value in infos.items():
             if isinstance(value, dict):
@@ -58,13 +74,26 @@ class Logbook(list):
         self.append(infos)
 
     # -------------------------------------------------------------------------------------- #
-    def select(self, *names):
+    def select(self, *names) -> list | tuple:
+        """
+        Returns a list of values for the given names.
+
+        :param names: The names of the values to return.
+        :returns: A list of values.
+        """
         if len(names) == 1:
             return [entry.get(names[0], None) for entry in self]
         return tuple([entry.get(name, None) for entry in self] for name in names)
 
     # -------------------------------------------------------------------------------------- #
     def pop(self, index=0):
+        """
+        Retrieves and deletes element at *index*. The header and
+        the stream will be adjusted to follow the modification.
+
+        :param index: The index of the element to pop.
+        :returns: The popped element.
+        """
         if index < self.buff_index:
             self.buff_index -= 1
         return super(self.__class__, self).pop(index)

@@ -34,25 +34,48 @@ __all__ = ['HallOfFame', 'ParetoFront']
 
 # ====================================================================================== #
 class _BaseClass:
-
+    """
+    Private base class for the HallOfFame and ParetoFront classes.
+    """
     def __init__(self):
         self.keys = list()
         self.items = list()
 
     # -------------------------------------------------------------------------------------- #
-    def insert(self, item):
-        item = deepcopy(item)
-        i = bisect_right(self.keys, item.fitness)
-        self.items.insert(len(self) - i, item)
-        self.keys.insert(i, item.fitness)
+    def insert(self, individual) -> None:
+        """
+        Insert a new individual into the hall of fame. The inserted individual
+        is inserted on the right side of an equal individual. Inserting a new
+        individual also preserve the hall of fame's order. This method **does not**
+        check for the size of the hall of fame, so that the worst individual is not
+        removed to maintain a constant size.
+
+        :param individual: The individual to insert into the hall of fame.
+        :returns: None
+        """
+        individual = deepcopy(individual)
+        i = bisect_right(self.keys, individual.fitness)
+        self.items.insert(len(self) - i, individual)
+        self.keys.insert(i, individual.fitness)
 
     # -------------------------------------------------------------------------------------- #
-    def remove(self, index):
+    def remove(self, index) -> None:
+        """
+        Removes the individual at the specified index from the hall of fame.
+
+        :param index: The index of the individual to remove.
+        :returns: None
+        """
         del self.keys[len(self) - (index % len(self) + 1)]
         del self.items[index]
 
     # -------------------------------------------------------------------------------------- #
-    def clear(self):
+    def clear(self) -> None:
+        """
+        Clears the hall of fame.
+
+        :returns: None
+        """
         del self.items[:]
         del self.keys[:]
 
@@ -77,12 +100,30 @@ class _BaseClass:
 class HallOfFame(_BaseClass):
 
     def __init__(self, maxsize: int, similar: Callable = eq):
+        """
+        The hall of fame contains the best individual that ever lived in the
+        population during the evolution. It is lexicographically sorted at all
+        time so that the first element of the hall of fame is the individual that
+        has the best first fitness value ever seen, according to the weights
+        provided to the fitness at creation time.
+
+        :param maxsize: The maximum number of individuals to store in the hall of fame.
+        :param similar: A function to compare two individuals, optional.
+        """
         self.maxsize = maxsize
         self.similar = similar
         super().__init__()
 
     # -------------------------------------------------------------------------------------- #
-    def update(self, population):
+    def update(self, population) -> None:
+        """
+        Updates the hall of fame with the *population* by replacing the
+        worst individuals with the best individuals present in *population*.
+        The size of the hall of fame is kept constant.
+
+        :param population: A list of individuals.
+        :returns: None
+        """
         for ind in population:
             if len(self) == 0 and self.maxsize != 0:
                 self.insert(population[0])
@@ -101,11 +142,27 @@ class HallOfFame(_BaseClass):
 class ParetoFront(_BaseClass):
 
     def __init__(self, similar: Callable = eq):
+        """
+        The Pareto front hall of fame contains all the non-dominated individuals
+        that ever lived in the population. That means that the Pareto front hall
+        of fame can contain an infinity of different individuals.
+
+        :param similar: A function to compare two individuals, optional.
+        """
         self.similar = similar
         super().__init__()
 
     # -------------------------------------------------------------------------------------- #
-    def update(self, population):
+    def update(self, population) -> None:
+        """
+        Updates the Pareto front hall of fame with the *population* by adding
+        the individuals from the population that are not dominated by the hall
+        of fame. If any individual in the hall of fame is dominated, it is removed.
+
+        :param population: A list of individual with a fitness
+            attribute to update the hall of fame with.
+        :returns: None
+        """
         for ind in population:
             is_dominated = False
             dominates_one = False
