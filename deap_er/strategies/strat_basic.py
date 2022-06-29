@@ -23,6 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from deap_er._deprecated import deprecated
 from math import sqrt, log
 import numpy
 
@@ -30,42 +31,65 @@ import numpy
 # ====================================================================================== #
 class Strategy:
 
-    def __init__(self, centroid, sigma, **kwargs):
+    def __init__(self, centroid, sigma, **kwargs) -> None:
         """
-        A strategy that will keep track of the basic parameters of the CMA-ES algorithm.
+        Basic CMA-ES strategy.
 
         :param centroid: An iterable object that indicates where to start the evolution.
         :param sigma: The initial standard deviation of the distribution.
-        :param kwargs: One or more optional keyword arguments described in the documentation.
+        :param kwargs: One or more optional keyword arguments.
         """
         self.update_count = 0
         self.centroid = numpy.array(centroid)
+        self.sigma = sigma
 
         self.dim = len(self.centroid)
-        self.sigma = sigma
         self.pc = numpy.zeros(self.dim)
         self.ps = numpy.zeros(self.dim)
 
-        temp_1 = 1 - 1. / (4. * self.dim) + 1. / (21. * self.dim ** 2)
-        self.chiN = sqrt(self.dim) * temp_1
+        temp = 1 - 1. / (4. * self.dim) + 1. / (21. * self.dim ** 2)
+        self.chiN = sqrt(self.dim) * temp
 
-        self.C = kwargs.get("cmatrix", numpy.identity(self.dim))
-        self.diagD, self.B = numpy.linalg.eigh(self.C)
+        self.lambda_ = None
+        self.mu = None
+        self.weights = None
+        self.mu_eff = None
+        self.c_cov_1 = None
+        self.c_cov_mu = None
+        self.cs = None
+        self.damps = None
+        self.c_cum = None
+        self.C = None
+        self.diagD = None
+        self.B = None
+        self.BD = None
+        self.cond = None
 
-        indx = numpy.argsort(self.diagD)
-        self.diagD = self.diagD[indx] ** 0.5
-        self.B = self.B[:, indx]
-        self.BD = self.B * self.diagD
+        self.compute_params(**kwargs)
 
-        self.cond = self.diagD[indx[-1]] / self.diagD[indx[0]]
-        self.lambda_ = kwargs.get("lambda_", int(4 + 3 * log(self.dim)))
-        self.mu = kwargs.get("mu", int(self.lambda_ / 2))
+    # -------------------------------------------------------------------------------------- #
+    def compute_params(self, **kwargs) -> None:
+        """
+        Computes the parameters of the strategy based on the *lambda* parameter.
+        It needs to be called again if the *lambda* parameter changes during evolution.
 
-        r_weights = kwargs.get("weights", "superlinear")
+        :param kwargs: One or more optional keyword arguments.
+        :returns: None
+        """
+        default = int(4 + 3 * log(self.dim))
+        self.lambda_ = kwargs.get("lambda", default)
+
+        default = int(self.lambda_ / 2)
+        self.mu = kwargs.get("mu", default)
+
+        default = "superlinear"
+        r_weights = kwargs.get("weights", default)
         if r_weights == "superlinear":
-            self.weights = log(self.mu + 0.5) - numpy.log(numpy.arange(1, self.mu + 1))
+            temp_1 = numpy.log(numpy.arange(1, self.mu + 1))
+            self.weights = log(self.mu + 0.5) - temp_1
         elif r_weights == "linear":
-            self.weights = self.mu + 0.5 - numpy.arange(1, self.mu + 1)
+            temp_1 = numpy.arange(1, self.mu + 1)
+            self.weights = self.mu + 0.5 - temp_1
         elif r_weights == "equal":
             self.weights = numpy.ones(self.mu)
         else:
@@ -73,12 +97,6 @@ class Strategy:
 
         self.weights /= sum(self.weights)
         self.mu_eff = 1. / sum(self.weights ** 2)
-
-        default = 4. / (self.dim + 4.)
-        self.c_cum = kwargs.get("ccum", default)
-
-        default = (self.mu_eff + 2.) / (self.dim + self.mu_eff + 3.)
-        self.cs = kwargs.get("cs", default)
 
         default = 2. / ((self.dim + 1.3) ** 2 + self.mu_eff)
         self.c_cov_1 = kwargs.get("ccov1", default)
@@ -89,19 +107,47 @@ class Strategy:
         self.c_cov_mu = kwargs.get("ccovmu", default)
         self.c_cov_mu = min(1 - self.c_cov_1, self.c_cov_mu)
 
+        default = (self.mu_eff + 2.) / (self.dim + self.mu_eff + 3.)
+        self.cs = kwargs.get("cs", default)
+
         temp_1 = sqrt((self.mu_eff - 1.) / (self.dim + 1.))
         temp_2 = max(0., temp_1 - 1.)
         default = 1. + 2. * temp_2 + self.cs
         self.damps = kwargs.get("damps", default)
 
-    # -------------------------------------------------------------------------------------- #
-    def generate(self, ind_init):
-        arz = numpy.random.standard_normal((self.lambda_, self.dim))
-        arz = self.centroid + self.sigma * numpy.dot(arz, self.BD.T)
-        return map(ind_init, arz)
+        default = 4. / (self.dim + 4.)
+        self.c_cum = kwargs.get("ccum", default)
+
+        self.C = kwargs.get("cmatrix", numpy.identity(self.dim))
+        self.diagD, self.B = numpy.linalg.eigh(self.C)
+        indx = numpy.argsort(self.diagD)
+        self.diagD = self.diagD[indx] ** 0.5
+        self.B = self.B[:, indx]
+        self.BD = self.B * self.diagD
+        self.cond = self.diagD[indx[-1]] / self.diagD[indx[0]]
 
     # -------------------------------------------------------------------------------------- #
-    def update(self, population):
+    def generate(self, ind_init) -> list:
+        """
+        Generate a population of 'lambda' individuals of
+        type *ind_init* from the current strategy.
+
+        :param ind_init: A callable object that will be
+            used to generate the individuals.
+        :returns: A list of individuals.
+        """
+        arz = numpy.random.standard_normal((self.lambda_, self.dim))
+        arz = self.centroid + self.sigma * numpy.dot(arz, self.BD.T)
+        return list(map(ind_init, arz))
+
+    # -------------------------------------------------------------------------------------- #
+    def update(self, population) -> None:
+        """
+        Updates the current covariance matrix strategy from the *population*.
+
+        :param population: A list of individuals.
+        :returns: None
+        """
         population.sort(key=lambda ind: ind.fitness, reverse=True)
 
         old_centroid = self.centroid
@@ -140,3 +186,6 @@ class Strategy:
         self.BD = self.B * self.diagD
 
         self.update_count += 1
+
+    # -------------------------------------------------------------------------------------- #
+    computeParams = deprecated('computeParams', compute_params)

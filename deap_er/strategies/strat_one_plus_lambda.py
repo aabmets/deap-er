@@ -23,6 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from deap_er._deprecated import deprecated
 from math import sqrt, exp
 import numpy
 import copy
@@ -32,19 +33,47 @@ import copy
 class StrategyOnePlusLambda:
 
     def __init__(self, parent, sigma, **kwargs):
+        """
+        A CMA-ES strategy that uses the *lambda* paradigm.
+
+        :param parent: An iterable object that indicates where to start
+            the evolution. The parent requires a fitness attribute.
+        :param sigma: The initial standard deviation of the distribution.
+        :param kwargs: One or more optional keyword arguments.
+        """
         self.parent = parent
         self.sigma = sigma
-        self.dim = len(self.parent)
 
+        self.dim = len(self.parent)
         self.C = numpy.identity(self.dim)
         self.A = numpy.identity(self.dim)
         self.pc = numpy.zeros(self.dim)
 
+        self.lambda_ = None
+        self.p_thresh = None
+        self.damps = None
+        self.pt_arg = None
+        self.cp = None
+        self.c_cum = None
+        self.c_cov = None
+        self.psucc = None
+
+        self.compute_params(**kwargs)
+
+    # -------------------------------------------------------------------------------------- #
+    def compute_params(self, **kwargs) -> None:
+        """
+        Computes the parameters of the strategy based on the *lambda* parameter.
+        It needs to be called again if the *lambda* parameter changes during evolution.
+
+        :param kwargs: One or more optional keyword arguments.
+        :returns: None
+        """
         self.lambda_ = kwargs.get("lambda", 1)
         self.p_thresh = kwargs.get("pthresh", 0.44)
 
         default = 1.0 + self.dim / (2.0 * self.lambda_)
-        self.d = kwargs.get("d", default)
+        self.damps = kwargs.get("d", default)
 
         default = 1.0 / (5 + sqrt(self.lambda_) / 2.0)
         self.pt_arg = kwargs.get("ptarg", default)
@@ -53,7 +82,7 @@ class StrategyOnePlusLambda:
         self.cp = kwargs.get("cp", default)
 
         default = 2.0 / (self.dim + 2.0)
-        self.cc = kwargs.get("cc", default)
+        self.c_cum = kwargs.get("cc", default)
 
         default = 2.0 / (self.dim ** 2 + 6.0)
         self.c_cov = kwargs.get("ccov", default)
@@ -61,13 +90,27 @@ class StrategyOnePlusLambda:
         self.psucc = self.pt_arg
 
     # -------------------------------------------------------------------------------------- #
-    def generate(self, ind_init):
+    def generate(self, ind_init) -> list:
+        """
+        Generate a population of 'lambda' individuals of
+        type *ind_init* from the current strategy.
+
+        :param ind_init: A callable object that will be
+            used to generate the individuals.
+        :returns: A list of individuals.
+        """
         arz = numpy.random.standard_normal((self.lambda_, self.dim))
         arz = self.parent + self.sigma * numpy.dot(arz, self.A.T)
-        return map(ind_init, arz)
+        return list(map(ind_init, arz))
 
     # -------------------------------------------------------------------------------------- #
-    def update(self, population):
+    def update(self, population) -> None:
+        """
+        Updates the current covariance matrix strategy from the *population*.
+
+        :param population: A list of individuals.
+        :returns: None
+        """
         population.sort(key=lambda ind: ind.fitness, reverse=True)
         lambda_succ = sum(self.parent.fitness <= ind.fitness for ind in population)
         psucc = float(lambda_succ) / self.lambda_
@@ -77,16 +120,19 @@ class StrategyOnePlusLambda:
             x_step = (population[0] - numpy.array(self.parent)) / self.sigma
             self.parent = copy.deepcopy(population[0])
             if self.psucc < self.p_thresh:
-                temp_1 = sqrt(self.cc * (2 - self.cc))
-                self.pc = (1 - self.cc) * self.pc + temp_1 * x_step
+                temp_1 = sqrt(self.c_cum * (2 - self.c_cum))
+                self.pc = (1 - self.c_cum) * self.pc + temp_1 * x_step
                 temp_1 = numpy.outer(self.pc, self.pc)
                 self.C = (1 - self.c_cov) * self.C + self.c_cov * temp_1
             else:
-                self.pc = (1 - self.cc) * self.pc
+                self.pc = (1 - self.c_cum) * self.pc
                 temp_1 = numpy.outer(self.pc, self.pc)
-                temp_2 = temp_1 + self.cc * (2 - self.cc) * self.C
+                temp_2 = temp_1 + self.c_cum * (2 - self.c_cum) * self.C
                 self.C = (1 - self.c_cov) * self.C + self.c_cov * temp_2
 
         temp_1 = (self.psucc - self.pt_arg)
-        self.sigma *= exp(1.0 / self.d * temp_1 / (1.0 - self.pt_arg))
+        self.sigma *= exp(1.0 / self.damps * temp_1 / (1.0 - self.pt_arg))
         self.A = numpy.linalg.cholesky(self.C)
+
+    # -------------------------------------------------------------------------------------- #
+    computeParams = deprecated('computeParams', compute_params)

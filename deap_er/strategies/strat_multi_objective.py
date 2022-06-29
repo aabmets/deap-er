@@ -32,6 +32,14 @@ import numpy
 class StrategyMultiObjective:
 
     def __init__(self, population, sigma, **kwargs):
+        """
+        Multi-objective CMA-ES strategy.
+
+        :param population: An initial population of individuals.
+        :param sigma: The initial step size of the complete system.
+        :param kwargs: One or more optional keyword arguments
+            as described in the documentation.
+        """
         self.parents = population
         self.dim = len(self.parents[0])
 
@@ -104,7 +112,13 @@ class StrategyMultiObjective:
         return inv_cholesky, big_a
 
     # -------------------------------------------------------------------------------------- #
-    def update(self, population):
+    def update(self, population) -> None:
+        """
+        Updates the current covariance matrix strategy from the *population*.
+
+        :param population: A list of individuals.
+        :returns: None
+        """
         chosen, not_chosen = self._select(population + self.parents)
 
         cp, cc, c_cov = self.cp, self.cc, self.c_cov
@@ -180,7 +194,13 @@ class StrategyMultiObjective:
         self.parents = chosen
 
     # -------------------------------------------------------------------------------------- #
-    def generate(self, ind_init):
+    def generate(self, ind_init) -> list:
+        """
+        Generate a population of *lambda* individuals of type *ind_init*.
+
+        :param ind_init: A callable that will be used to generate the individuals.
+        :returns: A list of individuals.
+        """
         arz = numpy.random.randn(self.lambda_, self.dim)
         individuals = list()
 
