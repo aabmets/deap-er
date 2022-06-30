@@ -24,16 +24,12 @@
 #                                                                                        #
 # ====================================================================================== #
 from deap_er._deprecated import deprecated
-from typing import Union, Sequence
+from ._dtypes import NumOrSeq, SetItemSeq
+from collections.abc import Sequence
 from itertools import repeat
 import random
-import numpy
-import array
 import math
 
-
-ValueSeq = Union[int, float, Sequence]
-Entity = Union[list, numpy.ndarray, array.array]
 
 __all__ = [
     'mut_gaussian', 'mutGaussian',
@@ -46,30 +42,20 @@ __all__ = [
 
 
 # ====================================================================================== #
-def _check_bounds(individual, var1, var1_str, var2, var2_str) -> tuple:
-    err_msg = '{0} must be at least the size of individual: {1} < {2}'
-    size = len(individual)
-
-    if isinstance(var1, Sequence):
-        if len(var1) < size:
-            msg = err_msg.format(var1_str, len(var1), size)
-            raise IndexError(msg)
-    else:
-        var1 = repeat(var1, size)
-
-    if isinstance(var2, Sequence):
-        if len(var2) < size:
-            msg = err_msg.format(var2_str, len(var2), size)
-            raise IndexError(msg)
-    else:
-        var2 = repeat(var2, size)
-
-    return var1, var2
+def _pre_process(name: str, var: NumOrSeq, size: int) -> Sequence:
+    if not isinstance(var, Sequence):
+        var = repeat(var, size)
+    elif isinstance(var, Sequence) and len(var) < size:
+        raise ValueError(
+            f'Argument \'{name}\' must be at least the '
+            f'size of the individual: {len(var)} < {size}'
+        )
+    return var
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_gaussian(individual: Entity, mu: ValueSeq,
-                 sigma: ValueSeq, mut_prob: float) -> Entity:
+def mut_gaussian(individual: SetItemSeq, mu: NumOrSeq,
+                 sigma: NumOrSeq, mut_prob: float) -> SetItemSeq:
     """
     This function applies a gaussian mutation of mean *mu* and standard
     deviation *sigma* on the input individual. This mutation expects the
@@ -83,9 +69,12 @@ def mut_gaussian(individual: Entity, mu: ValueSeq,
     :param mut_prob: Probability for each attribute to be mutated.
     :returns: A mutated individual.
     """
-    mu, sigma = _check_bounds(individual, mu, 'mu', sigma, 'sigma')
+    size = len(individual)
+    mu = _pre_process('mu', mu, size)
+    sigma = _pre_process('sigma', sigma, size)
 
-    for i, m, s in zip(list(range(len(individual))), mu, sigma):
+    idx = list(range(size))
+    for i, m, s in zip(idx, mu, sigma):
         if random.random() < mut_prob:
             individual[i] += random.gauss(m, s)
 
@@ -93,8 +82,9 @@ def mut_gaussian(individual: Entity, mu: ValueSeq,
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_polynomial_bounded(individual: Entity, eta: float,
-                           low: ValueSeq, up: ValueSeq, mut_prob: float) -> Entity:
+def mut_polynomial_bounded(individual: SetItemSeq,
+                           eta: float, low: NumOrSeq,
+                           up: NumOrSeq, mut_prob: float) -> SetItemSeq:
     """
     This function applies a polynomial mutation with a crowding degree of
     *eta* on the input individual. This mutation expects the *individual*
@@ -112,9 +102,12 @@ def mut_polynomial_bounded(individual: Entity, eta: float,
     :param mut_prob: Probability for each attribute to be mutated.
     :returns: A mutated individual.
     """
-    low, up = _check_bounds(individual, low, 'low', up, 'up')
+    size = len(individual)
+    low = _pre_process('low', low, size)
+    up = _pre_process('up', up, size)
 
-    for i, xl, xu in zip(list(range(len(individual))), low, up):
+    idx = list(range(size))
+    for i, xl, xu in zip(idx, low, up):
         if random.random() <= mut_prob:
             x = individual[i]
             delta_1 = (x - xl) / (xu - xl)
@@ -139,7 +132,7 @@ def mut_polynomial_bounded(individual: Entity, eta: float,
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_shuffle_indexes(individual: Entity, mut_prob: float) -> Entity:
+def mut_shuffle_indexes(individual: SetItemSeq, mut_prob: float) -> SetItemSeq:
     """
     Shuffles the attributes of the input individual. This mutation expects
     the *individual* to be a type of *sequence* and is usually applied
@@ -163,7 +156,7 @@ def mut_shuffle_indexes(individual: Entity, mut_prob: float) -> Entity:
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_flip_bit(individual: Entity, mut_prob: float) -> Entity:
+def mut_flip_bit(individual: SetItemSeq, mut_prob: float) -> SetItemSeq:
     """
     Flips the values of random attributes of the input individual.
     This mutation expects the *individual* to be a type of *sequence*
@@ -182,9 +175,9 @@ def mut_flip_bit(individual: Entity, mut_prob: float) -> Entity:
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_uniform_int(individual: Entity,
+def mut_uniform_int(individual: SetItemSeq,
                     low: int, up: int,
-                    mut_prob: float) -> Entity:
+                    mut_prob: float) -> SetItemSeq:
     """
     Mutates an individual by replacing attribute values with integers
     chosen uniformly between *low* and *up* inclusively. This mutation
@@ -197,9 +190,12 @@ def mut_uniform_int(individual: Entity,
     :param mut_prob: Probability for each attribute to be mutated.
     :returns: A mutated individual.
     """
-    low, up = _check_bounds(individual, low, 'low', up, 'up')
+    size = len(individual)
+    low = _pre_process('low', low, size)
+    up = _pre_process('up', up, size)
 
-    for i, xl, xu in zip(list(range(len(individual))), low, up):
+    idx = list(range(size))
+    for i, xl, xu in zip(idx, low, up):
         if random.random() < mut_prob:
             individual[i] = random.randint(xl, xu)
 
@@ -207,8 +203,8 @@ def mut_uniform_int(individual: Entity,
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_es_log_normal(individual: Entity,
-                      c: float, mut_prob: float) -> Entity:
+def mut_es_log_normal(individual: SetItemSeq,
+                      c: float, mut_prob: float) -> SetItemSeq:
     """
     Mutates an evolution strategy according to its *strategy* attribute.
     This mutation expects the *individual* to be a type of *sequence*.
