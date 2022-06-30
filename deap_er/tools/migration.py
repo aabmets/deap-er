@@ -24,18 +24,16 @@
 #                                                                                        #
 # ====================================================================================== #
 from deap_er._deprecated import deprecated
-from typing import Union, Callable
-import numpy
-import array
+from ._dtypes import SetItemSeq
+from typing import Callable
 
 
-Sequence = Union[list, numpy.ndarray, array.array]
 __all__ = ['migRing']
 
 
 # ====================================================================================== #
-def mig_ring(populations: Sequence, mig_count: int, selection: Callable,
-             replacement: Callable = None, mig_indices: Sequence = None) -> None:
+def mig_ring(populations: SetItemSeq, mig_count: int, selection: Callable,
+             replacement: Callable = None, mig_indices: SetItemSeq = None) -> None:
     """
     Performs a ring migration between the *populations*. The migration
     first selects *mig_count* emigrants from each population using the
