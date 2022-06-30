@@ -60,7 +60,7 @@ def var_and(toolbox: Toolbox,
 
     for i in range(len(offspring)):
         if random.random() < mut_prob:
-            offspring[i], = toolbox.mutate(offspring[i])
+            offspring[i] = toolbox.mutate(offspring[i])
             del offspring[i].fitness.values
 
     return offspring
@@ -99,7 +99,7 @@ def var_or(toolbox: Toolbox,
             offspring.append(ind1)
         elif op_choice < total_prob:
             ind = toolbox.clone(random.choice(population))
-            ind, = toolbox.mutate(ind)
+            ind = toolbox.mutate(ind)
             del ind.fitness.values
             offspring.append(ind)
         else:
