@@ -23,7 +23,8 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from collections.abc import Sequence
+from collections.abc import Sequence, Callable
+from ._dtypes import NumOrSeq
 from itertools import repeat
 from functools import wraps
 
@@ -33,9 +34,23 @@ __all__ = ['DeltaPenalty', 'ClosestValidPenalty']
 
 # ====================================================================================== #
 class DeltaPenalty:
+    """
+    This decorator returns penalized fitness for invalid individuals and
+    the original fitness value for valid individuals. The penalized fitness
+    is made of a constant factor *delta* added with an optional *distance*
+    penalty. The distance function, if provided, returns a value, which is
+    growing as the individual moves away from the valid zone.
 
-    def __init__(self, feasibility, delta, distance=None):
-        self.fbty_fct = feasibility
+    :param feasibility: A function returning the
+        validity status of any individual.
+    :param delta: Constant or a sequence of constants
+        returned for an invalid individual.
+    :param distance: A function returning the distance
+        between the individual and a given valid point.
+    """
+    def __init__(self, feasibility: Callable,
+                 delta: NumOrSeq, distance: Callable = None):
+        self.fea_func = feasibility
         if not isinstance(delta, Sequence):
             self.delta = repeat(delta)
         else:
@@ -46,7 +61,7 @@ class DeltaPenalty:
     def __call__(self, func):
         @wraps(func)
         def wrapper(individual, *args, **kwargs):
-            if self.fbty_fct(individual):
+            if self.fea_func(individual):
                 return func(individual, *args, **kwargs)
 
             weights = tuple(1 if w >= 0 else -1 for w in individual.fitness.weights)
@@ -64,9 +79,27 @@ class DeltaPenalty:
 
 # ====================================================================================== #
 class ClosestValidPenalty:
+    """
+    This decorator returns penalized fitness for invalid individuals and
+    the original fitness value for valid individuals. The penalized fitness
+    is made of the fitness of the closest valid individual added with an
+    optional weighted *distance* penalty. The distance function, if
+    provided, returns a value, which is growing as the individual
+    moves away from the valid zone.
 
+    :param feasibility: A function returning the
+        validity status of any individual.
+    :param feasible: A function returning the closest feasible
+        individual from the current invalid individual.
+    :param alpha: Multiplication factor on the distance
+        between the valid and invalid individual.
+    :param distance: A function returning the distance
+        between the individual and a given valid point.
+    :returns: A decorator for evaluation function.
+    """
+    # -------------------------------------------------------------------------------------- #
     def __init__(self, feasibility, feasible, alpha, distance=None):
-        self.fbty_fct = feasibility
+        self.fea_func = feasibility
         self.fbl_fct = feasible
         self.alpha = alpha
         self.dist_fct = distance
@@ -75,7 +108,7 @@ class ClosestValidPenalty:
     def __call__(self, func):
         @wraps(func)
         def wrapper(individual, *args, **kwargs):
-            if self.fbty_fct(individual):
+            if self.fea_func(individual):
                 return func(individual, *args, **kwargs)
 
             f_ind = self.fbl_fct(individual)
