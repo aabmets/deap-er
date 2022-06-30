@@ -78,7 +78,7 @@ def mut_gaussian(individual: Entity, mu: ValueSeq,
 
     :param individual: Individual to be mutated.
     :param mu: Mean or sequence of means for the gaussian addition mutation.
-    :param sigma: Standard deviation or sequence of standard
+    :param sigma: Either standard deviation or a sequence of standard
         deviations for the gaussian addition mutation.
     :param mut_prob: Probability for each attribute to be mutated.
     :returns: A mutated individual.
@@ -105,9 +105,9 @@ def mut_polynomial_bounded(individual: Entity, eta: float,
     :param eta: Crowding degree of the mutation. Higher eta will produce
         a mutant more similar to its parent, while a smaller eta will
         produce a mutant more divergent from its parent.
-    :param low: A value or a sequence of values that
+    :param low: Either a value or a sequence of values that
         is the lower bound of the search space.
-    :param up: A value or a sequence of values that
+    :param up: Either a value or a sequence of values that
         is the upper bound of the search space.
     :param mut_prob: Probability for each attribute to be mutated.
     :returns: A mutated individual.
