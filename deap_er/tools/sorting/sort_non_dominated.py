@@ -34,6 +34,16 @@ __all__ = ['sort_non_dominated', 'sortNondominated']
 # ====================================================================================== #
 def sort_non_dominated(individuals: Sequence,
                        k: int, first_front_only: bool = False) -> list:
+    """
+    Sorts the first *k* *individuals* into different non-domination
+    levels using the "Fast Non-dominated Sorting Approach".
+
+    :param individuals: A list of individuals to sort.
+    :param k: The number of individuals to select.
+    :param first_front_only: If True, only the first front is returned.
+    :returns: A list of Pareto fronts, where the first
+        element is the true Pareto front.
+    """
     if k == 0:
         return []
 

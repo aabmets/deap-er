@@ -34,6 +34,51 @@ __all__ = ['sort_log_non_dominated', 'sortLogNondominated']
 
 
 # ====================================================================================== #
+def sort_log_non_dominated(individuals: Sequence,
+                           k: int, first_front_only: bool = False) -> list:
+    """
+    Sorts *individuals* in pareto non-dominated fronts
+    using the Generalized Reduced Run-Time Complexity
+    Non-Dominated Sorting Algorithm.
+
+    :param individuals: A list of individuals to sort.
+    :param k: The number of individuals to select.
+    :param first_front_only: If True, only the first front is returned.
+    :returns: A list of Pareto fronts, where the first
+        element is the true Pareto front.
+    """
+    if k == 0:
+        return []
+
+    unique_fits = defaultdict(list)
+    for i, ind in enumerate(individuals):
+        unique_fits[ind.fitness.wvalues].append(ind)
+
+    obj = len(individuals[0].fitness.wvalues)-1
+    fitness = list(unique_fits.keys())
+    front = dict.fromkeys(fitness, 0)
+
+    fitness.sort(reverse=True)
+    _sorting_helper_1(fitness, obj, front)
+
+    nb_fronts = max(front.values())+1
+    pareto_fronts = [[] for _ in range(nb_fronts)]
+    for fit in fitness:
+        index = front[fit]
+        pareto_fronts[index].extend(unique_fits[fit])
+
+    if not first_front_only:
+        count = 0
+        for i, front in enumerate(pareto_fronts):
+            count += len(front)
+            if count >= k:
+                return pareto_fronts[:i+1]
+        return pareto_fronts
+    else:
+        return pareto_fronts[0]
+
+
+# -------------------------------------------------------------------------------------- #
 def _is_dominated(wvalues1: Sequence, wvalues2: Sequence) -> bool:
     not_equal = False
     for self_wvalue, other_wvalue in zip(wvalues1, wvalues2):
@@ -191,40 +236,6 @@ def _sweep_b(best, worst, front):
         if 0 < idx <= len(stairs):
             f_stair = max(f_stairs[:idx], key=front.__getitem__)
             front[h] = max(front[h], front[f_stair]+1)
-
-
-# ====================================================================================== #
-def sort_log_non_dominated(individuals: Sequence,
-                           k: int, first_front_only: bool = False) -> list:
-    if k == 0:
-        return []
-
-    unique_fits = defaultdict(list)
-    for i, ind in enumerate(individuals):
-        unique_fits[ind.fitness.wvalues].append(ind)
-
-    obj = len(individuals[0].fitness.wvalues)-1
-    fitness = list(unique_fits.keys())
-    front = dict.fromkeys(fitness, 0)
-
-    fitness.sort(reverse=True)
-    _sorting_helper_1(fitness, obj, front)
-
-    nb_fronts = max(front.values())+1
-    pareto_fronts = [[] for _ in range(nb_fronts)]
-    for fit in fitness:
-        index = front[fit]
-        pareto_fronts[index].extend(unique_fits[fit])
-
-    if not first_front_only:
-        count = 0
-        for i, front in enumerate(pareto_fronts):
-            count += len(front)
-            if count >= k:
-                return pareto_fronts[:i+1]
-        return pareto_fronts
-    else:
-        return pareto_fronts[0]
 
 
 # -------------------------------------------------------------------------------------- #
