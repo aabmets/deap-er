@@ -63,6 +63,19 @@ def _slicer(ind1: SetItemSeq, ind2: SetItemSeq,
 
 
 # -------------------------------------------------------------------------------------- #
+def _two_point(ind1: SetItemSeq, ind2: SetItemSeq) -> tuple:
+    size = min(len(ind1), len(ind2))
+    cxp1 = random.randint(1, size)
+    cxp2 = random.randint(1, size - 1)
+    if cxp2 >= cxp1:
+        cxp2 += 1
+    else:
+        cxp1, cxp2 = cxp2, cxp1
+    _slicer(ind1, ind2, cxp1, cxp2)
+    return cxp1, cxp2
+
+
+# -------------------------------------------------------------------------------------- #
 def _match(ind1: SetItemSeq, ind2: SetItemSeq,
            p1: list, p2: list, i: int) -> None:
     temp1, temp2 = ind1[i], ind2[i]
@@ -84,8 +97,8 @@ def cx_one_point(ind1: SetItemSeq, ind2: SetItemSeq) -> TwoSIS:
     :returns: A tuple of two individuals.
     """
     size = min(len(ind1), len(ind2))
-    cx_point = random.randint(1, size - 1)
-    _slicer(ind1, ind2, cx_point)
+    cxp = random.randint(1, size - 1)
+    _slicer(ind1, ind2, cxp)
     return ind1, ind2
 
 
@@ -100,14 +113,7 @@ def cx_two_point(ind1: SetItemSeq, ind2: SetItemSeq) -> TwoSIS:
     :param ind2: The second individual.
     :returns: A tuple of two individuals.
     """
-    size = min(len(ind1), len(ind2))
-    cxp1 = random.randint(1, size)
-    cxp2 = random.randint(1, size - 1)
-    if cxp2 >= cxp1:
-        cxp2 += 1
-    else:
-        cxp1, cxp2 = cxp2, cxp1
-    _slicer(ind1, ind2, cxp1, cxp2)
+    _two_point(ind1, ind2)
     return ind1, ind2
 
 
@@ -395,18 +401,11 @@ def cx_es_two_point(ind1: SetItemSeq, ind2: SetItemSeq) -> TwoSIS:
     :param ind2: The second individual.
     :returns: A tuple of two individuals.
     """
-    size = min(len(ind1), len(ind2))
-    pt1 = random.randint(1, size)
-    pt2 = random.randint(1, size - 1)
-    if pt2 >= pt1:
-        pt2 += 1
-    else:
-        pt1, pt2 = pt2, pt1
-    _slicer(ind1, ind2, pt1, pt2)
+    cxp1, cxp2 = _two_point(ind1, ind2)
     _slicer(
         ind1.strategy,
         ind2.strategy,
-        pt1, pt2
+        cxp1, cxp2
     )
     return ind1, ind2
 
