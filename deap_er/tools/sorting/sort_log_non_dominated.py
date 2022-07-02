@@ -97,7 +97,9 @@ def _median(seq: Sequence, key: Callable = None) -> float:
     if length % 2 == 1:
         return key(sorted_seq[(length - 1) // 2])
     else:
-        return (key(sorted_seq[(length - 1) // 2]) + key(sorted_seq[length // 2])) / 2.0
+        temp1 = key(sorted_seq[(length - 1) // 2])
+        temp2 = key(sorted_seq[length // 2])
+        return (temp1 + temp2) / 2.0
 
 
 # -------------------------------------------------------------------------------------- #
