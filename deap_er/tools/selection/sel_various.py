@@ -24,6 +24,7 @@
 #                                                                                        #
 # ====================================================================================== #
 from deap_er._deprecated import deprecated
+from deap_er.tools._dtypes import SetItemSeq
 from operator import attrgetter
 import random
 
@@ -38,29 +39,69 @@ __all__ = [
 
 
 # ====================================================================================== #
-def sel_random(individuals, k):
-    return [random.choice(individuals) for _ in range(k)]
+def sel_random(individuals: SetItemSeq, count: int) -> list:
+    """
+    Selects *count* individuals randomly.
+
+    :param individuals: A list of individuals to select from.
+    :param count: The number of individuals to select.
+    :returns: A list of selected individuals.
+    """
+    return [random.choice(individuals) for _ in range(count)]
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_best(individuals, k, fit_attr="fitness"):
-    return sorted(individuals, key=attrgetter(fit_attr), reverse=True)[:k]
+def sel_best(individuals: SetItemSeq, count: int,
+             fit_attr: str = "fitness") -> list:
+    """
+    Selects the best *count* individuals among the input *individuals*.
+
+    :param individuals: A list of individuals to select from.
+    :param count: The number of individuals to select.
+    :param fit_attr: The attribute of individuals to use as selection criterion.
+    :returns: A list of selected individuals.
+    """
+    key = attrgetter(fit_attr)
+    return sorted(individuals, key=key, reverse=True)[:count]
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_worst(individuals, k, fit_attr="fitness"):
-    return sorted(individuals, key=attrgetter(fit_attr))[:k]
+def sel_worst(individuals: SetItemSeq, count: int,
+              fit_attr: str = "fitness") -> list:
+    """
+    Selects the worst *count* individuals among the input *individuals*.
+
+    :param individuals: A list of individuals to select from.
+    :param count: The number of individuals to select.
+    :param fit_attr: The attribute of individuals to use as selection criterion.
+    :returns: A list of selected individuals.
+    """
+    key = attrgetter(fit_attr)
+    return sorted(individuals, key=key)[:count]
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_roulette(individuals, k, fit_attr="fitness"):
-    sorted_individuals = sorted(individuals, key=attrgetter(fit_attr), reverse=True)
+def sel_roulette(individuals: SetItemSeq, count: int,
+                 fit_attr: str = "fitness") -> list:
+    """
+    Select *k* individuals from the input *individuals* using *k*
+    spins of a roulette. The selection is made by looking only at the
+    first objective of each individual. The list returned contains
+    references to the input *individuals*.
+
+    :param individuals: A list of individuals to select from.
+    :param count: The number of individuals to select.
+    :param fit_attr: The attribute of individuals to use as selection criterion.
+    :returns: A list of selected individuals.
+    """
+    key = attrgetter(fit_attr)
+    sorted_ = sorted(individuals, key=key, reverse=True)
     sum_fits = sum(getattr(ind, fit_attr).values[0] for ind in individuals)
     chosen = []
-    for i in range(k):
+    for i in range(count):
         u = random.random() * sum_fits
         sum_ = 0
-        for ind in sorted_individuals:
+        for ind in sorted_:
             sum_ += getattr(ind, fit_attr).values[0]
             if sum_ > u:
                 chosen.append(ind)
@@ -70,22 +111,35 @@ def sel_roulette(individuals, k, fit_attr="fitness"):
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_stochastic_universal_sampling(individuals, k, fit_attr="fitness"):
-    s_inds = sorted(individuals, key=attrgetter(fit_attr), reverse=True)
+def sel_stochastic_universal_sampling(individuals: SetItemSeq, count: int,
+                                      fit_attr: str = "fitness") -> list:
+    """
+    Selects the *k* individuals among the input *individuals*.
+    The selection is made by using a single random value to sample
+    all the individuals by choosing them at evenly spaced intervals.
+    The list returned contains references to the input *individuals*.
+
+    :param individuals: A list of individuals to select from.
+    :param count: The number of individuals to select.
+    :param fit_attr: The attribute of individuals to use as selection criterion.
+    :returns: A list of selected individuals.
+    """
+    key = attrgetter(fit_attr)
+    sorted_ = sorted(individuals, key=key, reverse=True)
     sum_fits = sum(getattr(ind, fit_attr).values[0] for ind in individuals)
 
-    distance = sum_fits / float(k)
+    distance = sum_fits / float(count)
     start = random.uniform(0, distance)
-    points = [start + i*distance for i in range(k)]
+    points = [start + i * distance for i in range(count)]
 
     chosen = []
     for p in points:
         i = 0
-        sum_ = getattr(s_inds[i], fit_attr).values[0]
+        sum_ = getattr(sorted_[i], fit_attr).values[0]
         while sum_ < p:
             i += 1
-            sum_ += getattr(s_inds[i], fit_attr).values[0]
-        chosen.append(s_inds[i])
+            sum_ += getattr(sorted_[i], fit_attr).values[0]
+        chosen.append(sorted_[i])
 
     return chosen
 
