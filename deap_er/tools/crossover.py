@@ -24,7 +24,7 @@
 #                                                                                        #
 # ====================================================================================== #
 from deap_er._deprecated import deprecated
-from ._dtypes import NumOrSeq, SetItemSeq, TwoSIS
+from deap_er._datatypes import NumOrSeq, SetItemSeq, TwoSIS
 from collections.abc import Sequence
 from itertools import repeat
 import random

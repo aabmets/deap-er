@@ -28,6 +28,6 @@ from typing import Union
 import numpy
 import array
 
-NumOrSeq = Union[int, float, Sequence]
 SetItemSeq = Union[list, numpy.ndarray, array.array]
 TwoSIS = tuple[SetItemSeq, SetItemSeq]
+NumOrSeq = Union[int, float, Sequence]

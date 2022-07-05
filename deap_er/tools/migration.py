@@ -24,7 +24,7 @@
 #                                                                                        #
 # ====================================================================================== #
 from deap_er._deprecated import deprecated
-from ._dtypes import SetItemSeq
+from deap_er._datatypes import SetItemSeq
 from typing import Callable
 
 
