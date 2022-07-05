@@ -37,6 +37,18 @@ __all__ = ['sel_tournament_dcd', 'selTournamentDCD']
 # ====================================================================================== #
 def sel_tournament(individuals: SetItemSeq, rounds: int,
                    contestants: int, fit_attr: str = "fitness") -> list:
+    """
+    Selects the best individual among the randomly
+    chosen *contestants* for *rounds* times.
+
+    :param individuals: A list of individuals to select from.
+    :param rounds: The number of rounds in the tournament.
+    :param contestants: The number of individuals
+        participating in each fitness tournament.
+    :param fit_attr: The attribute of individuals
+        to use as selection criterion.
+    :returns: A list of selected individuals.
+    """
     chosen = []
     for i in range(rounds):
         aspirants = sel_random(individuals, contestants)
@@ -49,14 +61,22 @@ def sel_double_tournament(individuals: SetItemSeq, rounds: int,
                           fitness_size: int, parsimony_size: int,
                           fitness_first: bool, fit_attr: str = "fitness") -> list:
     """
+    Tournament selection which uses the size of the individuals in
+    order to discriminate good solutions. It can also be used for
+    Genetic Programming as a bloat control technique.
 
-    :param individuals:
-    :param rounds:
-    :param fitness_size:
-    :param parsimony_size:
-    :param fitness_first:
-    :param fit_attr:
-    :return:
+    :param individuals: A list of individuals to select from.
+    :param rounds: The number of rounds in the tournament.
+    :param fitness_size: The number of individuals
+        participating in each fitness tournament.
+    :param parsimony_size: The number of individuals participating
+        in each size tournament. This value has to be
+        a real number in the range of [1,2].
+    :param fitness_first: If set to True, the fitness
+        tournament will be performed first.
+    :param fit_attr: The attribute of individuals
+        to use as selection criterion.
+    :returns: A list of selected individuals.
     """
     def _size_tourney(select):
         chosen = []
