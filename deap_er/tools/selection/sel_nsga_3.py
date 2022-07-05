@@ -24,25 +24,135 @@
 #                                                                                        #
 # ====================================================================================== #
 from deap_er._deprecated import deprecated
+from deap_er._datatypes import SetItemSeq
 from deap_er.tools.sorting import *
-from typing import Sequence
-from collections import namedtuple
 from itertools import chain
+from numpy import ndarray
 import numpy
 
 
-NSGA3Memory = namedtuple("NSGA3Memory", ["best_point", "worst_point", "extreme_points"])
-__all__ = ['sel_nsga_3', 'selNSGA3']
+__all__ = [
+    'sel_nsga_3', 'selNSGA3',
+    'selNSGA3WithMemory', 'SelNSGA3WithMemory'
+]
 
 
 # ====================================================================================== #
-def _find_extreme_points(fitness, best_point, extreme_points=None):
+class SelNSGA3WithMemory:
+
+    def __init__(self, ref_points: ndarray, nd_algo: str = "log") -> None:
+        """
+        The NSGA-III selection operator with memory for best,
+        worst and extreme points. Instances of this class
+        can be registered into a Toolbox.
+
+        :param ref_points: Reference points for selection.
+        :param nd_algo: Name of the non-dominated sorting algorithm.
+        """
+        self.ref_points = ref_points
+        self.nd_algo = nd_algo
+        self.best_point = numpy.full((1, ref_points.shape[1]), numpy.inf)
+        self.worst_point = numpy.full((1, ref_points.shape[1]), -numpy.inf)
+        self.extreme_points = None
+
+    # -------------------------------------------------------------------------------------- #
+    def __call__(self, individuals: SetItemSeq, count: int) -> list:
+        """
+        This method is called by the Toolbox to select
+        individuals for the next generation.
+
+        :param individuals: A list of individuals to select from.
+        :param count: The number of individuals to select.
+        :returns: A list of selected individuals.
+        """
+        chosen = sel_nsga_3(
+            individuals, count, self.ref_points, self.nd_algo,
+            self.best_point, self.worst_point,
+            self.extreme_points, self
+        )
+        return chosen
+
+
+# ====================================================================================== #
+def sel_nsga_3(individuals: SetItemSeq, count: int,
+               ref_points: ndarray, nd_algo: str = "log",
+               best_point: ndarray = None,
+               worst_point: ndarray = None,
+               extreme_points: ndarray = None,
+               memory: SelNSGA3WithMemory = None) -> list:
+    """
+    Selects the next generation of individuals using the NSGA-III algorithm.
+
+    :param individuals: A list of individuals to select from.
+    :param count: The number of individuals to select.
+    :param ref_points: The reference points to use for the selection.
+    :param nd_algo: The non-dominated sorting algorithm to use.
+    :param best_point: Best point of the previous generation. If not
+        provided, finds the best point from the current individuals.
+    :param worst_point: Worst point of the previous generation. If not
+        provided, finds the worst point from the current individuals.
+    :param extreme_points: Extreme points of the previous generation. If not
+        provided, finds the extreme points from the current individuals.
+    :param memory: It is used by a SelNSGA3WithMemory instance to store the
+        best, the worst and the extreme points of the selection into itself.
+        Manual usage of this parameter is not recommended.
+    :returns: A tuple of selected individuals and a memory object.
+    """
+    if nd_algo == "standard":
+        pareto_fronts = sort_non_dominated(individuals, count)
+    elif nd_algo == "log":
+        pareto_fronts = sort_log_non_dominated(individuals, count)
+    else:
+        raise RuntimeError(
+            f'selNSGA3: The choice of non-dominated '
+            f'sorting method \'{nd_algo}\' is invalid.'
+        )
+
+    fitness = numpy.array([ind.fitness.wvalues for f in pareto_fronts for ind in f])
+    fitness *= -1
+
+    if best_point is not None and worst_point is not None:
+        best_point = numpy.min(numpy.concatenate((fitness, best_point), axis=0), axis=0)
+        worst_point = numpy.max(numpy.concatenate((fitness, worst_point), axis=0), axis=0)
+    else:
+        best_point = numpy.min(fitness, axis=0)
+        worst_point = numpy.max(fitness, axis=0)
+
+    extreme_points = _find_extreme_points(fitness, best_point, extreme_points)
+    front_worst = numpy.max(fitness[:sum(len(f) for f in pareto_fronts), :], axis=0)
+    intercepts = _find_intercepts(extreme_points, best_point, worst_point, front_worst)
+    niches, dist = _associate_to_niche(fitness, ref_points, best_point, intercepts)
+
+    niche_counts = numpy.zeros(len(ref_points), dtype=numpy.int64)
+    index, counts = numpy.unique(niches[:-len(pareto_fronts[-1])], return_counts=True)
+    niche_counts[index] = counts
+
+    chosen = list(chain(*pareto_fronts[:-1]))
+    sel_count = len(chosen)
+    diff = count - sel_count
+    selected = _select_from_niche(
+        pareto_fronts[-1], diff,
+        niches[sel_count:],
+        dist[sel_count:],
+        niche_counts
+    )
+    chosen.extend(selected)
+
+    if memory and isinstance(memory, SelNSGA3WithMemory):
+        memory.best_point = memory.best_point.reshape((1, -1))
+        memory.worst_point = memory.worst_point.reshape((1, -1))
+        memory.extreme_points = memory.extreme_points
+    return chosen
+
+
+# -------------------------------------------------------------------------------------- #
+def _find_extreme_points(fitness: ndarray, best_point: ndarray,
+                         extreme_points: ndarray = None) -> ndarray:
 
     if extreme_points is not None:
         fitness = numpy.concatenate((fitness, extreme_points), axis=0)
 
     ft = fitness - best_point
-
     asf = numpy.eye(best_point.shape[0])
     asf[asf == 0] = 1e6
     asf = numpy.max(ft * asf[:, numpy.newaxis, :], axis=2)
@@ -52,10 +162,8 @@ def _find_extreme_points(fitness, best_point, extreme_points=None):
 
 
 # -------------------------------------------------------------------------------------- #
-def _find_intercepts(extreme_points: numpy.ndarray,
-                     best_point: numpy.ndarray,
-                     current_worst: numpy.ndarray,
-                     front_worst: numpy.ndarray) -> numpy.ndarray:
+def _find_intercepts(extreme_points: ndarray, best_point: ndarray,
+                     current_worst: ndarray, front_worst: ndarray) -> ndarray:
 
     b = numpy.ones(extreme_points.shape[1])
     big_a = extreme_points - best_point
@@ -78,7 +186,8 @@ def _find_intercepts(extreme_points: numpy.ndarray,
 
 
 # -------------------------------------------------------------------------------------- #
-def _associate_to_niche(fitness, reference_points, best_point, intercepts):
+def _associate_to_niche(fitness: ndarray, reference_points: ndarray,
+                        best_point: ndarray, intercepts: ndarray) -> tuple:
     fn = (fitness - best_point) / (intercepts - best_point)
     fn = numpy.repeat(numpy.expand_dims(fn, axis=1), len(reference_points), axis=1)
     norm = numpy.linalg.norm(reference_points, axis=1)
@@ -96,26 +205,31 @@ def _associate_to_niche(fitness, reference_points, best_point, intercepts):
 
 
 # -------------------------------------------------------------------------------------- #
-def _select_from_niche(individuals, k, niches, distances, niche_counts):
+def _select_from_niche(individuals: SetItemSeq, count: int,
+                       niches: ndarray, distances: ndarray,
+                       niche_counts: ndarray) -> list:
     selected = []
     available = numpy.ones(len(individuals), dtype=numpy.bool)
-    while len(selected) < k:
-        n = k - len(selected)
+    while len(selected) < count:
+        n = count - len(selected)
 
         available_niches = numpy.zeros(len(niche_counts), dtype=numpy.bool)
         available_niches[numpy.unique(niches[available])] = True
         min_count = numpy.min(niche_counts[available_niches])
 
-        selected_niches = numpy.flatnonzero(numpy.logical_and(available_niches, niche_counts == min_count))
+        logical_and = numpy.logical_and(available_niches, niche_counts == min_count)
+        selected_niches = numpy.flatnonzero(logical_and)
         numpy.random.shuffle(selected_niches)
         selected_niches = selected_niches[:n]
 
         for niche in selected_niches:
-            niche_individuals = numpy.flatnonzero(numpy.logical_and(niches == niche, available))
+            logical_and = numpy.logical_and(niches == niche, available)
+            niche_individuals = numpy.flatnonzero(logical_and)
             numpy.random.shuffle(niche_individuals)
 
             if niche_counts[niche] == 0:
-                sel_index = niche_individuals[numpy.argmin(distances[niche_individuals])]
+                arg_min = numpy.argmin(distances[niche_individuals])
+                sel_index = niche_individuals[arg_min]
             else:
                 sel_index = niche_individuals[0]
 
@@ -127,70 +241,5 @@ def _select_from_niche(individuals, k, niches, distances, niche_counts):
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_nsga_3(individuals: Sequence, k: int,
-               ref_points: numpy.ndarray, nd: str = "log",
-               best_point: numpy.ndarray = None,
-               worst_point: numpy.ndarray = None,
-               extreme_points: numpy.ndarray = None,
-               return_memory: bool = False) -> tuple | list:
-
-    err_msg = f'selNSGA3: The choice of non-dominated sorting method \'{nd}\' is invalid.'
-    if nd == "standard":
-        pareto_fronts = sort_non_dominated(individuals, k)
-    elif nd == "log":
-        pareto_fronts = sort_log_non_dominated(individuals, k)
-    else:
-        raise RuntimeError(err_msg)
-
-    fitness = numpy.array([ind.fitness.wvalues for f in pareto_fronts for ind in f])
-    fitness *= -1
-
-    if best_point is not None and worst_point is not None:
-        best_point = numpy.min(numpy.concatenate((fitness, best_point), axis=0), axis=0)
-        worst_point = numpy.max(numpy.concatenate((fitness, worst_point), axis=0), axis=0)
-    else:
-        best_point = numpy.min(fitness, axis=0)
-        worst_point = numpy.max(fitness, axis=0)
-
-    extreme_points = _find_extreme_points(fitness, best_point, extreme_points)
-    front_worst = numpy.max(fitness[:sum(len(f) for f in pareto_fronts), :], axis=0)
-    intercepts = _find_intercepts(extreme_points, best_point, worst_point, front_worst)
-    niches, dist = _associate_to_niche(fitness, ref_points, best_point, intercepts)
-
-    niche_counts = numpy.zeros(len(ref_points), dtype=numpy.int64)
-    index, counts = numpy.unique(niches[:-len(pareto_fronts[-1])], return_counts=True)
-    niche_counts[index] = counts
-
-    chosen = list(chain(*pareto_fronts[:-1]))
-
-    sel_count = len(chosen)
-    n = k - sel_count
-    selected = _select_from_niche(pareto_fronts[-1], n, niches[sel_count:], dist[sel_count:], niche_counts)
-    chosen.extend(selected)
-
-    if return_memory:
-        return chosen, NSGA3Memory(best_point, worst_point, extreme_points)
-    return chosen
-
-
-# -------------------------------------------------------------------------------------- #
 selNSGA3 = deprecated('selNSGA3', sel_nsga_3)
-
-
-# ====================================================================================== #
-class SelNSGA3WithMemory:
-    def __init__(self, ref_points, nd="log"):
-        self.ref_points = ref_points
-        self.nd = nd
-        self.best_point = numpy.full((1, ref_points.shape[1]), numpy.inf)
-        self.worst_point = numpy.full((1, ref_points.shape[1]), -numpy.inf)
-        self.extreme_points = None
-
-    def __call__(self, individuals, k):
-        chosen, memory = sel_nsga_3(individuals, k, self.ref_points, self.nd,
-                                    self.best_point, self.worst_point,
-                                    self.extreme_points, True)
-        self.best_point = memory.best_point.reshape((1, -1))
-        self.worst_point = memory.worst_point.reshape((1, -1))
-        self.extreme_points = memory.extreme_points
-        return chosen
+selNSGA3WithMemory = deprecated('selNSGA3WithMemory', SelNSGA3WithMemory)

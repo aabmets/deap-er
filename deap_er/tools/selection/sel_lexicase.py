@@ -24,103 +24,86 @@
 #                                                                                        #
 # ====================================================================================== #
 from deap_er._deprecated import deprecated
+from deap_er._datatypes import SetItemSeq
 import numpy as np
 import random
 
 
 __all__ = [
     'sel_lexicase', 'selLexicase',
-    'sel_epsilon_lexicase', 'selEpsilonLexicase',
-    'sel_automatic_epsilon_lexicase', 'selAutomaticEpsilonLexicase'
+    'sel_epsilon_lexicase', 'selEpsilonLexicase'
 ]
 
 
 # ====================================================================================== #
-def sel_lexicase(individuals, k):
-    selected_individuals = []
+def sel_lexicase(individuals: SetItemSeq, count) -> list:
+    """
+    Returns an individual that does the best on the fitness
+    cases when considered one at a time in random order.
 
-    for i in range(k):
+    :param individuals: A list of individuals to select from.
+    :param count: The number of individuals to select.
+    :returns: A list of selected individuals.
+    """
+    selected = []
+    for i in range(count):
         fit_weights = individuals[0].fitness.weights
-
         candidates = individuals
         cases = list(range(len(individuals[0].fitness.values)))
         random.shuffle(cases)
-
         while len(cases) > 0 and len(candidates) > 1:
             f = min
             if fit_weights[cases[0]] > 0:
                 f = max
-
-            best_val_for_case = f([x.fitness.values[cases[0]] for x in candidates])
-
-            candidates = list([x for x in candidates if x.fitness.values[cases[0]] == best_val_for_case])
+            f_vals = [x.fitness.values[cases[0]] for x in candidates]
+            best_val = f(f_vals)
+            candidates = [x for x in candidates if x.fitness.values[cases[0]] == best_val]
             cases.pop(0)
-
-        selected_individuals.append(random.choice(candidates))
-
-    return selected_individuals
+        choice = random.choice(candidates)
+        selected.append(choice)
+    return selected
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_epsilon_lexicase(individuals, k, epsilon):
-    selected_individuals = []
+def sel_epsilon_lexicase(individuals: SetItemSeq, count: int,
+                         epsilon: float = None) -> list:
+    """
+    Returns an individual that does the best on the fitness cases
+    when considered one at a time in random order.
 
-    for i in range(k):
+    :param individuals: A list of individuals to select from.
+    :param count: The number of individuals to select.
+    :param epsilon: The epsilon parameter, optional.
+        If not provided, the epsilon parameter is automatically
+        calculated from the median of fitness values.
+    :returns: A list of selected individuals.
+    """
+    selected = []
+    for i in range(count):
         fit_weights = individuals[0].fitness.weights
-
-        candidates = individuals
         cases = list(range(len(individuals[0].fitness.values)))
         random.shuffle(cases)
-
-        while len(cases) > 0 and len(candidates) > 1:
-            if fit_weights[cases[0]] > 0:
-                best_val_for_case = max([x.fitness.values[cases[0]] for x in candidates])
-                min_val_to_survive_case = best_val_for_case - epsilon
-                candidates = list([x for x in candidates if x.fitness.values[cases[0]] >= min_val_to_survive_case])
-            else:
-                best_val_for_case = min([x.fitness.values[cases[0]] for x in candidates])
-                max_val_to_survive_case = best_val_for_case + epsilon
-                candidates = list([x for x in candidates if x.fitness.values[cases[0]] <= max_val_to_survive_case])
-
-            cases.pop(0)
-
-        selected_individuals.append(random.choice(candidates))
-
-    return selected_individuals
-
-
-# -------------------------------------------------------------------------------------- #
-def sel_automatic_epsilon_lexicase(individuals, k):
-    selected_individuals = []
-
-    for i in range(k):
-        fit_weights = individuals[0].fitness.weights
-
         candidates = individuals
-        cases = list(range(len(individuals[0].fitness.values)))
-        random.shuffle(cases)
-
         while len(cases) > 0 and len(candidates) > 1:
-            errors_for_this_case = [x.fitness.values[cases[0]] for x in candidates]
-            median_val = np.median(errors_for_this_case)
-            median_absolute_deviation = np.median([abs(x - median_val) for x in errors_for_this_case])
+            f_vals = [x.fitness.values[cases[0]] for x in candidates]
+            if not epsilon:
+                median = np.median(f_vals)
+                epsilon = np.median([abs(x - median) for x in f_vals])
             if fit_weights[cases[0]] > 0:
-                best_val_for_case = max(errors_for_this_case)
-                min_val_to_survive = best_val_for_case - median_absolute_deviation
-                candidates = list([x for x in candidates if x.fitness.values[cases[0]] >= min_val_to_survive])
+                best_val = max(f_vals)
+                min_val = best_val - epsilon
+                candidates = [x for x in candidates if x.fitness.values[cases[0]] >= min_val]
             else:
-                best_val_for_case = min(errors_for_this_case)
-                max_val_to_survive = best_val_for_case + median_absolute_deviation
-                candidates = list([x for x in candidates if x.fitness.values[cases[0]] <= max_val_to_survive])
-
+                best_val = min(f_vals)
+                max_val = best_val + epsilon
+                candidates = [x for x in candidates if x.fitness.values[cases[0]] <= max_val]
             cases.pop(0)
 
-        selected_individuals.append(random.choice(candidates))
-
-    return selected_individuals
+        choice = random.choice(candidates)
+        selected.append(choice)
+    return selected
 
 
 # -------------------------------------------------------------------------------------- #
 selLexicase = deprecated('selLexicase', sel_lexicase)
 selEpsilonLexicase = deprecated('selEpsilonLexicase', sel_epsilon_lexicase)
-selAutomaticEpsilonLexicase = deprecated('selAutomaticEpsilonLexicase', sel_automatic_epsilon_lexicase)

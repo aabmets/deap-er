@@ -23,13 +23,43 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from deap_er._datatypes import SetItemSeq
 import numpy
 
 
-__all__ = ['uniform_reference_points']
+__all__ = ['assign_crowding_dist', 'uniform_reference_points']
 
 
 # ====================================================================================== #
+def assign_crowding_dist(individuals: SetItemSeq) -> list:
+    """
+    Assigns a crowding distance to each individual's fitness.
+    The crowding distance can be retrieved via the *crowding_dist*
+    attribute of each individual's fitness.
+    """
+    if len(individuals) == 0:
+        return list()
+
+    distances = [0.0] * len(individuals)
+    crowd = [(ind.fitness.values, i) for i, ind in enumerate(individuals)]
+
+    n_obj = len(individuals[0].fitness.values)
+
+    for i in range(n_obj):
+        crowd.sort(key=lambda element: element[0][i])
+        distances[crowd[0][1]] = float("inf")
+        distances[crowd[-1][1]] = float("inf")
+        if crowd[-1][0][i] == crowd[0][0][i]:
+            continue
+        norm = n_obj * float(crowd[-1][0][i] - crowd[0][0][i])
+        for prev, cur, next_ in zip(crowd[:-2], crowd[1:-1], crowd[2:]):
+            distances[cur[1]] += (next_[0][i] - prev[0][i]) / norm
+
+    for i, dist in enumerate(distances):
+        individuals[i].fitness.crowding_dist = dist
+
+
+# -------------------------------------------------------------------------------------- #
 def uniform_reference_points(n_obj: int, p: int = 4,
                              scaling: float = None) -> numpy.ndarray:
     """

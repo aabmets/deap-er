@@ -23,6 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from .sel_helpers import *
 from .sel_lexicase import *
 from .sel_nsga_2 import *
 from .sel_nsga_3 import *

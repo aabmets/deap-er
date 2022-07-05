@@ -24,7 +24,7 @@
 #                                                                                        #
 # ====================================================================================== #
 from deap_er._deprecated import deprecated
-from deap_er.tools._dtypes import SetItemSeq
+from deap_er._datatypes import SetItemSeq
 from operator import attrgetter
 import random
 

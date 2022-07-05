@@ -24,8 +24,9 @@
 #                                                                                        #
 # ====================================================================================== #
 from deap_er._deprecated import deprecated
+from deap_er._datatypes import SetItemSeq
 from deap_er.tools.sorting import *
-from typing import Sequence
+from .sel_helpers import assign_crowding_dist
 from operator import attrgetter
 from itertools import chain
 
@@ -34,50 +35,40 @@ __all__ = ['sel_nsga_2', 'selNSGA2']
 
 
 # ====================================================================================== #
-def sel_nsga_2(individuals: Sequence, k: int, nd: str = 'standard') -> list:
-    err_msg = f'selNSGA2: The choice of non-dominated sorting method \'{nd}\' is invalid.'
+def sel_nsga_2(individuals: SetItemSeq, count: int,
+               nd_algo: str = 'standard') -> list:
+    """
+    Selects the next generation of individuals using the NSGA-II algorithm.
+    Usually, the size of *individuals* should be larger than the *count*
+    parameter. If the size of *individuals* is equal to *count*, the
+    population will be sorted according to their pareto fronts.
 
-    if nd == 'standard':
-        pareto_fronts = sort_non_dominated(individuals, k)
-    elif nd == 'log':
-        pareto_fronts = sort_log_non_dominated(individuals, k)
+    :param individuals: A list of individuals to select from.
+    :param count: The number of individuals to select.
+    :param nd_algo: The algorithm to use for non-dominated sorting.
+    :returns: A list of selected individuals.
+    """
+    if nd_algo == 'standard':
+        pareto_fronts = sort_non_dominated(individuals, count)
+    elif nd_algo == 'log':
+        pareto_fronts = sort_log_non_dominated(individuals, count)
     else:
-        raise RuntimeError(err_msg)
+        raise RuntimeError(
+            f'selNSGA2: The choice of non-dominated '
+            f'sorting method \'{nd_algo}\' is invalid.'
+        )
 
     for front in pareto_fronts:
-        _assign_crowding_dist(front)
+        assign_crowding_dist(front)
 
     chosen = list(chain(*pareto_fronts[:-1]))
-    k = k - len(chosen)
-    if k > 0:
-        sorted_front = sorted(pareto_fronts[-1], key=attrgetter("fitness.crowding_dist"), reverse=True)
-        chosen.extend(sorted_front[:k])
+    count = count - len(chosen)
+    if count > 0:
+        attr = attrgetter("fitness.crowding_dist")
+        sorted_front = sorted(pareto_fronts[-1], key=attr, reverse=True)
+        chosen.extend(sorted_front[:count])
 
     return chosen
-
-
-# -------------------------------------------------------------------------------------- #
-def _assign_crowding_dist(individuals: Sequence) -> None:
-    if len(individuals) == 0:
-        return
-
-    distances = [0.0] * len(individuals)
-    crowd = [(ind.fitness.values, i) for i, ind in enumerate(individuals)]
-
-    n_obj = len(individuals[0].fitness.values)
-
-    for i in range(n_obj):
-        crowd.sort(key=lambda element: element[0][i])
-        distances[crowd[0][1]] = float("inf")
-        distances[crowd[-1][1]] = float("inf")
-        if crowd[-1][0][i] == crowd[0][0][i]:
-            continue
-        norm = n_obj * float(crowd[-1][0][i] - crowd[0][0][i])
-        for prev, cur, next_ in zip(crowd[:-2], crowd[1:-1], crowd[2:]):
-            distances[cur[1]] += (next_[0][i] - prev[0][i]) / norm
-
-    for i, dist in enumerate(distances):
-        individuals[i].fitness.crowding_dist = dist
 
 
 # -------------------------------------------------------------------------------------- #
