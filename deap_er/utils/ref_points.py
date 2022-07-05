@@ -30,28 +30,41 @@ __all__ = ['uniform_reference_points']
 
 
 # ====================================================================================== #
-def uniform_reference_points(n_obj, p=4, scaling=None):
+def uniform_reference_points(n_obj: int, p: int = 4,
+                             scaling: float = None) -> numpy.ndarray:
     """
     Generates reference points uniformly on the hyperplane
     intersecting each axis at 1. The scaling factor is used
     to combine multiple layers of reference points.
-    """
-    def gen_refs_recursive(ref, n_obj_, left, total, depth):
-        points = []
-        if depth == n_obj_ - 1:
-            ref[depth] = left / total
-            points.append(ref)
-        else:
-            for i in range(left + 1):
-                ref[depth] = i / total
-                temp_ = gen_refs_recursive(ref.copy(), n_obj_, left - i, total, depth + 1)
-                points.extend(temp_)
-        return points
 
-    temp = gen_refs_recursive(numpy.zeros(n_obj), n_obj, p, p, 0)
-    ref_points = numpy.array(temp)
+    :param n_obj: Number of objectives.
+    :param p: Number of reference points per objective.
+    :param scaling: Scaling factor.
+    :returns: An ndarray of reference points.
+    """
+    ref = numpy.zeros(n_obj)
+    result = _gen_refs(ref, n_obj, p, p, 0)
+    ref_points = numpy.array(result)
+
     if scaling is not None:
         ref_points *= scaling
         ref_points += (1 - scaling) / n_obj
 
     return ref_points
+
+
+# -------------------------------------------------------------------------------------- #
+def _gen_refs(ref, n_obj, left, total, depth) -> list:
+    points = []
+    if depth == n_obj - 1:
+        ref[depth] = left / total
+        points.append(ref)
+    else:
+        for i in range(left + 1):
+            ref[depth] = i / total
+            r_c = ref.copy()
+            l_i = left - i
+            d_1 = depth + 1
+            result = _gen_refs(r_c, n_obj, l_i, total, d_1)
+            points.extend(result)
+    return points
