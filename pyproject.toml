@@ -1,8 +1,8 @@
 # ====================================================================================== #
 [tool.poetry]
 name = "deap-er"
-version = "0.2.0"
-description = "DEAP port to Python 3.10"
+version = "0.3.0"
+description = "A Python library for evolutionary computation."
 authors = ["Mattias Aabmets <mattias.aabmets@gmail.com>"]
 license = "MIT License"
 keywords = [
@@ -27,7 +27,6 @@ include = [
     "deap_er.*",
     "deap_er.*.*"
 ]
-build = "build.py"
 
 
 # ====================================================================================== #
@@ -40,22 +39,15 @@ build = "build.py"
 [tool.poetry.dependencies]
 python = "^3.10"
 numpy = "^1.22.4"
-Cython = "^0.29.30"
+ray = "^1.13.0"
 
 
 # ====================================================================================== #
 [tool.poetry.dev-dependencies]
 pytest = "^7.1.2"
 coverage = "^6.4.1"
-black = "^22.3.0"
 Sphinx = "^5.0.1"
 sphinx-rtd-theme = "^1.0.0"
-
-
-# ====================================================================================== #
-#[tool.poetry.build]
-#generate-setup-file = false
-#script = "build.py"
 
 
 # ====================================================================================== #
@@ -64,8 +56,7 @@ build-backend = "poetry.core.masonry.api"
 requires = [
     "poetry-core>=1.0.0",
     "setuptools>=62.3.3",
-    "wheel>=0.37.1",
-    "Cython>=0.29.30"
+    "wheel>=0.37.1"
 ]
 
 # ==================================================================================== #
