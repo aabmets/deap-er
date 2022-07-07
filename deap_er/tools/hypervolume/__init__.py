@@ -23,28 +23,4 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .hypervolume import hypervolume
-from collections.abc import Sequence
-import numpy
-
-
-__all__ = ['least_contrib']
-
-
-# ====================================================================================== #
-def least_contrib(front: Sequence, **kwargs):
-    """
-    Returns the index of the individual with the least hypervolume contribution.
-    The *individuals* argument should be a sequence of non-dominated
-    individuals each with a `fitness` attribute.
-    """
-    wobj = numpy.array([ind.fitness.wvalues for ind in front]) * -1
-    ref = kwargs.get("ref", None)
-    if ref is None:
-        ref = numpy.max(wobj, axis=0) + 1
-
-    def contribution(i):
-        return hypervolume(numpy.concatenate((wobj[:i], wobj[i+1:])), ref)
-
-    contrib_values = map(contribution, range(len(front)))
-    return numpy.argmax(contrib_values)
+from .hypervolume import *

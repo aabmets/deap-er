@@ -55,6 +55,7 @@ class StrategyMultiObjective:
         self.c_cov = kwargs.get("ccov", 2.0 / (self.dim ** 2 + 6.0))
         self.p_thresh = kwargs.get("pthresh", 0.44)
         self.indicator = kwargs.get("indicator", tools.least_contrib)
+        self.timeout = kwargs.get("timeout", 60)
 
         self.sigmas = [sigma] * len(population)
         self.big_a = [numpy.identity(self.dim) for _ in range(len(population))]
@@ -90,7 +91,7 @@ class StrategyMultiObjective:
             ref = numpy.max(ref, axis=0) + 1
 
             for _ in range(len(mid_front) - k):
-                idx = self.indicator(mid_front, ref=ref)
+                idx = self.indicator(mid_front, ref, self.timeout)
                 not_chosen.append(mid_front.pop(idx))
 
             chosen += mid_front

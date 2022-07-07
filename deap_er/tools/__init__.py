@@ -23,11 +23,12 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .indicators import *
+from .hypervolume import *
 from .selection import *
 from .sorting import *
 from .constraint import *
 from .crossover import *
+from .indicators import *
 from .initializers import *
 from .migration import *
 from .mutation import *

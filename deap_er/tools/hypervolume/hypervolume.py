@@ -32,7 +32,7 @@ __all__ = ['hypervolume']
 
 
 # ====================================================================================== #
-def hypervolume(point_set: ndarray, ref_point: ndarray):
+def hypervolume(point_set: ndarray, ref_point: ndarray) -> float:
     hv = HyperVolume(ref_point)
     return hv.compute(point_set)
 
