@@ -24,7 +24,7 @@
 #                                                                                        #
 # ====================================================================================== #
 from deap_er._deprecated import deprecated
-from .gp_primitives import *
+from .primitives import *
 from typing import Callable
 from inspect import isclass
 import random

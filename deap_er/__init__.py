@@ -23,10 +23,10 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from . import algorithms as algos
+from . import algorithms
 from . import base
 from . import creator
-from . import gen_prog as gp
-from . import strategies as strats
+from . import gp
+from . import strategies
 from . import tools
 from . import utils

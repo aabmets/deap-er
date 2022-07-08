@@ -24,7 +24,7 @@
 #                                                                                        #
 # ====================================================================================== #
 from deap_er._deprecated import deprecated
-from .gp_primitives import PrimitiveTree
+from .primitives import PrimitiveTree
 from collections import defaultdict
 from functools import partial
 from operator import eq, lt

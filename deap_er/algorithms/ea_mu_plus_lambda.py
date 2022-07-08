@@ -26,24 +26,23 @@
 from deap_er._deprecated import deprecated
 from deap_er.utils import Logbook, Statistics, HallOfFame
 from deap_er.base.toolbox import Toolbox
-from .ea_variation import *
+from .variation import *
 
 
 __all__ = ['ea_mu_plus_lambda', 'eaMuPlusLambda']
 
 
 # -------------------------------------------------------------------------------------- #
-def ea_mu_plus_lambda(
-        toolbox: Toolbox,
-        population: list,
-        mu: int,
-        lambda_: int,
-        cx_prob: float,
-        mut_prob: float,
-        n_gen: int,
-        hof: HallOfFame = None,
-        stats: Statistics = None,
-        verbose: bool = __debug__) -> tuple[list, Logbook]:
+def ea_mu_plus_lambda(toolbox: Toolbox,
+                      population: list,
+                      mu: int,
+                      lambda_: int,
+                      cx_prob: float,
+                      mut_prob: float,
+                      n_gen: int,
+                      hof: HallOfFame = None,
+                      stats: Statistics = None,
+                      verbose: bool = __debug__) -> tuple[list, Logbook]:
     """
     An evolutionary algorithm. This function expects the *mate*, *mutate*,
     *select* and *evaluate* operators to be registered in the toolbox.

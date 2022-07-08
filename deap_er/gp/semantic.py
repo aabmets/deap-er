@@ -24,8 +24,8 @@
 #                                                                                        #
 # ====================================================================================== #
 from deap_er._deprecated import deprecated
-from .gp_generator import gen_grow
-from .gp_primitives import *
+from .generators import gen_grow
+from .primitives import *
 from typing import Callable
 import random
 

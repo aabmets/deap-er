@@ -24,7 +24,7 @@
 #                                                                                        #
 # ====================================================================================== #
 from deap_er._deprecated import deprecated
-from .gp_primitives import PrimitiveSetTyped
+from .primitives import PrimitiveSetTyped
 from typing import Callable
 from inspect import isclass
 import random

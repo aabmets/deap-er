@@ -23,6 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .es_cma_basic import *
-from .es_cma_multi_objective import *
-from .es_cma_one_plus_lambda import *
+from .cma_basic import *
+from .cma_multi_objective import *
+from .cma_one_plus_lambda import *
