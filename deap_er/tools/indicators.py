@@ -75,6 +75,7 @@ def least_contrib(population: SetItemSeq,
     try:
         contrib_values: list = ray.get(**args)
     except GetTimeoutError as e:
+        ray.cancel(object_refs, force=True)
         raise TimeoutError(
             f'Indicator \'least_contrib\' hypervolume calculation '
             f'exceeded the timeout of {timeout} seconds.'
