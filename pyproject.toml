@@ -2,14 +2,15 @@
 [tool.poetry]
 name = "deap-er"
 version = "0.3.0"
-description = "A Python library for evolutionary computation."
+description = "Distributed Evolutionary Algorithms in Python - Entirely Reworked"
 authors = ["Mattias Aabmets <mattias.aabmets@gmail.com>"]
 license = "MIT License"
 keywords = [
     "deap",
     "evolutionary algorithms",
     "genetic algorithms",
-    "genetic programming"
+    "genetic programming",
+    "hypervolume"
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -19,7 +20,7 @@ classifiers = [
     "Topic :: Scientific/Engineering",
     "Topic :: Software Development",
     "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.9",
     "Operating System :: OS Independent"
 ]
 include = [
@@ -37,7 +38,7 @@ include = [
 
 # ====================================================================================== #
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "^3.9"
 numpy = "^1.22.4"
 ray = "^1.13.0"
 
@@ -53,11 +54,8 @@ sphinx-rtd-theme = "^1.0.0"
 # ====================================================================================== #
 [build-system]
 build-backend = "poetry.core.masonry.api"
-requires = [
-    "poetry-core>=1.0.0",
-    "setuptools>=62.3.3",
-    "wheel>=0.37.1"
-]
+requires = ["poetry-core>=1.0.0"]
+
 
 # ==================================================================================== #
 [tool.pytest.ini_options]
