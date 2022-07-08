@@ -35,7 +35,6 @@ class MultiList:
     It consists of several doubly linked lists that share common nodes.
     Every node has multiple predecessors and successors, one in every list.
     """
-
     # -------------------------------------------------------------------------------------- #
     def __init__(self, dimensions: int) -> None:
         self.dimensions = dimensions
@@ -44,7 +43,7 @@ class MultiList:
         self.sentinel.prev = [self.sentinel] * dimensions
 
     # -------------------------------------------------------------------------------------- #
-    def __str__(self):
+    def __str__(self) -> str:
         strings = list()
         for i in range(self.dimensions):
             current_list = list()

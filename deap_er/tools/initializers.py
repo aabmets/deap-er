@@ -52,7 +52,7 @@ def init_repeat(container: Container, func: Callable, count: int) -> Iterable:
 
 
 # -------------------------------------------------------------------------------------- #
-def init_iterate(container: Container, generator: Callable[..., Container]) -> Iterable:
+def init_iterate(container: Container, generator: Callable) -> Iterable:
     """
     Calls the *generator* function and puts the results in a type *container*.
     The *generator* function should return an iterable. This helper function

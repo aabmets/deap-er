@@ -30,8 +30,8 @@ from operator import gt, ge, le, lt, eq, ne
 
 # ====================================================================================== #
 class Node:
-    def __init__(self, dimensions: int, point: tuple = None):
-        self.cargo = point
+    def __init__(self, dimensions: int, cargo: tuple = None):
+        self.cargo = cargo
         self.next = [None] * dimensions
         self.prev = [None] * dimensions
         self.ignore = 0

@@ -23,6 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from deap_er._datatypes import SetItemSeq
 from .multi_list import MultiList
 from .node import Node
 from numpy import ndarray
@@ -33,8 +34,8 @@ __all__ = ['hypervolume', 'HyperVolume']
 
 
 # ====================================================================================== #
-@ray.remote
-def hypervolume(point_set: ndarray, ref_point: ndarray) -> float:
+@ray.remote  # pragma: no cover
+def hypervolume(point_set: SetItemSeq, ref_point: SetItemSeq) -> float:
     """
     Computes the hypervolume of a *point_set* around the *ref_point*
     on a local or a remote cluster using the Ray library.
@@ -58,7 +59,7 @@ class HyperVolume:
     multi_list: MultiList
 
     # -------------------------------------------------------------------------------------- #
-    def __init__(self, ref_point: ndarray) -> None:
+    def __init__(self, ref_point: SetItemSeq) -> None:
         """
         Creates a new HyperVolume object with *ref_point*.
 
@@ -68,7 +69,7 @@ class HyperVolume:
         self.dims = len(ref_point)
 
     # -------------------------------------------------------------------------------------- #
-    def compute(self, point_set: ndarray) -> float:
+    def compute(self, point_set: SetItemSeq) -> float:
         """
         Computes the hypervolume that is dominated by the non-dominated *point_set*.
         Minimization is implicitly assumed.
@@ -88,19 +89,12 @@ class HyperVolume:
         if any(self.ref_point):
             point_set -= self.ref_point
         node_list = MultiList(self.dims)
-
-        def new_node(point: tuple):
-            return Node(self.dims, point)
-
-        def sort_and_extend():
-            decorated = [(node.cargo[index], node) for node in nodes]
+        nodes = [Node(self.dims, point) for point in point_set]
+        for i in range(self.dims):
+            decorated = [(node.cargo[i], node) for node in nodes]
             decorated.sort()
             nodes[:] = [node for _, node in decorated]
-            node_list.extend(nodes, index)
-
-        nodes = [new_node(p) for p in point_set]
-        for index in range(self.dims):
-            sort_and_extend()
+            node_list.extend(nodes, i)
         self.multi_list = node_list
 
     # -------------------------------------------------------------------------------------- #
@@ -124,44 +118,35 @@ class HyperVolume:
             return True if a or b else False
 
         hvol = 0.0
-
         if length == 0:
             return hvol
-
         elif dim_index == 0:
             return -sentinel.next[0].cargo[0]
-
         elif dim_index == 1:
             q = sentinel.next[1]
             h = q.cargo[0]
             p = q.next[1]
-
             while p is not sentinel:
                 hvol += h * (q.cargo[1] - p.cargo[1])
                 if p.cargo[0] < h:
                     h = p.cargo[0]
                 q = p
                 p = q.next[1]
-
             hvol += h * q.cargo[1]
             return hvol
-
         else:
             p = sentinel
             q = p.prev[dim_index]
-
             while q.cargo is not None:
                 if q.ignore < dim_index:
                     q.ignore = 0
                 q = q.prev[dim_index]
             q = p.prev[dim_index]
-
             while length > 1 and in_bounds():
                 p = q
                 remove(p, dim_index, bounds)
                 q = p.prev[dim_index]
                 length -= 1
-
             if length > 1:
                 hvol = q.cargo[dim_index] - q.prev[dim_index].cargo[dim_index]
                 hvol *= q.prev[dim_index].area[dim_index]
@@ -172,7 +157,6 @@ class HyperVolume:
                     q.area[i] * -q.cargo[i] for i in range(dim_index)
                 ]
             inception()
-
             while p is not sentinel:
                 new_point = p.cargo[dim_index] - q.cargo[dim_index]
                 hvol += q.area[dim_index] * new_point
@@ -182,6 +166,5 @@ class HyperVolume:
                 q = p
                 p = p.next[dim_index]
                 inception()
-
             hvol -= q.area[dim_index] * q.cargo[dim_index]
             return hvol
