@@ -23,10 +23,10 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._datatypes import SetItemSeq
 from .hypervolume import hypervolume
-from numpy import ndarray
+from deap_er._datatypes import SetItemSeq
 from ray.exceptions import GetTimeoutError
+from numpy import ndarray
 import numpy
 import ray
 
@@ -35,12 +35,6 @@ __all__ = ['least_contrib']
 
 
 # ====================================================================================== #
-@ray.remote
-def _compute(front, ref) -> float:
-    return hypervolume(front, ref)
-
-
-# -------------------------------------------------------------------------------------- #
 def least_contrib(population: SetItemSeq,
                   ref: ndarray = None,
                   timeout: int = None) -> int:
@@ -59,8 +53,10 @@ def least_contrib(population: SetItemSeq,
         the least hypervolume contribution.
     """
     if not ray.is_initialized():
-        ray.init()
-
+        raise RuntimeError(
+            'Ray must be initialized with ray.init() before any '
+            'calls to the least_contrib indicator can be made.'
+        )
     wvals = [ind.fitness.wvalues for ind in population]
     wvals = numpy.array(wvals) * -1
     if ref is None:
@@ -70,7 +66,7 @@ def least_contrib(population: SetItemSeq,
     for i in range(len(population)):
         front = (wvals[:i], wvals[i + 1:])
         front = numpy.concatenate(front)
-        object_ref = _compute.remote(front, ref)
+        object_ref = hypervolume.remote(front, ref)
         object_refs.append(object_ref)
 
     args = dict(object_refs=object_refs)
@@ -80,8 +76,8 @@ def least_contrib(population: SetItemSeq,
         contrib_values: list = ray.get(**args)
     except GetTimeoutError as e:
         raise TimeoutError(
-            f'Hypervolume calculation exceeded '
-            f'the timeout of {timeout} seconds.'
+            f'Indicator \'least_contrib\' hypervolume calculation '
+            f'exceeded the timeout of {timeout} seconds.'
         ).with_traceback(e.__traceback__)
 
     argmax = numpy.argmax(contrib_values)

@@ -26,29 +26,56 @@
 from .multi_list import MultiList
 from .node import Node
 from numpy import ndarray
+import ray
 
 
-__all__ = ['hypervolume']
+__all__ = ['hypervolume', 'HyperVolume']
 
 
 # ====================================================================================== #
+@ray.remote
 def hypervolume(point_set: ndarray, ref_point: ndarray) -> float:
+    """
+    Computes the hypervolume of a *point_set* around the *ref_point*
+    on a local or a remote cluster using the Ray library.
+
+    :param point_set: A set of points.
+    :param ref_point: The reference point.
+    :returns: The hypervolume of the point set.
+    """
     hv = HyperVolume(ref_point)
     return hv.compute(point_set)
 
 
 # ====================================================================================== #
 class HyperVolume:
-
+    """
+    Hypervolume computation based on the third variant of the algorithm in the paper:
+    "An improved dimension-sweep algorithm for the hypervolume indicator." by
+    C. M. Fonseca, L. Paquete, and M. Lopez-Ibanez (From the IEEE Congress on
+    Evolutionary Computation, pages 1157-1163, Vancouver, Canada, July 2006).
+    """
     multi_list: MultiList
 
     # -------------------------------------------------------------------------------------- #
     def __init__(self, ref_point: ndarray) -> None:
+        """
+        Creates a new HyperVolume object with *ref_point*.
+
+        :param ref_point: The reference point for the hypervolume calculation.
+        """
         self.ref_point = ref_point
         self.dims = len(ref_point)
 
     # -------------------------------------------------------------------------------------- #
     def compute(self, point_set: ndarray) -> float:
+        """
+        Computes the hypervolume that is dominated by the non-dominated *point_set*.
+        Minimization is implicitly assumed.
+
+        :param point_set: The point set for which to compute the hypervolume.
+        :returns: The hypervolume of the given point set.
+        """
         self._pre_process(point_set)
         return self._hv_recursive(
             self.dims - 1,
