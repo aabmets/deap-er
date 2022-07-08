@@ -25,14 +25,14 @@
 # ====================================================================================== #
 from deap_er._deprecated import deprecated
 from .gp_primitives import *
-from typing import Any, Callable
+from typing import Any, Callable, Union
 from functools import wraps
 from copy import deepcopy
 import random
 import sys
 
 
-Expr = PrimitiveTree | str
+Expr = Union[PrimitiveTree, str]
 PSets = list[PrimitiveSetTyped]
 Graph = tuple[list, list, dict]
 
@@ -127,7 +127,7 @@ def build_tree_graph(expr: Expr) -> Graph:
 
 
 # -------------------------------------------------------------------------------------- #
-def static_limit(key: Callable, max_value: int | float) -> Callable:
+def static_limit(key: Callable, max_value: Union[int, float]) -> Callable:
     """
     Provides a decorator to limit the production of offspring.
     It may be used to decorate both crossover and mutation operators.

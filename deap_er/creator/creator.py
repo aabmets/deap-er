@@ -24,6 +24,7 @@
 #                                                                                        #
 # ====================================================================================== #
 from .overrides import *
+from typing import Union
 import warnings
 
 
@@ -37,7 +38,7 @@ class _DevTestClass:  # pragma: no cover
 
 
 # ====================================================================================== #
-def create(name: str, base: type | object, **kwargs) -> None:
+def create(name: str, base: Union[type, object], **kwargs) -> None:
     """
     Creates a new class named *name*, which inherits from the *base* class.
     Any optional *kwargs* provided to this function will be set as attributes

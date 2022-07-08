@@ -25,10 +25,10 @@
 # ====================================================================================== #
 from deap_er._deprecated import deprecated
 from collections.abc import Callable, Iterable
-from typing import Type
+from typing import Type, Union
 
 
-Container = Type[list | tuple | set | str]
+Container = Type[Union[list, tuple, set, str]]
 __all__ = [
     'init_repeat', 'initRepeat',
     'init_iterate', 'initIterate',

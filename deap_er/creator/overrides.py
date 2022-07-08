@@ -67,7 +67,7 @@ class _ArrayOverride(array.array):
     """
     # -------------------------------------------------------------------------------------- #
     @staticmethod
-    def __new__(cls, typecode: str,  sequence: bytes | Iterable) -> array.array:
+    def __new__(cls, typecode: str,  sequence: Iterable) -> array.array:
         return super().__new__(cls, typecode, sequence)
 
     # -------------------------------------------------------------------------------------- #

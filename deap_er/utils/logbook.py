@@ -74,7 +74,7 @@ class Logbook(list):
         self.append(infos)
 
     # -------------------------------------------------------------------------------------- #
-    def select(self, *names) -> list | tuple:
+    def select(self, *names) -> list:
         """
         Returns a list of values for the given names.
 
@@ -83,7 +83,7 @@ class Logbook(list):
         """
         if len(names) == 1:
             return [entry.get(names[0], None) for entry in self]
-        return tuple([entry.get(name, None) for entry in self] for name in names)
+        return [[entry.get(name, None) for entry in self] for name in names]
 
     # -------------------------------------------------------------------------------------- #
     def pop(self, index=0):

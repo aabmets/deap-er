@@ -25,6 +25,7 @@
 # ====================================================================================== #
 from deap_er._deprecated import deprecated
 from collections import defaultdict, deque
+from typing import Union
 import copy
 import abc
 import re
@@ -145,7 +146,7 @@ class PrimitiveSetTyped:
             self.terms_count += 1
 
     # -------------------------------------------------------------------------------------- #
-    def _add(self, prim: Primitive | Terminal) -> None:
+    def _add(self, prim: Union[Primitive, Terminal]) -> None:
         def add_type(_dict, ret_type):
             if ret_type not in _dict:
                 new_list = []
