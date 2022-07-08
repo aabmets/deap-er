@@ -1,6 +1,8 @@
 # DEAP-er
 
-DEAP-er is a port of the DEAP library to Python 3.10.
+DEAP-er is a fully refactored rework of the original DEAP library.
+It's available for Python version 3.9 and the availability for 
+version 3.10 depends on the Ray dependency library.
 
 
 ## Description
