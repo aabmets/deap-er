@@ -38,17 +38,17 @@ __all__ = [
 
 # ====================================================================================== #
 def mut_semantic(individual: list, p_set: PrimitiveSetTyped,
-                 gen_func: Callable = None, mut_step: float = None,
-                 min_: int = 2, max_: int = 6) -> list:
+                 min_depth: int = 2, max_depth: int = 6,
+                 gen_func: Callable = None, mut_step: float = None) -> list:
     """
     Perform a semantic mutation on the given individual.
 
     :param individual: The individual to be mutated.
-    :param p_set: The PrimitiveSet to be used.
+    :param p_set: Primitive set from which primitives are selected.
     :param gen_func: The function which generates the random tree.
     :param mut_step: The mutation step.
-    :param min_: Minimum depth of the random tree.
-    :param max_: Maximum depth of the random tree.
+    :param min_depth: Minimum depth of the random tree.
+    :param max_depth: Maximum depth of the random tree.
     :returns: A new individual.
     """
     _check(p_set, 'mutation')
@@ -59,8 +59,8 @@ def mut_semantic(individual: list, p_set: PrimitiveSetTyped,
     if mut_step is None:
         mut_step = random.uniform(0, 2)
 
-    tr1 = gen_func(p_set, min_, max_)
-    tr2 = gen_func(p_set, min_, max_)
+    tr1 = gen_func(p_set, min_depth, max_depth)
+    tr2 = gen_func(p_set, min_depth, max_depth)
 
     tr1.insert(0, p_set.mapping['lf'])
     tr2.insert(0, p_set.mapping['lf'])
@@ -81,16 +81,17 @@ def mut_semantic(individual: list, p_set: PrimitiveSetTyped,
 
 # -------------------------------------------------------------------------------------- #
 def cx_semantic(ind1: list, ind2: list, p_set: PrimitiveSetTyped,
-                gen_func: Callable = None, min_=2, max_=6) -> tuple:
+                min_depth: int = 2, max_depth: int = 6,
+                gen_func: Callable = None) -> tuple:
     """
     Perform a semantic crossover on the given individuals.
 
     :param ind1: The first individual.
     :param ind2: The second individual.
-    :param p_set: The PrimitiveSet to be used.
+    :param p_set: Primitive set from which primitives are selected.
     :param gen_func: The function which generates the random tree.
-    :param min_: Minimum depth of the random tree.
-    :param max_: Maximum depth of the random tree.
+    :param min_depth: Minimum depth of the random tree.
+    :param max_depth: Maximum depth of the random tree.
     :returns: A tuple of two individuals.
     """
     _check(p_set, 'crossover')
@@ -98,7 +99,7 @@ def cx_semantic(ind1: list, ind2: list, p_set: PrimitiveSetTyped,
     if gen_func is None:
         gen_func = gen_grow
 
-    tr = gen_func(p_set, min_, max_)
+    tr = gen_func(p_set, min_depth, max_depth)
     tr.insert(0, p_set.mapping['lf'])
 
     def create_ind(ind, ind_ext):

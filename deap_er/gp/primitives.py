@@ -25,7 +25,7 @@
 # ====================================================================================== #
 from deap_er._deprecated import deprecated
 from collections import defaultdict, deque
-from typing import Union
+from typing import Union, Type
 import copy
 import abc
 import re
@@ -146,7 +146,7 @@ class PrimitiveSetTyped:
             self.terms_count += 1
 
     # -------------------------------------------------------------------------------------- #
-    def _add(self, prim: Union[Primitive, Terminal]) -> None:
+    def _add(self, prim: Union[Primitive, Terminal, Type[Ephemeral]]) -> None:
         def add_type(_dict, ret_type):
             if ret_type not in _dict:
                 new_list = []
@@ -185,10 +185,7 @@ class PrimitiveSetTyped:
             instead of its __name__ attribute.
         :returns: None
         """
-        cond_1 = name not in self.context
-        cond_2 = self.context[name] is primitive
-
-        if cond_1 or cond_2:
+        if name in self.context:
             raise ValueError(
                 f'Primitives are required to have a unique name. '
                 f'Consider using the argument \'name\' to '
@@ -214,7 +211,7 @@ class PrimitiveSetTyped:
             instead of its __name__ attribute.
         :returns: None
         """
-        if name not in self.context:
+        if name in self.context:
             raise ValueError(
                 f'Terminals are required to have a unique name. '
                 f'Consider using the argument \'{name}\' to '

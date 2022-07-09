@@ -23,55 +23,41 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from typing import Any
-from pathlib import Path
-import traceback
-import warnings
-import inspect
+from deap_er.gp.primitives import PrimitiveSet
+from deap_er.gp.generators import gen_grow
+from deap_er.gp import cx_semantic, mut_semantic
+import operator
+import math
 
 
-warnings.filterwarnings('once', category=DeprecationWarning)
+def lf(x):
+    return 1 / (1 + math.exp(-x))
 
 
-# ====================================================================================== #
-def deprecated(old_name: str, obj: Any) -> Any:
-    """
-    This decorator wraps an object to notify developers of its old deprecated name.
+def test_semantic_crossover():
+    pset = PrimitiveSet("main", 2)
+    pset.add_primitive(operator.sub, 2)
+    pset.add_terminal(3)
+    pset.add_primitive(lf, 1, name="lf")
+    pset.add_primitive(operator.add, 2)
+    pset.add_primitive(operator.mul, 2)
+    ind1 = gen_grow(pset, 1, 3)
+    ind2 = gen_grow(pset, 1, 3)
+    new_ind1, new_ind2 = cx_semantic(ind1, ind2, pset, max_depth=2)
+    ctr = sum([n.name == ind1[i].name for i, n in enumerate(new_ind1)])
+    assert ctr == len(ind1)
+    ctr = sum([n.name == ind2[i].name for i, n in enumerate(new_ind2)])
+    assert ctr == len(ind2)
 
-    :param old_name: The old deprecated name of the object.
-    :param obj: Object to be wrapped with deprecation warning.
-    :return: Function which warns against using the old deprecated name.
-    """
-    def warn(obj_type: str, new_name: str):
-        msg = f'\nWARNING! {obj_type} name \'{old_name}\' is deprecated! ' \
-              f'Replace it with \'{new_name}\'!'
-        tb = traceback.extract_stack()[0]
-        file = Path(tb.filename)
-        warnings.warn_explicit(
-            message=msg,
-            category=DeprecationWarning,
-            filename=file.name,
-            lineno=tb.lineno
-        )
 
-    if isinstance(obj, property):
-        def wrapper(self):
-            new_name = obj.fget.__name__
-            warn(obj_type='Property', new_name=new_name)
-            return getattr(self, new_name)
-        return property(wrapper)
-
-    elif inspect.isfunction(obj):
-        def wrapper(*args, **kwargs):
-            warn(obj_type='Function', new_name=obj.__name__)
-            return obj(*args, **kwargs)
-        return wrapper
-
-    elif inspect.isclass(obj):
-        class Wrapper(obj):
-            def __init__(self, *args, **kwargs):
-                warn(obj_type='Class', new_name=obj.__name__)
-                super().__init__(*args, **kwargs)
-        return Wrapper
-
-    return None
+def test_semantic_mutation():
+    pset = PrimitiveSet("main", 2)
+    pset.add_primitive(operator.sub, 2)
+    pset.add_terminal(3)
+    pset.add_primitive(lf, 1, name="lf")
+    pset.add_primitive(operator.add, 2)
+    pset.add_primitive(operator.mul, 2)
+    individual = gen_grow(pset, 1, 3)
+    mutated = mut_semantic(individual, pset, max_depth=2)
+    ctr = sum([m.name == individual[i].name for i, m in enumerate(mutated)])
+    assert ctr == len(individual)
