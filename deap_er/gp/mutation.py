@@ -52,9 +52,9 @@ def mut_uniform(individual: PrimitiveTree,
     :returns: The mutated individual.
     """
     index = random.randrange(len(individual))
-    slice_ = individual.search_subtree(index)
-    type_ = individual[index].ret
-    individual[slice_] = expr(pset=p_set, type_=type_)
+    i_slice = individual.search_subtree(index)
+    ret_type = individual[index].ret
+    individual[i_slice] = expr(pset=p_set, type_=ret_type)
     return individual
 
 
@@ -194,8 +194,8 @@ def mut_shrink(individual: PrimitiveTree) -> PrimitiveTree:
             subtree = individual[r_slice]
             r_index += len(subtree)
 
-        slice_ = individual.search_subtree(index)
-        individual[slice_] = subtree
+        i_slice = individual.search_subtree(index)
+        individual[i_slice] = subtree
 
     return individual
 

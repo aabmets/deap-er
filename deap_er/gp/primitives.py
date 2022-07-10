@@ -23,6 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from __future__ import annotations
 from deap_er._deprecated import deprecated
 from collections import defaultdict, deque
 from typing import Union, Type
@@ -41,10 +42,9 @@ class Terminal:
     Class that encapsulates terminal primitive in expression.
     Terminals can be values or 0-arity functions.
     """
-    # -------------------------------------------------------------------------------------- #
+
     __slots__ = ('name', 'value', 'ret', 'conv_fct')
 
-    # -------------------------------------------------------------------------------------- #
     def __init__(self, terminal, symbolic, ret):
         self.ret = ret
         self.value = terminal
@@ -76,7 +76,7 @@ class Ephemeral(Terminal):
     when the object is created. This is an abstract base class.
     When subclassing, a staticmethod 'func' must be defined.
     """
-    # -------------------------------------------------------------------------------------- #
+
     def __init__(self):
         Terminal.__init__(self, self.func(), symbolic=False, ret=self.ret)
 
@@ -93,10 +93,9 @@ class Primitive:
     Class that encapsulates a primitive and when called with arguments it
     returns the Python code to call the primitive with the arguments.
     """
-    # -------------------------------------------------------------------------------------- #
+
     __slots__ = ('name', 'arity', 'args', 'ret', 'seq')
 
-    # -------------------------------------------------------------------------------------- #
     def __init__(self, name, args, ret):
         self.name = name
         self.arity = len(args)
@@ -124,7 +123,7 @@ class PrimitiveSetTyped:
     Class that contains the primitives which can be
     used to solve a Strongly Typed GP problem.
     """
-    # -------------------------------------------------------------------------------------- #
+
     def __init__(self, name, in_types, ret_type, prefix="ARG") -> None:
         self.name = name
         self.ins = in_types
@@ -321,7 +320,7 @@ class PrimitiveSet(PrimitiveSetTyped):
     """
     Subclass of *PrimitiveSetTyped* without the type definition.
     """
-    # -------------------------------------------------------------------------------------- #
+
     def __init__(self, name, arity, prefix="ARG"):
         args = [object] * arity
         super().__init__(name, args, object, prefix)
@@ -341,7 +340,6 @@ class PrimitiveSet(PrimitiveSetTyped):
     def add_ephemeral_constant(self, ephemeral, name, *_, **__) -> None:
         super().add_ephemeral_constant(ephemeral, object, name)
 
-    # -------------------------------------------------------------------------------------- #
     addEphemeralConstant = deprecated('addEphemeralConstant', add_ephemeral_constant)
     addPrimitive = deprecated('addPrimitive', add_primitive)
     addTerminal = deprecated('addTerminal', add_terminal)
@@ -356,7 +354,11 @@ class PrimitiveTree(list):
     primitives and terminals. The nodes appended to the tree are required to have
     the *arity* attribute, which defines the arity of the primitive.
     """
-    # -------------------------------------------------------------------------------------- #
+
+    err_msg_1 = "Trying to set a slice larger than the size of the PrimitiveTree is not allowed."
+    err_msg_2 = "Insertion of a subtree with an arity smaller than the PrimitiveTree is not allowed."
+    err_msg_3 = "PrimitiveTree node replacement with a node of a different arity is not allowed."
+
     def __init__(self, content):
         super().__init__(content)
 
@@ -368,20 +370,16 @@ class PrimitiveTree(list):
 
     # -------------------------------------------------------------------------------------- #
     def __setitem__(self, key, val):
-        err_msg_1 = f'Invalid slice object: trying to assign a \'{key}\' in a tree of size {len(self)}.'
-        err_msg_2 = f'Invalid slice assignment: insertion of an incomplete subtree is not allowed.'
-        err_msg_3 = f'Invalid node replacement with a node of a different arity.'
-
         if isinstance(key, slice):
             if key.start >= len(self):
-                raise IndexError(err_msg_1)
+                raise IndexError(self.err_msg_1)
             total = val[0].arity
             for node in val[1:]:
                 total += node.arity - 1
             if total != 0:
-                raise ValueError(err_msg_2)
+                raise ValueError(self.err_msg_2)
         elif val.arity != self[key].arity:
-            raise ValueError(err_msg_3)
+            raise ValueError(self.err_msg_3)
         list.__setitem__(self, key, val)
 
     # -------------------------------------------------------------------------------------- #
@@ -400,7 +398,7 @@ class PrimitiveTree(list):
 
     # -------------------------------------------------------------------------------------- #
     @classmethod
-    def from_string(cls, string, p_set):
+    def from_string(cls, string: str, p_set: PrimitiveSetTyped) -> PrimitiveTree:
         """
         Converts a string expression into a PrimitiveTree given a PrimitiveSet *pset*.
         The primitive set needs to contain every primitive present in the expression.
@@ -416,16 +414,16 @@ class PrimitiveTree(list):
             if token == '':
                 continue
             if len(ret_types) != 0:
-                type_ = ret_types.popleft()
+                ret_type = ret_types.popleft()
             else:
-                type_ = None
+                ret_type = None
 
             if token in p_set.mapping:
                 primitive = p_set.mapping[token]
-                if type_ is not None and not issubclass(primitive.ret, type_):
+                if ret_type is not None and not issubclass(primitive.ret, ret_type):
                     raise TypeError(
                         f'Primitive {primitive} return type {primitive.ret} '
-                        f'does not match the expected one: {type_}.'
+                        f'does not match the expected one: {ret_type}.'
                     )
                 expr.append(primitive)
                 if isinstance(primitive, Primitive):
@@ -435,14 +433,14 @@ class PrimitiveTree(list):
                     token = eval(token)
                 except NameError:
                     raise TypeError(f'Unable to evaluate terminal: {token}.')
-                if type_ is None:
-                    type_ = type(token)
-                if not issubclass(type(token), type_):
+                if ret_type is None:
+                    ret_type = type(token)
+                if not issubclass(type(token), ret_type):
                     raise TypeError(
                         f'Terminal {token} type {type(token)} does '
-                        f'not match the expected one: {type_}.'
+                        f'not match the expected one: {ret_type}.'
                     )
-                expr.append(Terminal(token, False, type_))
+                expr.append(Terminal(token, False, ret_type))
         return cls(expr)
 
     # -------------------------------------------------------------------------------------- #
@@ -459,7 +457,6 @@ class PrimitiveTree(list):
             stack.extend([depth + 1] * elem.arity)
         return max_depth
 
-    # -------------------------------------------------------------------------------------- #
     @property
     def root(self):
         """

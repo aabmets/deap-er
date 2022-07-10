@@ -36,7 +36,6 @@ Expr = Union[PrimitiveTree, str]
 PSets = list[PrimitiveSetTyped]
 Graph = tuple[list, list, dict]
 
-
 __all__ = [
     'compile_tree', 'compile',
     'compile_adf_tree', 'compileADF',
@@ -74,7 +73,10 @@ def compile_tree(expr: Expr, p_set: PrimitiveSetTyped) -> Any:
 # -------------------------------------------------------------------------------------- #
 def compile_adf_tree(expr: Expr, p_sets: PSets) -> Any:
     """
-    Evaluates the expression on the given primitive sets.
+    Compiles the expression represented by a list of trees.
+    The first element of the list is the main tree, and the
+    following elements are automatically defined functions
+    that can be called by the first tree.
 
     :param expr: The expression to compile. It can be a string,
         a PrimitiveTree or any object which produces a valid
