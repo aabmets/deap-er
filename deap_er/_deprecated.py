@@ -30,7 +30,7 @@ import warnings
 import inspect
 
 
-warnings.filterwarnings('once', category=DeprecationWarning)
+warnings.filterwarnings('always', category=DeprecationWarning)
 
 
 # ====================================================================================== #
