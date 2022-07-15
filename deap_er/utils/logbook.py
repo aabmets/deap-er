@@ -65,7 +65,7 @@ class Logbook(list):
         :returns: None
         """
         apply_to_all = {k: v for k, v in infos.items() if not isinstance(v, dict)}
-        for key, value in infos.items():
+        for key, value in list(infos.items()):
             if isinstance(value, dict):
                 chapter_infos = value.copy()
                 chapter_infos.update(apply_to_all)
@@ -86,7 +86,7 @@ class Logbook(list):
         return [[entry.get(name, None) for entry in self] for name in names]
 
     # -------------------------------------------------------------------------------------- #
-    def pop(self, index=0):
+    def pop(self, index: int = 0) -> dict:
         """
         Retrieves and deletes element at *index*. The header and
         the stream will be adjusted to follow the modification.
@@ -99,7 +99,7 @@ class Logbook(list):
         return super(self.__class__, self).pop(index)
 
     # -------------------------------------------------------------------------------------- #
-    def __delitem__(self, key):
+    def __delitem__(self, key) -> None:
         if isinstance(key, slice):
             for i, in range(*key.indices(len(self))):
                 self.pop(i)
@@ -166,6 +166,6 @@ class Logbook(list):
         return str_list
 
     # -------------------------------------------------------------------------------------- #
-    def __str__(self, start_index: int = 0):
+    def __str__(self, start_index: int = 0) -> str:
         text = self.__txt__(start_index)
         return "\n".join(text)
