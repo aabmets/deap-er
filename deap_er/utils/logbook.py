@@ -113,6 +113,8 @@ class Logbook(list):
     # -------------------------------------------------------------------------------------- #
     def __txt__(self, start_index: int) -> list:
         columns = self.header
+        if not len(self):
+            return ['The Logbook is empty.']
         if not columns:
             columns = sorted(self[0].keys()) + sorted(self.chapters.keys())
         if not self.columns_len or len(self.columns_len) != len(columns):
