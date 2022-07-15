@@ -68,10 +68,10 @@ class Strategy:
         self.BD = None
         self.cond = None
 
-        self.compute_params(**kwargs)
+        self.compute_params(kwargs)
 
     # -------------------------------------------------------------------------------------- #
-    def compute_params(self, **kwargs) -> None:
+    def compute_params(self, kwargs: dict) -> None:
         """
         Computes the parameters of the strategy based on the *lambda* parameter.
         It needs to be called again if the *lambda* parameter changes during evolution.
