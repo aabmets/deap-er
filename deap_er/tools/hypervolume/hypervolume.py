@@ -38,7 +38,7 @@ __all__ = ['hypervolume', 'HyperVolume']
 def hypervolume(point_set: SetItemSeq, ref_point: SetItemSeq) -> float:
     """
     Computes the hypervolume of a *point_set* around the *ref_point*
-    on a local or a remote cluster using the Ray library.
+    on a local or a remote cluster using the Ray multiprocessing library.
 
     :param point_set: A set of points.
     :param ref_point: The reference point.
