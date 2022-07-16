@@ -11,4 +11,5 @@ Welcome to the DEAP-er's documentation!
    reference/strategies.rst
    reference/operators.rst
    reference/tools.rst
+   reference/utils.rst
    reference/gp.rst
