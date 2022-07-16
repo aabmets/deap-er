@@ -23,70 +23,30 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.tools import initializers as init
+from deap_er.records import Statistics, MultiStatistics
+from operator import itemgetter
+import numpy
 
 
 # ====================================================================================== #
-def test_func_a() -> str:
-    return 'gene'
+class TestStatistics:
+    def test_statistics(self):
+        s = Statistics()
+        s.register("mean", numpy.mean)
+        s.register("max", max)
+        res = s.compile([1, 2, 3, 4])
+        assert res == {'max': 4, 'mean': 2.5}
+        res = s.compile([5, 6, 7, 8])
+        assert res == {'mean': 6.5, 'max': 8}
 
-
-def test_func_b() -> list:
-    return [i for i in range(3)]
-
-
-# ====================================================================================== #
-class TestHelpers:
-
-    def test_init_repeat_1(self):
-        rtype = list
-        count = 3
-        result = init.init_repeat(rtype, test_func_a, count)
-        assert isinstance(result, rtype)
-        assert result.count('gene') == count
-        assert len(result) == count
-
-    # -------------------------------------------------------------------------------------- #
-    def test_init_repeat_2(self):
-        rtype = tuple
-        count = 3
-        result = init.init_repeat(rtype, test_func_a, count)
-        assert isinstance(result, rtype)
-        assert len(result) == count
-        assert result.count('gene') == count
-
-    # -------------------------------------------------------------------------------------- #
-    def test_init_iterate_1(self):
-        rtype = list
-        result = init.init_iterate(rtype, test_func_b)
-        assert isinstance(result, rtype)
-        assert result == [0, 1, 2]
-
-    # -------------------------------------------------------------------------------------- #
-    def test_init_iterate_2(self):
-        rtype = tuple
-        result = init.init_iterate(rtype, test_func_b)
-        assert isinstance(result, rtype)
-        assert result == (0, 1, 2)
-
-    # -------------------------------------------------------------------------------------- #
-    def test_init_cycle_1(self):
-        rtype = list
-        count = 3
-        funcs = {test_func_a, test_func_b}
-        result = init.init_cycle(rtype, funcs, count)
-        assert isinstance(result, rtype)
-        assert len(result) == 6
-        assert result.count('gene') == 3
-        assert result.count([0, 1, 2]) == 3
-
-    # -------------------------------------------------------------------------------------- #
-    def test_init_cycle_2(self):
-        rtype = tuple
-        count = 3
-        funcs = {test_func_a, test_func_b}
-        result = init.init_cycle(rtype, funcs, count)
-        assert isinstance(result, rtype)
-        assert len(result) == 6
-        assert result.count('gene') == 3
-        assert result.count([0, 1, 2]) == 3
+    def test_multi_statistics(self):
+        length_stats = Statistics(key=len)
+        item_stats = Statistics(key=itemgetter(0))
+        ms = MultiStatistics(length=length_stats, item=item_stats)
+        ms.register("mean", numpy.mean, axis=0)
+        ms.register("max", numpy.max, axis=0)
+        res = ms.compile([[0.0, 1.0, 1.0, 5.0], [2.0, 5.0]])
+        assert res == dict(
+            length={'mean': 3.0, 'max': 4},
+            item={'mean': 1.0, 'max': 2.0}
+        )
