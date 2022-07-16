@@ -23,6 +23,9 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Operating System :: OS Independent"
 ]
+packages = [
+    {include = "deap_er"}
+]
 include = [
     "deap_er",
     "deap_er.*",
