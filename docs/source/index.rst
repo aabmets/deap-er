@@ -1,5 +1,5 @@
-Welcome to deap-er's documentation!
-===================================
+Welcome to the DEAP-er's documentation!
+=======================================
 
 .. toctree::
    :maxdepth: 2
