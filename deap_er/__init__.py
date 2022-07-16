@@ -29,4 +29,5 @@ from . import creator
 from . import gp
 from . import strategies
 from . import tools
+from . import operators
 from . import utils

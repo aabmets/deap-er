@@ -74,7 +74,7 @@ class Ephemeral(Terminal):
     """
     Class that encapsulates a terminal which value is set
     when the object is created. This is an abstract base class.
-    When subclassing, a staticmethod 'func' must be defined.
+    When subclassing, a staticmethod named 'func' must be defined.
     """
 
     def __init__(self):
@@ -284,7 +284,7 @@ class PrimitiveSetTyped:
     # -------------------------------------------------------------------------------------- #
     def rename_arguments(self, **kwargs) -> None:
         """
-        Renames the arguments in self with new names from **kwargs.
+        Renames the arguments in self with new names from *kwargs*.
 
         :param kwargs: Dictionary of new names for the arguments.
         :returns: None

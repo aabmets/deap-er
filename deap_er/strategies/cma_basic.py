@@ -33,15 +33,15 @@ __all__ = ['Strategy']
 
 # ====================================================================================== #
 class Strategy:
+    """
+    The basic CMA evolution strategy.
+
+    :param centroid: An iterable object that indicates where to start the evolution.
+    :param sigma: The initial standard deviation of the distribution.
+    :param kwargs: One or more optional keyword arguments.
+    """
 
     def __init__(self, centroid, sigma, **kwargs) -> None:
-        """
-        Basic CMA-ES strategy.
-
-        :param centroid: An iterable object that indicates where to start the evolution.
-        :param sigma: The initial standard deviation of the distribution.
-        :param kwargs: One or more optional keyword arguments.
-        """
         self.update_count = 0
         self.centroid = numpy.array(centroid)
         self.sigma = sigma
@@ -74,7 +74,8 @@ class Strategy:
     def compute_params(self, kwargs: dict) -> None:
         """
         Computes the parameters of the strategy based on the *lambda* parameter.
-        It needs to be called again if the *lambda* parameter changes during evolution.
+        This function is called automatically when this strategy is instantiated, but
+        it needs to be called again if the *lambda* parameter changes during evolution.
 
         :param kwargs: One or more optional keyword arguments.
         :returns: None

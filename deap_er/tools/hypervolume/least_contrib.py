@@ -23,28 +23,38 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .hypervolume import hypervolume
 from deap_er._datatypes import SetItemSeq
-from ray.exceptions import GetTimeoutError
+from .hypervolume import HyperVolume
+
+from ray import exceptions as ray_ex
+import ray
+
 from numpy import ndarray
 import numpy
-import ray
 
 
 __all__ = ['least_contrib']
 
 
 # ====================================================================================== #
+@ray.remote  # pragma: no cover
+def _hvol(point_set: SetItemSeq, ref_point: SetItemSeq) -> float:
+    hv = HyperVolume(ref_point)
+    return hv.compute(point_set)
+
+
+# -------------------------------------------------------------------------------------- #
 def least_contrib(population: SetItemSeq,
                   ref: ndarray = None,
                   timeout: int = None) -> int:
     """
-    Returns the index of the individual with the least
-    hypervolume contribution. The *population* argument
-    should be a sequence of non-dominated individuals,
-    where each has a *fitness* attribute.
+    Returns the index of the individual with the least hypervolume
+    contribution. The hypervolume is computed on a local or a remote
+    cluster using the Ray multiprocessing library, which must be
+    manually initialized by the user before this function can be used.
 
-    :param population: A sequence of individuals.
+    :param population: A sequence of non-dominated individuals,
+        where each individual has a Fitness attribute.
     :param ref: The reference point for the hypervolume, optional.
     :param timeout: The timeout for the computation.
         Defaults to 60 seconds. Raises a TimeoutError if the
@@ -54,9 +64,10 @@ def least_contrib(population: SetItemSeq,
     """
     if not ray.is_initialized():
         raise RuntimeError(
-            'Ray must be initialized with ray.init() before any '
-            'calls to the least_contrib indicator can be made.'
+            'The user must initialize the Ray library with ray.init() '
+            'before any calls to the least_contrib function can be made.'
         )
+
     wvals = [ind.fitness.wvalues for ind in population]
     wvals = numpy.array(wvals) * -1
     if ref is None:
@@ -66,7 +77,7 @@ def least_contrib(population: SetItemSeq,
     for i in range(len(population)):
         front = (wvals[:i], wvals[i + 1:])
         front = numpy.concatenate(front)
-        object_ref = hypervolume.remote(front, ref)
+        object_ref = _hvol.remote(front, ref)
         object_refs.append(object_ref)
 
     args = dict(object_refs=object_refs)
@@ -74,7 +85,7 @@ def least_contrib(population: SetItemSeq,
         args['timeout'] = float(timeout)
     try:
         contrib_values: list = ray.get(**args)
-    except GetTimeoutError as e:
+    except ray_ex.GetTimeoutError as e:
         ray.cancel(object_refs, force=True)
         raise TimeoutError(
             f'Indicator \'least_contrib\' hypervolume calculation '

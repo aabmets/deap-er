@@ -51,7 +51,7 @@ class Toolbox(LintHints):
     """
     A container for evolutionary operators.
     """
-    # -------------------------------------------------------------------------------------- #
+
     def __init__(self):
         self.register("clone", deepcopy)
         self.register("map", map)

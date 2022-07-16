@@ -33,16 +33,16 @@ __all__ = ['StrategyMultiObjective']
 
 # ====================================================================================== #
 class StrategyMultiObjective:
+    """
+    A multi-objective CMA evolution strategy.
+
+    :param population: An initial population of individuals.
+    :param sigma: The initial step size of the complete system.
+    :param kwargs: One or more optional keyword arguments
+        as described in the documentation.
+    """
 
     def __init__(self, population, sigma, **kwargs):
-        """
-        Multi-objective CMA-ES strategy.
-
-        :param population: An initial population of individuals.
-        :param sigma: The initial step size of the complete system.
-        :param kwargs: One or more optional keyword arguments
-            as described in the documentation.
-        """
         self.parents = population
         self.dim = len(self.parents[0])
 

@@ -34,16 +34,16 @@ __all__ = ['StrategyOnePlusLambda']
 
 # ====================================================================================== #
 class StrategyOnePlusLambda:
+    """
+    A CMA evolution strategy that uses the *lambda* paradigm.
+
+    :param parent: An iterable object that indicates where to start
+        the evolution. The parent requires a fitness attribute.
+    :param sigma: The initial standard deviation of the distribution.
+    :param kwargs: One or more optional keyword arguments.
+    """
 
     def __init__(self, parent, sigma, **kwargs):
-        """
-        A CMA-ES strategy that uses the *lambda* paradigm.
-
-        :param parent: An iterable object that indicates where to start
-            the evolution. The parent requires a fitness attribute.
-        :param sigma: The initial standard deviation of the distribution.
-        :param kwargs: One or more optional keyword arguments.
-        """
         self.parent = parent
         self.sigma = sigma
 
@@ -67,7 +67,8 @@ class StrategyOnePlusLambda:
     def compute_params(self, **kwargs) -> None:
         """
         Computes the parameters of the strategy based on the *lambda* parameter.
-        It needs to be called again if the *lambda* parameter changes during evolution.
+        This function is called automatically when this strategy is instantiated, but
+        it needs to be called again if the *lambda* parameter changes during evolution.
 
         :param kwargs: One or more optional keyword arguments.
         :returns: None

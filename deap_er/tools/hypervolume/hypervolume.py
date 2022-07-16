@@ -27,25 +27,9 @@ from deap_er._datatypes import SetItemSeq
 from .multi_list import MultiList
 from .node import Node
 from numpy import ndarray
-import ray
 
 
-__all__ = ['hypervolume', 'HyperVolume']
-
-
-# ====================================================================================== #
-@ray.remote  # pragma: no cover
-def hypervolume(point_set: SetItemSeq, ref_point: SetItemSeq) -> float:
-    """
-    Computes the hypervolume of a *point_set* around the *ref_point*
-    on a local or a remote cluster using the Ray multiprocessing library.
-
-    :param point_set: A set of points.
-    :param ref_point: The reference point.
-    :returns: The hypervolume of the point set.
-    """
-    hv = HyperVolume(ref_point)
-    return hv.compute(point_set)
+__all__ = ['HyperVolume']
 
 
 # ====================================================================================== #
