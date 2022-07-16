@@ -7,9 +7,9 @@ Welcome to the DEAP-er's documentation!
 
    reference/base.rst
    reference/creator.rst
+   reference/records.rst
    reference/algorithms.rst
    reference/strategies.rst
    reference/operators.rst
-   reference/tools.rst
-   reference/utils.rst
+   reference/utilities.rst
    reference/gp.rst

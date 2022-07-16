@@ -1,5 +1,5 @@
-Types Creator
-=============
+Creator
+=======
 
 .. automodule:: deap_er.creator
    :imported-members:
