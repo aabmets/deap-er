@@ -25,7 +25,7 @@
 # ====================================================================================== #
 from deap_er._deprecated import deprecated
 from deap_er._datatypes import SetItemSeq
-from deap_er.tools.sorting import *
+from deap_er.utilities.sorting import *
 from .sel_helpers import assign_crowding_dist
 from operator import attrgetter
 from itertools import chain

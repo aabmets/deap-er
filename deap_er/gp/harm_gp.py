@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.utils import Logbook, Statistics, HallOfFame
+from deap_er.records import Logbook, Statistics, HallOfFame
 from deap_er.base import Toolbox
 from typing import Callable, Sequence
 import random

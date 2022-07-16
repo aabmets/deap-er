@@ -24,7 +24,7 @@
 #                                                                                        #
 # ====================================================================================== #
 from deap_er._deprecated import deprecated
-from deap_er.utils import Logbook, Statistics, HallOfFame
+from deap_er.records import Logbook, Statistics, HallOfFame
 from deap_er.base.toolbox import Toolbox
 from .variation import *
 

@@ -27,7 +27,7 @@ from . import algorithms
 from . import base
 from . import creator
 from . import gp
-from . import strategies
-from . import tools
 from . import operators
-from . import utils
+from . import records
+from . import strategies
+from . import utilities
