@@ -33,6 +33,7 @@ release = '0.4.0'
 # ones.
 extensions = [
     'sphinx_rtd_theme',
+    'sphinx_toolbox.more_autodoc',
     'sphinx.ext.autodoc'
 ]
 
@@ -46,7 +47,8 @@ exclude_patterns = []
 
 # Help out autodoc
 autodoc_mock_imports = [
-    'numpy'
+    'numpy',
+    'ray'
 ]
 
 
