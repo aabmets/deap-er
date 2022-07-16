@@ -31,18 +31,22 @@ __all__ = ['assign_crowding_dist', 'uniform_reference_points']
 
 
 # ====================================================================================== #
-def assign_crowding_dist(individuals: SetItemSeq) -> list:
+def assign_crowding_dist(individuals: SetItemSeq) -> None:
     """
     Assigns a crowding distance to each individual's fitness.
     The crowding distance can be retrieved via the *crowding_dist*
-    attribute of each individual's fitness.
+    attribute of each individual's fitness. The individuals
+    are modified in-place.
+
+    :param individuals: A list of individuals with Fitness attributes.
+    :returns: None
     """
+
     if len(individuals) == 0:
-        return list()
+        return
 
     distances = [0.0] * len(individuals)
     crowd = [(ind.fitness.values, i) for i, ind in enumerate(individuals)]
-
     n_obj = len(individuals[0].fitness.values)
 
     for i in range(n_obj):

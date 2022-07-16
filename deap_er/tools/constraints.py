@@ -47,6 +47,7 @@ class DeltaPenalty:
         returned for an invalid individual.
     :param distance: A function returning the distance
         between the individual and a given valid point.
+    :returns: A decorator for the fitness function.
     """
     def __init__(self, feasibility: Callable,
                  delta: NumOrSeq, distance: Callable = None):
@@ -95,7 +96,7 @@ class ClosestValidPenalty:
         between the valid and invalid individual.
     :param distance: A function returning the distance
         between the individual and a given valid point.
-    :returns: A decorator for evaluation function.
+    :returns: A decorator for the fitness function.
     """
     # -------------------------------------------------------------------------------------- #
     def __init__(self, feasibility, feasible, alpha, distance=None):

@@ -31,7 +31,11 @@ from functools import partial
 import random
 
 
-__all__ = ['sel_tournament_dcd', 'selTournamentDCD']
+__all__ = [
+    'sel_tournament', 'selTournament',
+    'sel_double_tournament', 'selDoubleTournament',
+    'sel_tournament_dcd', 'selTournamentDCD'
+]
 
 
 # ====================================================================================== #

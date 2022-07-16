@@ -88,9 +88,9 @@ def _match(ind1: SetItemSeq, ind2: SetItemSeq,
 # -------------------------------------------------------------------------------------- #
 def cx_one_point(ind1: SetItemSeq, ind2: SetItemSeq) -> TwoSIS:
     """
-    Executes a one point crossover on the two individuals,
+    Executes a one-point crossover on the two individuals,
     who are modified in place. The resulting individuals
-    will respectively have the length of the other.
+    will have the respective length of the other.
 
     :param ind1: The first individual.
     :param ind2: The second individual.
@@ -103,9 +103,25 @@ def cx_one_point(ind1: SetItemSeq, ind2: SetItemSeq) -> TwoSIS:
 
 
 # -------------------------------------------------------------------------------------- #
+def cx_messy_one_point(ind1: SetItemSeq, ind2: SetItemSeq) -> TwoSIS:
+    """
+    Executes a messy one point crossover on the two
+    individuals, who are modified in place.
+
+    :param ind1: The first individual.
+    :param ind2: The second individual.
+    :returns: A tuple of two individuals.
+    """
+    cxp1 = random.randint(0, len(ind1))
+    cxp2 = random.randint(0, len(ind2))
+    _slicer(ind1, ind2, cxp1, cxp2)
+    return ind1, ind2
+
+
+# -------------------------------------------------------------------------------------- #
 def cx_two_point(ind1: SetItemSeq, ind2: SetItemSeq) -> TwoSIS:
     """
-    Executes a one point crossover on the two individuals,
+    Executes a two-point crossover on the two individuals,
     who are modified in place. The resulting individuals
     both keep their original length.
 
@@ -118,21 +134,21 @@ def cx_two_point(ind1: SetItemSeq, ind2: SetItemSeq) -> TwoSIS:
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_uniform(ind1: SetItemSeq, ind2: SetItemSeq, cx_prob: float) -> TwoSIS:
+def cx_es_two_point(ind1: SetItemSeq, ind2: SetItemSeq) -> TwoSIS:
     """
-    Executes a uniform crossover on the two individuals,
-    who are modified in place. The traits are swapped
-    according to the *cx_prob* probability.
+    Executes a two point crossover on the
+    individuals and their strategies.
 
     :param ind1: The first individual.
     :param ind2: The second individual.
-    :param cx_prob: The probability of swapping any two traits.
     :returns: A tuple of two individuals.
     """
-    size = min(len(ind1), len(ind2))
-    for i in range(size):
-        if random.random() < cx_prob:
-            _slicer(ind1, ind2, i, i + 1)
+    cxp1, cxp2 = _two_point(ind1, ind2)
+    _slicer(
+        ind1.strategy,
+        ind2.strategy,
+        cxp1, cxp2
+    )
     return ind1, ind2
 
 
@@ -194,45 +210,6 @@ def cx_uniform_partially_matched(ind1: SetItemSeq, ind2: SetItemSeq,
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_ordered(ind1: SetItemSeq, ind2: SetItemSeq) -> TwoSIS:
-    """
-    Executes an ordered crossover on the two
-    individuals, who are modified in place.
-
-    :param ind1: The first individual.
-    :param ind2: The second individual.
-    :returns: A tuple of two individuals.
-    """
-    size = min(len(ind1), len(ind2))
-    a, b = random.sample(list(range(size)), 2)
-    if a > b:
-        a, b = b, a
-
-    holes1, holes2 = [True] * size, [True] * size
-    for i in range(size):
-        if i < a or i > b:
-            holes1[ind2[i]] = False
-            holes2[ind1[i]] = False
-
-    temp1, temp2 = ind1, ind2
-    k1, k2 = b + 1, b + 1
-
-    for i in range(size):
-        if not holes1[temp1[(i + b + 1) % size]]:
-            ind1[k1 % size] = temp1[(i + b + 1) % size]
-            k1 += 1
-
-        if not holes2[temp2[(i + b + 1) % size]]:
-            ind2[k2 % size] = temp2[(i + b + 1) % size]
-            k2 += 1
-
-    for i in range(a, b + 1):
-        _slicer(ind1, ind2, i, i + 1)
-
-    return ind1, ind2
-
-
-# -------------------------------------------------------------------------------------- #
 def cx_blend(ind1: SetItemSeq, ind2: SetItemSeq, alpha: float) -> TwoSIS:
     """
     Executes a blend crossover on the two
@@ -249,6 +226,33 @@ def cx_blend(ind1: SetItemSeq, ind2: SetItemSeq, alpha: float) -> TwoSIS:
         gamma = (1. + 2. * alpha) * random.random() - alpha
         ind1[i] = (1. - gamma) * x1 + gamma * x2
         ind2[i] = gamma * x1 + (1. - gamma) * x2
+
+    return ind1, ind2
+
+
+# -------------------------------------------------------------------------------------- #
+def cx_es_blend(ind1: SetItemSeq, ind2: SetItemSeq, alpha: float) -> TwoSIS:
+    """
+    Executes a blend crossover on the
+    individuals and their strategies.
+
+    :param ind1: The first individual.
+    :param ind2: The second individual.
+    :param alpha: Extent of the interval in which
+        the new values can be drawn for each attribute
+        on both side of the parents' attributes.
+    :returns: A tuple of two individuals.
+    """
+    zipper = zip(ind1, ind1.strategy, ind2, ind2.strategy)
+    for i, (x1, s1, x2, s2) in enumerate(zipper):
+
+        gamma = (1. + 2. * alpha) * random.random() - alpha
+        ind1[i] = (1. - gamma) * x1 + gamma * x2
+        ind2[i] = gamma * x1 + (1. - gamma) * x2
+
+        gamma = (1. + 2. * alpha) * random.random() - alpha
+        ind1.strategy[i] = (1. - gamma) * s1 + gamma * s2
+        ind2.strategy[i] = gamma * s1 + (1. - gamma) * s2
 
     return ind1, ind2
 
@@ -349,64 +353,60 @@ def cx_simulated_binary_bounded(ind1: SetItemSeq, ind2: SetItemSeq,
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_messy_one_point(ind1: SetItemSeq, ind2: SetItemSeq) -> TwoSIS:
+def cx_uniform(ind1: SetItemSeq, ind2: SetItemSeq, cx_prob: float) -> TwoSIS:
     """
-    Executes a messy one point crossover on the two
+    Executes a uniform crossover on the two individuals,
+    who are modified in place. The traits are swapped
+    according to the *cx_prob* probability.
+
+    :param ind1: The first individual.
+    :param ind2: The second individual.
+    :param cx_prob: The probability of swapping any two traits.
+    :returns: A tuple of two individuals.
+    """
+    size = min(len(ind1), len(ind2))
+    for i in range(size):
+        if random.random() < cx_prob:
+            _slicer(ind1, ind2, i, i + 1)
+    return ind1, ind2
+
+
+# -------------------------------------------------------------------------------------- #
+def cx_ordered(ind1: SetItemSeq, ind2: SetItemSeq) -> TwoSIS:
+    """
+    Executes an ordered crossover on the two
     individuals, who are modified in place.
 
     :param ind1: The first individual.
     :param ind2: The second individual.
     :returns: A tuple of two individuals.
     """
-    cxp1 = random.randint(0, len(ind1))
-    cxp2 = random.randint(0, len(ind2))
-    _slicer(ind1, ind2, cxp1, cxp2)
-    return ind1, ind2
+    size = min(len(ind1), len(ind2))
+    a, b = random.sample(list(range(size)), 2)
+    if a > b:
+        a, b = b, a
 
+    holes1, holes2 = [True] * size, [True] * size
+    for i in range(size):
+        if i < a or i > b:
+            holes1[ind2[i]] = False
+            holes2[ind1[i]] = False
 
-# -------------------------------------------------------------------------------------- #
-def cx_es_blend(ind1: SetItemSeq, ind2: SetItemSeq, alpha: float) -> TwoSIS:
-    """
-    Executes a blend crossover on the
-    individuals and their strategies.
+    temp1, temp2 = ind1, ind2
+    k1, k2 = b + 1, b + 1
 
-    :param ind1: The first individual.
-    :param ind2: The second individual.
-    :param alpha: Extent of the interval in which
-        the new values can be drawn for each attribute
-        on both side of the parents' attributes.
-    :returns: A tuple of two individuals.
-    """
-    zipper = zip(ind1, ind1.strategy, ind2, ind2.strategy)
-    for i, (x1, s1, x2, s2) in enumerate(zipper):
+    for i in range(size):
+        if not holes1[temp1[(i + b + 1) % size]]:
+            ind1[k1 % size] = temp1[(i + b + 1) % size]
+            k1 += 1
 
-        gamma = (1. + 2. * alpha) * random.random() - alpha
-        ind1[i] = (1. - gamma) * x1 + gamma * x2
-        ind2[i] = gamma * x1 + (1. - gamma) * x2
+        if not holes2[temp2[(i + b + 1) % size]]:
+            ind2[k2 % size] = temp2[(i + b + 1) % size]
+            k2 += 1
 
-        gamma = (1. + 2. * alpha) * random.random() - alpha
-        ind1.strategy[i] = (1. - gamma) * s1 + gamma * s2
-        ind2.strategy[i] = gamma * s1 + (1. - gamma) * s2
+    for i in range(a, b + 1):
+        _slicer(ind1, ind2, i, i + 1)
 
-    return ind1, ind2
-
-
-# -------------------------------------------------------------------------------------- #
-def cx_es_two_point(ind1: SetItemSeq, ind2: SetItemSeq) -> TwoSIS:
-    """
-    Executes a two point crossover on the
-    individuals and their strategies.
-
-    :param ind1: The first individual.
-    :param ind2: The second individual.
-    :returns: A tuple of two individuals.
-    """
-    cxp1, cxp2 = _two_point(ind1, ind2)
-    _slicer(
-        ind1.strategy,
-        ind2.strategy,
-        cxp1, cxp2
-    )
     return ind1, ind2
 
 
