@@ -37,6 +37,7 @@ class _BaseClass:
     """
     Private base class for the HallOfFame and ParetoFront classes.
     """
+
     def __init__(self):
         self.keys = list()
         self.items = list()

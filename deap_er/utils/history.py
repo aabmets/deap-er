@@ -37,7 +37,7 @@ class History:
     The *History* class helps with building a genealogy
     of the individuals produced in the evolution.
     """
-    # -------------------------------------------------------------------------------------- #
+
     def __init__(self):
         self.genealogy_index = int()
         self.genealogy_history = dict()

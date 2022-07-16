@@ -43,7 +43,7 @@ class Statistics:
     supports it. For example, statistics can be computed directly on
     multi-objective fitness when using numpy statistical function.
     """
-    # -------------------------------------------------------------------------------------- #
+
     def __init__(self, key: Callable = None):
         self.key = key if key else lambda obj: obj
         self.functions = dict()
@@ -88,7 +88,7 @@ class MultiStatistics(dict):
     Allows computation of statistics on multiple keys using a single
     call to the *compile* method.
     """
-    # -------------------------------------------------------------------------------------- #
+
     @property
     def fields(self):
         return sorted(self.keys())

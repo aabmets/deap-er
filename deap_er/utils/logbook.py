@@ -36,7 +36,7 @@ class Logbook(list):
     Contains evolution records as a chronological list of dictionaries.
     Data can be retrieved using the *select* method with the appropriate names.
     """
-    # -------------------------------------------------------------------------------------- #
+
     def __init__(self):
         self.chapters = defaultdict(Logbook)
         self.buff_index: int = 0
