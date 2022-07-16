@@ -42,7 +42,7 @@ def ea_mu_comma_lambda(toolbox: Toolbox,
                        n_gen: int,
                        hof: HallOfFame = None,
                        stats: Statistics = None,
-                       verbose: int = __debug__) -> tuple[list, Logbook]:
+                       verbose: int = False) -> tuple[list, Logbook]:
     """
     An evolutionary algorithm. This function expects the *mate*, *mutate*,
     *select* and *evaluate* operators to be registered in the toolbox.

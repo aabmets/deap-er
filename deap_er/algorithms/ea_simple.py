@@ -40,7 +40,7 @@ def ea_simple(toolbox: Toolbox,
               n_gen: int,
               hof: HallOfFame = None,
               stats: Statistics = None,
-              verbose: bool = __debug__) -> tuple[list, Logbook]:
+              verbose: bool = False) -> tuple[list, Logbook]:
     """
     An evolutionary algorithm. This function expects the *mate*, *mutate*,
     *select* and *evaluate* operators to be registered in the toolbox.

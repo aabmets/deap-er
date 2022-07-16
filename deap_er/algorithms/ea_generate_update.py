@@ -36,7 +36,7 @@ def ea_generate_update(toolbox: Toolbox,
                        n_gen: int,
                        hof: HallOfFame = None,
                        stats: Statistics = None,
-                       verbose: bool = __debug__) -> tuple[list, Logbook]:
+                       verbose: bool = False) -> tuple[list, Logbook]:
     """
     An evolutionary algorithm. This function expects the *generate*, *update*,
     and *evaluate* operators to be registered in the toolbox.
