@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from typing import Callable
+from typing import Callable, Tuple
 from functools import partial
 from copy import deepcopy
 
@@ -49,27 +49,31 @@ class LintHints:
 # ====================================================================================== #
 class Toolbox(LintHints):
     """
-    A container for evolutionary operators.
+    A toolbox for evolutionary operators.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.register("clone", deepcopy)
         self.register("map", map)
 
     # -------------------------------------------------------------------------------------- #
     def register(self, alias: str, func: Callable, *args, **kwargs) -> None:
         """
-        Sets the *func* param with the name *alias* as an attribute to
-        the *Toolbox* instance that this method is called on.
+        Registers a *func* in the toolbox under the name *alias*.
+        Any *args* or *kwargs* will be automatically passed to the
+        registered function when it's called. Fixed arguments can
+        be overridden at function call time.
 
-        :param alias: Name of the operator to make the func available from.
-            If a toolbox already has an operator with the same name, it will be overwritten.
+        :param alias: The name to register the *func* under.
+            The alias will be overwritten if it already exists.
         :param func: The function to which the alias is going to refer.
-        :param args: Positional arguments which get automatically passed
-            to the func when it's called, optional.
-        :param kwargs: Keyword arguments which get automatically passed
-            to the func when it's called, optional.
-        :returns: None
+        :param args: Positional arguments which get automatically
+            passed to the *func* when it's called, optional.
+        :type args: Optional
+        :param kwargs: Keyword arguments which get automatically
+            passed to the *func* when it's called, optional.
+        :type kwargs: Optional
+        :rtype: None
         """
         p_func = partial(func, *args, **kwargs)
         p_func.__name__ = alias
@@ -80,25 +84,31 @@ class Toolbox(LintHints):
         setattr(self, alias, p_func)
 
     # -------------------------------------------------------------------------------------- #
-    def unregister(self, alias) -> None:
+    def unregister(self, alias: str) -> None:
         """
         Removes an operator with the name *alias* from the toolbox.
 
         :param alias: The name of the operator to remove from the toolbox.
-        :returns: None
+        :rtype: None
         """
         delattr(self, alias)
 
     # -------------------------------------------------------------------------------------- #
     def decorate(self, alias: str, *decorators: Callable) -> None:
         """
-        Decorates an operator *alias* with the provided *decorators*,
-        where *alias* must be a registered operator in the toolbox.
+        Decorates an operator *alias* with the provided *decorators*.
 
-        :param alias: Name of the operator to decorate.
-        :param decorators: A list of decorator functions to apply to the alias.
-        :return: None
+        :param alias: Name of the operator to decorate. The *alias*
+            must be a registered operator in the toolbox.
+        :param decorators: Positional arguments of decorator functions to
+            apply to the *alias*, optional. If none are provided, the operator
+            is left unchanged. If multiple are provided, they are applied in
+            order from the earliest to the latest in the *decorators* argument.
+        :type decorators: Optional[Callable]
+        :rtype: None
         """
+        if not decorators:
+            return
         p_func = getattr(self, alias)
         func = p_func.func
         args = p_func.args
