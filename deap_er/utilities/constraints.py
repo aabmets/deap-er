@@ -24,7 +24,7 @@
 #                                                                                        #
 # ====================================================================================== #
 from collections.abc import Sequence, Callable
-from deap_er._datatypes import NumOrSeq
+from deap_er.datatypes import NumOrSeq
 from itertools import repeat
 from functools import wraps
 

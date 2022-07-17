@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._datatypes import SetItemSeq
+from deap_er.datatypes import SetItemSeq
 from .hypervolume import HyperVolume
 
 from ray import exceptions as ray_ex

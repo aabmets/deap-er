@@ -23,11 +23,14 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from .records import Logbook
 from collections.abc import Sequence
-from typing import Union
+from typing import Union, Tuple
 import numpy
 import array
 
 SetItemSeq = Union[list, numpy.ndarray, array.array]
-TwoSIS = tuple[SetItemSeq, SetItemSeq]
+DoubleSIS = Tuple[SetItemSeq, SetItemSeq]
 NumOrSeq = Union[int, float, Sequence]
+SeqOfNum = Sequence[Union[int, float]]
+ListAndLog = Tuple[list, Logbook]
