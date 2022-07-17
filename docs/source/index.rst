@@ -13,3 +13,4 @@ Welcome to the DEAP-er's documentation!
    reference/operators.rst
    reference/utilities.rst
    reference/gp.rst
+   reference/datatypes.rst

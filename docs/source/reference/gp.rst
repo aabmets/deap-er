@@ -1,5 +1,5 @@
-Genetic Programming
-===================
+Genetic Programming (GP)
+========================
 
 .. toctree::
    :maxdepth: 2

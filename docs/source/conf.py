@@ -42,12 +42,6 @@ templates_path = ['_templates']
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = []
 
-# Help out autodoc
-autodoc_mock_imports = [
-    'numpy',
-    'ray'
-]
-
 
 # -- Options for HTML output -------------------------------------------------
 
@@ -62,3 +56,16 @@ pygments_style = 'default'
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+
+# -- Options for Autodoc -------------------------------------------------
+autodoc_mock_imports = [
+    'numpy',
+    'ray'
+]
+autodoc_typehints = 'description'
+autodoc_typehints_description_target = 'all'
+autodoc_typehints_format = 'short'
+autodoc_preserve_defaults = True
+autodoc_warningiserror = True
+autodoc_inherit_docstrings = True
