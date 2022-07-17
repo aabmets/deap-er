@@ -31,3 +31,4 @@ from . import operators
 from . import records
 from . import strategies
 from . import utilities
+from . import datatypes
