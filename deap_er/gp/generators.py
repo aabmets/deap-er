@@ -24,7 +24,7 @@
 #                                                                                        #
 # ====================================================================================== #
 from .primitives import PrimitiveSetTyped
-from typing import Callable
+from typing import Callable, Optional, Any
 from inspect import isclass
 import random
 import sys
@@ -35,7 +35,8 @@ __all__ = ['generate', 'gen_full', 'gen_grow', 'gen_half_and_half']
 
 # ====================================================================================== #
 def generate(p_set: PrimitiveSetTyped, min_depth: int,
-             max_depth: int, condition: Callable, ret_type=None) -> list:
+             max_depth: int, condition: Callable,
+             ret_type: Optional[Any] = None) -> list:
     """
     Generates a tree as a list of primitives and terminals in a depth-first order.
     The tree is built from the root to the leaves. It recursively grows each branch
@@ -48,8 +49,8 @@ def generate(p_set: PrimitiveSetTyped, min_depth: int,
         max_depth: Maximum depth of the random tree.
         condition: A function that takes two arguments: the height
             of the branch to grow and the current depth in the tree.
-        ret_type: The type that should return the tree when called.
-            If None, the type of pset.ret is used.
+        ret_type: The type that should return the tree when called,
+            optional. If not provided, the type of *pset.ret* is used.
     Returns:
         A grown tree with leaves at possibly different
         depths depending on the condition function.
@@ -90,7 +91,7 @@ def generate(p_set: PrimitiveSetTyped, min_depth: int,
 
 # -------------------------------------------------------------------------------------- #
 def gen_full(p_set: PrimitiveSetTyped, min_depth: int,
-             max_depth: int, ret_type=None) -> list:
+             max_depth: int, ret_type: Optional[Any] = None) -> list:
     """
     Generates an expression where each leaf has the same
     depth between *min* and *max*.
@@ -99,8 +100,8 @@ def gen_full(p_set: PrimitiveSetTyped, min_depth: int,
         p_set: Primitive set from which primitives are selected.
         min_depth: Minimum depth of the random tree.
         max_depth: Maximum depth of the random tree.
-        ret_type: The type that should return the tree when called.
-            If None, the type of pset.ret is used.
+        ret_type: The type that should return the tree when called,
+            optional. If not provided, the type of *pset.ret* is used.
     Returns:
         A full tree with all leaves at the same depth.
     """
@@ -111,7 +112,7 @@ def gen_full(p_set: PrimitiveSetTyped, min_depth: int,
 
 # -------------------------------------------------------------------------------------- #
 def gen_grow(p_set: PrimitiveSetTyped, min_depth: int,
-             max_depth: int, ret_type=None) -> list:
+             max_depth: int, ret_type: Optional[Any] = None) -> list:
     """
     Generates an expression where each leaf might have a different
     depth between *min* and *max*.
@@ -120,8 +121,8 @@ def gen_grow(p_set: PrimitiveSetTyped, min_depth: int,
         p_set: Primitive set from which primitives are selected.
         min_depth: Minimum depth of the random tree.
         max_depth: Maximum depth of the random tree.
-        ret_type: The type that should return the tree when called.
-            If None, the type of pset.ret is used.
+        ret_type: The type that should return the tree when called,
+            optional. If not provided, the type of *pset.ret* is used.
     Returns:
         A grown tree with leaves at possibly different depths.
     """
@@ -133,7 +134,7 @@ def gen_grow(p_set: PrimitiveSetTyped, min_depth: int,
 
 # -------------------------------------------------------------------------------------- #
 def gen_half_and_half(p_set: PrimitiveSetTyped, min_depth: int,
-                      max_depth: int, ret_type=None) -> list:
+                      max_depth: int, ret_type: Optional[Any] = None) -> list:
     """
     Generates an expression with a random choice
     between *gen_grow* and *gen_full*.
@@ -142,8 +143,8 @@ def gen_half_and_half(p_set: PrimitiveSetTyped, min_depth: int,
         p_set: Primitive set from which primitives are selected.
         min_depth: Minimum depth of the random tree.
         max_depth: Maximum depth of the random tree.
-        ret_type: The type that should return the tree when called.
-            If None, the type of pset.ret is used.
+        ret_type: The type that should return the tree when called,
+            optional. If not provided, the type of *pset.ret* is used.
     Returns:
         Either a full tree or a grown tree.
     """
