@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import Subscript
+from deap_er.datatypes import Individual
 from .multi_list import MultiList
 from .node import Node
 from numpy import ndarray
@@ -43,7 +43,7 @@ class HyperVolume:
     multi_list: MultiList
 
     # -------------------------------------------------------- #
-    def __init__(self, ref_point: Subscript) -> None:
+    def __init__(self, ref_point: Individual) -> None:
         """
         Creates a new HyperVolume object with *ref_point*.
 
@@ -53,7 +53,7 @@ class HyperVolume:
         self.dims = len(ref_point)
 
     # -------------------------------------------------------- #
-    def compute(self, point_set: Subscript) -> float:
+    def compute(self, point_set: Individual) -> float:
         """
         Computes the hypervolume that is dominated by the non-dominated *point_set*.
         Minimization is implicitly assumed.
