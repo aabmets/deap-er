@@ -23,6 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from deap_er.datatypes import Individual
 from typing import Callable
 from copy import deepcopy
 
@@ -49,7 +50,8 @@ class History:
         Property that returns an appropriate decorator
         to enhance the operators of the toolbox.
 
-        :returns: Callable
+        Returns:
+            A decorator that adds the genealogy history to the individuals.
         """
         def wrapper(func):
             def wrapped(*args, **kwargs):
@@ -60,14 +62,16 @@ class History:
         return wrapper
 
     # -------------------------------------------------------- #
-    def update(self, individuals) -> None:
+    def update(self, individuals: list) -> None:
         """
         Update the genealogy history with the given individuals.
         This method should be called with the initial population
         to initialize the history and also after each variation.
 
-        :param individuals: The individuals to update the genealogy history with.
-        :returns: None
+        Parameters:
+            individuals: The individuals to update the genealogy history with.
+        Returns:
+            None
         """
         try:
             parent_indices = tuple(ind.history_index for ind in individuals)
@@ -81,16 +85,18 @@ class History:
             self.genealogy_tree[self.genealogy_index] = parent_indices
 
     # -------------------------------------------------------- #
-    def get_genealogy(self, individual, max_depth=float("inf")) -> dict:
+    def get_genealogy(self, individual: Individual,
+                      max_depth=float("inf")) -> dict:
         """
         Get the genealogy of the given individual. The returned graph contains
         the parents up to *max_depth* variations before this individual. The
         default value of *max_depth* is up to the beginning of the evolution.
 
-        :param individual: The individual at the root of the genealogy tree.
-        :param max_depth: The maximum depth of the genealogy tree.
-        :returns: A dictionary where each key is an individual index and the
-            values are a tuple corresponding to the index of the parents.
+        Parameters:
+            individual: The individual at the root of the genealogy tree.
+            max_depth: The maximum depth of the genealogy tree.
+        Returns: A dictionary where each key is an individual index and the
+            values are tuples corresponding to the index of the parents.
         """
         def _recursive(index, depth):
             if index not in self.genealogy_tree:

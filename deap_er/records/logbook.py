@@ -51,35 +51,40 @@ class Logbook(list):
         """
         Returns a stream of the logbook.
 
-        :returns: A stream of the logbook.
+        Returns:
+            A stream of the logbook.
         """
         start_index, self.buff_index = self.buff_index, len(self)
         return self.__str__(start_index)
 
     # -------------------------------------------------------- #
-    def record(self, **infos) -> None:
+    def record(self, **data) -> None:
         """
         Adds a new entry to the logbook as a list of dictionaries.
 
-        :param infos: The new entry.
-        :returns: None
+        Parameters:
+            data: The new entry.
+        Returns:
+            None
         """
-        apply_to_all = {k: v for k, v in infos.items() if not isinstance(v, dict)}
-        for key, value in list(infos.items()):
+        apply_to_all = {k: v for k, v in data.items() if not isinstance(v, dict)}
+        for key, value in list(data.items()):
             if isinstance(value, dict):
                 chapter_infos = value.copy()
                 chapter_infos.update(apply_to_all)
                 self.chapters[key].record(**chapter_infos)
-                del infos[key]
-        self.append(infos)
+                del data[key]
+        self.append(data)
 
     # -------------------------------------------------------- #
     def select(self, *names) -> list:
         """
         Returns a list of values for the given names.
 
-        :param names: The names of the values to return.
-        :returns: A list of values.
+        Parameters:
+            names: The names of the values to retrieve.
+        Returns:
+            A list of values for the given names.
         """
         if len(names) == 1:
             return [entry.get(names[0], None) for entry in self]
@@ -91,8 +96,10 @@ class Logbook(list):
         Retrieves and deletes element at *index*. The header and
         the stream will be adjusted to follow the modification.
 
-        :param index: The index of the element to pop.
-        :returns: The popped element.
+        Parameters:
+            index: The index of the element to retrieve and delete.
+        Returns:
+            The element at *index*.
         """
         if index < self.buff_index:
             self.buff_index -= 1

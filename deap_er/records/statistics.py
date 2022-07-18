@@ -23,8 +23,8 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from typing import Callable, Sequence, Optional
 from functools import partial
-from typing import Callable, Sequence
 
 
 __all__ = ['Statistics', 'MultiStatistics']
@@ -42,6 +42,10 @@ class Statistics:
     a tuple or a list, as long as the registered statistical function
     supports it. For example, statistics can be computed directly on
     multi-objective fitness when using numpy statistical function.
+
+    Parameters:
+        key: A function that takes an object and returns a value
+            on which the statistics will be computed.
     """
     # -------------------------------------------------------- #
     def __init__(self, key: Callable = None):
@@ -50,18 +54,21 @@ class Statistics:
         self.fields = list()
 
     # -------------------------------------------------------- #
-    def register(self, name: str, func: Callable, *args, **kwargs) -> None:
+    def register(self, name: str, func: Callable,
+                 *args: Optional, **kwargs: Optional) -> None:
         """
-        Registers a new statistical function that will be applied on
-        the sequence each time the *record* method is called.
+        Registers a new statistical function that will be applied
+        to the sequence each time the *record* method is called.
 
-        :param name: The name of the statistics function as it would
-            appear in the dictionary of the statistics object.
-        :param func: A function that will compute the desired
-            statistics on the data as preprocessed by the key.
-        :param args: Positional arguments to be passed to the function, optional.
-        :param kwargs: Keyword arguments to be passed to the function, optional.
-        :returns: None
+        Parameters:
+            name: The name of the statistics function as it would
+                appear in the dictionary of the statistics object.
+            func: A function that will compute the desired statistics
+                on the data as preprocessed by the key.
+            args: Positional arguments to be passed to the function, optional.
+            kwargs: Keyword arguments to be passed to the function, optional.
+        Returns:
+            None
         """
         self.functions[name] = partial(func, *args, **kwargs)
         self.fields.append(name)
@@ -71,8 +78,10 @@ class Statistics:
         """
         Compiles the statistics on the given data.
 
-        :param data: The data on which the statistics will be computed.
-        :returns: A dictionary of the computed statistics.
+        Parameters:
+            data: The data on which the statistics will be computed.
+        Returns:
+            A dictionary containing the statistics.
         """
         entry = dict()
         values = tuple(self.key(elem) for elem in data)
@@ -94,18 +103,21 @@ class MultiStatistics(dict):
         return sorted(self.keys())
 
     # -------------------------------------------------------- #
-    def register(self, name: str, func: Callable, *args, **kwargs) -> None:
+    def register(self, name: str, func: Callable,
+                 *args: Optional, **kwargs: Optional) -> None:
         """
         Registers a new statistical function that will be applied on
         the sequence each time the *record* method is called.
 
-        :param name: The name of the statistics function as it would
-            appear in the dictionary of the statistics object.
-        :param func: A function that will compute the desired
-            statistics on the data as preprocessed by the key.
-        :param args: Positional arguments to be passed to the function, optional.
-        :param kwargs: Keyword arguments to be passed to the function, optional.
-        :returns: None
+        Parameters:
+            name: The name of the statistics function as it would
+                appear in the dictionary of the statistics object.
+            func: A function that will compute the desired statistics
+                on the data as preprocessed by the key.
+            args: Positional arguments to be passed to the function, optional.
+            kwargs: Keyword arguments to be passed to the function, optional.
+        Returns:
+            None
         """
         for stats in self.values():
             stats.register(name, func, *args, **kwargs)
@@ -115,8 +127,10 @@ class MultiStatistics(dict):
         """
         Compiles the statistics on the given data.
 
-        :param data: The data on which the statistics will be computed.
-        :returns: A dictionary of the computed statistics.
+        Parameters:
+            data: The data on which the statistics will be computed.
+        Returns:
+            A dictionary containing the statistics.
         """
         record = dict()
         for name, stats in self.items():

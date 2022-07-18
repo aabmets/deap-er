@@ -23,7 +23,8 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from typing import Callable
+from deap_er.datatypes import Individual
+from typing import Callable, Optional
 from bisect import bisect_right
 from copy import deepcopy
 from operator import eq
@@ -43,7 +44,7 @@ class _BaseClass:
         self.items = list()
 
     # -------------------------------------------------------- #
-    def insert(self, individual) -> None:
+    def insert(self, individual: Individual) -> None:
         """
         Insert a new individual into the hall of fame. The inserted individual
         is inserted on the right side of an equal individual. Inserting a new
@@ -51,8 +52,10 @@ class _BaseClass:
         check for the size of the hall of fame, so that the worst individual is not
         removed to maintain a constant size.
 
-        :param individual: The individual to insert into the hall of fame.
-        :returns: None
+        Parameters:
+            individual: The individual to insert into the hall of fame.
+        Returns:
+            None
         """
         individual = deepcopy(individual)
         i = bisect_right(self.keys, individual.fitness)
@@ -60,12 +63,14 @@ class _BaseClass:
         self.keys.insert(i, individual.fitness)
 
     # -------------------------------------------------------- #
-    def remove(self, index) -> None:
+    def remove(self, index: int) -> None:
         """
         Removes the individual at the specified index from the hall of fame.
 
-        :param index: The index of the individual to remove.
-        :returns: None
+        Parameters:
+            index: The index of the individual to remove.
+        Returns:
+            None
         """
         del self.keys[len(self) - (index % len(self) + 1)]
         del self.items[index]
@@ -75,7 +80,8 @@ class _BaseClass:
         """
         Clears the hall of fame.
 
-        :returns: None
+        Returns:
+            None
         """
         del self.items[:]
         del self.keys[:]
@@ -106,25 +112,29 @@ class HallOfFame(_BaseClass):
     has the best first fitness value ever seen, according to the weights
     provided to the fitness at creation time.
 
-    :param maxsize: The maximum number of individuals to store in the hall of fame.
-    :param similar: A function to compare two individuals, optional.
+    Parameters:
+        maxsize: The maximum number of individuals to store in the hall of fame.
+        similar: A function to compare two individuals, optional.
     """
     # -------------------------------------------------------- #
-    def __init__(self, maxsize: int, similar: Callable = eq):
+    def __init__(self, maxsize: int, similar: Optional[Callable] = eq):
 
         self.maxsize = maxsize
         self.similar = similar
         super().__init__()
 
     # -------------------------------------------------------- #
-    def update(self, population) -> None:
+    def update(self, population: list) -> None:
         """
         Updates the hall of fame with the *population* by replacing the
         worst individuals with the best individuals present in *population*.
         The size of the hall of fame is kept constant.
 
-        :param population: A list of individuals.
-        :returns: None
+        Parameters:
+            population: A list of individual with a fitness
+                attribute to update the hall of fame with.
+        Returns:
+            None
         """
         for ind in population:
             if len(self) == 0 and self.maxsize != 0:
@@ -147,24 +157,26 @@ class ParetoFront(_BaseClass):
     that ever lived in the population. That means that the Pareto front hall
     of fame can contain an infinity of different individuals.
 
-    :param similar: A function to compare two individuals, optional.
+    Parameters:
+        similar: A function to compare two individuals, optional.
     """
     # -------------------------------------------------------- #
-    def __init__(self, similar: Callable = eq):
-
+    def __init__(self, similar: Optional[Callable] = eq):
         self.similar = similar
         super().__init__()
 
     # -------------------------------------------------------- #
-    def update(self, population) -> None:
+    def update(self, population: list) -> None:
         """
         Updates the Pareto front hall of fame with the *population* by adding
         the individuals from the population that are not dominated by the hall
         of fame. If any individual in the hall of fame is dominated, it is removed.
 
-        :param population: A list of individual with a fitness
+        Parameters:
+            population: A list of individual with a fitness
             attribute to update the hall of fame with.
-        :returns: None
+        Returns:
+            None
         """
         for ind in population:
             is_dominated = False
