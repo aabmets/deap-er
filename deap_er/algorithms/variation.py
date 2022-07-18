@@ -76,7 +76,7 @@ def var_or(toolbox: Toolbox, population: list, offsprings: int,
     Parameters:
         toolbox: A Toolbox which contains the evolution operators.
         population: A list of individuals to evolve.
-        offsprings: The number of individuals to produce at each generation.
+        offsprings: The number of individuals to produce.
         cx_prob: The probability of mating two individuals.
         mut_prob: The probability of mutating an individual.
     Returns:
