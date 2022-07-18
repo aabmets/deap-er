@@ -23,14 +23,13 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
 from collections import defaultdict
 from typing import Callable, Sequence
 from operator import itemgetter
 import bisect
 
 
-__all__ = ['sort_log_non_dominated', 'sortLogNondominated']
+__all__ = ['sort_log_non_dominated']
 
 
 # ====================================================================================== #
@@ -238,7 +237,3 @@ def _sweep_b(best, worst, front):
         if 0 < idx <= len(stairs):
             f_stair = max(f_stairs[:idx], key=front.__getitem__)
             front[h] = max(front[h], front[f_stair]+1)
-
-
-# -------------------------------------------------------------------------------------- #
-sortLogNondominated = deprecated('sortLogNondominated', sort_log_non_dominated)

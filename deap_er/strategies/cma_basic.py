@@ -23,7 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
 from math import sqrt, log
 import numpy
 
@@ -190,6 +189,3 @@ class Strategy:
         self.BD = self.B * self.diagD
 
         self.update_count += 1
-
-    # -------------------------------------------------------------------------------------- #
-    computeParams = deprecated('computeParams', compute_params)

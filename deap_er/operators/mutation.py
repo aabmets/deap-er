@@ -23,8 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
-from deap_er.datatypes import NumOrSeq, SetItemSeq
+from deap_er.datatypes import NumOrSeq, Subscript
 from collections.abc import Sequence
 from itertools import repeat
 import random
@@ -32,12 +31,8 @@ import math
 
 
 __all__ = [
-    'mut_gaussian', 'mutGaussian',
-    'mut_polynomial_bounded', 'mutPolynomialBounded',
-    'mut_shuffle_indexes', 'mutShuffleIndexes',
-    'mut_flip_bit', 'mutFlipBit',
-    'mut_uniform_int', 'mutUniformInt',
-    'mut_es_log_normal', 'mutESLogNormal'
+    'mut_gaussian', 'mut_polynomial_bounded', 'mut_shuffle_indexes',
+    'mut_flip_bit', 'mut_uniform_int', 'mut_es_log_normal'
 ]
 
 
@@ -54,8 +49,8 @@ def _pre_process(name: str, var: NumOrSeq, size: int) -> Sequence:
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_gaussian(individual: SetItemSeq, mu: NumOrSeq,
-                 sigma: NumOrSeq, mut_prob: float) -> SetItemSeq:
+def mut_gaussian(individual: Subscript, mu: NumOrSeq,
+                 sigma: NumOrSeq, mut_prob: float) -> Subscript:
     """
     This function applies a gaussian mutation of mean *mu* and standard
     deviation *sigma* on the input individual. This mutation expects the
@@ -82,9 +77,9 @@ def mut_gaussian(individual: SetItemSeq, mu: NumOrSeq,
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_polynomial_bounded(individual: SetItemSeq,
+def mut_polynomial_bounded(individual: Subscript,
                            eta: float, low: NumOrSeq,
-                           up: NumOrSeq, mut_prob: float) -> SetItemSeq:
+                           up: NumOrSeq, mut_prob: float) -> Subscript:
     """
     This function applies a polynomial mutation with a crowding degree of
     *eta* on the input individual. This mutation expects the *individual*
@@ -132,7 +127,7 @@ def mut_polynomial_bounded(individual: SetItemSeq,
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_shuffle_indexes(individual: SetItemSeq, mut_prob: float) -> SetItemSeq:
+def mut_shuffle_indexes(individual: Subscript, mut_prob: float) -> Subscript:
     """
     Shuffles the attributes of the input individual. This mutation expects
     the *individual* to be a type of *sequence* and is usually applied
@@ -156,7 +151,7 @@ def mut_shuffle_indexes(individual: SetItemSeq, mut_prob: float) -> SetItemSeq:
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_flip_bit(individual: SetItemSeq, mut_prob: float) -> SetItemSeq:
+def mut_flip_bit(individual: Subscript, mut_prob: float) -> Subscript:
     """
     Flips the values of random attributes of the input individual.
     This mutation expects the *individual* to be a type of *sequence*
@@ -175,9 +170,9 @@ def mut_flip_bit(individual: SetItemSeq, mut_prob: float) -> SetItemSeq:
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_uniform_int(individual: SetItemSeq,
+def mut_uniform_int(individual: Subscript,
                     low: int, up: int,
-                    mut_prob: float) -> SetItemSeq:
+                    mut_prob: float) -> Subscript:
     """
     Mutates an individual by replacing attribute values with integers
     chosen uniformly between *low* and *up* inclusively. This mutation
@@ -203,8 +198,8 @@ def mut_uniform_int(individual: SetItemSeq,
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_es_log_normal(individual: SetItemSeq,
-                      c: float, mut_prob: float) -> SetItemSeq:
+def mut_es_log_normal(individual: Subscript,
+                      c: float, mut_prob: float) -> Subscript:
     """
     Mutates an evolution strategy according to its *strategy* attribute.
     This mutation expects the *individual* to be a type of *sequence*.
@@ -230,12 +225,3 @@ def mut_es_log_normal(individual: SetItemSeq,
                 individual[indx] += individual.strategy[indx] * random.gauss(0, 1)
 
     return individual
-
-
-# -------------------------------------------------------------------------------------- #
-mutGaussian = deprecated('mutGaussian', mut_gaussian)
-mutPolynomialBounded = deprecated('mutPolynomialBounded', mut_polynomial_bounded)
-mutShuffleIndexes = deprecated('mutShuffleIndexes', mut_shuffle_indexes)
-mutFlipBit = deprecated('mutFlipBit', mut_flip_bit)
-mutUniformInt = deprecated('mutUniformInt', mut_uniform_int)
-mutESLogNormal = deprecated('mutESLogNormal', mut_es_log_normal)

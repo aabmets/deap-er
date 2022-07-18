@@ -23,12 +23,11 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
 from deap_er.records import Logbook, Statistics, HallOfFame
 from deap_er.base.toolbox import Toolbox
 
 
-__all__ = ['ea_generate_update', 'eaGenerateUpdate']
+__all__ = ['ea_generate_update']
 
 
 # -------------------------------------------------------------------------------------- #
@@ -69,7 +68,3 @@ def ea_generate_update(toolbox: Toolbox,
             print(logbook.stream)
 
     return population, logbook
-
-
-# -------------------------------------------------------------------------------------- #
-eaGenerateUpdate = deprecated('eaGenerateUpdate', ea_generate_update)

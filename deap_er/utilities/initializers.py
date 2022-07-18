@@ -23,17 +23,13 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
 from collections.abc import Callable, Iterable
 from typing import Type, Union
 
 
+__all__ = ['init_repeat', 'init_iterate', 'init_cycle']
+
 Container = Type[Union[list, tuple, set, str]]
-__all__ = [
-    'init_repeat', 'initRepeat',
-    'init_iterate', 'initIterate',
-    'init_cycle', 'initCycle'
-]
 
 
 # ====================================================================================== #
@@ -80,9 +76,3 @@ def init_cycle(container: Container, funcs: Iterable, count: int = 1) -> Iterabl
     :returns: An iterable filled with the results from the functions.
     """
     return container(func() for _ in range(count) for func in funcs)
-
-
-# ====================================================================================== #
-initRepeat = deprecated('initRepeat', init_repeat)
-initIterate = deprecated('initIterate', init_iterate)
-initCycle = deprecated('initCycle', init_cycle)

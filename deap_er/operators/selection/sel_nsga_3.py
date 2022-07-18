@@ -23,18 +23,14 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
-from deap_er.datatypes import SetItemSeq
+from deap_er.datatypes import Subscript
 from deap_er.utilities.sorting import *
 from itertools import chain
 from numpy import ndarray
 import numpy
 
 
-__all__ = [
-    'sel_nsga_3', 'selNSGA3',
-    'selNSGA3WithMemory', 'SelNSGA3WithMemory'
-]
+__all__ = ['sel_nsga_3', 'SelNSGA3WithMemory']
 
 
 # ====================================================================================== #
@@ -56,7 +52,7 @@ class SelNSGA3WithMemory:
         self.extreme_points = None
 
     # -------------------------------------------------------------------------------------- #
-    def __call__(self, individuals: SetItemSeq, count: int) -> list:
+    def __call__(self, individuals: Subscript, count: int) -> list:
         """
         This method is called by the Toolbox to select
         individuals for the next generation.
@@ -74,7 +70,7 @@ class SelNSGA3WithMemory:
 
 
 # ====================================================================================== #
-def sel_nsga_3(individuals: SetItemSeq, count: int,
+def sel_nsga_3(individuals: Subscript, count: int,
                ref_points: ndarray, nd_algo: str = "log",
                best_point: ndarray = None,
                worst_point: ndarray = None,
@@ -205,7 +201,7 @@ def _associate_to_niche(fitness: ndarray, reference_points: ndarray,
 
 
 # -------------------------------------------------------------------------------------- #
-def _select_from_niche(individuals: SetItemSeq, count: int,
+def _select_from_niche(individuals: Subscript, count: int,
                        niches: ndarray, distances: ndarray,
                        niche_counts: ndarray) -> list:
     selected = []
@@ -238,8 +234,3 @@ def _select_from_niche(individuals: SetItemSeq, count: int,
             selected.append(individuals[sel_index])
 
     return selected
-
-
-# -------------------------------------------------------------------------------------- #
-selNSGA3 = deprecated('selNSGA3', sel_nsga_3)
-selNSGA3WithMemory = deprecated('selNSGA3WithMemory', SelNSGA3WithMemory)

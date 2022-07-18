@@ -23,23 +23,19 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
-from deap_er.datatypes import SetItemSeq
+from deap_er.datatypes import Subscript
 from operator import attrgetter
 import random
 
 
 __all__ = [
-    'sel_random', 'selRandom',
-    'sel_best', 'selBest',
-    'sel_worst', 'selWorst',
-    'sel_roulette', 'selRoulette',
-    'sel_stochastic_universal_sampling', 'selStochasticUniversalSampling'
+    'sel_random', 'sel_best', 'sel_worst', 'sel_roulette',
+    'sel_stochastic_universal_sampling'
 ]
 
 
 # ====================================================================================== #
-def sel_random(individuals: SetItemSeq, count: int) -> list:
+def sel_random(individuals: Subscript, count: int) -> list:
     """
     Selects *count* individuals randomly.
 
@@ -51,7 +47,7 @@ def sel_random(individuals: SetItemSeq, count: int) -> list:
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_best(individuals: SetItemSeq, count: int,
+def sel_best(individuals: Subscript, count: int,
              fit_attr: str = "fitness") -> list:
     """
     Selects the best *count* individuals among the input *individuals*.
@@ -66,7 +62,7 @@ def sel_best(individuals: SetItemSeq, count: int,
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_worst(individuals: SetItemSeq, count: int,
+def sel_worst(individuals: Subscript, count: int,
               fit_attr: str = "fitness") -> list:
     """
     Selects the worst *count* individuals among the input *individuals*.
@@ -81,7 +77,7 @@ def sel_worst(individuals: SetItemSeq, count: int,
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_roulette(individuals: SetItemSeq, count: int,
+def sel_roulette(individuals: Subscript, count: int,
                  fit_attr: str = "fitness") -> list:
     """
     Select *k* individuals from the input *individuals* using *k*
@@ -111,7 +107,7 @@ def sel_roulette(individuals: SetItemSeq, count: int,
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_stochastic_universal_sampling(individuals: SetItemSeq, count: int,
+def sel_stochastic_universal_sampling(individuals: Subscript, count: int,
                                       fit_attr: str = "fitness") -> list:
     """
     Selects the *k* individuals among the input *individuals*.
@@ -142,11 +138,3 @@ def sel_stochastic_universal_sampling(individuals: SetItemSeq, count: int,
         chosen.append(sorted_[i])
 
     return chosen
-
-
-# -------------------------------------------------------------------------------------- #
-selRandom = deprecated('selRandom', sel_random)
-selBest = deprecated('selBest', sel_best)
-selWorst = deprecated('selWorst', sel_worst)
-selRoulette = deprecated('selRoulette', sel_roulette)
-selStochasticUniversalSampling = deprecated('selStochasticUniversalSampling', sel_stochastic_universal_sampling)

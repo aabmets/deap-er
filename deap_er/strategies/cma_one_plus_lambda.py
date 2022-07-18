@@ -23,7 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
 from math import sqrt, exp
 import numpy
 import copy
@@ -137,6 +136,3 @@ class StrategyOnePlusLambda:
         temp_1 = (self.psucc - self.pt_arg)
         self.sigma *= exp(1.0 / self.damps * temp_1 / (1.0 - self.pt_arg))
         self.A = numpy.linalg.cholesky(self.C)
-
-    # -------------------------------------------------------------------------------------- #
-    computeParams = deprecated('computeParams', compute_params)

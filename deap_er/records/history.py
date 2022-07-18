@@ -23,7 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
 from typing import Callable
 from copy import deepcopy
 
@@ -111,6 +110,3 @@ class History:
 
         _recursive(individual.history_index, 0)
         return gtree
-
-    # -------------------------------------------------------------------------------------- #
-    getGenealogy = deprecated('getGenealogy', get_genealogy)

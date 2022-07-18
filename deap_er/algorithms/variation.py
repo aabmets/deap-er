@@ -23,12 +23,11 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
 from deap_er.base.toolbox import Toolbox
 import random
 
 
-__all__ = ['var_and', 'varAnd', 'var_or', 'varOr']
+__all__ = ['var_and', 'var_or']
 
 
 # ====================================================================================== #
@@ -109,8 +108,3 @@ def var_or(toolbox: Toolbox,
         else:
             offspring.append(random.choice(population))
     return offspring
-
-
-# ====================================================================================== #
-varAnd = deprecated('varAnd', var_and)
-varOr = deprecated('varOr', var_or)

@@ -23,7 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
 from .primitives import *
 from typing import Any, Callable, Union
 from functools import wraps
@@ -32,16 +31,11 @@ import random
 import sys
 
 
+__all__ = ['compile_tree', 'compile_adf_tree', 'build_tree_graph', 'static_limit']
+
 Expr = Union[PrimitiveTree, str]
 PSets = list[PrimitiveSetTyped]
 Graph = tuple[list, list, dict]
-
-__all__ = [
-    'compile_tree', 'compile',
-    'compile_adf_tree', 'compileADF',
-    'build_tree_graph', 'graph',
-    'static_limit', 'staticLimit'
-]
 
 
 # ====================================================================================== #
@@ -152,10 +146,3 @@ def static_limit(key: Callable, max_value: Union[int, float]) -> Callable:
             return new_individuals
         return wrapper
     return decorator
-
-
-# ====================================================================================== #
-compile = deprecated('compile', compile_tree)
-compileADF = deprecated('compileADF', compile_adf_tree)
-graph = deprecated('graph', build_tree_graph)
-staticLimit = deprecated('staticLimit', static_limit)

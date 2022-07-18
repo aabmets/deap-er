@@ -24,7 +24,6 @@
 #                                                                                        #
 # ====================================================================================== #
 from __future__ import annotations
-from deap_er._deprecated import deprecated
 from collections import defaultdict, deque
 from typing import Union, Type
 import copy
@@ -306,14 +305,6 @@ class PrimitiveSetTyped:
         """
         return self.terms_count / float(self.terms_count + self.prims_count)
 
-    # -------------------------------------------------------------------------------------- #
-    addEphemeralConstant = deprecated('addEphemeralConstant', add_ephemeral_constant)
-    renameArguments = deprecated('renameArguments', rename_arguments)
-    terminalRatio = deprecated('terminalRatio', terminal_ratio)
-    addPrimitive = deprecated('addPrimitive', add_primitive)
-    addTerminal = deprecated('addTerminal', add_terminal)
-    addADF = deprecated('addADF', add_adf)
-
 
 # ====================================================================================== #
 class PrimitiveSet(PrimitiveSetTyped):
@@ -339,10 +330,6 @@ class PrimitiveSet(PrimitiveSetTyped):
     # -------------------------------------------------------------------------------------- #
     def add_ephemeral_constant(self, ephemeral, name, *_, **__) -> None:
         super().add_ephemeral_constant(ephemeral, object, name)
-
-    addEphemeralConstant = deprecated('addEphemeralConstant', add_ephemeral_constant)
-    addPrimitive = deprecated('addPrimitive', add_primitive)
-    addTerminal = deprecated('addTerminal', add_terminal)
 
 
 # ====================================================================================== #
@@ -481,6 +468,3 @@ class PrimitiveTree(list):
             total += self[end].arity - 1
             end += 1
         return slice(begin, end)
-
-    # -------------------------------------------------------------------------------------- #
-    searchSubtree = deprecated('searchSubtree', search_subtree)

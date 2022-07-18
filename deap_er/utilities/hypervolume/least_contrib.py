@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import SetItemSeq
+from deap_er.datatypes import Subscript
 from .hypervolume import HyperVolume
 
 from ray import exceptions as ray_ex
@@ -38,13 +38,13 @@ __all__ = ['least_contrib']
 
 # ====================================================================================== #
 @ray.remote  # pragma: no cover
-def _hvol(point_set: SetItemSeq, ref_point: SetItemSeq) -> float:
+def _hvol(point_set: Subscript, ref_point: Subscript) -> float:
     hv = HyperVolume(ref_point)
     return hv.compute(point_set)
 
 
 # -------------------------------------------------------------------------------------- #
-def least_contrib(population: SetItemSeq,
+def least_contrib(population: Subscript,
                   ref: ndarray = None,
                   timeout: int = None) -> int:
     """

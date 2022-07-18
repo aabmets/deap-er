@@ -23,17 +23,16 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
-from deap_er.datatypes import SetItemSeq
+from deap_er.datatypes import Subscript
 import random
 import math
 
 
-__all__ = ['sel_spea_2', 'selSPEA2']
+__all__ = ['sel_spea_2']
 
 
 # ====================================================================================== #
-def sel_spea_2(individuals: SetItemSeq, count: int) -> list:
+def sel_spea_2(individuals: Subscript, count: int) -> list:
     """
     Selects the next generation of individuals using the SPEA2 algorithm.
     Usually, the size of *individuals* should be larger than the *count*
@@ -142,7 +141,7 @@ def sel_spea_2(individuals: SetItemSeq, count: int) -> list:
 
 
 # -------------------------------------------------------------------------------------- #
-def _partition(array: SetItemSeq, begin: int, end: int) -> int:
+def _partition(array: Subscript, begin: int, end: int) -> int:
     x = array[begin]
     i = begin - 1
     j = end + 1
@@ -160,14 +159,14 @@ def _partition(array: SetItemSeq, begin: int, end: int) -> int:
 
 
 # -------------------------------------------------------------------------------------- #
-def _randomized_partition(array: SetItemSeq, begin: int, end: int) -> int:
+def _randomized_partition(array: Subscript, begin: int, end: int) -> int:
     i = random.randint(begin, end)
     array[begin], array[i] = array[i], array[begin]
     return _partition(array, begin, end)
 
 
 # -------------------------------------------------------------------------------------- #
-def _randomized_select(array: SetItemSeq, begin: int, end: int, i: float) -> int:
+def _randomized_select(array: Subscript, begin: int, end: int, i: float) -> int:
     if begin == end:
         return array[begin]
     q = _randomized_partition(array, begin, end)
@@ -176,7 +175,3 @@ def _randomized_select(array: SetItemSeq, begin: int, end: int, i: float) -> int
         return _randomized_select(array, begin, q, i)
     else:
         return _randomized_select(array, q + 1, end, i - k)
-
-
-# -------------------------------------------------------------------------------------- #
-selSPEA2 = deprecated('selSPEA2', sel_spea_2)

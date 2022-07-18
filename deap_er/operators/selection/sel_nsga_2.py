@@ -23,19 +23,18 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
-from deap_er.datatypes import SetItemSeq
+from deap_er.datatypes import Subscript
 from deap_er.utilities.sorting import *
 from .sel_helpers import assign_crowding_dist
 from operator import attrgetter
 from itertools import chain
 
 
-__all__ = ['sel_nsga_2', 'selNSGA2']
+__all__ = ['sel_nsga_2']
 
 
 # ====================================================================================== #
-def sel_nsga_2(individuals: SetItemSeq, count: int,
+def sel_nsga_2(individuals: Subscript, count: int,
                nd_algo: str = 'standard') -> list:
     """
     Selects the next generation of individuals using the NSGA-II algorithm.
@@ -69,7 +68,3 @@ def sel_nsga_2(individuals: SetItemSeq, count: int,
         chosen.extend(sorted_front[:count])
 
     return chosen
-
-
-# -------------------------------------------------------------------------------------- #
-selNSGA2 = deprecated('selNSGA2', sel_nsga_2)

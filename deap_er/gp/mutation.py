@@ -23,7 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
 from .primitives import *
 from typing import Callable
 from inspect import isclass
@@ -31,11 +30,8 @@ import random
 
 
 __all__ = [
-    'mut_uniform', 'mutUniform',
-    'mut_node_replacement', 'mutNodeReplacement',
-    'mut_ephemeral', 'mutEphemeral',
-    'mut_insert', 'mutInsert',
-    'mut_shrink', 'mutShrink'
+    'mut_uniform', 'mut_node_replacement',
+    'mut_ephemeral', 'mut_insert', 'mut_shrink'
 ]
 
 
@@ -198,11 +194,3 @@ def mut_shrink(individual: PrimitiveTree) -> PrimitiveTree:
         individual[i_slice] = subtree
 
     return individual
-
-
-# -------------------------------------------------------------------------------------- #
-mutUniform = deprecated('mutUniform', mut_uniform)
-mutNodeReplacement = deprecated('mutNodeReplacement', mut_node_replacement)
-mutEphemeral = deprecated('mutEphemeral', mut_ephemeral)
-mutInsert = deprecated('mutInsert', mut_insert)
-mutShrink = deprecated('mutShrink', mut_shrink)

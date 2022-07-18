@@ -23,17 +23,13 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
 from .generators import gen_grow
 from .primitives import *
 from typing import Callable
 import random
 
 
-__all__ = [
-    'mut_semantic', 'mutSemantic',
-    'cx_semantic', 'cxSemantic'
-]
+__all__ = ['mut_semantic', 'cx_semantic']
 
 
 # ====================================================================================== #
@@ -126,8 +122,3 @@ def _check(p_set: PrimitiveSetTyped, op: str) -> None:
             raise TypeError(
                 f'A \'{func}\' function is required to perform semantic \'{op}\'.'
             )
-
-
-# -------------------------------------------------------------------------------------- #
-mutSemantic = deprecated('mutSemantic', mut_semantic)
-cxSemantic = deprecated('cxSemantic', cx_semantic)

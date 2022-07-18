@@ -23,20 +23,16 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
-from deap_er.datatypes import SetItemSeq
+from deap_er.datatypes import Subscript
 import numpy as np
 import random
 
 
-__all__ = [
-    'sel_lexicase', 'selLexicase',
-    'sel_epsilon_lexicase', 'selEpsilonLexicase'
-]
+__all__ = ['sel_lexicase', 'sel_epsilon_lexicase']
 
 
 # ====================================================================================== #
-def sel_lexicase(individuals: SetItemSeq, count) -> list:
+def sel_lexicase(individuals: Subscript, count) -> list:
     """
     Returns an individual that does the best on the fitness
     cases when considered one at a time in random order.
@@ -65,7 +61,7 @@ def sel_lexicase(individuals: SetItemSeq, count) -> list:
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_epsilon_lexicase(individuals: SetItemSeq, count: int,
+def sel_epsilon_lexicase(individuals: Subscript, count: int,
                          epsilon: float = None) -> list:
     """
     Returns an individual that does the best on the fitness cases
@@ -102,8 +98,3 @@ def sel_epsilon_lexicase(individuals: SetItemSeq, count: int,
         choice = random.choice(candidates)
         selected.append(choice)
     return selected
-
-
-# -------------------------------------------------------------------------------------- #
-selLexicase = deprecated('selLexicase', sel_lexicase)
-selEpsilonLexicase = deprecated('selEpsilonLexicase', sel_epsilon_lexicase)

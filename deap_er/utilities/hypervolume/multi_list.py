@@ -23,7 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
 from collections.abc import Iterable, MutableSequence
 from .node import Node
 
@@ -107,6 +106,3 @@ class MultiList:
             node.next[i].prev[i] = node
             if bounds[i] > node.cargo[i]:
                 bounds[i] = node.cargo[i]
-
-    # -------------------------------------------------------------------------------------- #
-    getLength = deprecated('getLength', get_length)

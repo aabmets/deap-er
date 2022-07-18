@@ -23,13 +23,12 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
 from deap_er.records import Logbook, Statistics, HallOfFame
 from deap_er.base.toolbox import Toolbox
 from .variation import *
 
 
-__all__ = ['ea_mu_plus_lambda', 'eaMuPlusLambda']
+__all__ = ['ea_mu_plus_lambda']
 
 
 # -------------------------------------------------------------------------------------- #
@@ -95,7 +94,3 @@ def ea_mu_plus_lambda(toolbox: Toolbox,
             print(logbook.stream)
 
     return population, logbook
-
-
-# -------------------------------------------------------------------------------------- #
-eaMuPlusLambda = deprecated('eaMuPlusLambda', ea_mu_plus_lambda)

@@ -23,17 +23,16 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
-from deap_er.datatypes import SetItemSeq
+from deap_er.datatypes import Subscript
 from typing import Callable
 
 
-__all__ = ['mig_ring', 'migRing']
+__all__ = ['mig_ring']
 
 
 # ====================================================================================== #
-def mig_ring(populations: SetItemSeq, mig_count: int, selection: Callable,
-             replacement: Callable = None, mig_indices: SetItemSeq = None) -> None:
+def mig_ring(populations: Subscript, mig_count: int, selection: Callable,
+             replacement: Callable = None, mig_indices: Subscript = None) -> None:
     """
     Performs a ring migration between the *populations*. The migration
     first selects *mig_count* emigrants from each population using the
@@ -67,7 +66,3 @@ def mig_ring(populations: SetItemSeq, mig_count: int, selection: Callable,
         for i, immigrant in enumerate(immigrants[to_deme]):
             indx = populations[to_deme].index(immigrant)
             populations[to_deme][indx] = emigrants[from_deme][i]
-
-
-# -------------------------------------------------------------------------------------- #
-migRing = deprecated('migRing', mig_ring)

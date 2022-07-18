@@ -23,13 +23,12 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
 from deap_er.records import Logbook, Statistics, HallOfFame
 from deap_er.base.toolbox import Toolbox
 from .variation import *
 
 
-__all__ = ['ea_simple', 'eaSimple']
+__all__ = ['ea_simple']
 
 
 # -------------------------------------------------------------------------------------- #
@@ -93,7 +92,3 @@ def ea_simple(toolbox: Toolbox,
             print(logbook.stream)
 
     return population, logbook
-
-
-# -------------------------------------------------------------------------------------- #
-eaSimple = deprecated('ea_simple', ea_simple)

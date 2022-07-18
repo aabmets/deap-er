@@ -23,7 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
 from .primitives import PrimitiveTree
 from collections import defaultdict
 from functools import partial
@@ -31,10 +30,7 @@ from operator import eq, lt
 import random
 
 
-__all__ = [
-    'cx_one_point', 'cxOnePoint',
-    'cx_one_point_leaf_biased', 'cxOnePointLeafBiased'
-]
+__all__ = ['cx_one_point', 'cx_one_point_leaf_biased']
 
 
 # ====================================================================================== #
@@ -118,8 +114,3 @@ def cx_one_point_leaf_biased(ind1: PrimitiveTree,
         ind1[slice1], ind2[slice2] = ind2[slice2], ind1[slice1]
 
     return ind1, ind2
-
-
-# -------------------------------------------------------------------------------------- #
-cxOnePoint = deprecated('cxOnePoint', cx_one_point)
-cxOnePointLeafBiased = deprecated('cxOnePointLeafBiased', cx_one_point_leaf_biased)

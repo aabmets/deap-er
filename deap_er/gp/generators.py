@@ -23,7 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
 from .primitives import PrimitiveSetTyped
 from typing import Callable
 from inspect import isclass
@@ -31,12 +30,7 @@ import random
 import sys
 
 
-__all__ = [
-    'generate',
-    'gen_full', 'genFull',
-    'gen_grow', 'genGrow',
-    'gen_half_and_half', 'genHalfAndHalf', 'genRamped'
-]
+__all__ = ['generate', 'gen_full', 'gen_grow', 'gen_half_and_half']
 
 
 # ====================================================================================== #
@@ -150,10 +144,3 @@ def gen_half_and_half(p_set: PrimitiveSetTyped,
     """
     func = random.choice((gen_grow, gen_full))
     return func(p_set, min_depth, max_depth, ret_type)
-
-
-# -------------------------------------------------------------------------------------- #
-genFull = deprecated('genFull', gen_full)
-genGrow = deprecated('genGrow', gen_grow)
-genHalfAndHalf = deprecated('genHalfAndHalf', gen_half_and_half)
-genRamped = deprecated('genRamped', gen_half_and_half)

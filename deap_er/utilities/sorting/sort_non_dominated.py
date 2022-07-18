@@ -23,12 +23,11 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
 from collections.abc import Sequence
 from collections import defaultdict
 
 
-__all__ = ['sort_non_dominated', 'sortNondominated']
+__all__ = ['sort_non_dominated']
 
 
 # ====================================================================================== #
@@ -88,7 +87,3 @@ def sort_non_dominated(individuals: Sequence,
             next_front = []
 
     return fronts
-
-
-# -------------------------------------------------------------------------------------- #
-sortNondominated = deprecated('sortNondominated', sort_non_dominated)

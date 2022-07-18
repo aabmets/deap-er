@@ -23,31 +23,22 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
-from deap_er.datatypes import NumOrSeq, SetItemSeq, DoubleSIS
+from deap_er.datatypes import NumOrSeq, Subscript, PairSIS
 from collections.abc import Sequence
 from itertools import repeat
 import random
 
 
 __all__ = [
-    'cx_one_point', 'cxOnePoint',
-    'cx_two_point', 'cxTwoPoint',
-    'cx_uniform', 'cxUniform',
-    'cx_partially_matched', 'cxPartialyMatched',
-    'cx_uniform_partially_matched', 'cxUniformPartialyMatched',
-    'cx_ordered', 'cxOrdered',
-    'cx_blend', 'cxBlend',
-    'cx_simulated_binary', 'cxSimulatedBinary',
-    'cx_simulated_binary_bounded', 'cxSimulatedBinaryBounded',
-    'cx_messy_one_point', 'cxMessyOnePoint',
-    'cx_es_blend', 'cxESBlend',
-    'cx_es_two_point', 'cxESTwoPoint'
+    'cx_one_point', 'cx_messy_one_point', 'cx_two_point', 'cx_es_two_point',
+    'cx_partially_matched', 'cx_uniform_partially_matched',
+    'cx_blend', 'cx_es_blend',  'cx_simulated_binary',
+    'cx_simulated_binary_bounded', 'cx_uniform', 'cx_ordered'
 ]
 
 
 # ====================================================================================== #
-def _slicer(ind1: SetItemSeq, ind2: SetItemSeq,
+def _slicer(ind1: Subscript, ind2: Subscript,
             start: int, stop: int = None) -> None:
     if stop is None:
         s1 = slice(start, len(ind1))
@@ -63,7 +54,7 @@ def _slicer(ind1: SetItemSeq, ind2: SetItemSeq,
 
 
 # -------------------------------------------------------------------------------------- #
-def _two_point(ind1: SetItemSeq, ind2: SetItemSeq) -> tuple:
+def _two_point(ind1: Subscript, ind2: Subscript) -> tuple:
     size = min(len(ind1), len(ind2))
     cxp1 = random.randint(1, size)
     cxp2 = random.randint(1, size - 1)
@@ -76,7 +67,7 @@ def _two_point(ind1: SetItemSeq, ind2: SetItemSeq) -> tuple:
 
 
 # -------------------------------------------------------------------------------------- #
-def _match(ind1: SetItemSeq, ind2: SetItemSeq,
+def _match(ind1: Subscript, ind2: Subscript,
            p1: list, p2: list, i: int) -> None:
     temp1, temp2 = ind1[i], ind2[i]
     ind1[i], ind1[p1[temp2]] = temp2, temp1
@@ -86,7 +77,7 @@ def _match(ind1: SetItemSeq, ind2: SetItemSeq,
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_one_point(ind1: SetItemSeq, ind2: SetItemSeq) -> DoubleSIS:
+def cx_one_point(ind1: Subscript, ind2: Subscript) -> PairSIS:
     """
     Executes a one-point crossover on the two individuals,
     who are modified in place. The resulting individuals
@@ -103,7 +94,7 @@ def cx_one_point(ind1: SetItemSeq, ind2: SetItemSeq) -> DoubleSIS:
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_messy_one_point(ind1: SetItemSeq, ind2: SetItemSeq) -> DoubleSIS:
+def cx_messy_one_point(ind1: Subscript, ind2: Subscript) -> PairSIS:
     """
     Executes a messy one point crossover on the two
     individuals, who are modified in place.
@@ -119,7 +110,7 @@ def cx_messy_one_point(ind1: SetItemSeq, ind2: SetItemSeq) -> DoubleSIS:
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_two_point(ind1: SetItemSeq, ind2: SetItemSeq) -> DoubleSIS:
+def cx_two_point(ind1: Subscript, ind2: Subscript) -> PairSIS:
     """
     Executes a two-point crossover on the two individuals,
     who are modified in place. The resulting individuals
@@ -134,7 +125,7 @@ def cx_two_point(ind1: SetItemSeq, ind2: SetItemSeq) -> DoubleSIS:
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_es_two_point(ind1: SetItemSeq, ind2: SetItemSeq) -> DoubleSIS:
+def cx_es_two_point(ind1: Subscript, ind2: Subscript) -> PairSIS:
     """
     Executes a two point crossover on the
     individuals and their strategies.
@@ -153,7 +144,7 @@ def cx_es_two_point(ind1: SetItemSeq, ind2: SetItemSeq) -> DoubleSIS:
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_partially_matched(ind1: SetItemSeq, ind2: SetItemSeq) -> DoubleSIS:
+def cx_partially_matched(ind1: Subscript, ind2: Subscript) -> PairSIS:
     """
     Executes a partially matched crossover on the
     two individuals, who are modified in place.
@@ -184,8 +175,8 @@ def cx_partially_matched(ind1: SetItemSeq, ind2: SetItemSeq) -> DoubleSIS:
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_uniform_partially_matched(ind1: SetItemSeq, ind2: SetItemSeq,
-                                 cx_prob: float) -> DoubleSIS:
+def cx_uniform_partially_matched(ind1: Subscript, ind2: Subscript,
+                                 cx_prob: float) -> PairSIS:
     """
     Executes a uniform partially matched crossover on the
     two individuals, who are modified in place.
@@ -210,7 +201,7 @@ def cx_uniform_partially_matched(ind1: SetItemSeq, ind2: SetItemSeq,
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_blend(ind1: SetItemSeq, ind2: SetItemSeq, alpha: float) -> DoubleSIS:
+def cx_blend(ind1: Subscript, ind2: Subscript, alpha: float) -> PairSIS:
     """
     Executes a blend crossover on the two
     individuals, who are modified in place.
@@ -231,7 +222,7 @@ def cx_blend(ind1: SetItemSeq, ind2: SetItemSeq, alpha: float) -> DoubleSIS:
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_es_blend(ind1: SetItemSeq, ind2: SetItemSeq, alpha: float) -> DoubleSIS:
+def cx_es_blend(ind1: Subscript, ind2: Subscript, alpha: float) -> PairSIS:
     """
     Executes a blend crossover on the
     individuals and their strategies.
@@ -258,7 +249,7 @@ def cx_es_blend(ind1: SetItemSeq, ind2: SetItemSeq, alpha: float) -> DoubleSIS:
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_simulated_binary(ind1: SetItemSeq, ind2: SetItemSeq, eta: float) -> DoubleSIS:
+def cx_simulated_binary(ind1: Subscript, ind2: Subscript, eta: float) -> PairSIS:
     """
     Executes a simulated binary crossover on the two
     individuals, who are modified in place.
@@ -287,8 +278,8 @@ def cx_simulated_binary(ind1: SetItemSeq, ind2: SetItemSeq, eta: float) -> Doubl
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_simulated_binary_bounded(ind1: SetItemSeq, ind2: SetItemSeq,
-                                eta: float, low: NumOrSeq, up: NumOrSeq) -> DoubleSIS:
+def cx_simulated_binary_bounded(ind1: Subscript, ind2: Subscript,
+                                eta: float, low: NumOrSeq, up: NumOrSeq) -> PairSIS:
     """
     Executes a simulated binary crossover on the two
     individuals, who are modified in place.
@@ -353,7 +344,7 @@ def cx_simulated_binary_bounded(ind1: SetItemSeq, ind2: SetItemSeq,
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_uniform(ind1: SetItemSeq, ind2: SetItemSeq, cx_prob: float) -> DoubleSIS:
+def cx_uniform(ind1: Subscript, ind2: Subscript, cx_prob: float) -> PairSIS:
     """
     Executes a uniform crossover on the two individuals,
     who are modified in place. The traits are swapped
@@ -372,7 +363,7 @@ def cx_uniform(ind1: SetItemSeq, ind2: SetItemSeq, cx_prob: float) -> DoubleSIS:
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_ordered(ind1: SetItemSeq, ind2: SetItemSeq) -> DoubleSIS:
+def cx_ordered(ind1: Subscript, ind2: Subscript) -> PairSIS:
     """
     Executes an ordered crossover on the two
     individuals, who are modified in place.
@@ -408,18 +399,3 @@ def cx_ordered(ind1: SetItemSeq, ind2: SetItemSeq) -> DoubleSIS:
         _slicer(ind1, ind2, i, i + 1)
 
     return ind1, ind2
-
-
-# -------------------------------------------------------------------------------------- #
-cxOnePoint = deprecated('cxOnePoint', cx_one_point)
-cxTwoPoint = deprecated('cxTwoPoint', cx_two_point)
-cxUniform = deprecated('cxUniform', cx_uniform)
-cxPartialyMatched = deprecated('cxPartialyMatched', cx_partially_matched)
-cxUniformPartialyMatched = deprecated('cxUniformPartialyMatched', cx_uniform_partially_matched)
-cxOrdered = deprecated('cxOrdered', cx_ordered)
-cxBlend = deprecated('cxBlend', cx_blend)
-cxSimulatedBinary = deprecated('cxSimulatedBinary', cx_simulated_binary)
-cxSimulatedBinaryBounded = deprecated('cxSimulatedBinaryBounded', cx_simulated_binary_bounded)
-cxMessyOnePoint = deprecated('cxMessyOnePoint', cx_messy_one_point)
-cxESBlend = deprecated('cxESBlend', cx_es_blend)
-cxESTwoPoint = deprecated('cxESTwoPoint', cx_es_two_point)

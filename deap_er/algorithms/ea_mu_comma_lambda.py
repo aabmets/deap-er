@@ -23,13 +23,12 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er._deprecated import deprecated
 from deap_er.records import Logbook, Statistics, HallOfFame
 from deap_er.base.toolbox import Toolbox
 from .variation import *
 
 
-__all__ = ['ea_mu_comma_lambda', 'eaMuCommaLambda']
+__all__ = ['ea_mu_comma_lambda']
 
 
 # -------------------------------------------------------------------------------------- #
@@ -98,7 +97,3 @@ def ea_mu_comma_lambda(toolbox: Toolbox,
             print(logbook.stream)
 
     return population, logbook
-
-
-# -------------------------------------------------------------------------------------- #
-eaMuCommaLambda = deprecated('eaMuCommaLambda', ea_mu_comma_lambda)
