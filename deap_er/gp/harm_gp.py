@@ -23,9 +23,10 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.records import Logbook, Statistics, HallOfFame
+from deap_er.datatypes import Hof, Stats, AlgoResult
+from deap_er.records import Logbook
 from deap_er.base import Toolbox
-from typing import Callable, Sequence
+from typing import Callable
 import random
 import math
 
@@ -34,37 +35,47 @@ __all__ = ['harm']
 
 
 # ====================================================================================== #
-def harm(toolbox: Toolbox, population: Sequence,
-         cx_prob: float, mut_prob: float, n_gen: int,
-         alpha: float = 0.05, beta: float = 10.0,
-         gamma: float = 0.25, rho: float = 0.9,
-         nb_model: int = -1, min_cutoff: int = 20,
-         hof: HallOfFame = None, stats: Statistics = None,
-         verbose=__debug__) -> tuple[Sequence, Logbook]:
+def harm(toolbox: Toolbox,
+         population: list,
+         generations: int,
+         cx_prob: float,
+         mut_prob: float,
+         alpha: float = 0.05,
+         beta: float = 10.0,
+         gamma: float = 0.25,
+         rho: float = 0.9,
+         nb_model: int = -1,
+         min_cutoff: int = 20,
+         hof: Hof = None,
+         stats: Stats = None,
+         verbose: bool = False) -> AlgoResult:
     """
     Implements bloat control by an evolution algorithm on a genetic program.
     While the default values of the HARM parameters are recommended for most
     use-cases, they can be adjusted to perform better on specific problems.
 
-    :param toolbox: A Toolbox which contains the evolution operators.
-    :param population: A list of individuals to vary.
-    :param cx_prob: The probability of mating two individuals.
-    :param mut_prob: The probability of mutating an individual.
-    :param n_gen: The number of generations to compute.
-    :param alpha: The HARM *alpha* parameter.
-    :param beta: The HARM *beta* parameter.
-    :param gamma: The HARM *gamma* parameter.
-    :param rho: The HARM *rho* parameter.
-    :param nb_model: The number of individuals to generate in order to
-        model the natural distribution. The default value -1 sets the
-        nb_model to max(2000, len(population)).
-    :param min_cutoff: The absolute minimum value for the cutoff point.
-        It ensures that HARM does not shrink the population too much at the
-        beginning of the evolution. The default value is usually fine.
-    :param hof: A HallOfFame object, optional.
-    :param stats: A Statistics object, optional.
-    :param verbose: Whether to print debug messages, optional.
-    :returns: A tuple of the final population and the Logbook
+    Parameters:
+        toolbox: A Toolbox which contains the evolution operators.
+        population: A list of individuals to evolve.
+        generations: The number of generations to compute.
+        cx_prob: The probability of mating two individuals.
+        mut_prob: The probability of mutating an individual.
+        alpha: The HARM *alpha* parameter.
+        beta: The HARM *beta* parameter.
+        gamma: The HARM *gamma* parameter.
+        rho: The HARM *rho* parameter.
+        nb_model: The number of individuals to generate in order to
+            model the natural distribution. The default value -1
+            sets the nb_model to max(2000, len(population)).
+        min_cutoff: The absolute minimum value for the cutoff point.
+            It ensures that HARM does not shrink the population too
+            much at the beginning of the evolution. The default
+            value is suitable for most cases.
+        hof: A HallOfFame or a ParetoFront object, optional.
+        stats: A Statistics or a MultiStatistics object, optional.
+        verbose: Whether to print debug messages, optional.
+    Returns:
+        The final population and the logbook.
     """
 
     # -------------------------------------------------------- #
@@ -141,7 +152,7 @@ def harm(toolbox: Toolbox, population: Sequence,
     if nb_model == -1:
         nb_model = max(2000, len(population))
 
-    for gen in range(1, n_gen + 1):
+    for gen in range(1, generations + 1):
         natural_pop, natural_pop_sizes = _harm_gen_pop(n=nb_model)
         natural_hist = [0] * (max(natural_pop_sizes) + 3)
 

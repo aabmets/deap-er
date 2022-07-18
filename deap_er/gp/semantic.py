@@ -39,13 +39,15 @@ def mut_semantic(individual: list, p_set: PrimitiveSetTyped,
     """
     Perform a semantic mutation on the given individual.
 
-    :param individual: The individual to be mutated.
-    :param p_set: Primitive set from which primitives are selected.
-    :param gen_func: The function which generates the random tree.
-    :param mut_step: The mutation step.
-    :param min_depth: Minimum depth of the random tree.
-    :param max_depth: Maximum depth of the random tree.
-    :returns: A new individual.
+    Parameters:
+        individual: The individual to be mutated.
+        p_set: Primitive set from which primitives are selected.
+        gen_func: The function which generates the random tree.
+        mut_step: The mutation step.
+        min_depth: Minimum depth of the random tree.
+        max_depth: Maximum depth of the random tree.
+    Returns:
+        The mutated individual.
     """
     _check(p_set, 'mutation')
 
@@ -82,13 +84,15 @@ def cx_semantic(ind1: list, ind2: list, p_set: PrimitiveSetTyped,
     """
     Perform a semantic crossover on the given individuals.
 
-    :param ind1: The first individual.
-    :param ind2: The second individual.
-    :param p_set: Primitive set from which primitives are selected.
-    :param gen_func: The function which generates the random tree.
-    :param min_depth: Minimum depth of the random tree.
-    :param max_depth: Maximum depth of the random tree.
-    :returns: A tuple of two individuals.
+    Parameters:
+        ind1: The first individual to be mated.
+        ind2: The second individual to be mated.
+        p_set: Primitive set from which primitives are selected.
+        gen_func: The function which generates the random tree.
+        min_depth: Minimum depth of the random tree.
+        max_depth: Maximum depth of the random tree.
+    Returns:
+        Two mated individuals.
     """
     _check(p_set, 'crossover')
 

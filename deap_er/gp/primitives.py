@@ -179,12 +179,14 @@ class PrimitiveSetTyped:
         """
         Adds a primitive to the set.
 
-        :param primitive: Callable object or a function.
-        :param in_types: List of primitives arguments' type
-        :param ret_type: Type returned by the primitive.
-        :param name: Alternative name for the primitive
-            instead of its __name__ attribute.
-        :returns: None
+        Parameters:
+            primitive: Callable object or a function.
+            in_types: List of primitives arguments' type.
+            ret_type: Type returned by the primitive.
+            name: Alternative name for the primitive
+                instead of its __name__ attribute.
+        Returns:
+            None
         """
         if name in self.context:
             raise ValueError(
@@ -206,11 +208,13 @@ class PrimitiveSetTyped:
         """
         Adds a terminal to the set.
 
-        :param terminal: Callable object or a function.
-        :param ret_type: Type returned by the terminal.
-        :param name: Alternative name for the terminal
-            instead of its __name__ attribute.
-        :returns: None
+        Parameters:
+            terminal: Callable object or a function.
+            ret_type: Type returned by the terminal.
+            name: Alternative name for the terminal
+                instead of its __name__ attribute.
+        Returns:
+            None
         """
         if name in self.context:
             raise ValueError(
@@ -239,10 +243,12 @@ class PrimitiveSetTyped:
         """
         Adds an ephemeral constant to the set.
 
-        :param ephemeral: Function with no arguments returning a random value.
-        :param ret_type: Type of the object returned by *ephemeral*.
-        :param name: Name of this ephemeral type.
-        :returns: None
+        Parameters:
+            ephemeral: A function with no arguments returning a random value.
+            ret_type: Type of the object returned by *ephemeral*.
+            name: Name of this ephemeral type.
+        Returns:
+            None
         """
         module_gp = globals()
         if name not in module_gp:
@@ -276,9 +282,11 @@ class PrimitiveSetTyped:
         """
         Adds an Automatically Defined Function (ADF) to the set.
 
-        :param adf_set: PrimitiveSetTyped instance containing
-            the primitives with which the ADF can be built.
-        :returns: None
+        Parameters:
+            adf_set: PrimitiveSetTyped instance containing the
+                primitives with which the ADF can be built.
+        Returns:
+            None
         """
         prim = Primitive(
             adf_set.name,
@@ -293,8 +301,10 @@ class PrimitiveSetTyped:
         """
         Renames the arguments in self with new names from *kwargs*.
 
-        :param kwargs: Dictionary of new names for the arguments.
-        :returns: None
+        Parameters:
+            kwargs: Dictionary of new names for the arguments.
+        Returns:
+            None
         """
         for i, old_name in enumerate(self.arguments):
             if old_name in kwargs:
@@ -400,12 +410,15 @@ class PrimitiveTree(list):
     @classmethod
     def from_string(cls, string: str, p_set: PrimitiveSetTyped) -> PrimitiveTree:
         """
-        Converts a string expression into a PrimitiveTree given a PrimitiveSet *pset*.
-        The primitive set needs to contain every primitive present in the expression.
+        Converts a string expression into a PrimitiveTree given a
+        PrimitiveSet *pset*. The primitive set needs to contain
+        every primitive present in the expression.
 
-        :param string: String representation of a Python expression.
-        :param p_set: Primitive set from which primitives are selected.
-        :returns: PrimitiveTree populated with the deserialized primitives.
+        Parameters:
+            string: String representation of a Python expression.
+            p_set: Primitive set from which primitives are selected.
+        Returns:
+            PrimitiveTree populated with the deserialized primitives.
         """
         tokens = re.split("[ \t\n\r\f\v(),]", string)
         expr = list()
@@ -472,9 +485,11 @@ class PrimitiveTree(list):
         range of values that defines the subtree which
         has the element with index *begin* as its root.
 
-        :param begin: Index of the root of the subtree.
-        :return: Slice object that corresponds to the
-            range of values that defines the subtree.
+        Parameters:
+            begin: Index of the root of the subtree.
+        Returns:
+            Slice object that corresponds to the range
+            of values that defines the subtree.
         """
         end = begin + 1
         total = self[begin].arity

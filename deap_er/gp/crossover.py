@@ -36,11 +36,14 @@ __all__ = ['cx_one_point', 'cx_one_point_leaf_biased']
 # ====================================================================================== #
 def cx_one_point(ind1: PrimitiveTree, ind2: PrimitiveTree) -> tuple:
     """
-    Performs a single-point crossover on the input individuals.
+    Randomly selects a crossover point in each individual and exchanges
+    each subtree with the point as the root between each individual.
 
-    :param ind1: The first individual to mate.
-    :param ind2: The second individual to mate.
-    :returns: A tuple of two individuals.
+    Parameters:
+        ind1: The first individual to mate.
+        ind2: The second individual to mate.
+    Returns:
+        Two individuals.
     """
     if len(ind1) < 2 or len(ind2) < 2:
         return ind1, ind2
@@ -71,17 +74,19 @@ def cx_one_point(ind1: PrimitiveTree, ind2: PrimitiveTree) -> tuple:
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_one_point_leaf_biased(ind1: PrimitiveTree,
-                             ind2: PrimitiveTree,
+def cx_one_point_leaf_biased(ind1: PrimitiveTree, ind2: PrimitiveTree,
                              term_prob: float) -> tuple:
     """
-    Performs a single-point crossover on the input individuals.
+    Randomly selects a crossover point in each individual and exchanges
+    each subtree with the point as the root between each individual.
 
-    :param ind1: The first individual to mate.
-    :param ind2: The second individual to mate.
-    :param term_prob: The probability of selecting
-        a terminal node as the crossover point.
-    :returns: A tuple of two individuals.
+    Parameters:
+        ind1: The first individual to mate.
+        ind2: The second individual to mate.
+        term_prob: The probability of selecting a
+            terminal node as the crossover point.
+    Returns:
+        Two individuals.
     """
     if len(ind1) < 2 or len(ind2) < 2:
         return ind1, ind2

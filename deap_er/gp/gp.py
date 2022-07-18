@@ -31,7 +31,10 @@ import random
 import sys
 
 
-__all__ = ['compile_tree', 'compile_adf_tree', 'build_tree_graph', 'static_limit']
+__all__ = [
+    'compile_tree', 'compile_adf_tree',
+    'build_tree_graph', 'static_limit'
+]
 
 Expr = Union[PrimitiveTree, str]
 PSets = list[PrimitiveSetTyped]
@@ -43,11 +46,13 @@ def compile_tree(expr: Expr, p_set: PrimitiveSetTyped) -> Any:
     """
     Evaluates the expression on the given primitive set.
 
-    :param expr: The expression to compile. It can be a string,
-        a PrimitiveTree or any object which produces a valid
-        Python expression when converted into a string.
-    :param p_set: The primitive set to evaluate the expression on.
-    :returns: A callable if the *p_set* has 1 or more arguments,
+    Parameters:
+        expr: The expression to compile. It can be a string,
+            a PrimitiveTree or any object which produces a valid
+            Python expression when converted into a string.
+        p_set: The primitive set to evaluate the expression on.
+    Results:
+        A callable if the *p_set* has 1 or more arguments,
         otherwise the result of the evaluation.
     """
     code = str(expr)
@@ -72,16 +77,18 @@ def compile_adf_tree(expr: Expr, p_sets: PSets) -> Any:
     following elements are automatically defined functions
     that can be called by the first tree.
 
-    :param expr: The expression to compile. It can be a string,
-        a PrimitiveTree or any object which produces a valid
-        Python expression when converted into a string.
-    :param p_sets: List of primitive sets. The first element is
-        the main tree and the others are automatically defined
-        functions (ADF) that can be called by the first tree.
-        The last element is associated with the *expr* and
-        should contain a reference to the preceding ADFs.
-    :returns: A callable if the main primitive set has 1 or
-        more arguments, otherwise the result of the evaluation.
+    Parameters:
+        expr: The expression to compile. It can be a string,
+            a PrimitiveTree or any object which produces a valid
+            Python expression when converted into a string.
+        p_sets: List of primitive sets. The first element is
+            the main tree and the others are automatically defined
+            functions (ADF) that can be called by the first tree.
+            The last element is associated with the *expr* and
+            should contain a reference to the preceding ADFs.
+    Returns:
+        A callable if the main primitive set has 1 or more
+        arguments, otherwise the result of the evaluation.
     """
     adf_dict = dict()
     func = None
@@ -101,8 +108,10 @@ def build_tree_graph(expr: Expr) -> Graph:
     the edges are the connections between the nodes. The dictionary
     contains the leaves values, where the keys are the leaves indices.
 
-    :param expr: A tree expression to convert into a graph.
-    :returns: A list of nodes, a list of edges and a dictionary of labels.
+    Parameters:
+        expr: A tree expression to convert into a graph.
+    Returns:
+        A list of nodes, a list of edges and a dictionary of labels.
     """
     nodes = list(range(len(expr)))
     edges = list()
@@ -130,9 +139,11 @@ def static_limit(key: Callable, max_value: Union[int, float]) -> Callable:
     When an invalid child is generated, it is replaced by one of its
     parents, which is randomly selected.
 
-    :param key: The function which obtains the measurement from an individual.
-    :param max_value: The maximum value allowed for the given measurement.
-    :returns: A decorator which can be applied to a GP operator in a Toolbox.
+    Parameters:
+        key: The function which obtains the measurement from an individual.
+        max_value: The maximum value allowed for the given measurement.
+    Returns:
+        A decorator which can be applied to a GP operator in a Toolbox.
     """
     def decorator(func):
         @wraps(func)

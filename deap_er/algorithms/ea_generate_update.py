@@ -23,9 +23,9 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.records import Logbook
-from deap_er.base.toolbox import Toolbox
 from deap_er.datatypes import Hof, Stats, AlgoResult
+from deap_er.base.toolbox import Toolbox
+from deap_er.records import Logbook
 
 
 __all__ = ['ea_generate_update']
