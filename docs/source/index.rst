@@ -5,6 +5,7 @@ Welcome to the DEAP-er's documentation!
    :maxdepth: 2
    :caption: Reference:
 
+   reference/datatypes.rst
    reference/base.rst
    reference/creator.rst
    reference/records.rst
@@ -13,4 +14,3 @@ Welcome to the DEAP-er's documentation!
    reference/operators.rst
    reference/utilities.rst
    reference/gp.rst
-   reference/datatypes.rst

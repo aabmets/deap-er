@@ -49,7 +49,8 @@ class LintHints:
 # ====================================================================================== #
 class Toolbox(LintHints):
     """
-    A toolbox for evolutionary operators.
+    | A toolbox for evolutionary operators. Essential component of computational evolution.
+    | Evolution is carried out by the operators registered in a toolbox object.
     """
 
     def __init__(self) -> None:

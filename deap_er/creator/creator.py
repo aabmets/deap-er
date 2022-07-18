@@ -52,13 +52,13 @@ def create(name: str, base: Union[type, object], **kwargs) -> None:
         new class as class or instance attributes, optional.
     """
 
-    warning = f"You are creating a new class named \'{name}\', which already exists. " \
-              f"The old definition will be overwritten by the new one."
-
     # warn about class definition overwrite
     if name in globals():
+        msg = f"You are creating a new class named \'{name}\', " \
+              f"which already exists. The old definition will " \
+              f"be overwritten by the new one."
         warnings.warn(
-            message=warning,
+            message=msg,
             category=RuntimeWarning
         )
 
@@ -87,5 +87,6 @@ def create(name: str, base: Union[type, object], **kwargs) -> None:
         for attr_name, attr_obj in inst_attr.items():
             setattr(self, attr_name, attr_obj())
 
+    # override the init func and set the global name
     new_class.__init__ = new_init_func
     globals()[name] = new_class

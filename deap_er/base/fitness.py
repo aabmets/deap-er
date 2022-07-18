@@ -25,7 +25,7 @@
 # ====================================================================================== #
 from __future__ import annotations
 from deap_er.datatypes import SeqOfNum
-from typing import Sequence, Iterator
+from typing import Iterator
 from operator import mul, truediv
 
 
@@ -75,9 +75,12 @@ class Fitness:
 
     # -------------------------------------------------------------------------------------- #
     @property
-    def values(self) -> tuple:
+    def values(self) -> tuple[float]:
         """
         Fitness values of the individual *(getter, setter and deleter)*.
+        Setter accepts any :data:`SetItemSeq` object as input and the
+        getter returns a tuple of floats. Deleter sets the internal
+        :data:`wvalues` attribute to an empty tuple.
         """
         if self.is_valid():
             values: Iterator = map(truediv, self.wvalues, self.weights)
