@@ -29,8 +29,8 @@ from typing import Union, Tuple
 import numpy
 import array
 
-SetItemSeq = Union[list, numpy.ndarray, array.array]
-DoubleSIS = Tuple[SetItemSeq, SetItemSeq]
-NumOrSeq = Union[int, float, Sequence]
-SeqOfNum = Sequence[Union[int, float]]
-ListAndLog = Tuple[list, Logbook]
+SetItemSeq = Union[list, array.array, numpy.ndarray]
+PairSIS = Tuple[SetItemSeq, SetItemSeq]
+NumOrSeq = Union[int, float, Sequence[int], Sequence[float]]
+SeqOfNum = Union[Sequence[int], Sequence[float]]
+PairLAL = Tuple[list, Logbook]
