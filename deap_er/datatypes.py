@@ -30,26 +30,9 @@ import numpy
 import array
 
 Individual = Union[list, array.array, numpy.ndarray]
-"""
-| Any **mutable sequence** which has the **__getitem__** and **__setitem__** operators.
-| This includes the :data:`list` , :data:`array.array` , :data:`numpy.ndarray` and other
-| datatypes as well as subclasses of these created by the :func:`~deap_er.creator.create` function.
-"""
-
 Mates = Tuple[Individual, Individual]
-"""A pair of :data:`Individual` datatypes."""
-
 SeqOfNum = Union[Sequence[int], Sequence[float]]
-"""A sequence of :data:`int` or :data:`float` values."""
-
 NumOrSeq = Union[int, float, SeqOfNum]
-"""Either an :data:`int` , :data:`float` or :data:`SeqOfNum`."""
-
 Hof = Union[HallOfFame, ParetoFront]
-"""Either a :data:`HallOfFame` or a :data:`ParetoFront` object."""
-
 Stats = Union[Statistics, MultiStatistics]
-"""Either a :data:`Statistics` or a :data:`MultiStatistics` object."""
-
 AlgoResult = Tuple[list, Logbook]
-"""A tuple of :data:`list` and :data:`Logbook` objects."""

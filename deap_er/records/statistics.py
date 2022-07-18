@@ -48,7 +48,7 @@ class Statistics:
             on which the statistics will be computed.
     """
     # -------------------------------------------------------- #
-    def __init__(self, key: Callable = None):
+    def __init__(self, key: Optional[Callable] = None):
         self.key = key if key else lambda obj: obj
         self.functions = dict()
         self.fields = list()
