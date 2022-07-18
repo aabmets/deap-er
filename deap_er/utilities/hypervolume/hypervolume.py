@@ -35,31 +35,28 @@ __all__ = ['HyperVolume']
 # ====================================================================================== #
 class HyperVolume:
     """
-    Hypervolume computation based on the third variant of the algorithm in the paper:
-    "An improved dimension-sweep algorithm for the hypervolume indicator." by
-    C. M. Fonseca, L. Paquete, and M. Lopez-Ibanez (From the IEEE Congress on
-    Evolutionary Computation, pages 1157-1163, Vancouver, Canada, July 2006).
+    Creates a new HyperVolume object with the *ref_point*.
+
+    Parameters:
+        ref_point: The reference point for the hypervolume calculation.
     """
     multi_list: MultiList
 
     # -------------------------------------------------------- #
     def __init__(self, ref_point: Individual) -> None:
-        """
-        Creates a new HyperVolume object with *ref_point*.
-
-        :param ref_point: The reference point for the hypervolume calculation.
-        """
         self.ref_point = ref_point
         self.dims = len(ref_point)
 
     # -------------------------------------------------------- #
     def compute(self, point_set: Individual) -> float:
         """
-        Computes the hypervolume that is dominated by the non-dominated *point_set*.
-        Minimization is implicitly assumed.
+        Computes the hypervolume that is dominated by the non-dominated
+        *point_set*. Minimization is implicitly assumed.
 
-        :param point_set: The point set for which to compute the hypervolume.
-        :returns: The hypervolume of the given point set.
+        Parameters:
+            point_set: The set of points that are to be evaluated.
+        Returns:
+            The hypervolume of the given point set.
         """
         self._pre_process(point_set)
         return self._hv_recursive(

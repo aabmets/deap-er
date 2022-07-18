@@ -31,19 +31,21 @@ __all__ = ['sort_non_dominated']
 
 
 # ====================================================================================== #
-def sort_non_dominated(individuals: Sequence,
-                       k: int, first_front_only: bool = False) -> list:
+def sort_non_dominated(individuals: list, sel_count: int,
+                       first_front_only: bool = False) -> list:
     """
     Sorts the first *k* *individuals* into different non-domination
     levels using the "Fast Non-dominated Sorting Approach".
 
-    :param individuals: A list of individuals to sort.
-    :param k: The number of individuals to select.
-    :param first_front_only: If True, only the first front is returned.
-    :returns: A list of Pareto fronts, where the first
+    Parameters:
+        individuals: A list of individuals to sort.
+        sel_count: The number of individuals to select.
+        first_front_only: If True, only the first front is returned.
+    Returns:
+        A list of Pareto fronts, where the first
         element is the true Pareto front.
     """
-    if k == 0:
+    if sel_count == 0:
         return []
 
     map_fit_ind = defaultdict(list)
@@ -73,7 +75,7 @@ def sort_non_dominated(individuals: Sequence,
     pareto_sorted = len(fronts[-1])
 
     if not first_front_only:
-        big_n = min(len(individuals), k)
+        big_n = min(len(individuals), sel_count)
         while pareto_sorted < big_n:
             fronts.append([])
             for fit_p in current_front:

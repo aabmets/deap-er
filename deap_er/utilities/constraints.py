@@ -41,13 +41,15 @@ class DeltaPenalty:
     penalty. The distance function, if provided, returns a value, which is
     growing as the individual moves away from the valid zone.
 
-    :param feasibility: A function returning the
-        validity status of any individual.
-    :param delta: Constant or a sequence of constants
-        returned for an invalid individual.
-    :param distance: A function returning the distance
-        between the individual and a given valid point.
-    :returns: A decorator for the fitness function.
+    Parameters:
+        feasibility: A function returning the
+            validity status of any individual.
+        delta: Constant or a sequence of constants
+            returned for an invalid individual.
+        distance: A function returning the distance
+            between the individual and a given valid point.
+    Returns:
+        A decorator for the fitness function.
     """
     # -------------------------------------------------------- #
     def __init__(self, feasibility: Callable,
@@ -89,15 +91,16 @@ class ClosestValidPenalty:
     provided, returns a value, which is growing as the individual
     moves away from the valid zone.
 
-    :param feasibility: A function returning the
-        validity status of any individual.
-    :param feasible: A function returning the closest feasible
-        individual from the current invalid individual.
-    :param alpha: Multiplication factor on the distance
-        between the valid and invalid individual.
-    :param distance: A function returning the distance
-        between the individual and a given valid point.
-    :returns: A decorator for the fitness function.
+    Parameters:
+        feasibility: A function returning the validity status of any individual.
+        feasible: A function returning the closest feasible
+            individual from the current invalid individual.
+        alpha: Multiplication factor on the distance between
+            the valid and invalid individuals.
+        distance: A function returning the distance between
+            the individual and a given valid point.
+    Returns:
+        A decorator for the fitness function.
     """
     # -------------------------------------------------------- #
     def __init__(self, feasibility, feasible, alpha, distance=None):

@@ -39,10 +39,12 @@ def init_repeat(container: Container, func: Callable, count: int) -> Iterable:
     This helper function can be used in conjunction with a Toolbox to register
     a generator of filled containers, such as individuals or a population.
 
-    :param container: A type of iterable to put the results in.
-    :param func: The function to be called count times.
-    :param count: The number of times to call the func.
-    :returns: An iterable filled with count results of func.
+    Parameters:
+        container: A type of iterable to put the results in.
+        func: The function to be called count times.
+        count: The number of times to call the func.
+    Returns:
+        An iterable filled with count results of func.
     """
     return container(func() for _ in range(count))
 
@@ -55,9 +57,11 @@ def init_iterate(container: Container, generator: Callable) -> Iterable:
     can be used in conjunction with a Toolbox to register a generator of
     filled containers, as individuals or a population.
 
-    :param container: A type of iterable to put the results in.
-    :param generator: A function returning an iterable to fill the container with.
-    :returns: An iterable filled with the results from the generator.
+    Parameters:
+        container: A type of iterable to put the results in.
+        generator: A function returning an iterable to fill the container with.
+    Returns:
+        An iterable filled with the results of the generator.
     """
     return container(generator())
 
@@ -70,9 +74,11 @@ def init_cycle(container: Container, funcs: Iterable, count: int = 1) -> Iterabl
     can be used in conjunction with a Toolbox to register a generator of filled
     containers, as individuals or a population.
 
-    :param container: A type of iterable to put the results in.
-    :param funcs: A sequence of functions to be called.
-    :param count: Number of times to iterate through the sequence of functions.
-    :returns: An iterable filled with the results from the functions.
+    Parameters:
+        container: A type of iterable to put the results in.
+        funcs: A sequence of functions to be called.
+        count: Number of times to iterate through the sequence of functions.
+    Returns:
+        An iterable filled with the results of all function calls.
     """
     return container(func() for _ in range(count) for func in funcs)

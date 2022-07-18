@@ -53,14 +53,15 @@ def least_contrib(population: Individual,
     cluster using the Ray multiprocessing library, which must be
     manually initialized by the user before this function can be used.
 
-    :param population: A sequence of non-dominated individuals,
-        where each individual has a Fitness attribute.
-    :param ref: The reference point for the hypervolume, optional.
-    :param timeout: The timeout for the computation.
-        Defaults to 60 seconds. Raises a TimeoutError if the
-        computation does not finish within the given timeout.
-    :returns: The index of the individual with
-        the least hypervolume contribution.
+    Parameters:
+        population: A sequence of non-dominated individuals,
+            where each individual has a Fitness attribute.
+        ref: The reference point for the hypervolume, optional.
+        timeout: The timeout for the computation. Defaults to
+            60 seconds. Raises a TimeoutError if the computation
+            does not finish within the given timeout.
+    Returns:
+        The index of the individual with the least hypervolume contribution.
     """
     if not ray.is_initialized():
         raise RuntimeError(
