@@ -46,10 +46,10 @@ def create(name: str, base: Union[type, object], **kwargs) -> None:
 
     :param name: The name of the new class to create.
     :param base: A base class or an object from which to inherit.
-    :param kwargs: One or more keyword arguments to add to
-        the new class as attributes, optional. If a *kwarg* is an instance,
-        it will be added as a class attribute. If a *kwarg* is a class,
-        it will be instantiated and added as an instance attribute.
+    :param kwargs: One or more keyword arguments to add to the new class
+        as attributes, optional. If a *kwarg* is an instance, it will be
+        added as a class attribute. If a *kwarg* is a class, it will be
+        instantiated and added as an instance attribute.
     :type kwargs: Optional
     :rtype: None
     """
