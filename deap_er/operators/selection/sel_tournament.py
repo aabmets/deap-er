@@ -23,7 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import Individual
 from .sel_various import sel_random
 from operator import attrgetter
 from functools import partial
@@ -34,7 +33,7 @@ __all__ = ['sel_tournament', 'sel_double_tournament', 'sel_tournament_dcd']
 
 
 # ====================================================================================== #
-def sel_tournament(individuals: Individual, rounds: int,
+def sel_tournament(individuals: list, rounds: int,
                    contestants: int, fit_attr: str = "fitness") -> list:
     """
     Selects the best individual among the randomly
@@ -56,7 +55,7 @@ def sel_tournament(individuals: Individual, rounds: int,
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_double_tournament(individuals: Individual, rounds: int,
+def sel_double_tournament(individuals: list, rounds: int,
                           fitness_size: int, parsimony_size: int,
                           fitness_first: bool, fit_attr: str = "fitness") -> list:
     """
@@ -106,7 +105,7 @@ def sel_double_tournament(individuals: Individual, rounds: int,
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_tournament_dcd(individuals: Individual, sel_count: int) -> list:
+def sel_tournament_dcd(individuals: list, sel_count: int) -> list:
     """
     Tournament selection based on the dominance between two individuals,
     if the two individuals do not inter-dominate, then the selection

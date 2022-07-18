@@ -23,7 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import Individual
 import numpy as np
 import random
 
@@ -32,7 +31,7 @@ __all__ = ['sel_lexicase', 'sel_epsilon_lexicase']
 
 
 # ====================================================================================== #
-def sel_lexicase(individuals: Individual, count) -> list:
+def sel_lexicase(individuals: list, count) -> list:
     """
     Returns an individual that does the best on the fitness
     cases when considered one at a time in random order.
@@ -63,7 +62,7 @@ def sel_lexicase(individuals: Individual, count) -> list:
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_epsilon_lexicase(individuals: Individual, count: int,
+def sel_epsilon_lexicase(individuals: list, count: int,
                          epsilon: float = None) -> list:
     """
     Returns an individual that does the best on the fitness cases

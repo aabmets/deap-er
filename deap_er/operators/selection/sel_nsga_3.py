@@ -23,7 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import Individual
 from deap_er.utilities.sorting import *
 from itertools import chain
 from numpy import ndarray
@@ -53,7 +52,7 @@ class SelNSGA3WithMemory:
         self.extreme_points = None
 
     # -------------------------------------------------------- #
-    def __call__(self, individuals: Individual, sel_count: int) -> list:
+    def __call__(self, individuals: list, sel_count: int) -> list:
         """
         This method is called by the Toolbox to select
         individuals for the next generation.
@@ -74,7 +73,7 @@ class SelNSGA3WithMemory:
 
 
 # ====================================================================================== #
-def sel_nsga_3(individuals: Individual, sel_count: int,
+def sel_nsga_3(individuals: list, sel_count: int,
                ref_points: ndarray, sorting_algo: str = "log",
                best_point: ndarray = None,
                worst_point: ndarray = None,
@@ -207,7 +206,7 @@ def _associate_to_niche(fitness: ndarray, reference_points: ndarray,
 
 
 # -------------------------------------------------------------------------------------- #
-def _select_from_niche(individuals: Individual, count: int,
+def _select_from_niche(individuals: list, count: int,
                        niches: ndarray, distances: ndarray,
                        niche_counts: ndarray) -> list:
     selected = []

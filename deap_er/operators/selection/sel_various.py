@@ -23,7 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import Individual
 from operator import attrgetter
 import random
 
@@ -35,7 +34,7 @@ __all__ = [
 
 
 # ====================================================================================== #
-def sel_random(individuals: Individual, sel_count: int) -> list:
+def sel_random(individuals: list, sel_count: int) -> list:
     """
     Selects *count* individuals randomly.
 
@@ -49,7 +48,7 @@ def sel_random(individuals: Individual, sel_count: int) -> list:
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_best(individuals: Individual, sel_count: int,
+def sel_best(individuals: list, sel_count: int,
              fit_attr: str = "fitness") -> list:
     """
     Selects the best *count* individuals among the input *individuals*.
@@ -66,7 +65,7 @@ def sel_best(individuals: Individual, sel_count: int,
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_worst(individuals: Individual, sel_count: int,
+def sel_worst(individuals: list, sel_count: int,
               fit_attr: str = "fitness") -> list:
     """
     Selects the worst *count* individuals among the input *individuals*.
@@ -83,7 +82,7 @@ def sel_worst(individuals: Individual, sel_count: int,
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_roulette(individuals: Individual, sel_count: int,
+def sel_roulette(individuals: list, sel_count: int,
                  fit_attr: str = "fitness") -> list:
     """
     Select *k* individuals from the input *individuals* using *k*
@@ -115,7 +114,7 @@ def sel_roulette(individuals: Individual, sel_count: int,
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_stochastic_universal_sampling(individuals: Individual, sel_count: int,
+def sel_stochastic_universal_sampling(individuals: list, sel_count: int,
                                       fit_attr: str = "fitness") -> list:
     """
     Selects the *k* individuals among the input *individuals*.

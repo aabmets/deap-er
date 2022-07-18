@@ -23,7 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import Individual
 import numpy
 
 
@@ -31,7 +30,7 @@ __all__ = ['assign_crowding_dist', 'uniform_reference_points']
 
 
 # ====================================================================================== #
-def assign_crowding_dist(individuals: Individual) -> None:
+def assign_crowding_dist(individuals: list) -> None:
     """
     Assigns a crowding distance to each individual's fitness.
     The crowding distance can be retrieved via the *crowding_dist*

@@ -23,7 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import Individual
 import random
 import math
 
@@ -32,7 +31,7 @@ __all__ = ['sel_spea_2']
 
 
 # ====================================================================================== #
-def sel_spea_2(individuals: Individual, sel_count: int) -> list:
+def sel_spea_2(individuals: list, sel_count: int) -> list:
     """
     Selects the next generation of individuals using the SPEA2 algorithm.
     Usually, the size of *individuals* should be larger than the *count*
@@ -143,7 +142,7 @@ def sel_spea_2(individuals: Individual, sel_count: int) -> list:
 
 
 # -------------------------------------------------------------------------------------- #
-def _partition(array: Individual, begin: int, end: int) -> int:
+def _partition(array: list, begin: int, end: int) -> int:
     x = array[begin]
     i = begin - 1
     j = end + 1
@@ -161,14 +160,14 @@ def _partition(array: Individual, begin: int, end: int) -> int:
 
 
 # -------------------------------------------------------------------------------------- #
-def _randomized_partition(array: Individual, begin: int, end: int) -> int:
+def _randomized_partition(array: list, begin: int, end: int) -> int:
     i = random.randint(begin, end)
     array[begin], array[i] = array[i], array[begin]
     return _partition(array, begin, end)
 
 
 # -------------------------------------------------------------------------------------- #
-def _randomized_select(array: Individual, begin: int, end: int, i: float) -> int:
+def _randomized_select(array: list, begin: int, end: int, i: float) -> int:
     if begin == end:
         return array[begin]
     q = _randomized_partition(array, begin, end)

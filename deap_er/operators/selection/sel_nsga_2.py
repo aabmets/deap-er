@@ -23,7 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import Individual
 from deap_er.utilities.sorting import *
 from .sel_helpers import assign_crowding_dist
 from operator import attrgetter
@@ -34,7 +33,7 @@ __all__ = ['sel_nsga_2']
 
 
 # ====================================================================================== #
-def sel_nsga_2(individuals: Individual, sel_count: int,
+def sel_nsga_2(individuals: list, sel_count: int,
                sorting_algo: str = 'standard') -> list:
     """
     Selects the next generation of individuals using the NSGA-II algorithm.
