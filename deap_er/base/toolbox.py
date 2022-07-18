@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from typing import Callable
+from typing import Callable, Optional
 from functools import partial
 from copy import deepcopy
 
@@ -49,32 +49,33 @@ class LintHints:
 # ====================================================================================== #
 class Toolbox(LintHints):
     """
-    | A toolbox for evolutionary operators. Essential component of computational evolution.
-    | Evolution is carried out by the operators registered in a toolbox object.
+    A toolbox is a container for evolutionary operators, which
+    facilitate the process of computational evolution.
     """
-
+    # -------------------------------------------------------- #
     def __init__(self) -> None:
         self.register("clone", deepcopy)
         self.register("map", map)
 
     # -------------------------------------------------------- #
-    def register(self, alias: str, func: Callable, *args, **kwargs) -> None:
+    def register(self, alias: str, func: Callable,
+                 *args: Optional, **kwargs: Optional) -> None:
         """
         Registers a *func* in the toolbox under the name *alias*.
         Any *args* or *kwargs* will be automatically passed to the
         registered function when it's called. Fixed arguments can
         be overridden at function call time.
 
-        :param alias: The name to register the *func* under.
-            The alias will be overwritten if it already exists.
-        :param func: The function to which the alias is going to refer.
-        :param args: Positional arguments which get automatically
-            passed to the *func* when it's called, optional.
-        :type args: Optional
-        :param kwargs: Keyword arguments which get automatically
-            passed to the *func* when it's called, optional.
-        :type kwargs: Optional
-        :rtype: None
+        Parameters:
+            alias: The name to register the *func* under.
+                The alias will be overwritten if it already exists.
+            func: The function to which the alias is going to refer.
+            args: Positional arguments which are automatically
+                passed to the *func* when it's called, optional.
+            kwargs: Keyword arguments which are automatically
+                passed to the *func* when it's called, optional.
+        Returns:
+            None
         """
         p_func = partial(func, *args, **kwargs)
         p_func.__name__ = alias
@@ -89,24 +90,29 @@ class Toolbox(LintHints):
         """
         Removes an operator with the name *alias* from the toolbox.
 
-        :param alias: The name of the operator to remove from the toolbox.
-        :rtype: None
+        Parameters:
+            alias: The name of the operator to remove from the toolbox.
+        Returns:
+            None
         """
         delattr(self, alias)
 
     # -------------------------------------------------------- #
-    def decorate(self, alias: str, *decorators: Callable) -> None:
+    def decorate(self, alias: str,
+                 *decorators: Optional[Callable]) -> None:
         """
         Decorates an operator *alias* with the provided *decorators*.
 
-        :param alias: Name of the operator to decorate. The *alias*
-            must be a registered operator in the toolbox.
-        :param decorators: Positional arguments of decorator functions to
-            apply to the *alias*, optional. If none are provided, the operator
-            is left unchanged. If multiple are provided, they are applied in
-            order from the earliest to the latest in the *decorators* argument.
-        :type decorators: Optional[Callable]
-        :rtype: None
+        Parameters:
+            alias: Name of the operator to decorate. The *alias*
+                must be a registered operator in the toolbox.
+            decorators: Positional arguments of decorator functions to
+                apply to the *alias*, optional. If none are provided, the
+                operator is left unchanged. If multiple are provided, they
+                are applied in order from the earliest to the latest in
+                the *decorators* argument.
+        Returns:
+            None
         """
         if not decorators:
             return

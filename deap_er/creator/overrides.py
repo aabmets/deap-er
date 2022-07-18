@@ -38,7 +38,6 @@ class _NumpyOverride(numpy.ndarray):
     Class override for the *numpy.ndarray* class, because
     the *numpy.ndarray* class is problematic for DEAP-er.
     """
-
     @staticmethod
     def __new__(cls, iterable: Iterable) -> numpy.array:
         return numpy.array(list(iterable)).view(cls)
@@ -62,7 +61,6 @@ class _ArrayOverride(array.array):
     Class override for the *array.array* class, because
     the *array.array* class is problematic for DEAP-er.
     """
-
     @staticmethod
     def __new__(cls, typecode: str,  sequence: Iterable) -> array.array:
         return super().__new__(cls, typecode, sequence)

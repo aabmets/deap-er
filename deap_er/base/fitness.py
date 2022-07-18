@@ -37,11 +37,11 @@ class Fitness:
     """
     A fitness object measures the quality of a solution. The class attribute
     :attr:`weights` tuple must be set before a Fitness object can be instantiated.
-    A fitness object can be instantiated without values, but the fitness object
+    A fitness object can be instantiated without values, but the fitness object then
     remains invalid until the values have been set using the :attr:`values` property.
 
-    :param values: A sequence of numbers, optional.
-    :type values: Optional[SeqOfNum]
+    Parameters:
+        values (Optional[SeqOfNum]): The values of the fitness object, optional.
     """
 
     # -------------------------------------------------------- #
@@ -81,6 +81,9 @@ class Fitness:
         Setter accepts any :data:`SetItemSeq` object as input and the
         getter returns a tuple of floats. Deleter sets the internal
         :data:`wvalues` attribute to an empty tuple.
+
+        Returns:
+            tuple[float]: Fitness values of the individual.
         """
         if self.is_valid():
             values: Iterator = map(truediv, self.wvalues, self.weights)
@@ -103,13 +106,15 @@ class Fitness:
     # -------------------------------------------------------- #
     def dominates(self, other: Fitness, slc: slice = None) -> bool:
         """
-        Returns true if each objective of *self* is not worse than the corresponding
-        objective of the *other* and at least one objective is better.
-        
-        :param other: An instance of Fitness to test against.
-        :param slc: A slice of objectives to test for domination, optional.
-        :type slc: Optional[slice]
-        :return: False if other Fitness is better.
+        Returns true if each objective of *self* is not worse than
+        the corresponding objective of the *other* and at least
+        one objective of *self* is better.
+
+        Parameters:
+            other: An instance of Fitness to test against.
+            slc: A slice of objectives to test for domination, optional.
+        Returns:
+            bool: True if *self* dominates *other*.
         """
         slc = slice(None) if slc is None else slc
         zipper = list(zip(self.wvalues, other.wvalues))
@@ -126,7 +131,8 @@ class Fitness:
         :attr:`weights` has been set and the instance property :attr:`values`
         has the same length as the :attr:`weights` attribute.
 
-        :return: True if the Fitness object is valid.
+        Returns:
+            bool: True if the Fitness instance is valid.
         """
         a = len(self.weights)
         b = len(self.wvalues)
