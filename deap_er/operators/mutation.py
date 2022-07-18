@@ -58,13 +58,14 @@ def mut_gaussian(individual: Individual, mu: NumOrSeq,
     The *ind_pb* argument is the probability of each attribute to be mutated.
 
     Parameters:
-        individual: The individual to be mutated.
-        mu: Mean or sequence of means for the gaussian addition mutation.
-        sigma: Either standard deviation or a sequence of standard
-            deviations for the gaussian addition mutation.
+        individual (:data:`~deap_er.datatypes.Individual`): The individual to be mutated.
+        mu (:data:`~deap_er.datatypes.NumOrSeq`): Either the mean or
+            a sequence of means for the gaussian addition mutation.
+        sigma (:data:`~deap_er.datatypes.NumOrSeq`): Either the standard deviation
+            or a sequence of standard deviations for the gaussian addition mutation.
         mut_prob: Probability for each attribute to be mutated.
     Returns:
-        A mutated individual.
+        :data:`~deap_er.datatypes.Individual`: A mutated individual.
     """
     size = len(individual)
     mu = _pre_process('mu', mu, size)
@@ -89,18 +90,15 @@ def mut_polynomial_bounded(individual: Individual,
     *ind_pb* argument is the probability of each attribute to be mutated.
 
     Parameters:
-        individual: The individual to be mutated.
-        eta: Crowding degree of the crossover. Higher eta will
-            produce children more similar to their parents,
-            while a smaller eta will produce children
-            more divergent from their parents.
-        low: Either a number or a sequence of numbers that
-            is the lower bound of the search space.
-        up: Either a number or a sequence of numbers that
-            is the upper bound of the search space.
+        individual (:data:`~deap_er.datatypes.Individual`): The individual to be mutated.
+        eta: Crowding degree of the crossover. Higher *eta* will produce children
+            more similar to their parents, while a smaller *eta* will produce
+            children more divergent from their parents.
+        low (:data:`~deap_er.datatypes.NumOrSeq`): Lower bound of the search space.
+        up (:data:`~deap_er.datatypes.NumOrSeq`): Upper bound of the search space.
         mut_prob: Probability for each attribute to be mutated.
     Returns:
-        A mutated individual.
+        :data:`~deap_er.datatypes.Individual`: A mutated individual.
     """
     size = len(individual)
     low = _pre_process('low', low, size)
@@ -140,10 +138,10 @@ def mut_shuffle_indexes(individual: Individual, mut_prob: float) -> Individual:
     each attribute to be moved.
 
     Parameters:
-        individual: The individual to be mutated.
+        individual (:data:`~deap_er.datatypes.Individual`): The individual to be mutated.
         mut_prob: Probability for each attribute to be mutated.
     Returns:
-        A mutated individual.
+        :data:`~deap_er.datatypes.Individual`: A mutated individual.
     """
     size = len(individual)
     for i in range(size):
@@ -166,10 +164,10 @@ def mut_flip_bit(individual: Individual, mut_prob: float) -> Individual:
     each attribute to be flipped.
 
     Parameters:
-        individual: The individual to be mutated.
+        individual (:data:`~deap_er.datatypes.Individual`): The individual to be mutated.
         mut_prob: Probability for each attribute to be mutated.
     Returns:
-        A mutated individual.
+        :data:`~deap_er.datatypes.Individual`: A mutated individual.
     """
     for i in range(len(individual)):
         if random.random() < mut_prob:
@@ -189,14 +187,12 @@ def mut_uniform_int(individual: Individual,
     argument is the probability of each attribute to be mutated.
 
     Parameters:
-        individual: The individual to be mutated.
-        low: Either a number or a sequence of numbers that
-            is the lower bound of the search space.
-        up: Either a number or a sequence of numbers that
-            is the upper bound of the search space.
+        individual (:data:`~deap_er.datatypes.Individual`): The individual to be mutated.
+        low (:data:`~deap_er.datatypes.NumOrSeq`): Lower bound of the search space.
+        up (:data:`~deap_er.datatypes.NumOrSeq`): Upper bound of the search space.
         mut_prob: Probability for each attribute to be mutated.
     Returns:
-        A mutated individual.
+        :data:`~deap_er.datatypes.Individual`: A mutated individual.
     """
     size = len(individual)
     low = _pre_process('low', low, size)
@@ -220,12 +216,12 @@ def mut_es_log_normal(individual: Individual,
     is the probability of each attribute to be mutated.
 
     Parameters:
-        individual: The individual to be mutated.
+        individual (:data:`~deap_er.datatypes.Individual`): The individual to be mutated.
         learn_rate: The learning rate of the evolution strategy.
             The recommended value is 1 when using a (10, 100) evolution strategy.
         mut_prob: Probability for each attribute to be mutated.
     Returns:
-        A mutated individual.
+        :data:`~deap_er.datatypes.Individual`: A mutated individual.
     """
     size = len(individual)
     t = learn_rate / math.sqrt(2. * math.sqrt(size))

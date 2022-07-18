@@ -23,7 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import Individual
 from typing import Callable
 
 
@@ -31,8 +30,8 @@ __all__ = ['mig_ring']
 
 
 # ====================================================================================== #
-def mig_ring(populations: Individual, mig_count: int, selection: Callable,
-             replacement: Callable = None, mig_indices: Individual = None) -> None:
+def mig_ring(populations: list, mig_count: int, selection: Callable,
+             replacement: Callable = None, mig_indices: list = None) -> None:
     """
     Performs a ring migration between the *populations*. The migration
     first selects *mig_count* emigrants from each population using the

@@ -12,7 +12,7 @@ Datatypes
 .. py:data:: deap_er.datatypes.Mates
    :type: Tuple[Individual, Individual]
 
-    A pair of :data:`Individual` datatypes.
+   A pair of :data:`Individual` datatypes.
 
 
 .. py:data:: deap_er.datatypes.SeqOfNum
