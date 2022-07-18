@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import NumOrSeq, Subscript
+from deap_er.datatypes import NumOrSeq, Individual
 from collections.abc import Sequence
 from itertools import repeat
 import random
@@ -49,20 +49,22 @@ def _pre_process(name: str, var: NumOrSeq, size: int) -> Sequence:
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_gaussian(individual: Subscript, mu: NumOrSeq,
-                 sigma: NumOrSeq, mut_prob: float) -> Subscript:
+def mut_gaussian(individual: Individual, mu: NumOrSeq,
+                 sigma: NumOrSeq, mut_prob: float) -> Individual:
     """
     This function applies a gaussian mutation of mean *mu* and standard
     deviation *sigma* on the input individual. This mutation expects the
     *individual* to be a type of *sequence*, composed of real valued attributes.
     The *ind_pb* argument is the probability of each attribute to be mutated.
 
-    :param individual: Individual to be mutated.
-    :param mu: Mean or sequence of means for the gaussian addition mutation.
-    :param sigma: Either standard deviation or a sequence of standard
-        deviations for the gaussian addition mutation.
-    :param mut_prob: Probability for each attribute to be mutated.
-    :returns: A mutated individual.
+    Parameters:
+        individual: The individual to be mutated.
+        mu: Mean or sequence of means for the gaussian addition mutation.
+        sigma: Either standard deviation or a sequence of standard
+            deviations for the gaussian addition mutation.
+        mut_prob: Probability for each attribute to be mutated.
+    Returns:
+        A mutated individual.
     """
     size = len(individual)
     mu = _pre_process('mu', mu, size)
@@ -77,25 +79,28 @@ def mut_gaussian(individual: Subscript, mu: NumOrSeq,
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_polynomial_bounded(individual: Subscript,
+def mut_polynomial_bounded(individual: Individual,
                            eta: float, low: NumOrSeq,
-                           up: NumOrSeq, mut_prob: float) -> Subscript:
+                           up: NumOrSeq, mut_prob: float) -> Individual:
     """
     This function applies a polynomial mutation with a crowding degree of
     *eta* on the input individual. This mutation expects the *individual*
     to be a type of *sequence*, composed of real valued attributes. The
     *ind_pb* argument is the probability of each attribute to be mutated.
 
-    :param individual: Individual to be mutated.
-    :param eta: Crowding degree of the mutation. Higher eta will produce
-        a mutant more similar to its parent, while a smaller eta will
-        produce a mutant more divergent from its parent.
-    :param low: Either a value or a sequence of values that
-        is the lower bound of the search space.
-    :param up: Either a value or a sequence of values that
-        is the upper bound of the search space.
-    :param mut_prob: Probability for each attribute to be mutated.
-    :returns: A mutated individual.
+    Parameters:
+        individual: The individual to be mutated.
+        eta: Crowding degree of the crossover. Higher eta will
+            produce children more similar to their parents,
+            while a smaller eta will produce children
+            more divergent from their parents.
+        low: Either a number or a sequence of numbers that
+            is the lower bound of the search space.
+        up: Either a number or a sequence of numbers that
+            is the upper bound of the search space.
+        mut_prob: Probability for each attribute to be mutated.
+    Returns:
+        A mutated individual.
     """
     size = len(individual)
     low = _pre_process('low', low, size)
@@ -127,16 +132,18 @@ def mut_polynomial_bounded(individual: Subscript,
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_shuffle_indexes(individual: Subscript, mut_prob: float) -> Subscript:
+def mut_shuffle_indexes(individual: Individual, mut_prob: float) -> Individual:
     """
     Shuffles the attributes of the input individual. This mutation expects
     the *individual* to be a type of *sequence* and is usually applied
     to a vector of indices. The *ind_pb* argument is the probability of
     each attribute to be moved.
 
-    :param individual: Individual to be mutated.
-    :param mut_prob: Probability for each attribute to be mutated.
-    :returns: A mutated individual.
+    Parameters:
+        individual: The individual to be mutated.
+        mut_prob: Probability for each attribute to be mutated.
+    Returns:
+        A mutated individual.
     """
     size = len(individual)
     for i in range(size):
@@ -151,16 +158,18 @@ def mut_shuffle_indexes(individual: Subscript, mut_prob: float) -> Subscript:
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_flip_bit(individual: Subscript, mut_prob: float) -> Subscript:
+def mut_flip_bit(individual: Individual, mut_prob: float) -> Individual:
     """
     Flips the values of random attributes of the input individual.
     This mutation expects the *individual* to be a type of *sequence*
     of boolean values. The *ind_pb* argument is the probability of
     each attribute to be flipped.
 
-    :param individual: Individual to be mutated.
-    :param mut_prob: Probability for each attribute to be mutated.
-    :returns: A mutated individual.
+    Parameters:
+        individual: The individual to be mutated.
+        mut_prob: Probability for each attribute to be mutated.
+    Returns:
+        A mutated individual.
     """
     for i in range(len(individual)):
         if random.random() < mut_prob:
@@ -170,20 +179,24 @@ def mut_flip_bit(individual: Subscript, mut_prob: float) -> Subscript:
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_uniform_int(individual: Subscript,
+def mut_uniform_int(individual: Individual,
                     low: int, up: int,
-                    mut_prob: float) -> Subscript:
+                    mut_prob: float) -> Individual:
     """
     Mutates an individual by replacing attribute values with integers
     chosen uniformly between *low* and *up* inclusively. This mutation
     expects the *individual* to be a type of *sequence*. The *ind_pb*
     argument is the probability of each attribute to be mutated.
 
-    :param individual: Individual to be mutated.
-    :param low: Lower bound of the range of integers.
-    :param up: Upper bound of the range of integers.
-    :param mut_prob: Probability for each attribute to be mutated.
-    :returns: A mutated individual.
+    Parameters:
+        individual: The individual to be mutated.
+        low: Either a number or a sequence of numbers that
+            is the lower bound of the search space.
+        up: Either a number or a sequence of numbers that
+            is the upper bound of the search space.
+        mut_prob: Probability for each attribute to be mutated.
+    Returns:
+        A mutated individual.
     """
     size = len(individual)
     low = _pre_process('low', low, size)
@@ -198,23 +211,25 @@ def mut_uniform_int(individual: Subscript,
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_es_log_normal(individual: Subscript,
-                      c: float, mut_prob: float) -> Subscript:
+def mut_es_log_normal(individual: Individual,
+                      learn_rate: float, mut_prob: float) -> Individual:
     """
     Mutates an evolution strategy according to its *strategy* attribute.
     This mutation expects the *individual* to be a type of *sequence*.
     The *c* argument is the learning rate and the *ind_pb* argument
     is the probability of each attribute to be mutated.
 
-    :param individual: Individual to be mutated.
-    :param c: Learning rate. The recommended value is 1
-        when using a (10, 100) evolution strategy.
-    :param mut_prob: Probability for each attribute to be mutated.
-    :returns: A mutated individual.
+    Parameters:
+        individual: The individual to be mutated.
+        learn_rate: The learning rate of the evolution strategy.
+            The recommended value is 1 when using a (10, 100) evolution strategy.
+        mut_prob: Probability for each attribute to be mutated.
+    Returns:
+        A mutated individual.
     """
     size = len(individual)
-    t = c / math.sqrt(2. * math.sqrt(size))
-    t0 = c / math.sqrt(2. * size)
+    t = learn_rate / math.sqrt(2. * math.sqrt(size))
+    t0 = learn_rate / math.sqrt(2. * size)
     n = random.gauss(0, 1)
     t0_n = t0 * n
 

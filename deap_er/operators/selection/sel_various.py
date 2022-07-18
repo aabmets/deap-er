@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import Subscript
+from deap_er.datatypes import Individual
 from operator import attrgetter
 import random
 
@@ -35,49 +35,55 @@ __all__ = [
 
 
 # ====================================================================================== #
-def sel_random(individuals: Subscript, count: int) -> list:
+def sel_random(individuals: Individual, sel_count: int) -> list:
     """
     Selects *count* individuals randomly.
 
-    :param individuals: A list of individuals to select from.
-    :param count: The number of individuals to select.
-    :returns: A list of selected individuals.
+    Parameters:
+        individuals: A list of individuals to select from.
+        sel_count: The number of individuals to select.
+    Returns:
+        A list of selected individuals.
     """
-    return [random.choice(individuals) for _ in range(count)]
+    return [random.choice(individuals) for _ in range(sel_count)]
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_best(individuals: Subscript, count: int,
+def sel_best(individuals: Individual, sel_count: int,
              fit_attr: str = "fitness") -> list:
     """
     Selects the best *count* individuals among the input *individuals*.
 
-    :param individuals: A list of individuals to select from.
-    :param count: The number of individuals to select.
-    :param fit_attr: The attribute of individuals to use as selection criterion.
-    :returns: A list of selected individuals.
+    Parameters:
+        individuals: A list of individuals to select from.
+        sel_count: The number of individuals to select.
+        fit_attr: The attribute of individuals to use as the selection criterion.
+    Returns:
+        A list of selected individuals.
     """
     key = attrgetter(fit_attr)
-    return sorted(individuals, key=key, reverse=True)[:count]
+    return sorted(individuals, key=key, reverse=True)[:sel_count]
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_worst(individuals: Subscript, count: int,
+def sel_worst(individuals: Individual, sel_count: int,
               fit_attr: str = "fitness") -> list:
     """
     Selects the worst *count* individuals among the input *individuals*.
 
-    :param individuals: A list of individuals to select from.
-    :param count: The number of individuals to select.
-    :param fit_attr: The attribute of individuals to use as selection criterion.
-    :returns: A list of selected individuals.
+    Parameters:
+        individuals: A list of individuals to select from.
+        sel_count: The number of individuals to select.
+        fit_attr: The attribute of individuals to use as the selection criterion.
+    Returns:
+        A list of selected individuals.
     """
     key = attrgetter(fit_attr)
-    return sorted(individuals, key=key)[:count]
+    return sorted(individuals, key=key)[:sel_count]
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_roulette(individuals: Subscript, count: int,
+def sel_roulette(individuals: Individual, sel_count: int,
                  fit_attr: str = "fitness") -> list:
     """
     Select *k* individuals from the input *individuals* using *k*
@@ -85,16 +91,18 @@ def sel_roulette(individuals: Subscript, count: int,
     first objective of each individual. The list returned contains
     references to the input *individuals*.
 
-    :param individuals: A list of individuals to select from.
-    :param count: The number of individuals to select.
-    :param fit_attr: The attribute of individuals to use as selection criterion.
-    :returns: A list of selected individuals.
+    Parameters:
+        individuals: A list of individuals to select from.
+        sel_count: The number of individuals to select.
+        fit_attr: The attribute of individuals to use as the selection criterion.
+    Returns:
+        A list of selected individuals.
     """
     key = attrgetter(fit_attr)
     sorted_ = sorted(individuals, key=key, reverse=True)
     sum_fits = sum(getattr(ind, fit_attr).values[0] for ind in individuals)
     chosen = []
-    for i in range(count):
+    for i in range(sel_count):
         u = random.random() * sum_fits
         sum_ = 0
         for ind in sorted_:
@@ -107,7 +115,7 @@ def sel_roulette(individuals: Subscript, count: int,
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_stochastic_universal_sampling(individuals: Subscript, count: int,
+def sel_stochastic_universal_sampling(individuals: Individual, sel_count: int,
                                       fit_attr: str = "fitness") -> list:
     """
     Selects the *k* individuals among the input *individuals*.
@@ -115,18 +123,20 @@ def sel_stochastic_universal_sampling(individuals: Subscript, count: int,
     all the individuals by choosing them at evenly spaced intervals.
     The list returned contains references to the input *individuals*.
 
-    :param individuals: A list of individuals to select from.
-    :param count: The number of individuals to select.
-    :param fit_attr: The attribute of individuals to use as selection criterion.
-    :returns: A list of selected individuals.
+    Parameters:
+        individuals: A list of individuals to select from.
+        sel_count: The number of individuals to select.
+        fit_attr: The attribute of individuals to use as the selection criterion.
+    Returns:
+        A list of selected individuals.
     """
     key = attrgetter(fit_attr)
     sorted_ = sorted(individuals, key=key, reverse=True)
     sum_fits = sum(getattr(ind, fit_attr).values[0] for ind in individuals)
 
-    distance = sum_fits / float(count)
+    distance = sum_fits / float(sel_count)
     start = random.uniform(0, distance)
-    points = [start + i * distance for i in range(count)]
+    points = [start + i * distance for i in range(sel_count)]
 
     chosen = []
     for p in points:

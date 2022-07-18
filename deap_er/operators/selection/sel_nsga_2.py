@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import Subscript
+from deap_er.datatypes import Individual
 from deap_er.utilities.sorting import *
 from .sel_helpers import assign_crowding_dist
 from operator import attrgetter
@@ -34,37 +34,40 @@ __all__ = ['sel_nsga_2']
 
 
 # ====================================================================================== #
-def sel_nsga_2(individuals: Subscript, count: int,
-               nd_algo: str = 'standard') -> list:
+def sel_nsga_2(individuals: Individual, sel_count: int,
+               sorting_algo: str = 'standard') -> list:
     """
     Selects the next generation of individuals using the NSGA-II algorithm.
     Usually, the size of *individuals* should be larger than the *count*
     parameter. If the size of *individuals* is equal to *count*, the
     population will be sorted according to their pareto fronts.
 
-    :param individuals: A list of individuals to select from.
-    :param count: The number of individuals to select.
-    :param nd_algo: The algorithm to use for non-dominated sorting.
-    :returns: A list of selected individuals.
+    Parameters:
+        individuals: A list of individuals to select from.
+        sel_count: The number of individuals to select.
+        sorting_algo: The algorithm to use for non-dominated
+            sorting. Can be either *'log'* or *'standard'*.
+    Returns:
+        A list of selected individuals.
     """
-    if nd_algo == 'standard':
-        pareto_fronts = sort_non_dominated(individuals, count)
-    elif nd_algo == 'log':
-        pareto_fronts = sort_log_non_dominated(individuals, count)
+    if sorting_algo == 'standard':
+        pareto_fronts = sort_non_dominated(individuals, sel_count)
+    elif sorting_algo == 'log':
+        pareto_fronts = sort_log_non_dominated(individuals, sel_count)
     else:
         raise RuntimeError(
             f'selNSGA2: The choice of non-dominated '
-            f'sorting method \'{nd_algo}\' is invalid.'
+            f'sorting method \'{sorting_algo}\' is invalid.'
         )
 
     for front in pareto_fronts:
         assign_crowding_dist(front)
 
     chosen = list(chain(*pareto_fronts[:-1]))
-    count = count - len(chosen)
-    if count > 0:
+    sel_count = sel_count - len(chosen)
+    if sel_count > 0:
         attr = attrgetter("fitness.crowding_dist")
         sorted_front = sorted(pareto_fronts[-1], key=attr, reverse=True)
-        chosen.extend(sorted_front[:count])
+        chosen.extend(sorted_front[:sel_count])
 
     return chosen

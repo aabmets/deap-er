@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import Subscript
+from deap_er.datatypes import Individual
 from deap_er.utilities.sorting import *
 from itertools import chain
 from numpy import ndarray
@@ -35,34 +35,38 @@ __all__ = ['sel_nsga_3', 'SelNSGA3WithMemory']
 
 # ====================================================================================== #
 class SelNSGA3WithMemory:
+    """
+    The NSGA-III selection operator with memory for best, worst and extreme
+    points. Instances of this class can be registered into a Toolbox.
 
-    def __init__(self, ref_points: ndarray, nd_algo: str = "log") -> None:
-        """
-        The NSGA-III selection operator with memory for best,
-        worst and extreme points. Instances of this class
-        can be registered into a Toolbox.
-
-        :param ref_points: Reference points for selection.
-        :param nd_algo: Name of the non-dominated sorting algorithm.
-        """
+    Parameters:
+        ref_points: Reference points for selection.
+        sorting_algo: The algorithm to use for non-dominated
+            sorting. Can be either *'log'* or *'standard'*.
+    """
+    # -------------------------------------------------------- #
+    def __init__(self, ref_points: ndarray, sorting_algo: str = "log"):
         self.ref_points = ref_points
-        self.nd_algo = nd_algo
+        self.sorting_algo = sorting_algo
         self.best_point = numpy.full((1, ref_points.shape[1]), numpy.inf)
         self.worst_point = numpy.full((1, ref_points.shape[1]), -numpy.inf)
         self.extreme_points = None
 
     # -------------------------------------------------------- #
-    def __call__(self, individuals: Subscript, count: int) -> list:
+    def __call__(self, individuals: Individual, sel_count: int) -> list:
         """
         This method is called by the Toolbox to select
         individuals for the next generation.
 
-        :param individuals: A list of individuals to select from.
-        :param count: The number of individuals to select.
-        :returns: A list of selected individuals.
+        Parameters:
+            individuals: A list of individuals to select from.
+            sel_count: The number of individuals to select.
+        Returns:
+            A list of selected individuals.
         """
         chosen = sel_nsga_3(
-            individuals, count, self.ref_points, self.nd_algo,
+            individuals, sel_count,
+            self.ref_points, self.sorting_algo,
             self.best_point, self.worst_point,
             self.extreme_points, self
         )
@@ -70,38 +74,40 @@ class SelNSGA3WithMemory:
 
 
 # ====================================================================================== #
-def sel_nsga_3(individuals: Subscript, count: int,
-               ref_points: ndarray, nd_algo: str = "log",
+def sel_nsga_3(individuals: Individual, sel_count: int,
+               ref_points: ndarray, sorting_algo: str = "log",
                best_point: ndarray = None,
                worst_point: ndarray = None,
                extreme_points: ndarray = None,
-               memory: SelNSGA3WithMemory = None) -> list:
+               _memory: SelNSGA3WithMemory = None) -> list:
     """
     Selects the next generation of individuals using the NSGA-III algorithm.
 
-    :param individuals: A list of individuals to select from.
-    :param count: The number of individuals to select.
-    :param ref_points: The reference points to use for the selection.
-    :param nd_algo: The non-dominated sorting algorithm to use.
-    :param best_point: Best point of the previous generation. If not
-        provided, finds the best point from the current individuals.
-    :param worst_point: Worst point of the previous generation. If not
-        provided, finds the worst point from the current individuals.
-    :param extreme_points: Extreme points of the previous generation. If not
-        provided, finds the extreme points from the current individuals.
-    :param memory: It is used by a SelNSGA3WithMemory instance to store the
-        best, the worst and the extreme points of the selection into itself.
-        Manual usage of this parameter is not recommended.
-    :returns: A tuple of selected individuals and a memory object.
+    Parameters:
+        individuals: A list of individuals to select from.
+        sel_count: The number of individuals to select.
+        ref_points: The reference points to use for the selection.
+        sorting_algo: The non-dominated sorting algorithm to use.
+        best_point: Best point of the previous generation. If not
+            provided, finds the best point from the current individuals.
+        worst_point: Worst point of the previous generation. If not
+            provided, finds the worst point from the current individuals.
+        extreme_points: Extreme points of the previous generation. If not
+            provided, finds the extreme points from the current individuals.
+        _memory: This parameter is used by the SelNSGA3WithMemory object to store
+            the best, the worst and the extreme points of the selection into itself.
+            Manual usage of this parameter is not recommended.
+    Returns:
+        A list of selected individuals.
     """
-    if nd_algo == "standard":
-        pareto_fronts = sort_non_dominated(individuals, count)
-    elif nd_algo == "log":
-        pareto_fronts = sort_log_non_dominated(individuals, count)
+    if sorting_algo == "standard":
+        pareto_fronts = sort_non_dominated(individuals, sel_count)
+    elif sorting_algo == "log":
+        pareto_fronts = sort_log_non_dominated(individuals, sel_count)
     else:
         raise RuntimeError(
             f'selNSGA3: The choice of non-dominated '
-            f'sorting method \'{nd_algo}\' is invalid.'
+            f'sorting method \'{sorting_algo}\' is invalid.'
         )
 
     fitness = numpy.array([ind.fitness.wvalues for f in pareto_fronts for ind in f])
@@ -125,7 +131,7 @@ def sel_nsga_3(individuals: Subscript, count: int,
 
     chosen = list(chain(*pareto_fronts[:-1]))
     sel_count = len(chosen)
-    diff = count - sel_count
+    diff = sel_count - sel_count
     selected = _select_from_niche(
         pareto_fronts[-1], diff,
         niches[sel_count:],
@@ -134,10 +140,10 @@ def sel_nsga_3(individuals: Subscript, count: int,
     )
     chosen.extend(selected)
 
-    if memory and isinstance(memory, SelNSGA3WithMemory):
-        memory.best_point = memory.best_point.reshape((1, -1))
-        memory.worst_point = memory.worst_point.reshape((1, -1))
-        memory.extreme_points = memory.extreme_points
+    if _memory and isinstance(_memory, SelNSGA3WithMemory):
+        _memory.best_point = _memory.best_point.reshape((1, -1))
+        _memory.worst_point = _memory.worst_point.reshape((1, -1))
+        _memory.extreme_points = _memory.extreme_points
     return chosen
 
 
@@ -201,7 +207,7 @@ def _associate_to_niche(fitness: ndarray, reference_points: ndarray,
 
 
 # -------------------------------------------------------------------------------------- #
-def _select_from_niche(individuals: Subscript, count: int,
+def _select_from_niche(individuals: Individual, count: int,
                        niches: ndarray, distances: ndarray,
                        niche_counts: ndarray) -> list:
     selected = []

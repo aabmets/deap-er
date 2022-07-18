@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import Subscript
+from deap_er.datatypes import Individual
 import random
 import math
 
@@ -32,16 +32,18 @@ __all__ = ['sel_spea_2']
 
 
 # ====================================================================================== #
-def sel_spea_2(individuals: Subscript, count: int) -> list:
+def sel_spea_2(individuals: Individual, sel_count: int) -> list:
     """
     Selects the next generation of individuals using the SPEA2 algorithm.
     Usually, the size of *individuals* should be larger than the *count*
     parameter. If the size of *individuals* is equal to *count*, the
     population will be sorted according to their pareto fronts.
 
-    :param individuals: A list of individuals to select from.
-    :param count: The number of individuals to select.
-    :returns: A list of selected individuals.
+    Parameters:
+        individuals: A list of individuals to select from.
+        sel_count: The number of individuals to select.
+    Returns:
+        A list of selected individuals.
     """
     big_l = len(individuals[0].fitness.values)
     big_n = len(individuals)
@@ -64,7 +66,7 @@ def sel_spea_2(individuals: Subscript, count: int) -> list:
             fits[i] += strength_fits[j]
 
     chosen = [i for i in range(big_n) if fits[i] < 1]
-    if len(chosen) < count:
+    if len(chosen) < sel_count:
         for i in range(big_n):
             distances = [0.0] * big_n
             for j in range(i + 1, big_n):
@@ -81,9 +83,9 @@ def sel_spea_2(individuals: Subscript, count: int) -> list:
 
         next_indices = [(fits[i], i) for i in range(big_n) if i not in chosen]
         next_indices.sort()
-        chosen += [i for _, i in next_indices[:count - len(chosen)]]
+        chosen += [i for _, i in next_indices[:sel_count - len(chosen)]]
 
-    elif len(chosen) > count:
+    elif len(chosen) > sel_count:
         big_n = len(chosen)
         distances = [[0.0] * big_n for _ in range(big_n)]
         sorted_indices = [[0] * big_n for _ in range(big_n)]
@@ -109,7 +111,7 @@ def sel_spea_2(individuals: Subscript, count: int) -> list:
 
         size = big_n
         to_remove = []
-        while size > count:
+        while size > sel_count:
             min_pos = 0
             for i in range(1, big_n):
                 for j in range(1, size):
@@ -141,7 +143,7 @@ def sel_spea_2(individuals: Subscript, count: int) -> list:
 
 
 # -------------------------------------------------------------------------------------- #
-def _partition(array: Subscript, begin: int, end: int) -> int:
+def _partition(array: Individual, begin: int, end: int) -> int:
     x = array[begin]
     i = begin - 1
     j = end + 1
@@ -159,14 +161,14 @@ def _partition(array: Subscript, begin: int, end: int) -> int:
 
 
 # -------------------------------------------------------------------------------------- #
-def _randomized_partition(array: Subscript, begin: int, end: int) -> int:
+def _randomized_partition(array: Individual, begin: int, end: int) -> int:
     i = random.randint(begin, end)
     array[begin], array[i] = array[i], array[begin]
     return _partition(array, begin, end)
 
 
 # -------------------------------------------------------------------------------------- #
-def _randomized_select(array: Subscript, begin: int, end: int, i: float) -> int:
+def _randomized_select(array: Individual, begin: int, end: int, i: float) -> int:
     if begin == end:
         return array[begin]
     q = _randomized_partition(array, begin, end)

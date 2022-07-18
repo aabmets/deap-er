@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import Subscript
+from deap_er.datatypes import Individual
 from .sel_various import sel_random
 from operator import attrgetter
 from functools import partial
@@ -34,19 +34,19 @@ __all__ = ['sel_tournament', 'sel_double_tournament', 'sel_tournament_dcd']
 
 
 # ====================================================================================== #
-def sel_tournament(individuals: Subscript, rounds: int,
+def sel_tournament(individuals: Individual, rounds: int,
                    contestants: int, fit_attr: str = "fitness") -> list:
     """
     Selects the best individual among the randomly
     chosen *contestants* for *rounds* times.
 
-    :param individuals: A list of individuals to select from.
-    :param rounds: The number of rounds in the tournament.
-    :param contestants: The number of individuals
-        participating in each fitness tournament.
-    :param fit_attr: The attribute of individuals
-        to use as selection criterion.
-    :returns: A list of selected individuals.
+    Parameters:
+        individuals: A list of individuals to select from.
+        rounds: The number of rounds in the tournament.
+        contestants: The number of individuals participating in each round.
+        fit_attr: The attribute of individuals to use as the selection criterion.
+    Returns:
+        A list of selected individuals.
     """
     chosen = []
     for i in range(rounds):
@@ -56,7 +56,7 @@ def sel_tournament(individuals: Subscript, rounds: int,
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_double_tournament(individuals: Subscript, rounds: int,
+def sel_double_tournament(individuals: Individual, rounds: int,
                           fitness_size: int, parsimony_size: int,
                           fitness_first: bool, fit_attr: str = "fitness") -> list:
     """
@@ -64,18 +64,16 @@ def sel_double_tournament(individuals: Subscript, rounds: int,
     order to discriminate good solutions. It can also be used for
     Genetic Programming as a bloat control technique.
 
-    :param individuals: A list of individuals to select from.
-    :param rounds: The number of rounds in the tournament.
-    :param fitness_size: The number of individuals
-        participating in each fitness tournament.
-    :param parsimony_size: The number of individuals participating
-        in each size tournament. This value has to be
-        a real number in the range of [1,2].
-    :param fitness_first: If set to True, the fitness
-        tournament will be performed first.
-    :param fit_attr: The attribute of individuals
-        to use as selection criterion.
-    :returns: A list of selected individuals.
+    Parameters:
+        individuals: A list of individuals to select from.
+        rounds: The number of rounds in the tournament.
+        fitness_size: The number of individuals participating in each fitness tournament.
+        parsimony_size: The number of individuals participating in each size tournament.
+            This value has to be a real number in the range of [1,2].
+        fitness_first: If set to True, the fitness tournament will be performed first.
+        fit_attr: The attribute of individuals to use as the selection criterion.
+    Returns:
+        A list of selected individuals.
     """
     def _size_tourney(select):
         chosen = []
@@ -108,7 +106,7 @@ def sel_double_tournament(individuals: Subscript, rounds: int,
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_tournament_dcd(individuals: Subscript, count: int) -> list:
+def sel_tournament_dcd(individuals: Individual, sel_count: int) -> list:
     """
     Tournament selection based on the dominance between two individuals,
     if the two individuals do not inter-dominate, then the selection
@@ -118,9 +116,11 @@ def sel_tournament_dcd(individuals: Subscript, count: int) -> list:
     to have the *crowding_dist* attribute, which can be set by the
     *assign_crowding_dist* function.
 
-    :param individuals: A list of individuals to select from.
-    :param count: The number of individuals to select.
-    :returns: A list of selected individuals.
+    Parameters:
+        individuals: A list of individuals to select from.
+        sel_count: The number of individuals to select.
+    Returns:
+        A list of selected individuals.
     """
     def tourney(ind1, ind2):
         if ind1.fitness.dominates(ind2.fitness):
@@ -135,17 +135,17 @@ def sel_tournament_dcd(individuals: Subscript, count: int) -> list:
             return ind1
         return ind2
 
-    if count > len(individuals):
+    if sel_count > len(individuals):
         raise ValueError("count must be less than or equal to individuals length.")
 
-    if count == len(individuals) and count % 4 != 0:
+    if sel_count == len(individuals) and sel_count % 4 != 0:
         raise ValueError("count must be divisible by four if k == len(individuals)")
 
     individuals_1 = random.sample(individuals, len(individuals))
     individuals_2 = random.sample(individuals, len(individuals))
 
     chosen = []
-    for i in range(0, count, 4):
+    for i in range(0, sel_count, 4):
         chosen.append(tourney(individuals_1[i],   individuals_1[i+1]))
         chosen.append(tourney(individuals_1[i+2], individuals_1[i+3]))
         chosen.append(tourney(individuals_2[i],   individuals_2[i+1]))

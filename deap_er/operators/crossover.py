@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import NumOrSeq, Subscript, PairSIS
+from deap_er.datatypes import NumOrSeq, Individual, Mates
 from collections.abc import Sequence
 from itertools import repeat
 import random
@@ -38,7 +38,7 @@ __all__ = [
 
 
 # ====================================================================================== #
-def _slicer(ind1: Subscript, ind2: Subscript,
+def _slicer(ind1: Individual, ind2: Individual,
             start: int, stop: int = None) -> None:
     if stop is None:
         s1 = slice(start, len(ind1))
@@ -54,7 +54,7 @@ def _slicer(ind1: Subscript, ind2: Subscript,
 
 
 # -------------------------------------------------------------------------------------- #
-def _two_point(ind1: Subscript, ind2: Subscript) -> tuple:
+def _two_point(ind1: Individual, ind2: Individual) -> tuple:
     size = min(len(ind1), len(ind2))
     cxp1 = random.randint(1, size)
     cxp2 = random.randint(1, size - 1)
@@ -67,7 +67,7 @@ def _two_point(ind1: Subscript, ind2: Subscript) -> tuple:
 
 
 # -------------------------------------------------------------------------------------- #
-def _match(ind1: Subscript, ind2: Subscript,
+def _match(ind1: Individual, ind2: Individual,
            p1: list, p2: list, i: int) -> None:
     temp1, temp2 = ind1[i], ind2[i]
     ind1[i], ind1[p1[temp2]] = temp2, temp1
@@ -77,15 +77,17 @@ def _match(ind1: Subscript, ind2: Subscript,
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_one_point(ind1: Subscript, ind2: Subscript) -> PairSIS:
+def cx_one_point(ind1: Individual, ind2: Individual) -> Mates:
     """
     Executes a one-point crossover on the two individuals,
     who are modified in place. The resulting individuals
     will have the respective length of the other.
 
-    :param ind1: The first individual.
-    :param ind2: The second individual.
-    :returns: A tuple of two individuals.
+    Parameters:
+        ind1: The first individual.
+        ind2: The second individual.
+    Returns:
+        Two mated individuals.
     """
     size = min(len(ind1), len(ind2))
     cxp = random.randint(1, size - 1)
@@ -94,14 +96,16 @@ def cx_one_point(ind1: Subscript, ind2: Subscript) -> PairSIS:
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_messy_one_point(ind1: Subscript, ind2: Subscript) -> PairSIS:
+def cx_messy_one_point(ind1: Individual, ind2: Individual) -> Mates:
     """
     Executes a messy one point crossover on the two
     individuals, who are modified in place.
 
-    :param ind1: The first individual.
-    :param ind2: The second individual.
-    :returns: A tuple of two individuals.
+    Parameters:
+        ind1: The first individual.
+        ind2: The second individual.
+    Returns:
+        Two mated individuals.
     """
     cxp1 = random.randint(0, len(ind1))
     cxp2 = random.randint(0, len(ind2))
@@ -110,29 +114,33 @@ def cx_messy_one_point(ind1: Subscript, ind2: Subscript) -> PairSIS:
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_two_point(ind1: Subscript, ind2: Subscript) -> PairSIS:
+def cx_two_point(ind1: Individual, ind2: Individual) -> Mates:
     """
     Executes a two-point crossover on the two individuals,
     who are modified in place. The resulting individuals
     both keep their original length.
 
-    :param ind1: The first individual.
-    :param ind2: The second individual.
-    :returns: A tuple of two individuals.
+    Parameters:
+        ind1: The first individual.
+        ind2: The second individual.
+    Returns:
+        Two mated individuals.
     """
     _two_point(ind1, ind2)
     return ind1, ind2
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_es_two_point(ind1: Subscript, ind2: Subscript) -> PairSIS:
+def cx_es_two_point(ind1: Individual, ind2: Individual) -> Mates:
     """
     Executes a two point crossover on the
     individuals and their strategies.
 
-    :param ind1: The first individual.
-    :param ind2: The second individual.
-    :returns: A tuple of two individuals.
+    Parameters:
+        ind1: The first individual.
+        ind2: The second individual.
+    Returns:
+        Two mated individuals.
     """
     cxp1, cxp2 = _two_point(ind1, ind2)
     _slicer(
@@ -144,14 +152,16 @@ def cx_es_two_point(ind1: Subscript, ind2: Subscript) -> PairSIS:
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_partially_matched(ind1: Subscript, ind2: Subscript) -> PairSIS:
+def cx_partially_matched(ind1: Individual, ind2: Individual) -> Mates:
     """
     Executes a partially matched crossover on the
     two individuals, who are modified in place.
 
-    :param ind1: The first individual.
-    :param ind2: The second individual.
-    :returns: A tuple of two individuals.
+    Parameters:
+        ind1: The first individual.
+        ind2: The second individual.
+    Returns:
+        Two mated individuals.
     """
     size = min(len(ind1), len(ind2))
     p1, p2 = [0] * size, [0] * size
@@ -175,16 +185,18 @@ def cx_partially_matched(ind1: Subscript, ind2: Subscript) -> PairSIS:
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_uniform_partially_matched(ind1: Subscript, ind2: Subscript,
-                                 cx_prob: float) -> PairSIS:
+def cx_uniform_partially_matched(ind1: Individual, ind2: Individual,
+                                 cx_prob: float) -> Mates:
     """
-    Executes a uniform partially matched crossover on the
-    two individuals, who are modified in place.
+    Executes a uniform partially matched crossover on
+    the two individuals, who are modified in place.
 
-    :param ind1: The first individual.
-    :param ind2: The second individual.
-    :param cx_prob: The probability of swapping any two traits.
-    :returns: A tuple of two individuals.
+    Parameters:
+        ind1: The first individual.
+        ind2: The second individual.
+        cx_prob: The probability of swapping any two traits.
+    Returns:
+        Two mated individuals.
     """
     size = min(len(ind1), len(ind2))
     p1, p2 = [0] * size, [0] * size
@@ -201,17 +213,19 @@ def cx_uniform_partially_matched(ind1: Subscript, ind2: Subscript,
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_blend(ind1: Subscript, ind2: Subscript, alpha: float) -> PairSIS:
+def cx_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
     """
     Executes a blend crossover on the two
     individuals, who are modified in place.
 
-    :param ind1: The first individual.
-    :param ind2: The second individual.
-    :param alpha: Extent of the interval in which
-        the new values can be drawn for each attribute
-        on both side of the parents' attributes.
-    :returns: A tuple of two individuals.
+    Parameters:
+        ind1: The first individual.
+        ind2: The second individual.
+        alpha: Extent of the interval in which the new
+            values can be drawn for each attribute on
+            both sides of the parents' attributes.
+    Returns:
+        Two mated individuals.
     """
     for i, (x1, x2) in enumerate(zip(ind1, ind2)):
         gamma = (1. + 2. * alpha) * random.random() - alpha
@@ -222,17 +236,19 @@ def cx_blend(ind1: Subscript, ind2: Subscript, alpha: float) -> PairSIS:
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_es_blend(ind1: Subscript, ind2: Subscript, alpha: float) -> PairSIS:
+def cx_es_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
     """
     Executes a blend crossover on the
     individuals and their strategies.
 
-    :param ind1: The first individual.
-    :param ind2: The second individual.
-    :param alpha: Extent of the interval in which
-        the new values can be drawn for each attribute
-        on both side of the parents' attributes.
-    :returns: A tuple of two individuals.
+    Parameters:
+        ind1: The first individual.
+        ind2: The second individual.
+        alpha: Extent of the interval in which the new
+            values can be drawn for each attribute on
+            both sides of the parents' attributes.
+    Returns:
+        Two mated individuals.
     """
     zipper = zip(ind1, ind1.strategy, ind2, ind2.strategy)
     for i, (x1, s1, x2, s2) in enumerate(zipper):
@@ -249,18 +265,20 @@ def cx_es_blend(ind1: Subscript, ind2: Subscript, alpha: float) -> PairSIS:
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_simulated_binary(ind1: Subscript, ind2: Subscript, eta: float) -> PairSIS:
+def cx_simulated_binary(ind1: Individual, ind2: Individual, eta: float) -> Mates:
     """
     Executes a simulated binary crossover on the two
     individuals, who are modified in place.
 
-    :param ind1: The first individual.
-    :param ind2: The second individual.
-    :param eta: Crowding degree of the crossover.
-        Higher eta will produce children more similar
-        to their parents, while a smaller eta will produce
-        children more divergent from their parents.
-    :returns: A tuple of two individuals.
+    Parameters:
+        ind1: The first individual.
+        ind2: The second individual.
+        eta: Crowding degree of the crossover. Higher eta will
+            produce children more similar to their parents,
+            while a smaller eta will produce children
+            more divergent from their parents.
+    Returns:
+        Two mated individuals.
     """
     for i, (x1, x2) in enumerate(zip(ind1, ind2)):
         rand = random.random()
@@ -278,23 +296,25 @@ def cx_simulated_binary(ind1: Subscript, ind2: Subscript, eta: float) -> PairSIS
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_simulated_binary_bounded(ind1: Subscript, ind2: Subscript,
-                                eta: float, low: NumOrSeq, up: NumOrSeq) -> PairSIS:
+def cx_simulated_binary_bounded(ind1: Individual, ind2: Individual, eta: float,
+                                low: NumOrSeq, up: NumOrSeq) -> Mates:
     """
     Executes a simulated binary crossover on the two
     individuals, who are modified in place.
 
-    :param ind1: The first individual.
-    :param ind2: The second individual.
-    :param eta: Crowding degree of the crossover.
-        Higher eta will produce children more similar
-        to their parents, while a smaller eta will produce
-        children more divergent from their parents.
-    :param low: Either a value or a sequence of values that
-        is the lower bound of the search space.
-    :param up: Either a value or a sequence of values that
-        is the upper bound of the search space.
-    :returns: A tuple of two individuals.
+    Parameters:
+        ind1: The first individual.
+        ind2: The second individual.
+        eta: Crowding degree of the crossover. Higher eta will
+            produce children more similar to their parents,
+            while a smaller eta will produce children
+            more divergent from their parents.
+        low: Either a number or a sequence of numbers that
+            is the lower bound of the search space.
+        up: Either a number or a sequence of numbers that
+            is the upper bound of the search space.
+    Returns:
+        Two mated individuals.
     """
     def check_bounds(name: str, var: NumOrSeq) -> Sequence:
         if not isinstance(var, Sequence):
@@ -344,16 +364,18 @@ def cx_simulated_binary_bounded(ind1: Subscript, ind2: Subscript,
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_uniform(ind1: Subscript, ind2: Subscript, cx_prob: float) -> PairSIS:
+def cx_uniform(ind1: Individual, ind2: Individual, cx_prob: float) -> Mates:
     """
     Executes a uniform crossover on the two individuals,
     who are modified in place. The traits are swapped
     according to the *cx_prob* probability.
 
-    :param ind1: The first individual.
-    :param ind2: The second individual.
-    :param cx_prob: The probability of swapping any two traits.
-    :returns: A tuple of two individuals.
+    Parameters:
+        ind1: The first individual.
+        ind2: The second individual.
+        cx_prob: The probability of swapping any two traits.
+    Returns:
+        Two mated individuals.
     """
     size = min(len(ind1), len(ind2))
     for i in range(size):
@@ -363,14 +385,16 @@ def cx_uniform(ind1: Subscript, ind2: Subscript, cx_prob: float) -> PairSIS:
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_ordered(ind1: Subscript, ind2: Subscript) -> PairSIS:
+def cx_ordered(ind1: Individual, ind2: Individual) -> Mates:
     """
     Executes an ordered crossover on the two
     individuals, who are modified in place.
 
-    :param ind1: The first individual.
-    :param ind2: The second individual.
-    :returns: A tuple of two individuals.
+    Parameters:
+        ind1: The first individual.
+        ind2: The second individual.
+    Returns:
+        Two mated individuals.
     """
     size = min(len(ind1), len(ind2))
     a, b = random.sample(list(range(size)), 2)

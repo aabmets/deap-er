@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import Subscript
+from deap_er.datatypes import Individual
 import numpy
 
 
@@ -31,15 +31,17 @@ __all__ = ['assign_crowding_dist', 'uniform_reference_points']
 
 
 # ====================================================================================== #
-def assign_crowding_dist(individuals: Subscript) -> None:
+def assign_crowding_dist(individuals: Individual) -> None:
     """
     Assigns a crowding distance to each individual's fitness.
     The crowding distance can be retrieved via the *crowding_dist*
     attribute of each individual's fitness. The individuals
     are modified in-place.
 
-    :param individuals: A list of individuals with Fitness attributes.
-    :returns: None
+    Parameters:
+        individuals: A list of individuals with Fitness attributes.
+    Returns:
+        None
     """
 
     if len(individuals) == 0:
@@ -64,20 +66,22 @@ def assign_crowding_dist(individuals: Subscript) -> None:
 
 
 # -------------------------------------------------------------------------------------- #
-def uniform_reference_points(n_obj: int, p: int = 4,
+def uniform_reference_points(n_obj: int, ppo: int = 4,
                              scaling: float = None) -> numpy.ndarray:
     """
     Generates reference points uniformly on the hyperplane
     intersecting each axis at 1. The scaling factor is used
     to combine multiple layers of reference points.
 
-    :param n_obj: Number of objectives.
-    :param p: Number of reference points per objective.
-    :param scaling: Scaling factor.
-    :returns: An ndarray of reference points.
+    Parameters:
+        n_obj: Number of objectives.
+        ppo: Number of reference points per objective.
+        scaling: Scaling factor.
+    Returns:
+        An ndarray of reference points.
     """
     ref = numpy.zeros(n_obj)
-    result = _gen_refs(ref, n_obj, p, p, 0)
+    result = _gen_refs(ref, n_obj, ppo, ppo, 0)
     ref_points = numpy.array(result)
 
     if scaling is not None:

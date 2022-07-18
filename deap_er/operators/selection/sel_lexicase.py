@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import Subscript
+from deap_er.datatypes import Individual
 import numpy as np
 import random
 
@@ -32,14 +32,16 @@ __all__ = ['sel_lexicase', 'sel_epsilon_lexicase']
 
 
 # ====================================================================================== #
-def sel_lexicase(individuals: Subscript, count) -> list:
+def sel_lexicase(individuals: Individual, count) -> list:
     """
     Returns an individual that does the best on the fitness
     cases when considered one at a time in random order.
 
-    :param individuals: A list of individuals to select from.
-    :param count: The number of individuals to select.
-    :returns: A list of selected individuals.
+    Parameters:
+        individuals: A list of individuals to select from.
+        count: The number of individuals to select.
+    Returns:
+        A list of selected individuals.
     """
     selected = []
     for i in range(count):
@@ -61,18 +63,20 @@ def sel_lexicase(individuals: Subscript, count) -> list:
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_epsilon_lexicase(individuals: Subscript, count: int,
+def sel_epsilon_lexicase(individuals: Individual, count: int,
                          epsilon: float = None) -> list:
     """
     Returns an individual that does the best on the fitness cases
     when considered one at a time in random order.
 
-    :param individuals: A list of individuals to select from.
-    :param count: The number of individuals to select.
-    :param epsilon: The epsilon parameter, optional.
-        If not provided, the epsilon parameter is automatically
-        calculated from the median of fitness values.
-    :returns: A list of selected individuals.
+    Parameters:
+        individuals: A list of individuals to select from.
+        count: The number of individuals to select.
+        epsilon: The epsilon parameter, optional. If not provided,
+            the epsilon parameter is automatically calculated
+            from the median of fitness values.
+    Returns:
+        A list of selected individuals.
     """
     selected = []
     for i in range(count):
