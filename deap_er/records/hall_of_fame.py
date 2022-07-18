@@ -37,12 +37,12 @@ class _BaseClass:
     """
     Private base class for the HallOfFame and ParetoFront classes.
     """
-
+    # -------------------------------------------------------- #
     def __init__(self):
         self.keys = list()
         self.items = list()
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def insert(self, individual) -> None:
         """
         Insert a new individual into the hall of fame. The inserted individual
@@ -59,7 +59,7 @@ class _BaseClass:
         self.items.insert(len(self) - i, individual)
         self.keys.insert(i, individual.fitness)
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def remove(self, index) -> None:
         """
         Removes the individual at the specified index from the hall of fame.
@@ -70,7 +70,7 @@ class _BaseClass:
         del self.keys[len(self) - (index % len(self) + 1)]
         del self.items[index]
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def clear(self) -> None:
         """
         Clears the hall of fame.
@@ -80,7 +80,7 @@ class _BaseClass:
         del self.items[:]
         del self.keys[:]
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def __len__(self):
         return len(self.items)
 
@@ -99,23 +99,24 @@ class _BaseClass:
 
 # ====================================================================================== #
 class HallOfFame(_BaseClass):
+    """
+    The hall of fame contains the best individual that ever lived in the
+    population during the evolution. It is lexicographically sorted at all
+    time so that the first element of the hall of fame is the individual that
+    has the best first fitness value ever seen, according to the weights
+    provided to the fitness at creation time.
 
+    :param maxsize: The maximum number of individuals to store in the hall of fame.
+    :param similar: A function to compare two individuals, optional.
+    """
+    # -------------------------------------------------------- #
     def __init__(self, maxsize: int, similar: Callable = eq):
-        """
-        The hall of fame contains the best individual that ever lived in the
-        population during the evolution. It is lexicographically sorted at all
-        time so that the first element of the hall of fame is the individual that
-        has the best first fitness value ever seen, according to the weights
-        provided to the fitness at creation time.
 
-        :param maxsize: The maximum number of individuals to store in the hall of fame.
-        :param similar: A function to compare two individuals, optional.
-        """
         self.maxsize = maxsize
         self.similar = similar
         super().__init__()
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def update(self, population) -> None:
         """
         Updates the hall of fame with the *population* by replacing the
@@ -141,19 +142,20 @@ class HallOfFame(_BaseClass):
 
 # ====================================================================================== #
 class ParetoFront(_BaseClass):
+    """
+    The Pareto front hall of fame contains all the non-dominated individuals
+    that ever lived in the population. That means that the Pareto front hall
+    of fame can contain an infinity of different individuals.
 
+    :param similar: A function to compare two individuals, optional.
+    """
+    # -------------------------------------------------------- #
     def __init__(self, similar: Callable = eq):
-        """
-        The Pareto front hall of fame contains all the non-dominated individuals
-        that ever lived in the population. That means that the Pareto front hall
-        of fame can contain an infinity of different individuals.
 
-        :param similar: A function to compare two individuals, optional.
-        """
         self.similar = similar
         super().__init__()
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def update(self, population) -> None:
         """
         Updates the Pareto front hall of fame with the *population* by adding

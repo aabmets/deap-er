@@ -119,7 +119,7 @@ def _splitter(seq: Sequence, obj: int, median: float) -> tuple:
     return seq_1, seq_2, seq_3, seq_4
 
 
-# ====================================================================================== #
+# -------------------------------------------------------------------------------------- #
 def _sorting_helper_1(fitness: Sequence, obj: int, front: dict) -> None:
     if len(fitness) < 2:
         return
@@ -170,7 +170,7 @@ def _sweep_a(fitness: Sequence, front: dict) -> None:
         f_stairs.insert(idx, fit)
 
 
-# ====================================================================================== #
+# -------------------------------------------------------------------------------------- #
 def _sorting_helper_2(best: Sequence, worst: Sequence, obj: int, front: dict) -> None:
     key = itemgetter(obj)
     if len(worst) == 0 or len(best) == 0:

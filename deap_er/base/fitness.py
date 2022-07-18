@@ -44,7 +44,7 @@ class Fitness:
     :type values: Optional[SeqOfNum]
     """
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     weights: tuple = tuple()
     """
     The weights are used to compare the fitness of different individuals. They are 
@@ -54,7 +54,7 @@ class Fitness:
     and a positive weight to the maximization of the associated objective.
     """
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     wvalues: tuple = tuple()
     """
     Contains the weighted values of the fitness. These are obtained by
@@ -63,7 +63,7 @@ class Fitness:
     by the Fitness comparison operators.
     """
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def __init__(self, values: SeqOfNum = None) -> None:
         if not self.weights:
             raise TypeError(
@@ -73,7 +73,7 @@ class Fitness:
         if values:
             self.values = values
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     @property
     def values(self) -> tuple[float]:
         """
@@ -100,7 +100,7 @@ class Fitness:
     def values(self) -> None:
         self.wvalues = tuple()
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def dominates(self, other: Fitness, slc: slice = None) -> bool:
         """
         Returns true if each objective of *self* is not worse than the corresponding
@@ -119,7 +119,7 @@ class Fitness:
             return False
         return True
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def is_valid(self) -> bool:
         """
         A Fitness instance is valid when the Fitness class attribute
@@ -132,7 +132,7 @@ class Fitness:
         b = len(self.wvalues)
         return a == b and a > 0
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def __hash__(self):
         return hash(self.wvalues)
 
@@ -154,6 +154,7 @@ class Fitness:
     def __ne__(self, other: Fitness) -> bool:
         return self.wvalues != other.wvalues
 
+    # -------------------------------------------------------- #
     def __str__(self):
         return str(self.values)
 
@@ -164,6 +165,7 @@ class Fitness:
             str(self.values)
         )
 
+    # -------------------------------------------------------- #
     def __deepcopy__(self, memo):
         copy = self.__class__()
         copy.wvalues = self.wvalues

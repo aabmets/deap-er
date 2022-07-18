@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from typing import Callable, Tuple
+from typing import Callable
 from functools import partial
 from copy import deepcopy
 
@@ -57,7 +57,7 @@ class Toolbox(LintHints):
         self.register("clone", deepcopy)
         self.register("map", map)
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def register(self, alias: str, func: Callable, *args, **kwargs) -> None:
         """
         Registers a *func* in the toolbox under the name *alias*.
@@ -84,7 +84,7 @@ class Toolbox(LintHints):
             p_func.__dict__.update(func.__dict__.copy())
         setattr(self, alias, p_func)
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def unregister(self, alias: str) -> None:
         """
         Removes an operator with the name *alias* from the toolbox.
@@ -94,7 +94,7 @@ class Toolbox(LintHints):
         """
         delattr(self, alias)
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def decorate(self, alias: str, *decorators: Callable) -> None:
         """
         Decorates an operator *alias* with the provided *decorators*.

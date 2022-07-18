@@ -49,6 +49,7 @@ class DeltaPenalty:
         between the individual and a given valid point.
     :returns: A decorator for the fitness function.
     """
+    # -------------------------------------------------------- #
     def __init__(self, feasibility: Callable,
                  delta: NumOrSeq, distance: Callable = None):
         self.fea_func = feasibility
@@ -58,7 +59,7 @@ class DeltaPenalty:
             self.delta = delta
         self.dist_fct = distance
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def __call__(self, func):
         @wraps(func)
         def wrapper(individual, *args, **kwargs):
@@ -98,14 +99,14 @@ class ClosestValidPenalty:
         between the individual and a given valid point.
     :returns: A decorator for the fitness function.
     """
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def __init__(self, feasibility, feasible, alpha, distance=None):
         self.fea_func = feasibility
         self.fbl_fct = feasible
         self.alpha = alpha
         self.dist_fct = distance
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def __call__(self, func):
         @wraps(func)
         def wrapper(individual, *args, **kwargs):

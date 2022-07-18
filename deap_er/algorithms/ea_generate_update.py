@@ -30,7 +30,7 @@ from deap_er.base.toolbox import Toolbox
 __all__ = ['ea_generate_update']
 
 
-# -------------------------------------------------------------------------------------- #
+# ====================================================================================== #
 def ea_generate_update(toolbox: Toolbox,
                        n_gen: int,
                        hof: HallOfFame = None,

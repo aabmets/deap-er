@@ -41,7 +41,7 @@ class StrategyOnePlusLambda:
     :param sigma: The initial standard deviation of the distribution.
     :param kwargs: One or more optional keyword arguments.
     """
-
+    # -------------------------------------------------------- #
     def __init__(self, parent, sigma, **kwargs):
         self.parent = parent
         self.sigma = sigma
@@ -62,7 +62,7 @@ class StrategyOnePlusLambda:
 
         self.compute_params(**kwargs)
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def compute_params(self, **kwargs) -> None:
         """
         Computes the parameters of the strategy based on the *lambda* parameter.
@@ -92,7 +92,7 @@ class StrategyOnePlusLambda:
 
         self.psucc = self.pt_arg
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def generate(self, ind_init) -> list:
         """
         Generate a population of 'lambda' individuals of
@@ -106,7 +106,7 @@ class StrategyOnePlusLambda:
         arz = self.parent + self.sigma * numpy.dot(arz, self.A.T)
         return list(map(ind_init, arz))
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def update(self, population) -> None:
         """
         Updates the current covariance matrix strategy from the *population*.

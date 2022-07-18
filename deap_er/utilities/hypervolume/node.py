@@ -38,7 +38,7 @@ class Node:
         self.area = [0.0] * dimensions
         self.volume = [0.0] * dimensions
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def compare(self, other: Node, op: Callable) -> bool:
         if self.cargo and other.cargo:
             zipper = zip(self.cargo, other.cargo)
@@ -46,7 +46,7 @@ class Node:
             return all(true)
         return False
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def __gt__(self, other: Node) -> bool:
         return self.compare(other, gt)
 
@@ -65,10 +65,10 @@ class Node:
     def __ne__(self, other: Node) -> bool:
         return self.compare(other, ne)
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def __str__(self) -> str:
         return str(self.cargo)
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def __hash__(self) -> int:
         return hash(self.cargo)

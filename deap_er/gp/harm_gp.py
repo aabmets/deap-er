@@ -66,20 +66,21 @@ def harm(toolbox: Toolbox, population: Sequence,
     :param verbose: Whether to print debug messages, optional.
     :returns: A tuple of the final population and the Logbook
     """
-    # -------------------------------------------------------------------------------------- #
+
+    # -------------------------------------------------------- #
     def _harm_target_func(x: int) -> float:
         half_life = x * float(alpha) + beta
         hl_1 = gamma * len(population) * math.log(2) / half_life
         hl_2 = math.exp(-math.log(2) * (x - cutoff_size) / half_life)
         return hl_1 * hl_2
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def _harm_accept_func(s: int) -> bool:
         prob_hist = [t / n if n > 0 else t for n, t in zip(natural_hist, target_hist)]
         prob = prob_hist[s] if s < len(prob_hist) else _harm_target_func(s)
         return random.random() <= prob
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def _harm_gen_pop(n: int, pick_from: list = None,
                       accept_func: Callable = lambda s: True) -> tuple:
 
@@ -120,7 +121,7 @@ def harm(toolbox: Toolbox, population: Sequence,
 
         return produced_pop, produced_pop_sizes
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     logbook = Logbook()
     logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
 

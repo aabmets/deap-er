@@ -31,8 +31,11 @@ import abc
 import re
 
 
-__all__ = ['Terminal', 'Ephemeral', 'Primitive', 'PrimitiveTree',
-           'PrimitiveSet', 'PrimitiveSetTyped']
+__all__ = [
+    'Terminal', 'Ephemeral',
+    'Primitive', 'PrimitiveTree',
+    'PrimitiveSet', 'PrimitiveSetTyped'
+]
 
 
 # ====================================================================================== #
@@ -41,25 +44,25 @@ class Terminal:
     Class that encapsulates terminal primitive in expression.
     Terminals can be values or 0-arity functions.
     """
-
     __slots__ = ('name', 'value', 'ret', 'conv_fct')
 
+    # -------------------------------------------------------- #
     def __init__(self, terminal, symbolic, ret):
         self.ret = ret
         self.value = terminal
         self.name = str(terminal)
         self.conv_fct = str if symbolic else repr
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     @property
     def arity(self):
         return 0
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def format(self):
         return self.conv_fct(self.value)
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def __eq__(self, other):
         if type(self) is type(other):
             return all(getattr(self, slot) == getattr(other, slot)
@@ -75,11 +78,11 @@ class Ephemeral(Terminal):
     when the object is created. This is an abstract base class.
     When subclassing, a staticmethod named 'func' must be defined.
     """
-
+    # -------------------------------------------------------- #
     def __init__(self):
         Terminal.__init__(self, self.func(), symbolic=False, ret=self.ret)
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     @staticmethod
     @abc.abstractmethod
     def func():
@@ -92,9 +95,9 @@ class Primitive:
     Class that encapsulates a primitive and when called with arguments it
     returns the Python code to call the primitive with the arguments.
     """
-
     __slots__ = ('name', 'arity', 'args', 'ret', 'seq')
 
+    # -------------------------------------------------------- #
     def __init__(self, name, args, ret):
         self.name = name
         self.arity = len(args)
@@ -103,11 +106,11 @@ class Primitive:
         args = ", ".join(map("{{{0}}}".format, list(range(self.arity))))
         self.seq = "{name}({args})".format(name=self.name, args=args)
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def format(self, *args):
         return self.seq.format(*args)
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def __eq__(self, other):
         if type(self) is type(other):
             return all(getattr(self, slot) == getattr(other, slot)
@@ -122,7 +125,7 @@ class PrimitiveSetTyped:
     Class that contains the primitives which can be
     used to solve a Strongly Typed GP problem.
     """
-
+    # -------------------------------------------------------- #
     def __init__(self, name, in_types, ret_type, prefix="ARG") -> None:
         self.name = name
         self.ins = in_types
@@ -143,7 +146,7 @@ class PrimitiveSetTyped:
             self._add(term)
             self.terms_count += 1
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def _add(self, prim: Union[Primitive, Terminal, Type[Ephemeral]]) -> None:
         def add_type(_dict, ret_type):
             if ret_type not in _dict:
@@ -171,7 +174,7 @@ class PrimitiveSetTyped:
             if issubclass(prim.ret, type_):
                 dict_[type_].append(prim)
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def add_primitive(self, primitive, in_types, ret_type, name=None) -> None:
         """
         Adds a primitive to the set.
@@ -198,7 +201,7 @@ class PrimitiveSetTyped:
         self.context[prim.name] = primitive
         self.prims_count += 1
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def add_terminal(self, terminal, ret_type, name=None):
         """
         Adds a terminal to the set.
@@ -231,7 +234,7 @@ class PrimitiveSetTyped:
         self._add(prim)
         self.terms_count += 1
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def add_ephemeral_constant(self, ephemeral, ret_type, name) -> None:
         """
         Adds an ephemeral constant to the set.
@@ -241,10 +244,6 @@ class PrimitiveSetTyped:
         :param name: Name of this ephemeral type.
         :returns: None
         """
-        err_msg_1 = 'Ephemera with different functions should be named differently even between psets.'
-        err_msg_2 = 'Ephemera with the same name and function should have the same type even between psets.'
-        err_msg_3 = 'Ephemera should be named differently than classes defined in the gp module.'
-
         module_gp = globals()
         if name not in module_gp:
             attrs = {'func': staticmethod(ephemeral), 'ret': ret_type}
@@ -254,16 +253,25 @@ class PrimitiveSetTyped:
             class_ = module_gp[name]
             if issubclass(class_, Ephemeral):
                 if class_.func is not ephemeral:
-                    raise TypeError(err_msg_1)
+                    raise TypeError(
+                        'Ephemera with different functions should be '
+                        'named differently even between psets.'
+                    )
                 elif class_.ret is not ret_type:
-                    raise TypeError(err_msg_2)
+                    raise TypeError(
+                        'Ephemera with the same name and function should '
+                        'have the same type even between psets.'
+                    )
             else:
-                raise TypeError(err_msg_3)
+                raise TypeError(
+                    'Ephemera should be named differently '
+                    'than classes defined in the gp module.'
+                )
 
         self._add(class_)
         self.terms_count += 1
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def add_adf(self, adf_set) -> None:
         """
         Adds an Automatically Defined Function (ADF) to the set.
@@ -280,7 +288,7 @@ class PrimitiveSetTyped:
         self._add(prim)
         self.prims_count += 1
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def rename_arguments(self, **kwargs) -> None:
         """
         Renames the arguments in self with new names from *kwargs*.
@@ -296,7 +304,7 @@ class PrimitiveSetTyped:
                 self.mapping[new_name].value = new_name
                 del self.mapping[old_name]
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     @property
     def terminal_ratio(self):
         """
@@ -311,23 +319,23 @@ class PrimitiveSet(PrimitiveSetTyped):
     """
     Subclass of *PrimitiveSetTyped* without the type definition.
     """
-
+    # -------------------------------------------------------- #
     def __init__(self, name, arity, prefix="ARG"):
         args = [object] * arity
         super().__init__(name, args, object, prefix)
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def add_primitive(self, primitive, arity: int, name=None, *_, **__) -> None:
         if not arity >= 1:
             raise ValueError('arity should be >= 1')
         args = [object] * arity
         super().add_primitive(primitive, args, object, name)
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def add_terminal(self, terminal, name=None, *_, **__) -> None:
         super().add_terminal(terminal, object, name)
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def add_ephemeral_constant(self, ephemeral, name, *_, **__) -> None:
         super().add_ephemeral_constant(ephemeral, object, name)
 
@@ -341,35 +349,40 @@ class PrimitiveTree(list):
     primitives and terminals. The nodes appended to the tree are required to have
     the *arity* attribute, which defines the arity of the primitive.
     """
-
-    err_msg_1 = "Trying to set a slice larger than the size of the PrimitiveTree is not allowed."
-    err_msg_2 = "Insertion of a subtree with an arity smaller than the PrimitiveTree is not allowed."
-    err_msg_3 = "PrimitiveTree node replacement with a node of a different arity is not allowed."
-
+    # -------------------------------------------------------- #
     def __init__(self, content):
         super().__init__(content)
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def __deepcopy__(self, memo):
         new = self.__class__(self)
         new.__dict__.update(copy.deepcopy(self.__dict__, memo))
         return new
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def __setitem__(self, key, val):
         if isinstance(key, slice):
             if key.start >= len(self):
-                raise IndexError(self.err_msg_1)
+                raise IndexError(
+                    "Trying to set a slice larger than the size "
+                    "of the PrimitiveTree is not allowed."
+                )
             total = val[0].arity
             for node in val[1:]:
                 total += node.arity - 1
             if total != 0:
-                raise ValueError(self.err_msg_2)
+                raise ValueError(
+                    "Insertion of a subtree with an arity smaller "
+                    "than the PrimitiveTree is not allowed."
+                )
         elif val.arity != self[key].arity:
-            raise ValueError(self.err_msg_3)
+            raise ValueError(
+                "PrimitiveTree node replacement with a node "
+                "of a different arity is not allowed."
+            )
         list.__setitem__(self, key, val)
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def __str__(self):
         string = str()
         stack = list()
@@ -383,7 +396,7 @@ class PrimitiveTree(list):
                 stack[-1][1].append(string)
         return string
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     @classmethod
     def from_string(cls, string: str, p_set: PrimitiveSetTyped) -> PrimitiveTree:
         """
@@ -430,7 +443,7 @@ class PrimitiveTree(list):
                 expr.append(Terminal(token, False, ret_type))
         return cls(expr)
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     @property
     def height(self):
         """
@@ -444,6 +457,7 @@ class PrimitiveTree(list):
             stack.extend([depth + 1] * elem.arity)
         return max_depth
 
+    # -------------------------------------------------------- #
     @property
     def root(self):
         """
@@ -451,7 +465,7 @@ class PrimitiveTree(list):
         """
         return self[0]
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def search_subtree(self, begin: int) -> slice:
         """
         Returns a slice object that corresponds to the

@@ -34,14 +34,14 @@ class MultiList:
     It consists of several doubly linked lists that share common nodes.
     Every node has multiple predecessors and successors, one in every list.
     """
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def __init__(self, dimensions: int) -> None:
         self.dimensions = dimensions
         self.sentinel = Node(dimensions)
         self.sentinel.next = [self.sentinel] * dimensions
         self.sentinel.prev = [self.sentinel] * dimensions
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def __str__(self) -> str:
         strings = list()
         for i in range(self.dimensions):
@@ -56,11 +56,11 @@ class MultiList:
             _repr += string + "\n"
         return _repr
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def __len__(self):
         return self.dimensions
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def get_length(self, index: int) -> int:
         length = 0
         node = self.sentinel.next[index]
@@ -69,7 +69,7 @@ class MultiList:
             length += 1
         return length
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def append(self, node: Node, index: int) -> None:
         penultimate = self.sentinel.prev[index]
         node.next[index] = self.sentinel
@@ -77,7 +77,7 @@ class MultiList:
         self.sentinel.prev[index] = node
         penultimate.next[index] = node
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def extend(self, nodes: Iterable[Node], index: int) -> None:
         for node in nodes:
             penultimate = self.sentinel.prev[index]
@@ -86,7 +86,7 @@ class MultiList:
             self.sentinel.prev[index] = node
             penultimate.next[index] = node
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     @staticmethod
     def remove(node: Node, index: int, bounds: MutableSequence) -> Node:
         for i in range(index):
@@ -98,7 +98,7 @@ class MultiList:
                 bounds[i] = node.cargo[i]
         return node
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     @staticmethod
     def reinsert(node: Node, index: int, bounds: MutableSequence) -> None:
         for i in range(index):

@@ -39,7 +39,7 @@ class Strategy:
     :param sigma: The initial standard deviation of the distribution.
     :param kwargs: One or more optional keyword arguments.
     """
-
+    # -------------------------------------------------------- #
     def __init__(self, centroid, sigma, **kwargs) -> None:
         self.update_count = 0
         self.centroid = numpy.array(centroid)
@@ -69,7 +69,7 @@ class Strategy:
 
         self.compute_params(kwargs)
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def compute_params(self, kwargs: dict) -> None:
         """
         Computes the parameters of the strategy based on the *lambda* parameter.
@@ -129,7 +129,7 @@ class Strategy:
         self.BD = self.B * self.diagD
         self.cond = self.diagD[indx[-1]] / self.diagD[indx[0]]
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def generate(self, ind_init) -> list:
         """
         Generate a population of 'lambda' individuals of
@@ -143,7 +143,7 @@ class Strategy:
         arz = self.centroid + self.sigma * numpy.dot(arz, self.BD.T)
         return list(map(ind_init, arz))
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def update(self, population) -> None:
         """
         Updates the current covariance matrix strategy from the *population*.

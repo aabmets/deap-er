@@ -43,13 +43,13 @@ class Statistics:
     supports it. For example, statistics can be computed directly on
     multi-objective fitness when using numpy statistical function.
     """
-
+    # -------------------------------------------------------- #
     def __init__(self, key: Callable = None):
         self.key = key if key else lambda obj: obj
         self.functions = dict()
         self.fields = list()
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def register(self, name: str, func: Callable, *args, **kwargs) -> None:
         """
         Registers a new statistical function that will be applied on
@@ -66,7 +66,7 @@ class Statistics:
         self.functions[name] = partial(func, *args, **kwargs)
         self.fields.append(name)
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def compile(self, data: Sequence) -> dict:
         """
         Compiles the statistics on the given data.
@@ -93,7 +93,7 @@ class MultiStatistics(dict):
     def fields(self):
         return sorted(self.keys())
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def register(self, name: str, func: Callable, *args, **kwargs) -> None:
         """
         Registers a new statistical function that will be applied on
@@ -110,7 +110,7 @@ class MultiStatistics(dict):
         for stats in self.values():
             stats.register(name, func, *args, **kwargs)
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def compile(self, data: Sequence) -> dict:
         """
         Compiles the statistics on the given data.

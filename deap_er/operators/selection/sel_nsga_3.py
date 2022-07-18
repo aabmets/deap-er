@@ -51,7 +51,7 @@ class SelNSGA3WithMemory:
         self.worst_point = numpy.full((1, ref_points.shape[1]), -numpy.inf)
         self.extreme_points = None
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def __call__(self, individuals: Subscript, count: int) -> list:
         """
         This method is called by the Toolbox to select

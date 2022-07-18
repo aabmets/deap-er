@@ -41,7 +41,7 @@ class StrategyMultiObjective:
     :param kwargs: One or more optional keyword arguments
         as described in the documentation.
     """
-
+    # -------------------------------------------------------- #
     def __init__(self, population, sigma, **kwargs):
         self.parents = population
         self.dim = len(self.parents[0])
@@ -63,7 +63,7 @@ class StrategyMultiObjective:
         self.pc = [numpy.zeros(self.dim) for _ in range(len(population))]
         self.psucc = [self.pt_arg] * len(population)
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def _select(self, candidates):
         if len(candidates) <= self.mu:
             return candidates, []
@@ -98,7 +98,7 @@ class StrategyMultiObjective:
 
         return chosen, not_chosen
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     @staticmethod
     def _rank_one_update(inv_cholesky, big_a, alpha, beta, v):
         w = numpy.dot(inv_cholesky, v)
@@ -115,7 +115,7 @@ class StrategyMultiObjective:
 
         return inv_cholesky, big_a
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def update(self, population) -> None:
         """
         Updates the current covariance matrix strategy from the *population*.
@@ -197,7 +197,7 @@ class StrategyMultiObjective:
 
         self.parents = chosen
 
-    # -------------------------------------------------------------------------------------- #
+    # -------------------------------------------------------- #
     def generate(self, ind_init) -> list:
         """
         Generate a population of *lambda* individuals of type *ind_init*.
