@@ -23,7 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import Individual
 from typing import Callable, Optional
 from bisect import bisect_right
 from copy import deepcopy
@@ -44,7 +43,7 @@ class _BaseClass:
         self.items = list()
 
     # -------------------------------------------------------- #
-    def insert(self, individual: Individual) -> None:
+    def insert(self, individual) -> None:
         """
         Insert a new individual into the hall of fame. The inserted individual
         is inserted on the right side of an equal individual. Inserting a new

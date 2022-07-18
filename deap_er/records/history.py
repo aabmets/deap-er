@@ -23,7 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import Individual
 from typing import Callable
 from copy import deepcopy
 
@@ -85,8 +84,7 @@ class History:
             self.genealogy_tree[self.genealogy_index] = parent_indices
 
     # -------------------------------------------------------- #
-    def get_genealogy(self, individual: Individual,
-                      max_depth=float("inf")) -> dict:
+    def get_genealogy(self, individual, max_depth=float("inf")) -> dict:
         """
         Get the genealogy of the given individual. The returned graph contains
         the parents up to *max_depth* variations before this individual. The
