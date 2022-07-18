@@ -23,35 +23,36 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.records import Logbook, Statistics, HallOfFame
+from deap_er.records import Logbook
 from deap_er.base.toolbox import Toolbox
+from deap_er.datatypes import Hof, Stats, AlgoResult
 
 
 __all__ = ['ea_generate_update']
 
 
 # ====================================================================================== #
-def ea_generate_update(toolbox: Toolbox,
-                       n_gen: int,
-                       hof: HallOfFame = None,
-                       stats: Statistics = None,
-                       verbose: bool = False) -> tuple[list, Logbook]:
+def ea_generate_update(toolbox: Toolbox, generations: int,
+                       hof: Hof = None, stats: Stats = None,
+                       verbose: bool = False) -> AlgoResult:
     """
-    An evolutionary algorithm. This function expects the *generate*, *update*,
-    and *evaluate* operators to be registered in the toolbox.
+    An evolutionary algorithm. This function expects the *generate*,
+    *update*, and *evaluate* operators to be registered in the toolbox.
 
-    :param toolbox: A Toolbox which contains the evolution operators.
-    :param n_gen: The number of generations to compute.
-    :param hof: A HallOfFame object, optional.
-    :param stats: A Statistics object, optional.
-    :param verbose: Whether to print debug messages, optional.
-    :returns: Tuple of the final population and the logbook.
+    Parameters:
+        toolbox: A Toolbox which contains the evolution operators.
+        generations: The number of generations to compute.
+        hof: A HallOfFame or a ParetoFront object, optional.
+        stats: A Statistics or a MultiStatistics object, optional.
+        verbose: Whether to print debug messages, optional.
+    Returns:
+        The final population and the logbook.
     """
     logbook = Logbook()
     logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
-    population = None
 
-    for gen in range(n_gen):
+    population = None
+    for gen in range(generations):
         population = toolbox.generate()
         fitness = toolbox.map(toolbox.evaluate, population)
         for ind, fit in zip(population, fitness):
@@ -59,7 +60,6 @@ def ea_generate_update(toolbox: Toolbox,
 
         if hof is not None:
             hof.update(population)
-
         toolbox.update(population)
 
         record = stats.compile(population) if stats is not None else {}

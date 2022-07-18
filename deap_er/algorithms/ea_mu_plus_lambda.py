@@ -23,8 +23,9 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.records import Logbook, Statistics, HallOfFame
+from deap_er.records import Logbook
 from deap_er.base.toolbox import Toolbox
+from deap_er.datatypes import Hof, Stats, AlgoResult
 from .variation import *
 
 
@@ -32,33 +33,30 @@ __all__ = ['ea_mu_plus_lambda']
 
 
 # ====================================================================================== #
-def ea_mu_plus_lambda(toolbox: Toolbox,
-                      population: list,
-                      mu: int,
-                      lambda_: int,
-                      cx_prob: float,
-                      mut_prob: float,
-                      n_gen: int,
-                      hof: HallOfFame = None,
-                      stats: Statistics = None,
-                      verbose: bool = False) -> tuple[list, Logbook]:
+def ea_mu_plus_lambda(toolbox: Toolbox, population: list, generations: int,
+                      survivors: int, offsprings: int,
+                      cx_prob: float, mut_prob: float,
+                      hof: Hof = None, stats: Stats = None,
+                      verbose: bool = False) -> AlgoResult:
     """
     An evolutionary algorithm. This function expects the *mate*, *mutate*,
     *select* and *evaluate* operators to be registered in the toolbox.
+    The survivors are selected from the offspring **and** the parent populations.
 
-    :param toolbox: A Toolbox which contains the evolution operators.
-    :param population: A list of individuals to vary.
-    :param mu: The number of individuals to select for the next generation.
-    :param lambda_: The number of children to produce at each generation.
-    :param cx_prob: The probability of mating two individuals.
-    :param mut_prob: The probability of mutating an individual.
-    :param n_gen: The number of generations to compute.
-    :param hof: A HallOfFame object, optional.
-    :param stats: A Statistics object, optional.
-    :param verbose: Whether to print debug messages, optional.
-    :return: Tuple of the final population and the logbook.
+    Parameters:
+        toolbox: A Toolbox which contains the evolution operators.
+        population: A list of individuals to evolve.
+        generations: The number of generations to compute.
+        survivors: The number of individuals to select from the offspring.
+        offsprings: The number of individuals to produce at each generation.
+        cx_prob: The probability of mating two individuals.
+        mut_prob: The probability of mutating an individual.
+        hof: A HallOfFame or a ParetoFront object, optional.
+        stats: A Statistics or a MultiStatistics object, optional.
+        verbose: Whether to print debug messages, optional.
+    Returns:
+        The final population and the logbook.
     """
-
     logbook = Logbook()
     logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
 
@@ -75,8 +73,8 @@ def ea_mu_plus_lambda(toolbox: Toolbox,
     if verbose:
         print(logbook.stream)
 
-    for gen in range(1, n_gen + 1):
-        offspring: list = var_or(toolbox, population, lambda_, cx_prob, mut_prob)
+    for gen in range(1, generations + 1):
+        offspring: list = var_or(toolbox, population, offsprings, cx_prob, mut_prob)
 
         invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
         fitness = toolbox.map(toolbox.evaluate, invalid_ind)
@@ -86,7 +84,7 @@ def ea_mu_plus_lambda(toolbox: Toolbox,
         if hof is not None:
             hof.update(offspring)
 
-        population[:] = toolbox.select(population + offspring, mu)
+        population[:] = toolbox.select(population + offspring, survivors)
 
         record = stats.compile(population) if stats is not None else {}
         logbook.record(gen=gen, nevals=len(invalid_ind), **record)

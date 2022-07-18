@@ -23,8 +23,9 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.records import Logbook, Statistics, HallOfFame
+from deap_er.records import Logbook
 from deap_er.base.toolbox import Toolbox
+from deap_er.datatypes import Hof, Stats, AlgoResult
 from .variation import *
 
 
@@ -32,35 +33,34 @@ __all__ = ['ea_mu_comma_lambda']
 
 
 # ====================================================================================== #
-def ea_mu_comma_lambda(toolbox: Toolbox,
-                       population: list,
-                       mu: int,
-                       lambda_: int,
-                       cx_prob: float,
-                       mut_prob: float,
-                       n_gen: int,
-                       hof: HallOfFame = None,
-                       stats: Statistics = None,
-                       verbose: int = False) -> tuple[list, Logbook]:
+def ea_mu_comma_lambda(toolbox: Toolbox, population: list, generations: int,
+                       survivors: int, offsprings: int,
+                       cx_prob: float, mut_prob: float,
+                       hof: Hof = None, stats: Stats = None,
+                       verbose: bool = False) -> AlgoResult:
     """
     An evolutionary algorithm. This function expects the *mate*, *mutate*,
     *select* and *evaluate* operators to be registered in the toolbox.
+    The survivors are selected only from the offspring population.
 
-    :param toolbox: A Toolbox which contains the evolution operators.
-    :param population: A list of individuals to vary.
-    :param mu: The number of individuals to select for the next generation.
-    :param lambda_: The number of children to produce at each generation.
-    :param cx_prob: The probability of mating two individuals.
-    :param mut_prob: The probability of mutating an individual.
-    :param n_gen: The number of generations to compute.
-    :param hof: A HallOfFame object, optional.
-    :param stats: A Statistics object, optional.
-    :param verbose: Whether to print debug messages, optional.
-    :returns: Tuple of the final population and the logbook.
+    Parameters:
+        toolbox: A Toolbox which contains the evolution operators.
+        population: A list of individuals to evolve.
+        generations: The number of generations to compute.
+        survivors: The number of individuals to select from the offspring.
+        offsprings: The number of individuals to produce at each generation.
+        cx_prob: The probability of mating two individuals.
+        mut_prob: The probability of mutating an individual.
+        hof: A HallOfFame or a ParetoFront object, optional.
+        stats: A Statistics or a MultiStatistics object, optional.
+        verbose: Whether to print debug messages, optional.
+    Returns:
+        The final population and the logbook.
     """
-    if lambda_ < mu:
-        msg = 'child_count must be larger than or equal to ngen_ind_count.'
-        raise ValueError(msg)
+    if offsprings < survivors:
+        raise ValueError(
+            '\'offsprings\' must be greater than or equal to \'survivors\'.'
+        )
 
     invalid_ind = [ind for ind in population if not ind.fitness.valid]
     fitness = toolbox.map(toolbox.evaluate, invalid_ind)
@@ -78,8 +78,8 @@ def ea_mu_comma_lambda(toolbox: Toolbox,
     if verbose:
         print(logbook.stream)
 
-    for gen in range(1, n_gen + 1):
-        offspring = var_or(toolbox, population, lambda_, cx_prob, mut_prob)
+    for gen in range(1, generations + 1):
+        offspring = var_or(toolbox, population, offsprings, cx_prob, mut_prob)
 
         invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
         fitness = toolbox.map(toolbox.evaluate, invalid_ind)
@@ -89,7 +89,7 @@ def ea_mu_comma_lambda(toolbox: Toolbox,
         if hof is not None:
             hof.update(offspring)
 
-        population[:] = toolbox.select(offspring, mu)
+        population[:] = toolbox.select(offspring, survivors)
 
         record = stats.compile(population) if stats is not None else {}
         logbook.record(gen=gen, nevals=len(invalid_ind), **record)

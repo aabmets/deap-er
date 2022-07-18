@@ -31,22 +31,21 @@ __all__ = ['var_and', 'var_or']
 
 
 # ====================================================================================== #
-def var_and(toolbox: Toolbox,
-            population: list,
-            cx_prob: float,
-            mut_prob: float) -> list:
+def var_and(toolbox: Toolbox, population: list,
+            cx_prob: float, mut_prob: float) -> list:
     """
-    Part of an evolutionary algorithm applying only the variation part (crossover
-    **and** mutation). Note that both operators are not applied systematically:
-    the individuals are mated **and** mutated according to the given probabilities.
-    Each of the two probabilities must be in the range of [0, 1]. The offsprings
+    A subcomponent for evolutionary algorithms, which mates **and** mutates
+    each individual in the given population according to the given probabilities.
+    Each of the two probabilities must be in the range of [0, 1]. The offspring
     are independent of the input population and have their fitness invalidated.
 
-    :param toolbox: A Toolbox which contains the evolution operators.
-    :param population: A list of individuals to vary.
-    :param cx_prob: The probability of mating two individuals.
-    :param mut_prob: The probability of mutating an individual.
-    :returns: A list of varied individuals.
+    Parameters:
+        toolbox: A Toolbox which contains the evolution operators.
+        population: A list of individuals to evolve.
+        cx_prob: The probability of mating two individuals.
+        mut_prob: The probability of mutating an individual.
+    Returns:
+        A list of evolved individuals.
     """
     data = dict(crossover=cx_prob, mutation=mut_prob)
     for key, value in data.items():
@@ -66,24 +65,22 @@ def var_and(toolbox: Toolbox,
 
 
 # -------------------------------------------------------------------------------------- #
-def var_or(toolbox: Toolbox,
-           population: list,
-           lambda_: int,
-           cx_prob: float,
-           mut_prob: float) -> list:
+def var_or(toolbox: Toolbox, population: list, offsprings: int,
+           cx_prob: float, mut_prob: float) -> list:
     """
-    Part of an evolutionary algorithm applying only the variation part (crossover
-    **or** mutation). Note that both operators are not applied systematically:
-    the individuals are mated **or** mutated according to the given probabilities.
-    The sum of the two probabilities must be in the range of [0, 1]. The offsprings
+    A subcomponent for evolutionary algorithms, which mates **or** mutates
+    each individual in the given population according to the given probabilities.
+    The sum of the two probabilities must be in the range of [0, 1]. The offspring
     are independent of the input population and have their fitness invalidated.
 
-    :param toolbox: A Toolbox which contains the evolution operators.
-    :param population: A list of individuals to vary.
-    :param lambda_: The number of children to produce.
-    :param cx_prob: The probability of mating two individuals.
-    :param mut_prob: The probability of mutating an individual.
-    :return: A list of varied individuals.
+    Parameters:
+        toolbox: A Toolbox which contains the evolution operators.
+        population: A list of individuals to evolve.
+        offsprings: The number of individuals to produce at each generation.
+        cx_prob: The probability of mating two individuals.
+        mut_prob: The probability of mutating an individual.
+    Returns:
+        A list of evolved individuals.
     """
     evolve_prob = cx_prob + mut_prob
     if evolve_prob > 1.0:
@@ -93,7 +90,7 @@ def var_or(toolbox: Toolbox,
         )
 
     offspring = []
-    for _ in range(lambda_):
+    for _ in range(offsprings):
         op_choice = random.random()
         if op_choice < cx_prob:
             ind1, ind2 = map(toolbox.clone, random.sample(population, 2))

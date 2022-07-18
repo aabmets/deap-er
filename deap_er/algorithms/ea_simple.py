@@ -23,8 +23,9 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.records import Logbook, Statistics, HallOfFame
+from deap_er.records import Logbook
 from deap_er.base.toolbox import Toolbox
+from deap_er.datatypes import Hof, Stats, AlgoResult
 from .variation import *
 
 
@@ -32,29 +33,26 @@ __all__ = ['ea_simple']
 
 
 # ====================================================================================== #
-def ea_simple(toolbox: Toolbox,
-              population: list,
-              cx_prob: float,
-              mut_prob: float,
-              n_gen: int,
-              hof: HallOfFame = None,
-              stats: Statistics = None,
-              verbose: bool = False) -> tuple[list, Logbook]:
+def ea_simple(toolbox: Toolbox, population: list, generations: int,
+              cx_prob: float, mut_prob: float,
+              hof: Hof = None, stats: Stats = None,
+              verbose: bool = False) -> AlgoResult:
     """
     An evolutionary algorithm. This function expects the *mate*, *mutate*,
     *select* and *evaluate* operators to be registered in the toolbox.
 
-    :param toolbox: A Toolbox which contains the evolution operators.
-    :param population: A list of individuals to vary.
-    :param cx_prob: The probability of mating two individuals.
-    :param mut_prob: The probability of mutating an individual.
-    :param n_gen: The number of generations to compute.
-    :param hof: A HallOfFame object, optional.
-    :param stats: A Statistics object, optional.
-    :param verbose: Whether to print debug messages, optional.
-    :return: Tuple of the final population and the logbook.
+    Parameters:
+        toolbox: A Toolbox which contains the evolution operators.
+        population: A list of individuals to evolve.
+        generations: The number of generations to compute.
+        cx_prob: The probability of mating two individuals.
+        mut_prob: The probability of mutating an individual.
+        hof: A HallOfFame or a ParetoFront object, optional.
+        stats: A Statistics or a MultiStatistics object, optional.
+        verbose: Whether to print debug messages, optional.
+    Returns:
+        The final population and the logbook.
     """
-
     logbook = Logbook()
     logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
 
@@ -71,7 +69,7 @@ def ea_simple(toolbox: Toolbox,
     if verbose:
         print(logbook.stream)
 
-    for gen in range(1, n_gen + 1):
+    for gen in range(1, generations + 1):
         offspring = toolbox.select(population, len(population))
         offspring = var_and(toolbox, offspring, cx_prob, mut_prob)
 
