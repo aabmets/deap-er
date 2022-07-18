@@ -23,7 +23,8 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er import utilities
+from deap_er import utilities as utils
+from typing import Optional, Callable
 from math import sqrt, exp
 import numpy
 
@@ -36,13 +37,13 @@ class StrategyMultiObjective:
     """
     A multi-objective CMA evolution strategy.
 
-    :param population: An initial population of individuals.
-    :param sigma: The initial step size of the complete system.
-    :param kwargs: One or more optional keyword arguments
-        as described in the documentation.
+    Parameters:
+        population: An initial population of individuals.
+        sigma: The initial step size of the complete system.
+        kwargs: One or more keyword arguments, optional.
     """
     # -------------------------------------------------------- #
-    def __init__(self, population, sigma, **kwargs):
+    def __init__(self, population: list, sigma: float, **kwargs: Optional):
         self.parents = population
         self.dim = len(self.parents[0])
 
@@ -54,7 +55,7 @@ class StrategyMultiObjective:
         self.cc = kwargs.get("cc", 2.0 / (self.dim + 2.0))
         self.c_cov = kwargs.get("ccov", 2.0 / (self.dim ** 2 + 6.0))
         self.p_thresh = kwargs.get("pthresh", 0.44)
-        self.indicator = kwargs.get("indicator", utilities.least_contrib)
+        self.indicator = kwargs.get("indicator", utils.least_contrib)
         self.timeout = kwargs.get("timeout", 60)
 
         self.sigmas = [sigma] * len(population)
@@ -68,7 +69,7 @@ class StrategyMultiObjective:
         if len(candidates) <= self.mu:
             return candidates, []
 
-        pareto_fronts = utilities.sort_log_non_dominated(candidates, len(candidates))
+        pareto_fronts = utils.sort_log_non_dominated(candidates, len(candidates))
 
         chosen = list()
         mid_front = None
@@ -116,12 +117,14 @@ class StrategyMultiObjective:
         return inv_cholesky, big_a
 
     # -------------------------------------------------------- #
-    def update(self, population) -> None:
+    def update(self, population: list) -> None:
         """
         Updates the current covariance matrix strategy from the *population*.
 
-        :param population: A list of individuals.
-        :returns: None
+        Parameters:
+            population: A list of individuals.
+        Returns:
+            None
         """
         chosen, not_chosen = self._select(population + self.parents)
 
@@ -198,12 +201,15 @@ class StrategyMultiObjective:
         self.parents = chosen
 
     # -------------------------------------------------------- #
-    def generate(self, ind_init) -> list:
+    def generate(self, ind_init: Callable) -> list:
         """
         Generate a population of *lambda* individuals of type *ind_init*.
 
-        :param ind_init: A callable that will be used to generate the individuals.
-        :returns: A list of individuals.
+        Parameters:
+            ind_init: A callable object that will be
+                used to generate the individuals.
+        Returns:
+            A list of individuals.
         """
         arz = numpy.random.randn(self.lambda_, self.dim)
         individuals = list()
@@ -219,7 +225,7 @@ class StrategyMultiObjective:
                 individuals[-1].ps_ = "o", i
 
         else:
-            n_dom = utilities.sort_log_non_dominated(
+            n_dom = utils.sort_log_non_dominated(
                 self.parents, len(self.parents),
                 first_front_only=True)
 

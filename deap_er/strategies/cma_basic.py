@@ -23,6 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from typing import Optional, Iterable, Callable
 from math import sqrt, log
 import numpy
 
@@ -35,12 +36,13 @@ class Strategy:
     """
     The basic CMA evolution strategy.
 
-    :param centroid: An iterable object that indicates where to start the evolution.
-    :param sigma: The initial standard deviation of the distribution.
-    :param kwargs: One or more optional keyword arguments.
+    Parameters:
+        centroid: An iterable object that indicates where to start the evolution.
+        sigma: The initial standard deviation of the distribution.
+        kwargs: One or more keyword arguments, optional.
     """
     # -------------------------------------------------------- #
-    def __init__(self, centroid, sigma, **kwargs) -> None:
+    def __init__(self, centroid: Iterable, sigma: float, **kwargs: Optional):
         self.update_count = 0
         self.centroid = numpy.array(centroid)
         self.sigma = sigma
@@ -67,17 +69,19 @@ class Strategy:
         self.BD = None
         self.cond = None
 
-        self.compute_params(kwargs)
+        self.compute_params(**kwargs)
 
     # -------------------------------------------------------- #
-    def compute_params(self, kwargs: dict) -> None:
+    def compute_params(self, **kwargs: Optional) -> None:
         """
         Computes the parameters of the strategy based on the *lambda* parameter.
         This function is called automatically when this strategy is instantiated, but
         it needs to be called again if the *lambda* parameter changes during evolution.
 
-        :param kwargs: One or more optional keyword arguments.
-        :returns: None
+        Parameters:
+            kwargs: One or more keyword arguments, optional.
+        Returns:
+            None
         """
         default = int(4 + 3 * log(self.dim))
         self.lambda_ = kwargs.get("lambda", default)
@@ -130,26 +134,30 @@ class Strategy:
         self.cond = self.diagD[indx[-1]] / self.diagD[indx[0]]
 
     # -------------------------------------------------------- #
-    def generate(self, ind_init) -> list:
+    def generate(self, ind_init: Callable) -> list:
         """
         Generate a population of 'lambda' individuals of
         type *ind_init* from the current strategy.
 
-        :param ind_init: A callable object that will be
-            used to generate the individuals.
-        :returns: A list of individuals.
+        Parameters:
+            ind_init: A callable object that will be
+                used to generate the individuals.
+        Returns:
+            A list of individuals.
         """
         arz = numpy.random.standard_normal((self.lambda_, self.dim))
         arz = self.centroid + self.sigma * numpy.dot(arz, self.BD.T)
         return list(map(ind_init, arz))
 
     # -------------------------------------------------------- #
-    def update(self, population) -> None:
+    def update(self, population: list) -> None:
         """
         Updates the current covariance matrix strategy from the *population*.
 
-        :param population: A list of individuals.
-        :returns: None
+        Parameters:
+            population: A list of individuals.
+        Returns:
+            None
         """
         population.sort(key=lambda ind: ind.fitness, reverse=True)
 
