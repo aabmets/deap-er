@@ -40,16 +40,16 @@ class _DevTestClass:  # pragma: no cover
 # ====================================================================================== #
 def create(name: str, base: Union[type, object], **kwargs: Optional) -> None:
     """
-    Creates a new class named *name*, which inherits from the *base* class,
-    and registers it into the :func:`global` namespace. Any optional *kwargs*
-    provided to this function will be set as attributes of the new class.
+    Creates a new class named 'name', which inherits from the 'base' class,
+    and registers it into the global namespace. Any optional 'kwargs' provided
+    to this function will be set as attributes of the new class.
 
     Parameters:
         name: The name of the new class to create.
         base: A base class or an object from which to inherit.
         kwargs: One or more keyword arguments to add to the new class
-            as attributes, optional. If a *kwarg* is an instance, it will
-            be added as a class attribute. If a *kwarg* is a class, it
+            as attributes, optional. If a kwarg is an instance, it will
+            be added as a class attribute. If a kwarg is a class, it
             will be instantiated and added as an instance attribute.
     Returns:
         None

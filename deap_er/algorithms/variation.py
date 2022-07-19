@@ -34,10 +34,11 @@ __all__ = ['var_and', 'var_or']
 def var_and(toolbox: Toolbox, population: list,
             cx_prob: float, mut_prob: float) -> list:
     """
-    A subcomponent for evolutionary algorithms, which mates **and** mutates
-    each individual in the given population according to the given probabilities.
-    Each of the two probabilities must be in the range of [0, 1]. The offspring
-    are independent of the input population and have their fitness invalidated.
+    A subcomponent for evolutionary algorithms, which mates AND
+    mutates each individual in the given population according to the
+    given probabilities. Each of the two probabilities must be in
+    the range of [0, 1]. The returned population is independent of
+    the input population and has their fitness invalidated.
 
     Parameters:
         toolbox: A Toolbox which contains the evolution operators.
@@ -68,10 +69,11 @@ def var_and(toolbox: Toolbox, population: list,
 def var_or(toolbox: Toolbox, population: list, offsprings: int,
            cx_prob: float, mut_prob: float) -> list:
     """
-    A subcomponent for evolutionary algorithms, which mates **or** mutates
-    each individual in the given population according to the given probabilities.
-    The sum of the two probabilities must be in the range of [0, 1]. The offspring
-    are independent of the input population and have their fitness invalidated.
+    A subcomponent for evolutionary algorithms, which mates OR
+    mutates each individual in the given population according to the
+    given probabilities. The sum of the two probabilities must be in
+    the range of [0, 1]. The returned population is independent of
+    the input population and has their fitness invalidated.
 
     Parameters:
         toolbox: A Toolbox which contains the evolution operators.

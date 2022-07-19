@@ -53,7 +53,7 @@ class Toolbox(LintHints):
     facilitate the process of computational evolution.
     """
     # -------------------------------------------------------- #
-    def __init__(self) -> None:
+    def __init__(self):
         self.register("clone", deepcopy)
         self.register("map", map)
 
@@ -61,19 +61,19 @@ class Toolbox(LintHints):
     def register(self, alias: str, func: Callable,
                  *args: Optional, **kwargs: Optional) -> None:
         """
-        Registers a *func* in the toolbox under the name *alias*.
-        Any *args* or *kwargs* will be automatically passed to the
+        Registers a 'func' in the toolbox under the name 'alias'.
+        Any 'args' or 'kwargs' will be automatically passed to the
         registered function when it's called. Fixed arguments can
         be overridden at function call time.
 
         Parameters:
-            alias: The name to register the *func* under.
-                The alias will be overwritten if it already exists.
+            alias: The name to register the 'func' under. The alias
+                will be overwritten if it already exists.
             func: The function to which the alias is going to refer.
             args: Positional arguments which are automatically
-                passed to the *func* when it's called, optional.
+                passed to the 'func' when it's called, optional.
             kwargs: Keyword arguments which are automatically
-                passed to the *func* when it's called, optional.
+                passed to the 'func' when it's called, optional.
         Returns:
             None
         """
@@ -88,7 +88,7 @@ class Toolbox(LintHints):
     # -------------------------------------------------------- #
     def unregister(self, alias: str) -> None:
         """
-        Removes an operator with the name *alias* from the toolbox.
+        Removes an operator with the name 'alias' from the toolbox.
 
         Parameters:
             alias: The name of the operator to remove from the toolbox.
@@ -101,16 +101,15 @@ class Toolbox(LintHints):
     def decorate(self, alias: str,
                  *decorators: Optional[Callable]) -> None:
         """
-        Decorates an operator *alias* with the provided *decorators*.
+        Decorates an operator 'alias' with the provided 'decorators'.
 
         Parameters:
-            alias: Name of the operator to decorate. The *alias*
+            alias: Name of the operator to decorate. The 'alias'
                 must be a registered operator in the toolbox.
-            decorators: Positional arguments of decorator functions to
-                apply to the *alias*, optional. If none are provided, the
-                operator is left unchanged. If multiple are provided, they
-                are applied in order from the earliest to the latest in
-                the *decorators* argument.
+            decorators: Positional arguments of decorator functions to apply
+                to the 'alias', optional. If none are provided, the operator
+                is left unchanged. If multiple are provided, they are applied
+                in order of the iteration over the 'decorators'.
         """
         if not decorators:
             return

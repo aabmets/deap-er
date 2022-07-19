@@ -39,9 +39,9 @@ def ea_mu_comma_lambda(toolbox: Toolbox, population: list, generations: int,
                        hof: Hof = None, stats: Stats = None,
                        verbose: bool = False) -> AlgoResult:
     """
-    An evolutionary algorithm. This function expects the *mate*, *mutate*,
-    *select* and *evaluate* operators to be registered in the toolbox.
-    The survivors are selected only from the offspring population.
+    An evolutionary algorithm. This function expects the 'mate', 'mutate', 'select'
+    and 'evaluate' operators to be registered in the toolbox. The survivors are
+    selected only from the offspring population.
 
     Parameters:
         toolbox: A Toolbox which contains the evolution operators.
@@ -51,15 +51,11 @@ def ea_mu_comma_lambda(toolbox: Toolbox, population: list, generations: int,
         offsprings: The number of individuals to produce at each generation.
         cx_prob: The probability of mating two individuals.
         mut_prob: The probability of mutating an individual.
-        hof (Optional[:const:`~deap_er.datatypes.Hof`]):
-            A *HallOfFame* or a *ParetoFront* object, optional.
-        stats(Optional[:const:`~deap_er.datatypes.Stats`]):
-            A *Statistics* or a *MultiStatistics* object, optional.
-        verbose (Optional[bool]):
-            Whether to print debug messages, optional.
+        hof: A HallOfFame or a ParetoFront object, optional.
+        stats: A Statistics or a MultiStatistics object, optional.
+        verbose: Whether to print debug messages, optional.
     Returns:
-        :const:`~deap_er.datatypes.AlgoResult`:
-            The final population and the logbook.
+        The final population and the logbook.
     """
     if offsprings < survivors:
         raise ValueError(

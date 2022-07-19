@@ -35,35 +35,20 @@ __all__ = ['Fitness']
 # ====================================================================================== #
 class Fitness:
     """
-    A fitness object measures the quality of a solution. The class attribute
-    :attr:`weights` tuple must be set before a Fitness object can be instantiated.
-    A fitness object can be instantiated without values, but the fitness object then
-    remains invalid until the values have been set using the :attr:`values` property.
+    A fitness object measures the quality of a solution. The class
+    attribute 'weights' must be set before a Fitness object can be
+    instantiated. A fitness can be instantiated without arguments,
+    but the fitness then remains invalid until a valid sequence of
+    numbers has been assigned to the 'values' property.
 
     Parameters:
-        values (Optional[SeqOfNum]): The values of the fitness object, optional.
+        values: The values of the fitness object, optional.
     """
-    # -------------------------------------------------------- #
     weights: tuple = tuple()
-    """
-    The weights are used to compare the fitness of different individuals. They are 
-    shared between all individuals of the same type. When subclassing :class:`Fitness`, 
-    the weights class attribute must be a tuple of real numbers, where each element is 
-    associated to an objective: a negative weight element corresponds to the minimization 
-    and a positive weight to the maximization of the associated objective.
-    """
-
-    # -------------------------------------------------------- #
     wvalues: tuple = tuple()
-    """
-    Contains the weighted values of the fitness. These are obtained by
-    multiplying the fitness values by the weights. It is generally unnecessary 
-    to manipulate this attribute directly, as it's mostly used internally 
-    by the Fitness comparison operators.
-    """
 
     # -------------------------------------------------------- #
-    def __init__(self, values: SeqOfNum = None) -> None:
+    def __init__(self, values: SeqOfNum = None):
         if not self.weights:
             raise TypeError(
                 "Can't instantiate 'Fitness', when class "
@@ -76,13 +61,12 @@ class Fitness:
     @property
     def values(self) -> tuple[float]:
         """
-        Fitness values of the individual *(getter, setter and deleter)*.
-        Setter accepts any :data:`SetItemSeq` object as input and the
-        getter returns a tuple of floats. Deleter sets the internal
-        :data:`wvalues` attribute to an empty tuple.
+        Fitness values of the individual. The setter accepts a sequence of
+        integers or floats as input and the getter returns a tuple of floats.
+        The deleter sets the internal 'wvalues' attribute to an empty tuple.
 
         Returns:
-            tuple[float]: Fitness values of the individual.
+            Fitness values of the individual.
         """
         if self.is_valid():
             values: Iterator = map(truediv, self.wvalues, self.weights)
@@ -105,15 +89,15 @@ class Fitness:
     # -------------------------------------------------------- #
     def dominates(self, other: Fitness, slc: slice = None) -> bool:
         """
-        Returns true if each objective of *self* is not worse than
-        the corresponding objective of the *other* and at least
-        one objective of *self* is better.
+        Returns true if each objective of 'self' is not worse than
+        the corresponding objective of the 'other' and at least
+        one objective of 'self' is better.
 
         Parameters:
             other: An instance of Fitness to test against.
             slc: A slice of objectives to test for domination, optional.
         Returns:
-            bool: True if *self* dominates *other*.
+            True if 'self' dominates the 'other'.
         """
         slc = slice(None) if slc is None else slc
         zipper = list(zip(self.wvalues, other.wvalues))
@@ -126,12 +110,12 @@ class Fitness:
     # -------------------------------------------------------- #
     def is_valid(self) -> bool:
         """
-        A Fitness instance is valid when the Fitness class attribute
-        :attr:`weights` has been set and the instance property :attr:`values`
-        has the same length as the :attr:`weights` attribute.
+        A Fitness instance is valid when the Fitness 'weights' class
+        attribute length is larger than 0 and the instance property
+        'values' has the same length as the 'weights' attribute.
 
         Returns:
-            bool: True if the Fitness instance is valid.
+            True if the Fitness instance is valid.
         """
         a = len(self.weights)
         b = len(self.wvalues)

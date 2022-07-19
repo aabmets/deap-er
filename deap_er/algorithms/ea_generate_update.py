@@ -36,21 +36,17 @@ def ea_generate_update(toolbox: Toolbox, generations: int,
                        hof: Hof = None, stats: Stats = None,
                        verbose: bool = False) -> AlgoResult:
     """
-    An evolutionary algorithm. This function expects the *generate*,
-    *update*, and *evaluate* operators to be registered in the toolbox.
+    An evolutionary algorithm. This function expects the 'generate',
+    'update', and 'evaluate' operators to be registered in the toolbox.
 
     Parameters:
         toolbox: A Toolbox which contains the evolution operators.
         generations: The number of generations to compute.
-        hof (Optional[:const:`~deap_er.datatypes.Hof`]) :
-            A *HallOfFame* or a *ParetoFront* object, optional.
-        stats(Optional[:const:`~deap_er.datatypes.Stats`]):
-            A *Statistics* or a *MultiStatistics* object, optional.
-        verbose (Optional[bool]):
-            Whether to print debug messages, optional.
+        hof: A HallOfFame or a ParetoFront object, optional.
+        stats: A Statistics or a MultiStatistics object, optional.
+        verbose: Whether to print debug messages, optional.
     Returns:
-        :const:`~deap_er.datatypes.AlgoResult`:
-            The final population and the logbook.
+        The final population and the logbook.
     """
     logbook = Logbook()
     logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
