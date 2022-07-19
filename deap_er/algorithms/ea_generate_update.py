@@ -42,11 +42,15 @@ def ea_generate_update(toolbox: Toolbox, generations: int,
     Parameters:
         toolbox: A Toolbox which contains the evolution operators.
         generations: The number of generations to compute.
-        hof: A HallOfFame or a ParetoFront object, optional.
-        stats: A Statistics or a MultiStatistics object, optional.
-        verbose: Whether to print debug messages, optional.
+        hof (Optional[:const:`~deap_er.datatypes.Hof`]) :
+            A *HallOfFame* or a *ParetoFront* object, optional.
+        stats(Optional[:const:`~deap_er.datatypes.Stats`]):
+            A *Statistics* or a *MultiStatistics* object, optional.
+        verbose (Optional[bool]):
+            Whether to print debug messages, optional.
     Returns:
-        The final population and the logbook.
+        :const:`~deap_er.datatypes.AlgoResult`:
+            The final population and the logbook.
     """
     logbook = Logbook()
     logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
