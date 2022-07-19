@@ -31,28 +31,27 @@ import random
 import math
 
 
-__all__ = ['harm']
+__all__ = ['harm_pbc']
 
 
 # ====================================================================================== #
-def harm(toolbox: Toolbox,
-         population: list,
-         generations: int,
-         cx_prob: float,
-         mut_prob: float,
-         alpha: float = 0.05,
-         beta: float = 10.0,
-         gamma: float = 0.25,
-         rho: float = 0.9,
-         nb_model: int = -1,
-         min_cutoff: int = 20,
-         hof: Hof = None,
-         stats: Stats = None,
-         verbose: bool = False) -> AlgoResult:
+def harm_pbc(toolbox: Toolbox,
+             population: list,
+             generations: int,
+             cx_prob: float,
+             mut_prob: float,
+             alpha: float = 0.05,
+             beta: float = 10.0,
+             gamma: float = 0.25,
+             rho: float = 0.9,
+             nb_model: int = -1,
+             min_cutoff: int = 20,
+             hof: Hof = None,
+             stats: Stats = None,
+             verbose: bool = False) -> AlgoResult:
     """
-    Implements bloat control by an evolution algorithm on a genetic program.
-    While the default values of the HARM parameters are recommended for most
-    use-cases, they can be adjusted to perform better on specific problems.
+    Implements population bloat control by an evolution algorithm for a genetic
+    program. The default parameter values are recommended for most use-cases.
 
     Parameters:
         toolbox: A Toolbox which contains the evolution operators.
@@ -71,11 +70,15 @@ def harm(toolbox: Toolbox,
             It ensures that HARM does not shrink the population too
             much at the beginning of the evolution. The default
             value is suitable for most cases.
-        hof: A HallOfFame or a ParetoFront object, optional.
-        stats: A Statistics or a MultiStatistics object, optional.
-        verbose: Whether to print debug messages, optional.
+        hof (Optional[:const:`~deap_er.datatypes.Hof`]):
+            A *HallOfFame* or a *ParetoFront* object, optional.
+        stats(Optional[:const:`~deap_er.datatypes.Stats`]):
+            A *Statistics* or a *MultiStatistics* object, optional.
+        verbose (Optional[bool]):
+            Whether to print debug messages, optional.
     Returns:
-        The final population and the logbook.
+        :const:`~deap_er.datatypes.AlgoResult`:
+            The final population and the logbook.
     """
 
     # -------------------------------------------------------- #
