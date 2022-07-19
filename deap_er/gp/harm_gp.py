@@ -31,24 +31,24 @@ import random
 import math
 
 
-__all__ = ['harm_pbc']
+__all__ = ['harm_gp']
 
 
 # ====================================================================================== #
-def harm_pbc(toolbox: Toolbox,
-             population: list,
-             generations: int,
-             cx_prob: float,
-             mut_prob: float,
-             alpha: float = 0.05,
-             beta: float = 10.0,
-             gamma: float = 0.25,
-             rho: float = 0.9,
-             nb_model: int = -1,
-             min_cutoff: int = 20,
-             hof: Hof = None,
-             stats: Stats = None,
-             verbose: bool = False) -> AlgoResult:
+def harm_gp(toolbox: Toolbox,
+            population: list,
+            generations: int,
+            cx_prob: float,
+            mut_prob: float,
+            alpha: float = 0.05,
+            beta: float = 10.0,
+            gamma: float = 0.25,
+            rho: float = 0.9,
+            nb_model: int = -1,
+            min_cutoff: int = 20,
+            hof: Hof = None,
+            stats: Stats = None,
+            verbose: bool = False) -> AlgoResult:
     """
     Implements population bloat control by an evolution algorithm for a genetic
     program. The default parameter values are recommended for most use-cases.
