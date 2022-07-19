@@ -111,8 +111,6 @@ class Toolbox(LintHints):
                 operator is left unchanged. If multiple are provided, they
                 are applied in order from the earliest to the latest in
                 the *decorators* argument.
-        Returns:
-            None
         """
         if not decorators:
             return

@@ -51,11 +51,15 @@ def ea_mu_comma_lambda(toolbox: Toolbox, population: list, generations: int,
         offsprings: The number of individuals to produce at each generation.
         cx_prob: The probability of mating two individuals.
         mut_prob: The probability of mutating an individual.
-        hof: A HallOfFame or a ParetoFront object, optional.
-        stats: A Statistics or a MultiStatistics object, optional.
-        verbose: Whether to print debug messages, optional.
+        hof (Optional[:const:`~deap_er.datatypes.Hof`]):
+            A *HallOfFame* or a *ParetoFront* object, optional.
+        stats(Optional[:const:`~deap_er.datatypes.Stats`]):
+            A *Statistics* or a *MultiStatistics* object, optional.
+        verbose (Optional[bool]):
+            Whether to print debug messages, optional.
     Returns:
-        The final population and the logbook.
+        :const:`~deap_er.datatypes.AlgoResult`:
+            The final population and the logbook.
     """
     if offsprings < survivors:
         raise ValueError(

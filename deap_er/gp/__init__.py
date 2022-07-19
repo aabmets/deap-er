@@ -23,10 +23,10 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from .algorithms import *
 from .crossover import *
 from .generators import *
 from .gp import *
-from .harm_gp import *
 from .mutation import *
 from .primitives import *
 from .semantic import *

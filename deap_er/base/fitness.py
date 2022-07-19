@@ -43,7 +43,6 @@ class Fitness:
     Parameters:
         values (Optional[SeqOfNum]): The values of the fitness object, optional.
     """
-
     # -------------------------------------------------------- #
     weights: tuple = tuple()
     """
