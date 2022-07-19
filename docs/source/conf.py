@@ -42,11 +42,17 @@ autodoc_mock_imports = [
     'ray'
 ]
 autodoc_typehints = 'description'
-autodoc_typehints_description_target = 'all'
+autodoc_typehints_description_target = 'documented'
 autodoc_typehints_format = 'short'
 autodoc_preserve_defaults = True
 autodoc_warningiserror = True
 autodoc_inherit_docstrings = True
+autoclass_content = "both"
+autodoc_class_signature = 'mixed'
+autodoc_member_order = 'bysource'
+autodoc_default_options = {}
+autodoc_docstring_signature = True
+autodoc_type_aliases = {}
 
 
 # -- Options for Napoleon -------------------------------------------------
@@ -62,5 +68,5 @@ napoleon_use_ivar = False
 napoleon_use_param = True
 napoleon_use_rtype = True
 napoleon_preprocess_types = False
-napoleon_type_aliases = None
 napoleon_attr_annotations = True
+napoleon_type_aliases = None
