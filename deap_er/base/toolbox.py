@@ -49,8 +49,8 @@ class LintHints:
 # ====================================================================================== #
 class Toolbox(LintHints):
     """
-    A toolbox is a container for evolutionary operators, which
-    facilitate the process of computational evolution.
+    A container for evolutionary operators. Toolboxes are essential
+    components which facilitate the process of computational evolution.
     """
     # -------------------------------------------------------- #
     def __init__(self):

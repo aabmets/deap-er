@@ -33,20 +33,18 @@ __all__ = ['mig_ring']
 def mig_ring(populations: list, mig_count: int, selection: Callable,
              replacement: Callable = None, mig_indices: list = None) -> None:
     """
-    Performs a ring migration between the 'populations'. The migration
-    first selects 'mig_count' emigrants from each population using the
-    specified 'selection' operator and then switches the selected
+    Performs a ring migration between the **populations**. The migration
+    first selects **mig_count** emigrants from each population using the
+    specified **selection** operator and then switches the selected
     individuals between the populations.
 
-    Parameters:
-        populations: A list of (sub-)populations on which to operate migration.
-        mig_count: The number of individuals to migrate.
-        selection: The function to select emigrants from each population.
-        replacement: The function to select which individuals will be switched.
-        mig_indices: A list of indices indicating where the individuals from a
+    :param populations: A list of populations on which to operate migration.
+    :param mig_count: The number of individuals to migrate.
+    :param selection: The function to select emigrants from each population.
+    :param replacement: The function to select which individuals will be switched.
+    :param mig_indices: A list of indices indicating where the individuals from a
             particular position in the list goes. Default is a ring migration.
-    Returns:
-        None
+    :return: Nothing
     """
     nbr_demes = len(populations)
     if mig_indices is None:

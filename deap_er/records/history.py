@@ -92,7 +92,8 @@ class History:
         Parameters:
             individual: The individual at the root of the genealogy tree.
             max_depth: The maximum depth of the genealogy tree.
-        Returns: A dictionary where each key is an individual index and the
+        Returns:
+            A dictionary where each key is an individual index and the
             values are tuples corresponding to the index of the parents.
         """
         def _recursive(index, depth):

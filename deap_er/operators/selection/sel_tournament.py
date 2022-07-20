@@ -37,15 +37,13 @@ def sel_tournament(individuals: list, rounds: int,
                    contestants: int, fit_attr: str = "fitness") -> list:
     """
     Selects the best individual among the randomly
-    chosen *contestants* for *rounds* times.
+    chosen **contestants** for **rounds** times.
 
-    Parameters:
-        individuals: A list of individuals to select from.
-        rounds: The number of rounds in the tournament.
-        contestants: The number of individuals participating in each round.
-        fit_attr: The attribute of individuals to use as the selection criterion.
-    Returns:
-        A list of selected individuals.
+    :param individuals: A list of individuals to select from.
+    :param rounds: The number of rounds in the tournament.
+    :param contestants: The number of individuals participating in each round.
+    :param fit_attr: The attribute of individuals to use as the selection criterion.
+    :return: A list of selected individuals.
     """
     chosen = []
     for i in range(rounds):
@@ -63,16 +61,14 @@ def sel_double_tournament(individuals: list, rounds: int,
     order to discriminate good solutions. It can also be used for
     Genetic Programming as a bloat control technique.
 
-    Parameters:
-        individuals: A list of individuals to select from.
-        rounds: The number of rounds in the tournament.
-        fitness_size: The number of individuals participating in each fitness tournament.
-        parsimony_size: The number of individuals participating in each size tournament.
+    :param individuals: A list of individuals to select from.
+    :param rounds: The number of rounds in the tournament.
+    :param fitness_size: The number of individuals participating in each fitness tournament.
+    :param parsimony_size: The number of individuals participating in each size tournament.
             This value has to be a real number in the range of [1,2].
-        fitness_first: If set to True, the fitness tournament will be performed first.
-        fit_attr: The attribute of individuals to use as the selection criterion.
-    Returns:
-        A list of selected individuals.
+    :param fitness_first: If set to True, the fitness tournament will be performed first.
+    :param fit_attr: The attribute of individuals to use as the selection criterion.
+    :return: A list of selected individuals.
     """
     def _size_tourney(select):
         chosen = []
@@ -109,17 +105,15 @@ def sel_tournament_dcd(individuals: list, sel_count: int) -> list:
     """
     Tournament selection based on the dominance between two individuals,
     if the two individuals do not inter-dominate, then the selection is
-    made based on their crowding distance. The 'individuals' sequence
-    length has to be a multiple of four only if the 'sel_count' is equal
-    to the length of 'individuals'. This selection requires the individuals
-    to have the 'crowding_dist' attribute, which can be set by the
-    'assign_crowding_dist' function.
+    made based on their crowding distance. The **individuals** sequence
+    length has to be a multiple of four only if the **sel_count** is equal
+    to the length of **individuals**. This selection requires the individuals
+    to have the *crowding_dist* attribute, which can be set by the
+    *assign_crowding_dist* function.
 
-    Parameters:
-        individuals: A list of individuals to select from.
-        sel_count: The number of individuals to select.
-    Returns:
-        A list of selected individuals.
+    :param individuals: A list of individuals to select from.
+    :param sel_count: The number of individuals to select.
+    :return: A list of selected individuals.
     """
     def tourney(ind1, ind2):
         if ind1.fitness.dominates(ind2.fitness):

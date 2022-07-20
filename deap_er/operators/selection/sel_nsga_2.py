@@ -37,17 +37,15 @@ def sel_nsga_2(individuals: list, sel_count: int,
                sorting_algo: str = 'standard') -> list:
     """
     Selects the next generation of individuals using the NSGA-II algorithm.
-    Usually, the size of 'individuals' should be larger than the 'sel_count'
-    parameter. If the size of 'individuals' is equal to 'sel_count', the
+    Usually, the size of **individuals** should be larger than the **sel_count**
+    parameter. If the size of **individuals** is equal to **sel_count**, the
     population will be sorted according to their pareto fronts.
 
-    Parameters:
-        individuals: A list of individuals to select from.
-        sel_count: The number of individuals to select.
-        sorting_algo: The algorithm to use for non-dominated
-            sorting. Can be either 'log' or 'standard'.
-    Returns:
-        A list of selected individuals.
+    :param individuals: A list of individuals to select from.
+    :param sel_count: The number of individuals to select.
+    :param sorting_algo: The algorithm to use for non-dominated
+        sorting. Can be either 'log' or 'standard' string literal.
+    :return: A list of selected individuals.
     """
     if sorting_algo == 'standard':
         pareto_fronts = sort_non_dominated(individuals, sel_count)

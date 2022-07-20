@@ -31,19 +31,17 @@ __all__ = ['sel_lexicase', 'sel_epsilon_lexicase']
 
 
 # ====================================================================================== #
-def sel_lexicase(individuals: list, count) -> list:
+def sel_lexicase(individuals: list, sel_count: int) -> list:
     """
     Returns an individual that does the best on the fitness
     cases when considered one at a time in random order.
 
-    Parameters:
-        individuals: A list of individuals to select from.
-        count: The number of individuals to select.
-    Returns:
-        A list of selected individuals.
+    :param individuals: A list of individuals to select from.
+    :param sel_count: The number of individuals to select.
+    :return: A list of selected individuals.
     """
     selected = []
-    for i in range(count):
+    for i in range(sel_count):
         fit_weights = individuals[0].fitness.weights
         candidates = individuals
         cases = list(range(len(individuals[0].fitness.values)))
@@ -62,23 +60,21 @@ def sel_lexicase(individuals: list, count) -> list:
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_epsilon_lexicase(individuals: list, count: int,
+def sel_epsilon_lexicase(individuals: list, sel_count: int,
                          epsilon: float = None) -> list:
     """
-    Returns an individual that does the best on the fitness cases
-    when considered one at a time in random order.
+    Returns an individual that does the best on the fitness
+    cases when considered one at a time in random order.
 
-    Parameters:
-        individuals: A list of individuals to select from.
-        count: The number of individuals to select.
-        epsilon: The epsilon parameter, optional. If not provided,
-            the epsilon parameter is automatically calculated
-            from the median of fitness values.
-    Returns:
-        A list of selected individuals.
+    :param individuals: A list of individuals to select from.
+    :param sel_count: The number of individuals to select.
+    :param epsilon: The epsilon parameter, optional. If not
+        provided, the epsilon parameter is automatically
+        calculated from the median of fitness values.
+    :return: A list of selected individuals.
     """
     selected = []
-    for i in range(count):
+    for i in range(sel_count):
         fit_weights = individuals[0].fitness.weights
         cases = list(range(len(individuals[0].fitness.values)))
         random.shuffle(cases)

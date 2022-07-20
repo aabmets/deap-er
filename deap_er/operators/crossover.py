@@ -23,6 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from __future__ import annotations
 from deap_er.datatypes import NumOrSeq, Individual, Mates
 from collections.abc import Sequence
 from itertools import repeat
@@ -81,15 +82,16 @@ def _match(ind1: Individual, ind2: Individual,
 # -------------------------------------------------------------------------------------- #
 def cx_one_point(ind1: Individual, ind2: Individual) -> Mates:
     """
-    Executes a one-point crossover on the two individuals,
-    who are modified in place. The resulting individuals
-    will have the respective length of the other.
+    Executes a one-point crossover on the two
+    individuals, who are modified in place.
 
-    Parameters:
-        ind1: The first individual.
-        ind2: The second individual.
-    Returns:
-        Two mated individuals.
+    :param ind1: The first individual.
+    :param ind2: The second individual.
+    :return: Two mated individuals.
+
+    :type ind1: :ref:`Individual <datatypes>`
+    :type ind2: :ref:`Individual <datatypes>`
+    :rtype: :ref:`Mates <datatypes>`
     """
     size = min(len(ind1), len(ind2))
     cxp = random.randint(1, size - 1)
@@ -100,14 +102,16 @@ def cx_one_point(ind1: Individual, ind2: Individual) -> Mates:
 # -------------------------------------------------------------------------------------- #
 def cx_messy_one_point(ind1: Individual, ind2: Individual) -> Mates:
     """
-    Executes a messy one point crossover on the two
+    Executes a messy one-point crossover on the two
     individuals, who are modified in place.
 
-    Parameters:
-        ind1: The first individual.
-        ind2: The second individual.
-    Returns:
-        Two mated individuals.
+    :param ind1: The first individual.
+    :param ind2: The second individual.
+    :return: Two mated individuals.
+
+    :type ind1: :ref:`Individual <datatypes>`
+    :type ind2: :ref:`Individual <datatypes>`
+    :rtype: :ref:`Mates <datatypes>`
     """
     cxp1 = random.randint(0, len(ind1))
     cxp2 = random.randint(0, len(ind2))
@@ -118,15 +122,16 @@ def cx_messy_one_point(ind1: Individual, ind2: Individual) -> Mates:
 # -------------------------------------------------------------------------------------- #
 def cx_two_point(ind1: Individual, ind2: Individual) -> Mates:
     """
-    Executes a two-point crossover on the two individuals,
-    who are modified in place. The resulting individuals
-    both keep their original length.
+    Executes a two-point crossover on the two
+    individuals, who are modified in place.
 
-    Parameters:
-        ind1: The first individual.
-        ind2: The second individual.
-    Returns:
-        Two mated individuals.
+    :param ind1: The first individual.
+    :param ind2: The second individual.
+    :return: Two mated individuals.
+
+    :type ind1: :ref:`Individual <datatypes>`
+    :type ind2: :ref:`Individual <datatypes>`
+    :rtype: :ref:`Mates <datatypes>`
     """
     _two_point(ind1, ind2)
     return ind1, ind2
@@ -135,14 +140,16 @@ def cx_two_point(ind1: Individual, ind2: Individual) -> Mates:
 # -------------------------------------------------------------------------------------- #
 def cx_es_two_point(ind1: Individual, ind2: Individual) -> Mates:
     """
-    Executes a two point crossover on the
+    Executes a two-point crossover on the
     individuals and their strategies.
 
-    Parameters:
-        ind1: The first individual.
-        ind2: The second individual.
-    Returns:
-        Two mated individuals.
+    :param ind1: The first individual.
+    :param ind2: The second individual.
+    :return: Two mated individuals.
+
+    :type ind1: :ref:`Individual <datatypes>`
+    :type ind2: :ref:`Individual <datatypes>`
+    :rtype: :ref:`Mates <datatypes>`
     """
     cxp1, cxp2 = _two_point(ind1, ind2)
     _slicer(
@@ -159,11 +166,13 @@ def cx_partially_matched(ind1: Individual, ind2: Individual) -> Mates:
     Executes a partially matched crossover on the
     two individuals, who are modified in place.
 
-    Parameters:
-        ind1: The first individual.
-        ind2: The second individual.
-    Returns:
-        Two mated individuals.
+    :param ind1: The first individual.
+    :param ind2: The second individual.
+    :return: Two mated individuals.
+
+    :type ind1: :ref:`Individual <datatypes>`
+    :type ind2: :ref:`Individual <datatypes>`
+    :rtype: :ref:`Mates <datatypes>`
     """
     size = min(len(ind1), len(ind2))
     p1, p2 = [0] * size, [0] * size
@@ -193,12 +202,14 @@ def cx_uniform_partially_matched(ind1: Individual, ind2: Individual,
     Executes a uniform partially matched crossover on
     the two individuals, who are modified in place.
 
-    Parameters:
-        ind1: The first individual.
-        ind2: The second individual.
-        cx_prob: The probability of swapping any two traits.
-    Returns:
-        Two mated individuals.
+    :param ind1: The first individual.
+    :param ind2: The second individual.
+    :param cx_prob: The probability of swapping any two traits.
+    :return: Two mated individuals.
+
+    :type ind1: :ref:`Individual <datatypes>`
+    :type ind2: :ref:`Individual <datatypes>`
+    :rtype: :ref:`Mates <datatypes>`
     """
     size = min(len(ind1), len(ind2))
     p1, p2 = [0] * size, [0] * size
@@ -220,14 +231,16 @@ def cx_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
     Executes a blend crossover on the two
     individuals, who are modified in place.
 
-    Parameters:
-        ind1: The first individual.
-        ind2: The second individual.
-        alpha: Extent of the interval in which the
-            new values can be drawn for each attribute
-            on both sides of the parents' attributes.
-    Returns:
-        Two mated individuals.
+    :param ind1: The first individual.
+    :param ind2: The second individual.
+    :param alpha: Extent of the interval in which the
+        new values can be drawn for each attribute
+        on both sides of the parents' attributes.
+    :return: Two mated individuals.
+
+    :type ind1: :ref:`Individual <datatypes>`
+    :type ind2: :ref:`Individual <datatypes>`
+    :rtype: :ref:`Mates <datatypes>`
     """
     for i, (x1, x2) in enumerate(zip(ind1, ind2)):
         gamma = (1. + 2. * alpha) * random.random() - alpha
@@ -240,17 +253,19 @@ def cx_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
 # -------------------------------------------------------------------------------------- #
 def cx_es_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
     """
-    Executes a blend crossover on the
+    Executes a blend crossover on the two
     individuals and their strategies.
 
-    Parameters:
-        ind1: The first individual.
-        ind2: The second individual.
-        alpha: Extent of the interval in which the
-            new values can be drawn for each attribute
-            on both sides of the parents' attributes.
-    Returns:
-        Two mated individuals.
+    :param ind1: The first individual.
+    :param ind2: The second individual.
+    :param alpha: Extent of the interval in which the
+        new values can be drawn for each attribute
+        on both sides of the parents' attributes.
+    :return: Two mated individuals.
+
+    :type ind1: :ref:`Individual <datatypes>`
+    :type ind2: :ref:`Individual <datatypes>`
+    :rtype: :ref:`Mates <datatypes>`
     """
     zipper = zip(ind1, ind1.strategy, ind2, ind2.strategy)
     for i, (x1, s1, x2, s2) in enumerate(zipper):
@@ -269,18 +284,20 @@ def cx_es_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
 # -------------------------------------------------------------------------------------- #
 def cx_simulated_binary(ind1: Individual, ind2: Individual, eta: float) -> Mates:
     """
-    Executes a simulated binary crossover on the two
-    individuals, who are modified in place.
+    Executes a simulated binary crossover on the
+    two individuals, who are modified in place.
 
-    Parameters:
-        ind1: The first individual.
-        ind2: The second individual.
-        eta: Crowding degree of the crossover.
-            Higher 'eta' will produce children more similar to
-            their parents, while a smaller 'eta' will produce
-            children more divergent from their parents.
-    Returns:
-        Two mated individuals.
+    :param ind1: The first individual.
+    :param ind2: The second individual.
+    :param eta: The crowding degree of the crossover.
+        Higher values produce children more similar to
+        their parents, while smaller values produce
+        children more divergent from their parents.
+    :return: Two mated individuals.
+
+    :type ind1: :ref:`Individual <datatypes>`
+    :type ind2: :ref:`Individual <datatypes>`
+    :rtype: :ref:`Mates <datatypes>`
     """
     for i, (x1, x2) in enumerate(zip(ind1, ind2)):
         rand = random.random()
@@ -301,20 +318,24 @@ def cx_simulated_binary(ind1: Individual, ind2: Individual, eta: float) -> Mates
 def cx_simulated_binary_bounded(ind1: Individual, ind2: Individual, eta: float,
                                 low: NumOrSeq, up: NumOrSeq) -> Mates:
     """
-    Executes a simulated binary crossover on the two
-    individuals, who are modified in place.
+    Executes a simulated binary bounded crossover on
+    the two individuals, who are modified in place.
 
-    Parameters:
-        ind1: The first individual.
-        ind2: The second individual.
-        eta: Crowding degree of the crossover.
-            Higher 'eta' will produce children more similar to
-            their parents, while a smaller 'eta' will produce
-            children more divergent from their parents.
-        low: Lower bound of the search space.
-        up: Upper bound of the search space.
-    Returns:
-        Two mated individuals.
+    :param ind1: The first individual.
+    :param ind2: The second individual.
+    :param eta: The crowding degree of the crossover.
+        Higher values produce children more similar to
+        their parents, while smaller values produce
+        children more divergent from their parents.
+    :param low: The lower bound of the search space.
+    :param up: The upper bound of the search space.
+    :return: Two mated individuals.
+
+    :type ind1: :ref:`Individual <datatypes>`
+    :type ind2: :ref:`Individual <datatypes>`
+    :type low: :ref:`NumOrSeq <datatypes>`
+    :type up: :ref:`NumOrSeq <datatypes>`
+    :rtype: :ref:`Mates <datatypes>`
     """
     def check_bounds(name: str, var: NumOrSeq) -> Sequence:
         if not isinstance(var, Sequence):
@@ -366,16 +387,17 @@ def cx_simulated_binary_bounded(ind1: Individual, ind2: Individual, eta: float,
 # -------------------------------------------------------------------------------------- #
 def cx_uniform(ind1: Individual, ind2: Individual, cx_prob: float) -> Mates:
     """
-    Executes a uniform crossover on the two individuals,
-    who are modified in place. The traits are swapped
-    according to the 'cx_prob' probability.
+    Executes a uniform crossover on the two
+    individuals, who are modified in place.
 
-    Parameters:
-        ind1: The first individual.
-        ind2: The second individual.
-        cx_prob: The probability of swapping any two traits.
-    Returns:
-        Two mated individuals.
+    :param ind1: The first individual.
+    :param ind2: The second individual.
+    :param cx_prob: The probability of swapping any two traits.
+    :return: Two mated individuals.
+
+    :type ind1: :ref:`Individual <datatypes>`
+    :type ind2: :ref:`Individual <datatypes>`
+    :rtype: :ref:`Mates <datatypes>`
     """
     size = min(len(ind1), len(ind2))
     for i in range(size):
@@ -390,11 +412,13 @@ def cx_ordered(ind1: Individual, ind2: Individual) -> Mates:
     Executes an ordered crossover on the two
     individuals, who are modified in place.
 
-    Parameters:
-        ind1: The first individual.
-        ind2: The second individual.
-    Returns:
-        Two mated individuals.
+    :param ind1: The first individual.
+    :param ind2: The second individual.
+    :return: Two mated individuals.
+
+    :type ind1: :ref:`Individual <datatypes>`
+    :type ind2: :ref:`Individual <datatypes>`
+    :rtype: :ref:`Mates <datatypes>`
     """
     size = min(len(ind1), len(ind2))
     a, b = random.sample(list(range(size)), 2)

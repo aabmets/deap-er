@@ -44,9 +44,24 @@ class Fitness:
     Parameters:
         values: The values of the fitness object, optional.
     """
+    # -------------------------------------------------------- #
     weights: tuple = tuple()
+    """
+    The weights are used to compare the fitness of different individuals. 
+    They are shared between all individuals of the same type. When subclassing 
+    'Fitness', the 'weights' class attribute must be a tuple of real numbers, 
+    where each element is associated to an objective: a negative weight element 
+    corresponds to the minimization and a positive weight to the maximization 
+    of the associated objective.
+    """
+    # -------------------------------------------------------- #
     wvalues: tuple = tuple()
-
+    """
+    Contains the weighted values of the fitness. These are obtained by
+    multiplying the fitness values by the weights. It is generally 
+    unnecessary to manipulate this attribute directly, as it's mostly 
+    used internally by the Fitness comparison operators.
+    """
     # -------------------------------------------------------- #
     def __init__(self, values: SeqOfNum = None):
         if not self.weights:

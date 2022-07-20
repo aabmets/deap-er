@@ -36,13 +36,11 @@ __all__ = [
 # ====================================================================================== #
 def sel_random(individuals: list, sel_count: int) -> list:
     """
-    Selects 'sel_count' individuals randomly.
+    Selects randomly **sel_count** individuals from the input **individuals**.
 
-    Parameters:
-        individuals: A list of individuals to select from.
-        sel_count: The number of individuals to select.
-    Returns:
-        A list of selected individuals.
+    :param individuals: A list of individuals to select from.
+    :param sel_count: The number of individuals to select.
+    :return: A list of selected individuals.
     """
     return [random.choice(individuals) for _ in range(sel_count)]
 
@@ -51,14 +49,12 @@ def sel_random(individuals: list, sel_count: int) -> list:
 def sel_best(individuals: list, sel_count: int,
              fit_attr: str = "fitness") -> list:
     """
-    Selects the best *count* individuals among the input *individuals*.
+    Selects the best **sel_count** individuals from the input **individuals**.
 
-    Parameters:
-        individuals: A list of individuals to select from.
-        sel_count: The number of individuals to select.
-        fit_attr: The attribute of individuals to use as the selection criterion.
-    Returns:
-        A list of selected individuals.
+    :param individuals: A list of individuals to select from.
+    :param sel_count: The number of individuals to select.
+    :param fit_attr: The attribute of individuals to use as the selection criterion.
+    :return: A list of selected individuals.
     """
     key = attrgetter(fit_attr)
     return sorted(individuals, key=key, reverse=True)[:sel_count]
@@ -68,14 +64,12 @@ def sel_best(individuals: list, sel_count: int,
 def sel_worst(individuals: list, sel_count: int,
               fit_attr: str = "fitness") -> list:
     """
-    Selects the worst *count* individuals among the input *individuals*.
+    Selects the worst **sel_count** individuals among the input **individuals**.
 
-    Parameters:
-        individuals: A list of individuals to select from.
-        sel_count: The number of individuals to select.
-        fit_attr: The attribute of individuals to use as the selection criterion.
-    Returns:
-        A list of selected individuals.
+    :param individuals: A list of individuals to select from.
+    :param sel_count: The number of individuals to select.
+    :param fit_attr: The attribute of individuals to use as the selection criterion.
+    :return: A list of selected individuals.
     """
     key = attrgetter(fit_attr)
     return sorted(individuals, key=key)[:sel_count]
@@ -85,17 +79,15 @@ def sel_worst(individuals: list, sel_count: int,
 def sel_roulette(individuals: list, sel_count: int,
                  fit_attr: str = "fitness") -> list:
     """
-    Select *k* individuals from the input *individuals* using *k*
-    spins of a roulette. The selection is made by looking only at the
-    first objective of each individual. The list returned contains
-    references to the input *individuals*.
+    Selects **sel_count** individuals from the input **individuals** using
+    **sel_count** spins of a roulette. The selection is made by looking
+    only at the first objective of each individual. The returned list
+    contains references to the input **individuals**.
 
-    Parameters:
-        individuals: A list of individuals to select from.
-        sel_count: The number of individuals to select.
-        fit_attr: The attribute of individuals to use as the selection criterion.
-    Returns:
-        A list of selected individuals.
+    :param individuals: A list of individuals to select from.
+    :param sel_count: The number of individuals to select.
+    :param fit_attr: The attribute of individuals to use as the selection criterion.
+    :return: A list of selected individuals.
     """
     key = attrgetter(fit_attr)
     sorted_ = sorted(individuals, key=key, reverse=True)
@@ -117,17 +109,15 @@ def sel_roulette(individuals: list, sel_count: int,
 def sel_stochastic_universal_sampling(individuals: list, sel_count: int,
                                       fit_attr: str = "fitness") -> list:
     """
-    Selects the *k* individuals among the input *individuals*.
-    The selection is made by using a single random value to sample
-    all the individuals by choosing them at evenly spaced intervals.
-    The list returned contains references to the input *individuals*.
+    Selects the **sel_count** individuals among the input **individuals**.
+    The selection is made by using a single random value to sample all the
+    individuals by choosing them at evenly spaced intervals. The returned
+    list contains references to the input **individuals**.
 
-    Parameters:
-        individuals: A list of individuals to select from.
-        sel_count: The number of individuals to select.
-        fit_attr: The attribute of individuals to use as the selection criterion.
-    Returns:
-        A list of selected individuals.
+    :param individuals: A list of individuals to select from.
+    :param sel_count: The number of individuals to select.
+    :param fit_attr: The attribute of individuals to use as the selection criterion.
+    :return: A list of selected individuals.
     """
     key = attrgetter(fit_attr)
     sorted_ = sorted(individuals, key=key, reverse=True)

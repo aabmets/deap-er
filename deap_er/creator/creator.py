@@ -23,9 +23,8 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import Base
 from .overrides import *
-from typing import Optional
+from typing import Optional, Union
 import warnings
 
 
@@ -39,7 +38,7 @@ class _DevTestClass:  # pragma: no cover
 
 
 # ====================================================================================== #
-def create(name: str, base: Base, **kwargs: Optional) -> None:
+def create(name: str, base: Union[type, object], **kwargs: Optional) -> None:
     """
     Creates a new class named 'name', which inherits from the 'base' class,
     and registers it into the global namespace. Any optional 'kwargs' provided
@@ -47,7 +46,7 @@ def create(name: str, base: Base, **kwargs: Optional) -> None:
 
     Parameters:
         name: The name of the new class to create.
-        base: A base class or an object from which to inherit.
+        base: A type or an object from which to inherit.
         kwargs: One or more keyword arguments to add to the new class
             as attributes, optional. If a kwarg is an instance, it will
             be added as a class attribute. If a kwarg is a class, it

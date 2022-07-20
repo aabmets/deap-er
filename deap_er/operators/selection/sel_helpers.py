@@ -33,14 +33,12 @@ __all__ = ['assign_crowding_dist', 'uniform_reference_points']
 def assign_crowding_dist(individuals: list) -> None:
     """
     Assigns a crowding distance to each individual's fitness.
-    The crowding distance can be retrieved via the 'crowding_dist'
+    The crowding distance can be retrieved via the *crowding_dist*
     attribute of each individual's fitness. The individuals
     are modified in-place.
 
-    Parameters:
-        individuals: A list of individuals with Fitness attributes.
-    Returns:
-        None
+    :param individuals: A list of individuals with Fitness attributes.
+    :return: Nothing.
     """
 
     if len(individuals) == 0:
@@ -72,12 +70,10 @@ def uniform_reference_points(n_obj: int, ppo: int = 4,
     intersecting each axis at 1. The scaling factor is used
     to combine multiple layers of reference points.
 
-    Parameters:
-        n_obj: Number of objectives.
-        ppo: Number of reference points per objective.
-        scaling: Scaling factor.
-    Returns:
-        An ndarray of reference points.
+    :param n_obj: Number of objectives.
+    :param ppo: Number of reference points per objective, optional.
+    :param scaling: Scaling factor, optional.
+    :return: Uniform reference points.
     """
     ref = numpy.zeros(n_obj)
     result = _gen_refs(ref, n_obj, ppo, ppo, 0)

@@ -38,10 +38,9 @@ class SelNSGA3WithMemory:
     The NSGA-III selection operator with memory for best, worst and extreme
     points. Instances of this class can be registered into a Toolbox.
 
-    Parameters:
-        ref_points: Reference points for selection.
-        sorting_algo: The algorithm to use for non-dominated
-            sorting. Can be either 'log' or 'standard'.
+    :param ref_points: Reference points for selection.
+    :param sorting_algo: The algorithm to use for non-dominated
+        sorting. Can be either 'log' or 'standard' string literal.
     """
     # -------------------------------------------------------- #
     def __init__(self, ref_points: ndarray, sorting_algo: str = "log"):
@@ -57,11 +56,9 @@ class SelNSGA3WithMemory:
         This method is called by the Toolbox to select
         individuals for the next generation.
 
-        Parameters:
-            individuals: A list of individuals to select from.
-            sel_count: The number of individuals to select.
-        Returns:
-            A list of selected individuals.
+        :param individuals: A list of individuals to select from.
+        :param sel_count: The number of individuals to select.
+        :return: A list of selected individuals.
         """
         chosen = sel_nsga_3(
             individuals, sel_count,
@@ -73,8 +70,10 @@ class SelNSGA3WithMemory:
 
 
 # ====================================================================================== #
-def sel_nsga_3(individuals: list, sel_count: int,
-               ref_points: ndarray, sorting_algo: str = "log",
+def sel_nsga_3(individuals: list,
+               sel_count: int,
+               ref_points: ndarray,
+               sorting_algo: str = "log",
                best_point: ndarray = None,
                worst_point: ndarray = None,
                extreme_points: ndarray = None,
@@ -82,22 +81,20 @@ def sel_nsga_3(individuals: list, sel_count: int,
     """
     Selects the next generation of individuals using the NSGA-III algorithm.
 
-    Parameters:
-        individuals: A list of individuals to select from.
-        sel_count: The number of individuals to select.
-        ref_points: The reference points to use for the selection.
-        sorting_algo: The non-dominated sorting algorithm to use.
-        best_point: Best point of the previous generation. If not
-            provided, finds the best point from the current individuals.
-        worst_point: Worst point of the previous generation. If not
-            provided, finds the worst point from the current individuals.
-        extreme_points: Extreme points of the previous generation. If not
-            provided, finds the extreme points from the current individuals.
-        _memory: This parameter is used by the SelNSGA3WithMemory object to store
-            the best, the worst and the extreme points of the selection into itself.
-            Manual usage of this parameter is not recommended.
-    Returns:
-        A list of selected individuals.
+    :param individuals: A list of individuals to select from.
+    :param sel_count: The number of individuals to select.
+    :param ref_points: The reference points to use for the selection.
+    :param sorting_algo: The non-dominated sorting algorithm to use, optional.
+    :param best_point: Best point of the previous generation, optional.
+        If not provided, finds the best point from the current individuals.
+    :param worst_point: Worst point of the previous generation, optional.
+        If not provided, finds the worst point from the current individuals.
+    :param extreme_points: Extreme points of the previous generation, optional.
+        If not provided, finds the extreme points from the current individuals.
+    :param _memory: This private parameter is used by the SelNSGA3WithMemory
+        objects to store the best, the worst and the extreme points of the
+        selection into itself. Not recommended for manual use.
+    :return: A list of selected individuals.
     """
     if sorting_algo == "standard":
         pareto_fronts = sort_non_dominated(individuals, sel_count)
