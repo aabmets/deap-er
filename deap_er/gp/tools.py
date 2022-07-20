@@ -35,14 +35,13 @@ __all__ = [
     'compile_tree', 'compile_adf_tree',
     'build_tree_graph', 'static_limit'
 ]
-
-Expr = Union[PrimitiveTree, str]
-PSets = list[PrimitiveSetTyped]
+Expression = Union[PrimitiveTree, str]
+PrimSets = list[PrimitiveSetTyped]
 Graph = tuple[list, list, dict]
 
 
 # ====================================================================================== #
-def compile_tree(expr: Expr, p_set: PrimitiveSetTyped) -> Any:
+def compile_tree(expr: Expression, p_set: PrimitiveSetTyped) -> Any:
     """
     Evaluates the expression on the given primitive set.
 
@@ -52,7 +51,7 @@ def compile_tree(expr: Expr, p_set: PrimitiveSetTyped) -> Any:
             Python expression when converted into a string.
         p_set: The primitive set to evaluate the expression on.
     Results:
-        A callable if the *p_set* has 1 or more arguments,
+        A callable if the 'p_set' has 1 or more arguments,
         otherwise the result of the evaluation.
     """
     code = str(expr)
@@ -70,7 +69,7 @@ def compile_tree(expr: Expr, p_set: PrimitiveSetTyped) -> Any:
 
 
 # -------------------------------------------------------------------------------------- #
-def compile_adf_tree(expr: Expr, p_sets: PSets) -> Any:
+def compile_adf_tree(expr: Expression, p_sets: PrimSets) -> Any:
     """
     Compiles the expression represented by a list of trees.
     The first element of the list is the main tree, and the
@@ -84,7 +83,7 @@ def compile_adf_tree(expr: Expr, p_sets: PSets) -> Any:
         p_sets: List of primitive sets. The first element is
             the main tree and the others are automatically defined
             functions (ADF) that can be called by the first tree.
-            The last element is associated with the *expr* and
+            The last element is associated with the 'expr' and
             should contain a reference to the preceding ADFs.
     Returns:
         A callable if the main primitive set has 1 or more
@@ -100,7 +99,7 @@ def compile_adf_tree(expr: Expr, p_sets: PSets) -> Any:
 
 
 # -------------------------------------------------------------------------------------- #
-def build_tree_graph(expr: Expr) -> Graph:
+def build_tree_graph(expr: Expression) -> Graph:
     """
     Builds a graph representation of the given expression. The graph
     is a tuple of three elements: a list of nodes, a list of edges and a

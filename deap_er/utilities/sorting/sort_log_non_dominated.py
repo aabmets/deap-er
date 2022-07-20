@@ -36,7 +36,7 @@ __all__ = ['sort_log_non_dominated']
 def sort_log_non_dominated(individuals: list, sel_count: int,
                            first_front_only: bool = False) -> list:
     """
-    Sorts *individuals* in pareto non-dominated fronts
+    Sorts 'individuals' in pareto non-dominated fronts
     using the Generalized Reduced Run-Time Complexity
     Non-Dominated Sorting Algorithm.
 

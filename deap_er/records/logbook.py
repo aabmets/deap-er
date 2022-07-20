@@ -93,13 +93,13 @@ class Logbook(list):
     # -------------------------------------------------------- #
     def pop(self, index: int = 0) -> dict:
         """
-        Retrieves and deletes element at *index*. The header and
+        Retrieves and deletes element at 'index'. The header and
         the stream will be adjusted to follow the modification.
 
         Parameters:
             index: The index of the element to retrieve and delete.
         Returns:
-            The element at *index*.
+            The element at 'index'.
         """
         if index < self.buff_index:
             self.buff_index -= 1

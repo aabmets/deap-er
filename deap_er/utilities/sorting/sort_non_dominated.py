@@ -34,8 +34,9 @@ __all__ = ['sort_non_dominated']
 def sort_non_dominated(individuals: list, sel_count: int,
                        first_front_only: bool = False) -> list:
     """
-    Sorts the first *k* *individuals* into different non-domination
-    levels using the "Fast Non-dominated Sorting Approach".
+    Sorts the first 'sel_count' of 'individuals' into
+    different non-domination levels using the
+    "Fast Non-dominated Sorting Approach".
 
     Parameters:
         individuals: A list of individuals to sort.

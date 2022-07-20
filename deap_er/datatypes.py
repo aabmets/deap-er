@@ -25,7 +25,7 @@
 # ====================================================================================== #
 from .records import *
 from collections.abc import Sequence
-from typing import Union, Tuple
+from typing import Union, Tuple, Type
 import numpy
 import array
 
@@ -36,3 +36,5 @@ NumOrSeq = Union[int, float, SeqOfNum]
 Hof = Union[HallOfFame, ParetoFront]
 Stats = Union[Statistics, MultiStatistics]
 AlgoResult = Tuple[list, Logbook]
+Base = Union[type, object]
+Container = Type[Union[list, tuple, set, str]]

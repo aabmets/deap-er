@@ -33,8 +33,7 @@ __all__ = ['History']
 # ====================================================================================== #
 class History:
     """
-    The *History* class helps with building a genealogy
-    of the individuals produced in the evolution.
+    Maintains a history of the individuals produced in the evolution.
     """
     # -------------------------------------------------------- #
     def __init__(self):
@@ -87,8 +86,8 @@ class History:
     def get_genealogy(self, individual, max_depth=float("inf")) -> dict:
         """
         Get the genealogy of the given individual. The returned graph contains
-        the parents up to *max_depth* variations before this individual. The
-        default value of *max_depth* is up to the beginning of the evolution.
+        the parents up to 'max_depth' variations before this individual. The
+        default value of 'max_depth' is up to the beginning of the evolution.
 
         Parameters:
             individual: The individual at the root of the genealogy tree.

@@ -108,12 +108,12 @@ def sel_double_tournament(individuals: list, rounds: int,
 def sel_tournament_dcd(individuals: list, sel_count: int) -> list:
     """
     Tournament selection based on the dominance between two individuals,
-    if the two individuals do not inter-dominate, then the selection
-    is made based on their crowding distance. The *individuals* sequence
-    length has to be a multiple of four only if the *count* is equal to
-    the length of *individuals*. This selection requires the individuals
-    to have the *crowding_dist* attribute, which can be set by the
-    *assign_crowding_dist* function.
+    if the two individuals do not inter-dominate, then the selection is
+    made based on their crowding distance. The 'individuals' sequence
+    length has to be a multiple of four only if the 'sel_count' is equal
+    to the length of 'individuals'. This selection requires the individuals
+    to have the 'crowding_dist' attribute, which can be set by the
+    'assign_crowding_dist' function.
 
     Parameters:
         individuals: A list of individuals to select from.

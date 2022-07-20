@@ -25,7 +25,7 @@
 # ====================================================================================== #
 from __future__ import annotations
 from collections import defaultdict, deque
-from typing import Union, Type
+from typing import Union, Type, Callable, Iterable
 import copy
 import abc
 import re
@@ -42,12 +42,13 @@ __all__ = [
 class Terminal:
     """
     Class that encapsulates terminal primitive in expression.
-    Terminals can be values or 0-arity functions.
+    Terminals can be either values or 0-arity functions.
     """
     __slots__ = ('name', 'value', 'ret', 'conv_fct')
 
     # -------------------------------------------------------- #
-    def __init__(self, terminal, symbolic, ret):
+    def __init__(self, terminal: Union[Callable, str],
+                 symbolic: bool, ret: Type):
         self.ret = ret
         self.value = terminal
         self.name = str(terminal)
@@ -74,9 +75,9 @@ class Terminal:
 # ====================================================================================== #
 class Ephemeral(Terminal):
     """
-    Class that encapsulates a terminal which value is set
-    when the object is created. This is an abstract base class.
-    When subclassing, a staticmethod named 'func' must be defined.
+    Class that encapsulates a terminal which value is set when
+    the object is created. This is an abstract base class. When
+    subclassing, a staticmethod named 'func' must be defined.
     """
     # -------------------------------------------------------- #
     def __init__(self):
@@ -98,7 +99,7 @@ class Primitive:
     __slots__ = ('name', 'arity', 'args', 'ret', 'seq')
 
     # -------------------------------------------------------- #
-    def __init__(self, name, args, ret):
+    def __init__(self, name: str, args: list, ret: Type):
         self.name = name
         self.arity = len(args)
         self.args = args
@@ -126,7 +127,8 @@ class PrimitiveSetTyped:
     used to solve a Strongly Typed GP problem.
     """
     # -------------------------------------------------------- #
-    def __init__(self, name, in_types, ret_type, prefix="ARG") -> None:
+    def __init__(self, name: str, in_types: list,
+                 ret_type: Type, prefix: str = "ARG") -> None:
         self.name = name
         self.ins = in_types
         self.ret = ret_type
@@ -175,7 +177,8 @@ class PrimitiveSetTyped:
                 dict_[type_].append(prim)
 
     # -------------------------------------------------------- #
-    def add_primitive(self, primitive, in_types, ret_type, name=None) -> None:
+    def add_primitive(self, primitive: Callable, in_types: list,
+                      ret_type: Type, name: str = None) -> None:
         """
         Adds a primitive to the set.
 
@@ -204,7 +207,8 @@ class PrimitiveSetTyped:
         self.prims_count += 1
 
     # -------------------------------------------------------- #
-    def add_terminal(self, terminal, ret_type, name=None):
+    def add_terminal(self, terminal: Callable, ret_type: Type,
+                     name: str = None) -> None:
         """
         Adds a terminal to the set.
 
@@ -239,13 +243,14 @@ class PrimitiveSetTyped:
         self.terms_count += 1
 
     # -------------------------------------------------------- #
-    def add_ephemeral_constant(self, ephemeral, ret_type, name) -> None:
+    def add_ephemeral_constant(self, ephemeral: Callable,
+                               ret_type: Type, name: str) -> None:
         """
         Adds an ephemeral constant to the set.
 
         Parameters:
-            ephemeral: A function with no arguments returning a random value.
-            ret_type: Type of the object returned by *ephemeral*.
+            ephemeral: Callable object or a function.
+            ret_type: Type returned by the ephemeral.
             name: Name of this ephemeral type.
         Returns:
             None
@@ -278,7 +283,7 @@ class PrimitiveSetTyped:
         self.terms_count += 1
 
     # -------------------------------------------------------- #
-    def add_adf(self, adf_set) -> None:
+    def add_adf(self, adf_set: PrimitiveSetTyped) -> None:
         """
         Adds an Automatically Defined Function (ADF) to the set.
 
@@ -327,50 +332,54 @@ class PrimitiveSetTyped:
 # ====================================================================================== #
 class PrimitiveSet(PrimitiveSetTyped):
     """
-    Subclass of *PrimitiveSetTyped* without the type definition.
+    Subclass of 'PrimitiveSetTyped' without the type definition.
     """
     # -------------------------------------------------------- #
-    def __init__(self, name, arity, prefix="ARG"):
+    def __init__(self, name: str, arity: int, prefix: str = "ARG"):
         args = [object] * arity
         super().__init__(name, args, object, prefix)
 
     # -------------------------------------------------------- #
-    def add_primitive(self, primitive, arity: int, name=None, *_, **__) -> None:
+    def add_primitive(self, primitive: Callable, arity: int,
+                      name: str = None, *_, **__) -> None:
         if not arity >= 1:
             raise ValueError('arity should be >= 1')
         args = [object] * arity
         super().add_primitive(primitive, args, object, name)
 
     # -------------------------------------------------------- #
-    def add_terminal(self, terminal, name=None, *_, **__) -> None:
+    def add_terminal(self, terminal: Callable,
+                     name: str = None, *_, **__) -> None:
         super().add_terminal(terminal, object, name)
 
     # -------------------------------------------------------- #
-    def add_ephemeral_constant(self, ephemeral, name, *_, **__) -> None:
+    def add_ephemeral_constant(self, ephemeral: Callable,
+                               name: str = None, *_, **__) -> None:
         super().add_ephemeral_constant(ephemeral, object, name)
 
 
 # ====================================================================================== #
 class PrimitiveTree(list):
     """
-    Tree specifically formatted for optimization of genetic programming operations.
-    This class is a subclass of list, where the nodes are appended, or are assumed
-    to have been appended, when creating an object of this class with a list of
-    primitives and terminals. The nodes appended to the tree are required to have
-    the *arity* attribute, which defines the arity of the primitive.
+    Tree specifically formatted for the optimization of genetic programming
+    operations. This class is a subclass of 'list', where the nodes are appended,
+    or are assumed to have been appended, when creating an object of this class
+    with a list of primitives and terminals. The nodes appended to the tree are
+    required to have the 'arity' attribute, which defines the arity of the primitive.
     """
     # -------------------------------------------------------- #
-    def __init__(self, content):
+    def __init__(self, content: Iterable):
         super().__init__(content)
 
     # -------------------------------------------------------- #
-    def __deepcopy__(self, memo):
+    def __deepcopy__(self, memo: dict):
         new = self.__class__(self)
         new.__dict__.update(copy.deepcopy(self.__dict__, memo))
         return new
 
     # -------------------------------------------------------- #
-    def __setitem__(self, key, val):
+    def __setitem__(self, key: Union[int, slice],
+                    val: Union[Primitive, list]):
         if isinstance(key, slice):
             if key.start >= len(self):
                 raise IndexError(
@@ -408,10 +417,11 @@ class PrimitiveTree(list):
 
     # -------------------------------------------------------- #
     @classmethod
-    def from_string(cls, string: str, p_set: PrimitiveSetTyped) -> PrimitiveTree:
+    def from_string(cls, string: str,
+                    p_set: PrimitiveSetTyped) -> PrimitiveTree:
         """
         Converts a string expression into a PrimitiveTree given a
-        PrimitiveSet *pset*. The primitive set needs to contain
+        PrimitiveSet 'p_set'. The primitive set needs to contain
         every primitive present in the expression.
 
         Parameters:
@@ -483,7 +493,7 @@ class PrimitiveTree(list):
         """
         Returns a slice object that corresponds to the
         range of values that defines the subtree which
-        has the element with index *begin* as its root.
+        has the element with index 'begin' as its root.
 
         Parameters:
             begin: Index of the root of the subtree.

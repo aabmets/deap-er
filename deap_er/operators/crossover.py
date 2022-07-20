@@ -30,10 +30,12 @@ import random
 
 
 __all__ = [
-    'cx_one_point', 'cx_messy_one_point', 'cx_two_point', 'cx_es_two_point',
+    'cx_one_point', 'cx_messy_one_point',
+    'cx_two_point', 'cx_es_two_point',
     'cx_partially_matched', 'cx_uniform_partially_matched',
-    'cx_blend', 'cx_es_blend',  'cx_simulated_binary',
-    'cx_simulated_binary_bounded', 'cx_uniform', 'cx_ordered'
+    'cx_blend', 'cx_es_blend',
+    'cx_simulated_binary', 'cx_simulated_binary_bounded',
+    'cx_uniform', 'cx_ordered'
 ]
 
 
@@ -84,10 +86,10 @@ def cx_one_point(ind1: Individual, ind2: Individual) -> Mates:
     will have the respective length of the other.
 
     Parameters:
-        ind1 (:data:`~deap_er.datatypes.Individual`): The first individual.
-        ind2 (:data:`~deap_er.datatypes.Individual`): The second individual.
+        ind1: The first individual.
+        ind2: The second individual.
     Returns:
-        :data:`~deap_er.datatypes.Mates`: Two mated individuals.
+        Two mated individuals.
     """
     size = min(len(ind1), len(ind2))
     cxp = random.randint(1, size - 1)
@@ -102,10 +104,10 @@ def cx_messy_one_point(ind1: Individual, ind2: Individual) -> Mates:
     individuals, who are modified in place.
 
     Parameters:
-        ind1 (:data:`~deap_er.datatypes.Individual`): The first individual.
-        ind2 (:data:`~deap_er.datatypes.Individual`): The second individual.
+        ind1: The first individual.
+        ind2: The second individual.
     Returns:
-        :data:`~deap_er.datatypes.Mates`: Two mated individuals.
+        Two mated individuals.
     """
     cxp1 = random.randint(0, len(ind1))
     cxp2 = random.randint(0, len(ind2))
@@ -121,10 +123,10 @@ def cx_two_point(ind1: Individual, ind2: Individual) -> Mates:
     both keep their original length.
 
     Parameters:
-        ind1 (:data:`~deap_er.datatypes.Individual`): The first individual.
-        ind2 (:data:`~deap_er.datatypes.Individual`): The second individual.
+        ind1: The first individual.
+        ind2: The second individual.
     Returns:
-        :data:`~deap_er.datatypes.Mates`: Two mated individuals.
+        Two mated individuals.
     """
     _two_point(ind1, ind2)
     return ind1, ind2
@@ -137,10 +139,10 @@ def cx_es_two_point(ind1: Individual, ind2: Individual) -> Mates:
     individuals and their strategies.
 
     Parameters:
-        ind1 (:data:`~deap_er.datatypes.Individual`): The first individual.
-        ind2 (:data:`~deap_er.datatypes.Individual`): The second individual.
+        ind1: The first individual.
+        ind2: The second individual.
     Returns:
-        :data:`~deap_er.datatypes.Mates`: Two mated individuals.
+        Two mated individuals.
     """
     cxp1, cxp2 = _two_point(ind1, ind2)
     _slicer(
@@ -158,10 +160,10 @@ def cx_partially_matched(ind1: Individual, ind2: Individual) -> Mates:
     two individuals, who are modified in place.
 
     Parameters:
-        ind1 (:data:`~deap_er.datatypes.Individual`): The first individual.
-        ind2 (:data:`~deap_er.datatypes.Individual`): The second individual.
+        ind1: The first individual.
+        ind2: The second individual.
     Returns:
-        :data:`~deap_er.datatypes.Mates`: Two mated individuals.
+        Two mated individuals.
     """
     size = min(len(ind1), len(ind2))
     p1, p2 = [0] * size, [0] * size
@@ -192,11 +194,11 @@ def cx_uniform_partially_matched(ind1: Individual, ind2: Individual,
     the two individuals, who are modified in place.
 
     Parameters:
-        ind1 (:data:`~deap_er.datatypes.Individual`): The first individual.
-        ind2 (:data:`~deap_er.datatypes.Individual`): The second individual.
+        ind1: The first individual.
+        ind2: The second individual.
         cx_prob: The probability of swapping any two traits.
     Returns:
-        :data:`~deap_er.datatypes.Mates`: Two mated individuals.
+        Two mated individuals.
     """
     size = min(len(ind1), len(ind2))
     p1, p2 = [0] * size, [0] * size
@@ -219,12 +221,13 @@ def cx_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
     individuals, who are modified in place.
 
     Parameters:
-        ind1 (:data:`~deap_er.datatypes.Individual`): The first individual.
-        ind2 (:data:`~deap_er.datatypes.Individual`): The second individual.
-        alpha: Extent of the interval in which the new values can be drawn
-            for each attribute on both sides of the parents' attributes.
+        ind1: The first individual.
+        ind2: The second individual.
+        alpha: Extent of the interval in which the
+            new values can be drawn for each attribute
+            on both sides of the parents' attributes.
     Returns:
-        :data:`~deap_er.datatypes.Mates`: Two mated individuals.
+        Two mated individuals.
     """
     for i, (x1, x2) in enumerate(zip(ind1, ind2)):
         gamma = (1. + 2. * alpha) * random.random() - alpha
@@ -241,12 +244,13 @@ def cx_es_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
     individuals and their strategies.
 
     Parameters:
-        ind1 (:data:`~deap_er.datatypes.Individual`): The first individual.
-        ind2 (:data:`~deap_er.datatypes.Individual`): The second individual.
-        alpha: Extent of the interval in which the new values can be drawn
-            for each attribute on both sides of the parents' attributes.
+        ind1: The first individual.
+        ind2: The second individual.
+        alpha: Extent of the interval in which the
+            new values can be drawn for each attribute
+            on both sides of the parents' attributes.
     Returns:
-        :data:`~deap_er.datatypes.Mates`: Two mated individuals.
+        Two mated individuals.
     """
     zipper = zip(ind1, ind1.strategy, ind2, ind2.strategy)
     for i, (x1, s1, x2, s2) in enumerate(zipper):
@@ -269,13 +273,14 @@ def cx_simulated_binary(ind1: Individual, ind2: Individual, eta: float) -> Mates
     individuals, who are modified in place.
 
     Parameters:
-        ind1 (:data:`~deap_er.datatypes.Individual`): The first individual.
-        ind2 (:data:`~deap_er.datatypes.Individual`): The second individual.
-        eta: Crowding degree of the crossover. Higher *eta* will produce children
-            more similar to their parents, while a smaller *eta* will produce
+        ind1: The first individual.
+        ind2: The second individual.
+        eta: Crowding degree of the crossover.
+            Higher 'eta' will produce children more similar to
+            their parents, while a smaller 'eta' will produce
             children more divergent from their parents.
     Returns:
-        :data:`~deap_er.datatypes.Mates`: Two mated individuals.
+        Two mated individuals.
     """
     for i, (x1, x2) in enumerate(zip(ind1, ind2)):
         rand = random.random()
@@ -300,15 +305,16 @@ def cx_simulated_binary_bounded(ind1: Individual, ind2: Individual, eta: float,
     individuals, who are modified in place.
 
     Parameters:
-        ind1 (:data:`~deap_er.datatypes.Individual`): The first individual.
-        ind2 (:data:`~deap_er.datatypes.Individual`): The second individual.
-        eta: Crowding degree of the crossover. Higher *eta* will produce children
-            more similar to their parents, while a smaller *eta* will produce
+        ind1: The first individual.
+        ind2: The second individual.
+        eta: Crowding degree of the crossover.
+            Higher 'eta' will produce children more similar to
+            their parents, while a smaller 'eta' will produce
             children more divergent from their parents.
-        low (:data:`~deap_er.datatypes.NumOrSeq`): Lower bound of the search space.
-        up (:data:`~deap_er.datatypes.NumOrSeq`): Upper bound of the search space.
+        low: Lower bound of the search space.
+        up: Upper bound of the search space.
     Returns:
-        :data:`~deap_er.datatypes.Mates`: Two mated individuals.
+        Two mated individuals.
     """
     def check_bounds(name: str, var: NumOrSeq) -> Sequence:
         if not isinstance(var, Sequence):
@@ -362,14 +368,14 @@ def cx_uniform(ind1: Individual, ind2: Individual, cx_prob: float) -> Mates:
     """
     Executes a uniform crossover on the two individuals,
     who are modified in place. The traits are swapped
-    according to the *cx_prob* probability.
+    according to the 'cx_prob' probability.
 
     Parameters:
-        ind1 (:data:`~deap_er.datatypes.Individual`): The first individual.
-        ind2 (:data:`~deap_er.datatypes.Individual`): The second individual.
+        ind1: The first individual.
+        ind2: The second individual.
         cx_prob: The probability of swapping any two traits.
     Returns:
-        :data:`~deap_er.datatypes.Mates`: Two mated individuals.
+        Two mated individuals.
     """
     size = min(len(ind1), len(ind2))
     for i in range(size):
@@ -385,10 +391,10 @@ def cx_ordered(ind1: Individual, ind2: Individual) -> Mates:
     individuals, who are modified in place.
 
     Parameters:
-        ind1 (:data:`~deap_er.datatypes.Individual`): The first individual.
-        ind2 (:data:`~deap_er.datatypes.Individual`): The second individual.
+        ind1: The first individual.
+        ind2: The second individual.
     Returns:
-        :data:`~deap_er.datatypes.Mates`: Two mated individuals.
+        Two mated individuals.
     """
     size = min(len(ind1), len(ind2))
     a, b = random.sample(list(range(size)), 2)

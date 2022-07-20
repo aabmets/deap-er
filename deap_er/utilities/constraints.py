@@ -37,17 +37,16 @@ class DeltaPenalty:
     """
     This decorator returns penalized fitness for invalid individuals and
     the original fitness value for valid individuals. The penalized fitness
-    is made of a constant factor *delta* added with an optional *distance*
+    is made of a constant factor 'delta' added with an optional 'distance'
     penalty. The distance function, if provided, returns a value, which is
     growing as the individual moves away from the valid zone.
 
     Parameters:
-        feasibility: A function returning the
-            validity status of any individual.
+        feasibility: A function returning the validity status of an individual.
         delta: Constant or a sequence of constants
             returned for an invalid individual.
-        distance: A function returning the distance
-            between the individual and a given valid point.
+        distance: A function returning the distance between
+            the individual and a given valid point.
     Returns:
         A decorator for the fitness function.
     """

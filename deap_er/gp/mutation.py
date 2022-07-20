@@ -40,7 +40,7 @@ def mut_uniform(individual: PrimitiveTree,
                 expr: Callable, p_set: PrimitiveSetTyped) -> PrimitiveTree:
     """
     Mutates an individual by replacing a random subtree with
-    an expression generated from the given *expr*.
+    an expression generated from the given 'expr'.
 
     Parameters:
         individual: The GP tree to be mutated.

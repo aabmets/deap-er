@@ -41,7 +41,7 @@ class SelNSGA3WithMemory:
     Parameters:
         ref_points: Reference points for selection.
         sorting_algo: The algorithm to use for non-dominated
-            sorting. Can be either *'log'* or *'standard'*.
+            sorting. Can be either 'log' or 'standard'.
     """
     # -------------------------------------------------------- #
     def __init__(self, ref_points: ndarray, sorting_algo: str = "log"):

@@ -33,9 +33,9 @@ __all__ = ['mig_ring']
 def mig_ring(populations: list, mig_count: int, selection: Callable,
              replacement: Callable = None, mig_indices: list = None) -> None:
     """
-    Performs a ring migration between the *populations*. The migration
-    first selects *mig_count* emigrants from each population using the
-    specified *selection* operator and then switches the selected
+    Performs a ring migration between the 'populations'. The migration
+    first selects 'mig_count' emigrants from each population using the
+    specified 'selection' operator and then switches the selected
     individuals between the populations.
 
     Parameters:

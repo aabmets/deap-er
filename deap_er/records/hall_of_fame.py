@@ -45,11 +45,11 @@ class _BaseClass:
     # -------------------------------------------------------- #
     def insert(self, individual) -> None:
         """
-        Insert a new individual into the hall of fame. The inserted individual
-        is inserted on the right side of an equal individual. Inserting a new
-        individual also preserve the hall of fame's order. This method **does not**
-        check for the size of the hall of fame, so that the worst individual is not
-        removed to maintain a constant size.
+        Inserts a new individual into the hall of fame. The individual is
+        inserted on the right side of an equal individual. Inserting a new
+        individual also preserves the hall of fame's order. This method does
+        NOT check for the size of the hall of fame, so that the worst
+        individual is not removed to maintain a constant size.
 
         Parameters:
             individual: The individual to insert into the hall of fame.
@@ -117,7 +117,6 @@ class HallOfFame(_BaseClass):
     """
     # -------------------------------------------------------- #
     def __init__(self, maxsize: int, similar: Optional[Callable] = eq):
-
         self.maxsize = maxsize
         self.similar = similar
         super().__init__()
@@ -125,8 +124,8 @@ class HallOfFame(_BaseClass):
     # -------------------------------------------------------- #
     def update(self, population: list) -> None:
         """
-        Updates the hall of fame with the *population* by replacing the
-        worst individuals with the best individuals present in *population*.
+        Updates the hall of fame with the 'population' by replacing the
+        worst individuals with the best individuals present in 'population'.
         The size of the hall of fame is kept constant.
 
         Parameters:
@@ -167,7 +166,7 @@ class ParetoFront(_BaseClass):
     # -------------------------------------------------------- #
     def update(self, population: list) -> None:
         """
-        Updates the Pareto front hall of fame with the *population* by adding
+        Updates the Pareto front hall of fame with the 'population' by adding
         the individuals from the population that are not dominated by the hall
         of fame. If any individual in the hall of fame is dominated, it is removed.
 

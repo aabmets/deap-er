@@ -36,7 +36,7 @@ __all__ = [
 # ====================================================================================== #
 def sel_random(individuals: list, sel_count: int) -> list:
     """
-    Selects *count* individuals randomly.
+    Selects 'sel_count' individuals randomly.
 
     Parameters:
         individuals: A list of individuals to select from.

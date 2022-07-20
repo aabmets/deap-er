@@ -74,9 +74,9 @@ class Strategy:
     # -------------------------------------------------------- #
     def compute_params(self, **kwargs: Optional) -> None:
         """
-        Computes the parameters of the strategy based on the *lambda* parameter.
+        Computes the parameters of the strategy based on the 'lambda' parameter.
         This function is called automatically when this strategy is instantiated, but
-        it needs to be called again if the *lambda* parameter changes during evolution.
+        it needs to be called again if the 'lambda' parameter changes during evolution.
 
         Parameters:
             kwargs: One or more keyword arguments, optional.
@@ -137,7 +137,7 @@ class Strategy:
     def generate(self, ind_init: Callable) -> list:
         """
         Generate a population of 'lambda' individuals of
-        type *ind_init* from the current strategy.
+        type 'ind_init' from the current strategy.
 
         Parameters:
             ind_init: A callable object that will be
@@ -152,7 +152,7 @@ class Strategy:
     # -------------------------------------------------------- #
     def update(self, population: list) -> None:
         """
-        Updates the current covariance matrix strategy from the *population*.
+        Updates the current covariance matrix strategy from the 'population'.
 
         Parameters:
             population: A list of individuals.

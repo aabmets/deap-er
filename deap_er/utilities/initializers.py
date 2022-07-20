@@ -23,19 +23,17 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from deap_er.datatypes import Container
 from collections.abc import Callable, Iterable
-from typing import Type, Union
 
 
 __all__ = ['init_repeat', 'init_iterate', 'init_cycle']
-
-Container = Type[Union[list, tuple, set, str]]
 
 
 # ====================================================================================== #
 def init_repeat(container: Container, func: Callable, count: int) -> Iterable:
     """
-    Calls the *func* argument *count* times and puts the results in a type *container*.
+    Calls the 'func' argument 'count' times and puts the results in a type 'container'.
     This helper function can be used in conjunction with a Toolbox to register
     a generator of filled containers, such as individuals or a population.
 
@@ -52,8 +50,8 @@ def init_repeat(container: Container, func: Callable, count: int) -> Iterable:
 # -------------------------------------------------------------------------------------- #
 def init_iterate(container: Container, generator: Callable) -> Iterable:
     """
-    Calls the *generator* function and puts the results in a type *container*.
-    The *generator* function should return an iterable. This helper function
+    Calls the 'generator' function and puts the results in a type 'container'.
+    The 'generator' function should return an iterable. This helper function
     can be used in conjunction with a Toolbox to register a generator of
     filled containers, as individuals or a population.
 
@@ -69,8 +67,8 @@ def init_iterate(container: Container, generator: Callable) -> Iterable:
 # -------------------------------------------------------------------------------------- #
 def init_cycle(container: Container, funcs: Iterable, count: int = 1) -> Iterable:
     """
-    Calls each function in the *funcs* iterable *count* times and stores the
-    results from all function calls in a type *container*. This helper function
+    Calls each function in the 'funcs' iterable 'count' times and stores the
+    results from all function calls into the 'container'. This helper function
     can be used in conjunction with a Toolbox to register a generator of filled
     containers, as individuals or a population.
 

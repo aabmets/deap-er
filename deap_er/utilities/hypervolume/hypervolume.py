@@ -35,7 +35,7 @@ __all__ = ['HyperVolume']
 # ====================================================================================== #
 class HyperVolume:
     """
-    Creates a new HyperVolume object with the *ref_point*.
+    Creates a new HyperVolume object with the 'ref_point'.
 
     Parameters:
         ref_point: The reference point for the hypervolume calculation.
@@ -51,7 +51,7 @@ class HyperVolume:
     def compute(self, point_set: Individual) -> float:
         """
         Computes the hypervolume that is dominated by the non-dominated
-        *point_set*. Minimization is implicitly assumed.
+        'point_set'. Minimization is implicitly assumed.
 
         Parameters:
             point_set: The set of points that are to be evaluated.

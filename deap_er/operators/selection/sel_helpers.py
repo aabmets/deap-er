@@ -33,7 +33,7 @@ __all__ = ['assign_crowding_dist', 'uniform_reference_points']
 def assign_crowding_dist(individuals: list) -> None:
     """
     Assigns a crowding distance to each individual's fitness.
-    The crowding distance can be retrieved via the *crowding_dist*
+    The crowding distance can be retrieved via the 'crowding_dist'
     attribute of each individual's fitness. The individuals
     are modified in-place.
 

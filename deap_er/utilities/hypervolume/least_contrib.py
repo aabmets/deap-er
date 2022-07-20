@@ -51,7 +51,7 @@ def least_contrib(population: Individual,
     Returns the index of the individual with the least hypervolume
     contribution. The hypervolume is computed on a local or a remote
     cluster using the Ray multiprocessing library, which must be
-    manually initialized by the user before this function can be used.
+    initialized by the user before this function can be called.
 
     Parameters:
         population: A sequence of non-dominated individuals,

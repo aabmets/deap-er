@@ -119,7 +119,7 @@ class StrategyMultiObjective:
     # -------------------------------------------------------- #
     def update(self, population: list) -> None:
         """
-        Updates the current covariance matrix strategy from the *population*.
+        Updates the current CMA strategy from the 'population'.
 
         Parameters:
             population: A list of individuals.
@@ -203,7 +203,7 @@ class StrategyMultiObjective:
     # -------------------------------------------------------- #
     def generate(self, ind_init: Callable) -> list:
         """
-        Generate a population of *lambda* individuals of type *ind_init*.
+        Generates a population of 'lambda' individuals of type 'ind_init'.
 
         Parameters:
             ind_init: A callable object that will be

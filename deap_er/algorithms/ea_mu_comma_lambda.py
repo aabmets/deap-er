@@ -33,11 +33,11 @@ __all__ = ['ea_mu_comma_lambda']
 
 
 # ====================================================================================== #
-def ea_mu_comma_lambda(toolbox: Toolbox, population: list, generations: int,
-                       survivors: int, offsprings: int,
-                       cx_prob: float, mut_prob: float,
-                       hof: Hof = None, stats: Stats = None,
-                       verbose: bool = False) -> AlgoResult:
+def ea_mu_comma_lambda(toolbox: Toolbox, population: list,
+                       generations: int, survivors: int,
+                       offsprings: int, cx_prob: float,
+                       mut_prob: float, hof: Hof = None,
+                       stats: Stats = None, verbose: bool = False) -> AlgoResult:
     """
     An evolutionary algorithm. This function expects the 'mate', 'mutate', 'select'
     and 'evaluate' operators to be registered in the toolbox. The survivors are

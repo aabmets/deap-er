@@ -34,9 +34,9 @@ __all__ = ['Statistics', 'MultiStatistics']
 class Statistics:
     """
     Object that compiles statistics on a list of arbitrary objects.
-    When created, the statistics object receives a *key* argument that
+    When created, the statistics object receives a 'key' argument that
     is used to get the values on which the statistics will be computed.
-    If not provided, the *key* argument defaults to the identity function.
+    If not provided, the 'key' argument defaults to the identity function.
 
     The value returned by the key may be a multidimensional object, i.e.:
     a tuple or a list, as long as the registered statistical function
@@ -58,7 +58,7 @@ class Statistics:
                  *args: Optional, **kwargs: Optional) -> None:
         """
         Registers a new statistical function that will be applied
-        to the sequence each time the *record* method is called.
+        to the sequence each time the 'record' method is called.
 
         Parameters:
             name: The name of the statistics function as it would
@@ -95,7 +95,7 @@ class MultiStatistics(dict):
     """
     Object that compiles statistics on a list of arbitrary objects.
     Allows computation of statistics on multiple keys using a single
-    call to the *compile* method.
+    call to the 'compile' method.
     """
 
     @property
@@ -107,7 +107,7 @@ class MultiStatistics(dict):
                  *args: Optional, **kwargs: Optional) -> None:
         """
         Registers a new statistical function that will be applied on
-        the sequence each time the *record* method is called.
+        the sequence each time the 'record' method is called.
 
         Parameters:
             name: The name of the statistics function as it would

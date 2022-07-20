@@ -59,26 +59,31 @@ def harm_gp(toolbox: Toolbox,
         generations: The number of generations to compute.
         cx_prob: The probability of mating two individuals.
         mut_prob: The probability of mutating an individual.
-        alpha: The HARM *alpha* parameter.
-        beta: The HARM *beta* parameter.
-        gamma: The HARM *gamma* parameter.
-        rho: The HARM *rho* parameter.
+        alpha: The half-life of the exponential, which is linearly
+            proportional to the cutoff point, optional. Higher values
+            increase the chance of accepting larger individuals.
+        beta: The minimal value of the half-life, which ensures that
+            reasonably sized growth is always possible even during the
+            first few generations, when sizes can be small, optional.
+        gamma: The percentage of individuals that are allowed after
+            the cutoff point, optional. Sets the proportion of the
+            population that is allowed to grow in size.
+        rho: Controls the position of the cutoff point by setting the
+            range of fitness in which to search for the smallest individual,
+            optional. Higher values of 'rho' can be used to search more
+            aggressively for slightly better solutions with the potential
+            downside of increasing the risk of over-fitting.
         nb_model: The number of individuals to generate in order to
-            model the natural distribution. The default value -1
-            sets the nb_model to max(2000, len(population)).
-        min_cutoff: The absolute minimum value for the cutoff point.
-            It ensures that HARM does not shrink the population too
-            much at the beginning of the evolution. The default
-            value is suitable for most cases.
-        hof (Optional[:const:`~deap_er.datatypes.Hof`]):
-            A *HallOfFame* or a *ParetoFront* object, optional.
-        stats(Optional[:const:`~deap_er.datatypes.Stats`]):
-            A *Statistics* or a *MultiStatistics* object, optional.
-        verbose (Optional[bool]):
-            Whether to print debug messages, optional.
+            model the natural distribution, optional. The default value
+            of -1 sets the 'nb_model' to max(2000, len(population)).
+        min_cutoff: The absolute minimum value for the cutoff point,
+            optional. It ensures that the algorithm does not shrink the
+            population too much at the beginning of the evolution.
+        hof: A HallOfFame or a ParetoFront object, optional.
+        stats: A Statistics or a MultiStatistics object, optional.
+        verbose: Whether to print debug messages, optional.
     Returns:
-        :const:`~deap_er.datatypes.AlgoResult`:
-            The final population and the logbook.
+        The final population and the logbook.
     """
 
     # -------------------------------------------------------- #
