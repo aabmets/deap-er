@@ -22,6 +22,7 @@ release = '0.4.0'
 # -- General configuration ---------------------------------------------------
 extensions = [
     'sphinx_rtd_theme',
+    'sphinx.ext.intersphinx',
     'sphinx.ext.napoleon',
     'sphinx.ext.autodoc'
 ]
@@ -34,6 +35,13 @@ html_theme = 'sphinx_rtd_theme'
 highlight_language = 'python3'
 pygments_style = 'default'
 html_static_path = ['_static']
+
+
+# -- Options for intersphinx -------------------------------------------------
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None),
+    'numpy': ('https://numpy.org/doc/stable/', None)
+}
 
 
 # -- Options for Autodoc -------------------------------------------------
@@ -69,4 +77,4 @@ napoleon_use_param = True
 napoleon_use_rtype = True
 napoleon_preprocess_types = False
 napoleon_attr_annotations = True
-napoleon_type_aliases = None
+napoleon_type_aliases = {}
