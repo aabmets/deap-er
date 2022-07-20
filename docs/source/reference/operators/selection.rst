@@ -3,8 +3,12 @@ Selection Operators
 
 Genetic Selection
 -----------------
-.. autofunction:: deap_er.operators.sel_nsga_2
+.. autoclass:: deap_er.operators.SelNSGA3WithMemory
+   :members:
+
 .. autofunction:: deap_er.operators.sel_nsga_3
+.. autofunction:: deap_er.operators.sel_nsga_2
+
 .. autofunction:: deap_er.operators.sel_spea_2
 
 Tournament Selection
