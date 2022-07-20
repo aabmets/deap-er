@@ -45,22 +45,22 @@ intersphinx_mapping = {
 
 
 # -- Options for Autodoc -------------------------------------------------
-autodoc_mock_imports = [
-    'numpy',
-    'ray'
-]
 autodoc_typehints = 'description'
-autodoc_typehints_description_target = 'documented'
 autodoc_typehints_format = 'short'
+autodoc_typehints_description_target = 'documented'
 autodoc_preserve_defaults = True
 autodoc_warningiserror = True
 autodoc_inherit_docstrings = True
+autodoc_docstring_signature = True
 autoclass_content = "both"
 autodoc_class_signature = 'mixed'
 autodoc_member_order = 'bysource'
 autodoc_default_options = {}
-autodoc_docstring_signature = True
 autodoc_type_aliases = {}
+autodoc_mock_imports = [
+    'numpy',
+    'ray'
+]
 
 
 # -- Options for Napoleon -------------------------------------------------
