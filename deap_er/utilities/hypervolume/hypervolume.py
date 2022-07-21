@@ -23,7 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import Individual
 from .multi_list import MultiList
 from .node import Node
 from numpy import ndarray
@@ -35,28 +34,25 @@ __all__ = ['HyperVolume']
 # ====================================================================================== #
 class HyperVolume:
     """
-    Creates a new HyperVolume object with the 'ref_point'.
+    Creates a new HyperVolume object with the **ref_point**.
 
-    Parameters:
-        ref_point: The reference point for the hypervolume calculation.
+    :param ref_point: The reference point for the hypervolume calculation.
     """
     multi_list: MultiList
 
     # -------------------------------------------------------- #
-    def __init__(self, ref_point: Individual) -> None:
+    def __init__(self, ref_point: ndarray) -> None:
         self.ref_point = ref_point
         self.dims = len(ref_point)
 
     # -------------------------------------------------------- #
-    def compute(self, point_set: Individual) -> float:
+    def compute(self, point_set: ndarray) -> float:
         """
         Computes the hypervolume that is dominated by the non-dominated
-        'point_set'. Minimization is implicitly assumed.
+        **point_set**. Minimization is implicitly assumed.
 
-        Parameters:
-            point_set: The set of points that are to be evaluated.
-        Returns:
-            The hypervolume of the given point set.
+        :param point_set: The set of points that are to be evaluated.
+        :return: The hypervolume of the given point set.
         """
         self._pre_process(point_set)
         return self._hv_recursive(

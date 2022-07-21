@@ -35,34 +35,68 @@ __all__ = ['StrategyMultiObjective']
 # ====================================================================================== #
 class StrategyMultiObjective:
     """
-    A multi-objective CMA evolution strategy.
+    The multi-objective Covariance Matrix Adaptation evolution strategy.
 
-    Parameters:
-        population: An initial population of individuals.
-        sigma: The initial step size of the complete system.
-        kwargs: One or more keyword arguments, optional.
+    :param population: An initial population of individuals.
+    :param sigma: The initial step size of the complete system.
+    :param kwargs: One or more keyword arguments, optional.
+
+    Optional **kwargs**:
+
+        * lambda *(int)*
+            | The number of children to produce at each generation.
+            | *Default:* :code:`1`
+        * mu *(int)*
+            | The number of children to keep as parents for the next generation.
+            | *Default:* :code:`len(population)`
+        * ss_dmp *(float)*
+            | Damping of the step-size.
+            | *Default:* :code:`1.0 + len(population) / 2.0`
+        * th_cum *(float)*
+            | Time horizon of the cumulative contribution.
+            | *Default:* :code:`2.0 / (len(population) + 2.0)`
+        * tgt_sr *(float)*
+            | Target success rate.
+            | *Default:* :code:`1.0 / (5 + 1.0 / 2.0)`
+        * thresh_sr *(float)*
+            | Threshold success rate.
+            | *Default:* :code:`0.44`
+        * ss_learn_rate *(float)*
+            | Learning rate of the step-size.
+            | *Default:* :code:`tgt_sr / (2.0 + tgt_sr)`
+        * cm_learn_rate *(float)*
+            | Learning rate of the covariance matrix.
+            | *Default:* :code:`2.0 / (len(population) ** 2 + 6.0)`
+        * indicator *(Callable)*
+            | The indicator function to use.
+            | *Default:* :code:`deap_er.utilities.least_contrib`
+
+    .. raw:: html
+
+       <br />
     """
     # -------------------------------------------------------- #
     def __init__(self, population: list, sigma: float, **kwargs: Optional):
         self.parents = population
         self.dim = len(self.parents[0])
+        pop_size = len(population)
 
-        self.mu = kwargs.get("mu", len(self.parents))
-        self.lambda_ = kwargs.get("lambda_", 1)
-        self.d = kwargs.get("d", 1.0 + self.dim / 2.0)
-        self.pt_arg = kwargs.get("ptarg", 1.0 / (5.0 + 0.5))
-        self.cp = kwargs.get("cp", self.pt_arg / (2.0 + self.pt_arg))
-        self.cc = kwargs.get("cc", 2.0 / (self.dim + 2.0))
-        self.c_cov = kwargs.get("ccov", 2.0 / (self.dim ** 2 + 6.0))
-        self.p_thresh = kwargs.get("pthresh", 0.44)
+        self.mu = kwargs.get("mu", pop_size)
+        self.lamb = kwargs.get("lambda", 1)
+        self.ss_dmp = kwargs.get("ss_dmp", 1.0 + self.dim / 2.0)
+        self.tgt_sr = kwargs.get("tgt_sr", 1.0 / (5.0 + 0.5))
+        self.ss_learn_rate = kwargs.get("ss_learn_rate", self.tgt_sr / (2.0 + self.tgt_sr))
+        self.th_cum = kwargs.get("th_cum", 2.0 / (self.dim + 2.0))
+        self.cm_learn_rate = kwargs.get("cm_learn_rate", 2.0 / (self.dim ** 2 + 6.0))
+        self.thresh_sr = kwargs.get("thresh_sr", 0.44)
         self.indicator = kwargs.get("indicator", utils.least_contrib)
         self.timeout = kwargs.get("timeout", 60)
 
-        self.sigmas = [sigma] * len(population)
-        self.big_a = [numpy.identity(self.dim) for _ in range(len(population))]
-        self.inv_cholesky = [numpy.identity(self.dim) for _ in range(len(population))]
-        self.pc = [numpy.zeros(self.dim) for _ in range(len(population))]
-        self.psucc = [self.pt_arg] * len(population)
+        self.sigmas = [sigma] * pop_size
+        self.big_a = [numpy.identity(self.dim) for _ in range(pop_size)]
+        self.inv_cholesky = [numpy.identity(self.dim) for _ in range(pop_size)]
+        self.pc = [numpy.zeros(self.dim) for _ in range(pop_size)]
+        self.psucc = [self.tgt_sr] * pop_size
 
     # -------------------------------------------------------- #
     def _select(self, candidates):
@@ -119,17 +153,15 @@ class StrategyMultiObjective:
     # -------------------------------------------------------- #
     def update(self, population: list) -> None:
         """
-        Updates the current CMA strategy from the 'population'.
+        Updates the current CMA strategy from the **population**.
 
-        Parameters:
-            population: A list of individuals.
-        Returns:
-            None
+        :param population: A list of individuals.
+        :return: Nothing.
         """
         chosen, not_chosen = self._select(population + self.parents)
 
-        cp, cc, c_cov = self.cp, self.cc, self.c_cov
-        d, pt_arg, p_thresh = self.d, self.pt_arg, self.p_thresh
+        cp, cc, c_cov = self.ss_learn_rate, self.th_cum, self.cm_learn_rate
+        d, pt_arg, p_thresh = self.ss_dmp, self.tgt_sr, self.thresh_sr
 
         bag = [list() for _ in range(6)]
         for ind in chosen:
@@ -203,22 +235,20 @@ class StrategyMultiObjective:
     # -------------------------------------------------------- #
     def generate(self, ind_init: Callable) -> list:
         """
-        Generates a population of 'lambda' individuals of type 'ind_init'.
+        Generates a population of *lambda* individuals of
+        type **ind_init** from the current strategy.
 
-        Parameters:
-            ind_init: A callable object that will be
-                used to generate the individuals.
-        Returns:
-            A list of individuals.
+        :param ind_init: A callable object that generates individuals.
+        :return: A list of individuals.
         """
-        arz = numpy.random.randn(self.lambda_, self.dim)
+        arz = numpy.random.randn(self.lamb, self.dim)
         individuals = list()
 
         for i, p in enumerate(self.parents):
             p.ps_ = "p", i
 
-        if self.lambda_ == self.mu:
-            for i in range(self.lambda_):
+        if self.lamb == self.mu:
+            for i in range(self.lamb):
                 dot = numpy.dot(self.big_a[i], arz[i])
                 init = ind_init(self.parents[i] + self.sigmas[i] * dot)
                 individuals.append(init)
@@ -229,7 +259,7 @@ class StrategyMultiObjective:
                 self.parents, len(self.parents),
                 first_front_only=True)
 
-            for i in range(self.lambda_):
+            for i in range(self.lamb):
                 j = numpy.random.randint(0, len(n_dom))
                 _, p_idx = n_dom[j].ps_
                 dot = numpy.dot(self.big_a[p_idx], arz[i])

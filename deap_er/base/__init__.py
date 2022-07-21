@@ -23,5 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .fitness import *
+from .datatypes import *
 from .toolbox import *
+from .fitness import *

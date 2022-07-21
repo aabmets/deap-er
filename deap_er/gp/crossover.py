@@ -39,11 +39,9 @@ def cx_one_point(ind1: PrimitiveTree, ind2: PrimitiveTree) -> tuple:
     Randomly selects a crossover point in each individual and exchanges
     each subtree with the point as the root between each individual.
 
-    Parameters:
-        ind1: The first individual to mate.
-        ind2: The second individual to mate.
-    Returns:
-        Two individuals.
+    :param ind1: The first individual to mate.
+    :param ind2: The second individual to mate.
+    :return: Two individuals.
     """
     if len(ind1) < 2 or len(ind2) < 2:
         return ind1, ind2
@@ -80,13 +78,11 @@ def cx_one_point_leaf_biased(ind1: PrimitiveTree, ind2: PrimitiveTree,
     Randomly selects a crossover point in each individual and exchanges
     each subtree with the point as the root between each individual.
 
-    Parameters:
-        ind1: The first individual to mate.
-        ind2: The second individual to mate.
-        term_prob: The probability of selecting a
-            terminal node as the crossover point.
-    Returns:
-        Two individuals.
+    :param ind1: The first individual to mate.
+    :param ind2: The second individual to mate.
+    :param term_prob: The probability of selecting
+        a terminal node as the crossover point.
+    :return: Two individuals.
     """
     if len(ind1) < 2 or len(ind2) < 2:
         return ind1, ind2

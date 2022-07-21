@@ -36,17 +36,15 @@ __all__ = ['sort_log_non_dominated']
 def sort_log_non_dominated(individuals: list, sel_count: int,
                            first_front_only: bool = False) -> list:
     """
-    Sorts 'individuals' in pareto non-dominated fronts
+    Sorts **individuals** in pareto non-dominated fronts
     using the Generalized Reduced Run-Time Complexity
     Non-Dominated Sorting Algorithm.
 
-    Parameters:
-        individuals: A list of individuals to sort.
-        sel_count: The number of individuals to select.
-        first_front_only: If True, only the first front is returned.
-    Returns:
-        A list of Pareto fronts, where the first
-        element is the true Pareto front.
+    :param individuals: A list of individuals to sort.
+    :param sel_count: The number of individuals to select.
+    :param first_front_only: If True, only the first front is returned.
+    :return: A list of Pareto fronts, where the
+        first element is the true Pareto front.
     """
     if sel_count == 0:
         return []

@@ -23,6 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from deap_er.base import Individual
 from typing import Callable
 from copy import deepcopy
 
@@ -45,11 +46,7 @@ class History:
     @property
     def decorator(self) -> Callable:
         """
-        Property that returns an appropriate decorator
-        to enhance the operators of the toolbox.
-
-        Returns:
-            A decorator that adds the genealogy history to the individuals.
+        A decorator that adds genealogy history to the individuals.
         """
         def wrapper(func):
             def wrapped(*args, **kwargs):
@@ -62,14 +59,12 @@ class History:
     # -------------------------------------------------------- #
     def update(self, individuals: list) -> None:
         """
-        Update the genealogy history with the given individuals.
+        Update the genealogy history with the given **individuals**.
         This method should be called with the initial population
         to initialize the history and also after each variation.
 
-        Parameters:
-            individuals: The individuals to update the genealogy history with.
-        Returns:
-            None
+        :param individuals: The individuals to update the genealogy history with.
+        :return: Nothing.
         """
         try:
             parent_indices = tuple(ind.history_index for ind in individuals)
@@ -83,18 +78,20 @@ class History:
             self.genealogy_tree[self.genealogy_index] = parent_indices
 
     # -------------------------------------------------------- #
-    def get_genealogy(self, individual, max_depth=float("inf")) -> dict:
+    def get_genealogy(self, individual: Individual, max_depth: float = float("inf")) -> dict:
         """
-        Get the genealogy of the given individual. The returned graph contains
-        the parents up to 'max_depth' variations before this individual. The
-        default value of 'max_depth' is up to the beginning of the evolution.
+        Get the genealogy of the given **individual**. The individual must have the
+        *'history_index'* attribute which is set by the *'update'* method in order
+        to retrieve its associated genealogy tree. The returned graph contains
+        the parents up to **max_depth** variations before this individual. The
+        default value of **max_depth** is up to the beginning of the evolution.
 
-        Parameters:
-            individual: The individual at the root of the genealogy tree.
-            max_depth: The maximum depth of the genealogy tree.
-        Returns:
-            A dictionary where each key is an individual index and the
+        :param individual: The individual at the root of the genealogy tree.
+        :param max_depth: The maximum depth of the genealogy tree.
+        :return: A dictionary where each key is an individual index and the
             values are tuples corresponding to the index of the parents.
+
+        :type individual: :ref:`Individual <datatypes>`
         """
         def _recursive(index, depth):
             if index not in self.genealogy_tree:
@@ -109,8 +106,12 @@ class History:
                     _recursive(ind, depth)
                 visited.add(ind)
 
-        visited = set()
-        gtree = dict()
-
-        _recursive(individual.history_index, 0)
-        return gtree
+        if hasattr(individual, 'history_index'):
+            visited = set()
+            gtree = dict()
+            _recursive(individual.history_index, 0)
+            return gtree
+        else:
+            raise AttributeError(
+                "The individual must have the 'history_index' attribute."
+            )

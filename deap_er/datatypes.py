@@ -23,17 +23,8 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .records import *
-from collections.abc import Sequence
-from typing import Union, Tuple, Type
-import numpy
-import array
-
-Individual = Union[list, array.array, numpy.ndarray]
-Mates = Tuple[Individual, Individual]
-SeqOfNum = Union[Sequence[int], Sequence[float]]
-NumOrSeq = Union[int, float, SeqOfNum]
-Hof = Union[HallOfFame, ParetoFront]
-Stats = Union[Statistics, MultiStatistics]
-AlgoResult = Tuple[list, Logbook]
-Container = Type[Union[list, tuple, set, str]]
+from .base.datatypes import *
+from .gp.primitives import TerminalTypes
+from .gp.tools import ExprTypes, ListOfSets, Graph
+from .records import Hof, Stats, AlgoResult
+from .utilities import Containers

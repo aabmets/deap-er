@@ -40,14 +40,12 @@ def mut_uniform(individual: PrimitiveTree,
                 expr: Callable, p_set: PrimitiveSetTyped) -> PrimitiveTree:
     """
     Mutates an individual by replacing a random subtree with
-    an expression generated from the given 'expr'.
+    an expression generated from the given **expr**.
 
-    Parameters:
-        individual: The GP tree to be mutated.
-        expr: A callable that, when called, returns a random GP subtree.
-        p_set: The PrimitiveSet to be used for the mutation.
-    Returns:
-        The mutated individual.
+    :param individual: The GP tree to be mutated.
+    :param expr: A callable that, when called, returns a random GP subtree.
+    :param p_set: The PrimitiveSet to be used for the mutation.
+    :return: The mutated individual.
     """
     index = random.randrange(len(individual))
     i_slice = individual.search_subtree(index)
@@ -61,13 +59,11 @@ def mut_node_replacement(individual: PrimitiveTree,
                          p_set: PrimitiveSetTyped) -> PrimitiveTree:
     """
     Mutates an individual by replacing a random primitive
-    with a random primitive from the given PrimitiveSet.
+    with a random primitive from the given **p_set**.
 
-    Parameters:
-        individual: The GP tree to be mutated.
-        p_set: The PrimitiveSet to be used for the mutation.
-    Returns:
-        The mutated individual.
+    :param individual: The GP tree to be mutated.
+    :param p_set: The PrimitiveSet to be used for the mutation.
+    :return: The mutated individual.
     """
     if len(individual) < 2:
         return individual
@@ -94,11 +90,9 @@ def mut_ephemeral(individual: PrimitiveTree,
     Mutates an individual by replacing either
     one random or all ephemeral constants.
 
-    Parameters:
-        individual: The GP tree to be mutated.
-        mode: The mode of mutation. Either 'one' or 'all'.
-    Returns:
-        The mutated individual.
+    :param individual: The GP tree to be mutated.
+    :param mode: The mode of mutation. Either 'one' or 'all'.
+    :return: The mutated individual.
     """
     if mode not in ["one", "all"]:
         raise ValueError('Mode must be one of \'one\' or \'all\'.')
@@ -124,11 +118,9 @@ def mut_insert(individual: PrimitiveTree,
     """
     Inserts a new branch at a random position in the tree.
 
-    Parameters:
-        individual: The GP tree to be mutated.
-        p_set: The PrimitiveSet to be used for the mutation.
-    Returns:
-        The mutated individual.
+    :param individual: The GP tree to be mutated.
+    :param p_set: The PrimitiveSet to be used for the mutation.
+    :return: The mutated individual.
     """
     index = random.randrange(len(individual))
     node = individual[index]
@@ -172,10 +164,8 @@ def mut_shrink(individual: PrimitiveTree) -> PrimitiveTree:
     Shrinks a tree by removing a random branch, replacing
     it with a random argument of the branch.
 
-    Parameters:
-        individual: The GP tree to be mutated.
-    Returns:
-        The mutated individual.
+    :param individual: The GP tree to be mutated.
+    :return: The mutated individual.
     """
     if len(individual) < 3 or individual.height <= 1:
         return individual

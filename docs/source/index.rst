@@ -5,12 +5,12 @@ Welcome to the DEAP-er's documentation!
    :maxdepth: 2
    :caption: Reference:
 
-   reference/datatypes.rst
    reference/base.rst
    reference/creator.rst
    reference/records.rst
    reference/algorithms.rst
-   reference/strategies.rst
    reference/operators.rst
+   reference/strategies.rst
    reference/utilities.rst
    reference/gp.rst
+   reference/datatypes.rst

@@ -28,6 +28,7 @@ extensions = [
 ]
 exclude_patterns = []
 templates_path = ['_templates']
+add_module_names = False
 
 
 # -- Options for HTML output -------------------------------------------------

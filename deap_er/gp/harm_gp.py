@@ -23,8 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import Hof, Stats, AlgoResult
-from deap_er.records import Logbook
+from deap_er.records import Logbook, Hof, Stats, AlgoResult
 from deap_er.base import Toolbox
 from typing import Callable
 import random
@@ -53,39 +52,40 @@ def harm_gp(toolbox: Toolbox,
     Implements population bloat control by an evolution algorithm for a genetic
     program. The default parameter values are recommended for most use-cases.
 
-    Parameters:
-        toolbox: A Toolbox which contains the evolution operators.
-        population: A list of individuals to evolve.
-        generations: The number of generations to compute.
-        cx_prob: The probability of mating two individuals.
-        mut_prob: The probability of mutating an individual.
-        alpha: The half-life of the exponential, which is linearly
-            proportional to the cutoff point, optional. Higher values
-            increase the chance of accepting larger individuals.
-        beta: The minimal value of the half-life, which ensures that
-            reasonably sized growth is always possible even during the
-            first few generations, when sizes can be small, optional.
-        gamma: The percentage of individuals that are allowed after
-            the cutoff point, optional. Sets the proportion of the
-            population that is allowed to grow in size.
-        rho: Controls the position of the cutoff point by setting the
-            range of fitness in which to search for the smallest individual,
-            optional. Higher values of 'rho' can be used to search more
-            aggressively for slightly better solutions with the potential
-            downside of increasing the risk of over-fitting.
-        nb_model: The number of individuals to generate in order to
-            model the natural distribution, optional. The default value
-            of -1 sets the 'nb_model' to max(2000, len(population)).
-        min_cutoff: The absolute minimum value for the cutoff point,
-            optional. It ensures that the algorithm does not shrink the
-            population too much at the beginning of the evolution.
-        hof: A HallOfFame or a ParetoFront object, optional.
-        stats: A Statistics or a MultiStatistics object, optional.
-        verbose: Whether to print debug messages, optional.
-    Returns:
-        The final population and the logbook.
-    """
+    :param toolbox: A Toolbox which contains the evolution operators.
+    :param population: A list of individuals to evolve.
+    :param generations: The number of generations to compute.
+    :param cx_prob: The probability of mating two individuals.
+    :param mut_prob: The probability of mutating an individual.
+    :param alpha: The half-life of the exponential, which is linearly
+        proportional to the cutoff point, optional. Higher values
+        increase the chance of accepting larger individuals.
+    :param beta: The minimal value of the half-life, which ensures that
+        reasonably sized growth is always possible even during the
+        first few generations, when sizes can be small, optional.
+    :param gamma: The percentage of individuals that are allowed after
+        the cutoff point, optional. Sets the proportion of the
+        population that is allowed to grow in size.
+    :param rho: Controls the position of the cutoff point by setting the
+        range of fitness in which to search for the smallest individual,
+        optional. Higher values of 'rho' can be used to search more
+        aggressively for slightly better solutions with the potential
+        downside of increasing the risk of over-fitting.
+    :param nb_model: The number of individuals to generate in order to
+        model the natural distribution, optional. The default value
+        of -1 sets the 'nb_model' to max(2000, len(population)).
+    :param min_cutoff: The absolute minimum value for the cutoff point,
+        optional. It ensures that the algorithm does not shrink the
+        population too much at the beginning of the evolution.
+    :param hof: A HallOfFame or a ParetoFront object, optional.
+    :param stats: A Statistics or a MultiStatistics object, optional.
+    :param verbose: Whether to print debug messages, optional.
+    :return: The final population and the logbook.
 
+    :type hof: :ref:`Hof <datatypes>`
+    :type stats: :ref:`Stats <datatypes>`
+    :rtype: :ref:`AlgoResult <datatypes>`
+    """
     # -------------------------------------------------------- #
     def _harm_target_func(x: int) -> float:
         half_life = x * float(alpha) + beta

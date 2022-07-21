@@ -33,26 +33,27 @@ import sys
 
 __all__ = [
     'compile_tree', 'compile_adf_tree',
-    'build_tree_graph', 'static_limit'
+    'build_tree_graph', 'static_limit',
+    'ExprTypes', 'ListOfSets', 'Graph'
 ]
-Expression = Union[PrimitiveTree, str]
-PrimSets = list[PrimitiveSetTyped]
+ExprTypes = Union[str, PrimitiveTree]
+ListOfSets = list[PrimitiveSetTyped]
 Graph = tuple[list, list, dict]
 
 
 # ====================================================================================== #
-def compile_tree(expr: Expression, p_set: PrimitiveSetTyped) -> Any:
+def compile_tree(expr: ExprTypes, p_set: PrimitiveSetTyped) -> Any:
     """
     Evaluates the expression on the given primitive set.
 
-    Parameters:
-        expr: The expression to compile. It can be a string,
-            a PrimitiveTree or any object which produces a valid
-            Python expression when converted into a string.
-        p_set: The primitive set to evaluate the expression on.
-    Results:
-        A callable if the 'p_set' has 1 or more arguments,
+    :param expr: The expression to compile. It can be a string,
+        a PrimitiveTree or any object which produces a valid
+        Python expression when converted into a string.
+    :param p_set: The primitive set to evaluate the expression on.
+    :return: A callable if the 'p_set' has 1 or more arguments,
         otherwise the result of the evaluation.
+
+    :type expr: :ref:`Expression <datatypes>`
     """
     code = str(expr)
     if len(p_set.arguments) > 0:
@@ -69,25 +70,26 @@ def compile_tree(expr: Expression, p_set: PrimitiveSetTyped) -> Any:
 
 
 # -------------------------------------------------------------------------------------- #
-def compile_adf_tree(expr: Expression, p_sets: PrimSets) -> Any:
+def compile_adf_tree(expr: ExprTypes, p_sets: ListOfSets) -> Any:
     """
     Compiles the expression represented by a list of trees.
     The first element of the list is the main tree, and the
     following elements are automatically defined functions
     that can be called by the first tree.
 
-    Parameters:
-        expr: The expression to compile. It can be a string,
-            a PrimitiveTree or any object which produces a valid
-            Python expression when converted into a string.
-        p_sets: List of primitive sets. The first element is
-            the main tree and the others are automatically defined
-            functions (ADF) that can be called by the first tree.
-            The last element is associated with the 'expr' and
-            should contain a reference to the preceding ADFs.
-    Returns:
-        A callable if the main primitive set has 1 or more
+    :param expr: The expression to compile. It can be a string,
+        a PrimitiveTree or any object which produces a valid
+        Python expression when converted into a string.
+    :param p_sets: List of primitive sets. The first element is
+        the main tree and the others are automatically defined
+        functions (ADF) that can be called by the first tree.
+        The last element is associated with the 'expr' and
+        should contain a reference to the preceding ADFs.
+    :return: A callable if the main primitive set has 1 or more
         arguments, otherwise the result of the evaluation.
+
+    :type expr: :ref:`Expression <datatypes>`
+    :type p_sets: :ref:`PrimSets <datatypes>`
     """
     adf_dict = dict()
     func = None
@@ -99,7 +101,7 @@ def compile_adf_tree(expr: Expression, p_sets: PrimSets) -> Any:
 
 
 # -------------------------------------------------------------------------------------- #
-def build_tree_graph(expr: Expression) -> Graph:
+def build_tree_graph(expr: ExprTypes) -> Graph:
     """
     Builds a graph representation of the given expression. The graph
     is a tuple of three elements: a list of nodes, a list of edges and a
@@ -107,10 +109,11 @@ def build_tree_graph(expr: Expression) -> Graph:
     the edges are the connections between the nodes. The dictionary
     contains the leaves values, where the keys are the leaves indices.
 
-    Parameters:
-        expr: A tree expression to convert into a graph.
-    Returns:
-        A list of nodes, a list of edges and a dictionary of labels.
+    :param expr: A tree expression to convert into a graph.
+    :return: A list of nodes, a list of edges and a dictionary of labels.
+
+    :type expr: :ref:`Expression <datatypes>`
+    :rtype: :ref:`Graph <datatypes>`
     """
     nodes = list(range(len(expr)))
     edges = list()
@@ -138,11 +141,9 @@ def static_limit(key: Callable, max_value: Union[int, float]) -> Callable:
     When an invalid child is generated, it is replaced by one of its
     parents, which is randomly selected.
 
-    Parameters:
-        key: The function which obtains the measurement from an individual.
-        max_value: The maximum value allowed for the given measurement.
-    Returns:
-        A decorator which can be applied to a GP operator in a Toolbox.
+    :param key: The function which obtains the measurement from an individual.
+    :param max_value: The maximum value allowed for the given measurement.
+    :return: A decorator which can be applied to a GP operator in a Toolbox.
     """
     def decorator(func):
         @wraps(func)

@@ -49,10 +49,7 @@ class Logbook(list):
     @property
     def stream(self) -> str:
         """
-        Returns a stream of the logbook.
-
-        Returns:
-            A stream of the logbook.
+        A stream of the logbook.
         """
         start_index, self.buff_index = self.buff_index, len(self)
         return self.__str__(start_index)
@@ -62,10 +59,8 @@ class Logbook(list):
         """
         Adds a new entry to the logbook as a list of dictionaries.
 
-        Parameters:
-            data: The new entry.
-        Returns:
-            None
+        :param data: The new entry.
+        :return: Nothing.
         """
         apply_to_all = {k: v for k, v in data.items() if not isinstance(v, dict)}
         for key, value in list(data.items()):
@@ -81,10 +76,8 @@ class Logbook(list):
         """
         Returns a list of values for the given names.
 
-        Parameters:
-            names: The names of the values to retrieve.
-        Returns:
-            A list of values for the given names.
+        :param names: The names of the values to retrieve.
+        :return: A list of values for the given names.
         """
         if len(names) == 1:
             return [entry.get(names[0], None) for entry in self]
@@ -93,13 +86,11 @@ class Logbook(list):
     # -------------------------------------------------------- #
     def pop(self, index: int = 0) -> dict:
         """
-        Retrieves and deletes element at 'index'. The header and
+        Retrieves and deletes element at **index**. The header and
         the stream will be adjusted to follow the modification.
 
-        Parameters:
-            index: The index of the element to retrieve and delete.
-        Returns:
-            The element at 'index'.
+        :param index: The index of the element to retrieve and delete.
+        :return: The element at the given index.
         """
         if index < self.buff_index:
             self.buff_index -= 1

@@ -23,14 +23,11 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import Individual
 from .hypervolume import HyperVolume
-
 from ray import exceptions as ray_ex
-import ray
-
 from numpy import ndarray
 import numpy
+import ray
 
 
 __all__ = ['least_contrib']
@@ -38,13 +35,13 @@ __all__ = ['least_contrib']
 
 # ====================================================================================== #
 @ray.remote  # pragma: no cover
-def _hvol(point_set: Individual, ref_point: Individual) -> float:
+def _hvol(point_set: ndarray, ref_point: ndarray) -> float:
     hv = HyperVolume(ref_point)
     return hv.compute(point_set)
 
 
 # -------------------------------------------------------------------------------------- #
-def least_contrib(population: Individual,
+def least_contrib(population: list,
                   ref: ndarray = None,
                   timeout: int = None) -> int:
     """
@@ -53,15 +50,13 @@ def least_contrib(population: Individual,
     cluster using the Ray multiprocessing library, which must be
     initialized by the user before this function can be called.
 
-    Parameters:
-        population: A sequence of non-dominated individuals,
-            where each individual has a Fitness attribute.
-        ref: The reference point for the hypervolume, optional.
-        timeout: The timeout for the computation. Defaults to
-            60 seconds. Raises a TimeoutError if the computation
-            does not finish within the given timeout.
-    Returns:
-        The index of the individual with the least hypervolume contribution.
+    :param population: A sequence of non-dominated individuals,
+        where each individual has a Fitness attribute.
+    :param ref: The reference point for the hypervolume, optional.
+    :param timeout: The timeout for the computation. Defaults to
+        60 seconds. Raises a TimeoutError if the computation
+        does not finish within the given timeout.
+    :return: The index of the individual with the least hypervolume contribution.
     """
     if not ray.is_initialized():
         raise RuntimeError(

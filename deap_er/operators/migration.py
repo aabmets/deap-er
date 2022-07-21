@@ -44,7 +44,7 @@ def mig_ring(populations: list, mig_count: int, selection: Callable,
     :param replacement: The function to select which individuals will be switched.
     :param mig_indices: A list of indices indicating where the individuals from a
             particular position in the list goes. Default is a ring migration.
-    :return: Nothing
+    :return: Nothing.
     """
     nbr_demes = len(populations)
     if mig_indices is None:

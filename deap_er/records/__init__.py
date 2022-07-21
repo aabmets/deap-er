@@ -27,3 +27,8 @@ from .hall_of_fame import *
 from .history import *
 from .logbook import *
 from .statistics import *
+from typing import Union, Tuple
+
+Hof = Union[HallOfFame, ParetoFront]
+Stats = Union[Statistics, MultiStatistics]
+AlgoResult = Tuple[list, Logbook]

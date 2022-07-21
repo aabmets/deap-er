@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.base.toolbox import Toolbox
+from deap_er.base import Toolbox
 import random
 
 
@@ -40,13 +40,11 @@ def var_and(toolbox: Toolbox, population: list,
     the range of [0, 1]. The returned population is independent of
     the input population and has their fitness invalidated.
 
-    Parameters:
-        toolbox: A Toolbox which contains the evolution operators.
-        population: A list of individuals to evolve.
-        cx_prob: The probability of mating two individuals.
-        mut_prob: The probability of mutating an individual.
-    Returns:
-        A list of evolved individuals.
+    :param toolbox: A Toolbox which contains the evolution operators.
+    :param population: A list of individuals to evolve.
+    :param cx_prob: The probability of mating two individuals.
+    :param mut_prob: The probability of mutating an individual.
+    :return: A list of evolved individuals.
     """
     data = dict(crossover=cx_prob, mutation=mut_prob)
     for key, value in data.items():
@@ -75,14 +73,12 @@ def var_or(toolbox: Toolbox, population: list, offsprings: int,
     the range of [0, 1]. The returned population is independent of
     the input population and has their fitness invalidated.
 
-    Parameters:
-        toolbox: A Toolbox which contains the evolution operators.
-        population: A list of individuals to evolve.
-        offsprings: The number of individuals to produce.
-        cx_prob: The probability of mating two individuals.
-        mut_prob: The probability of mutating an individual.
-    Returns:
-        A list of evolved individuals.
+    :param toolbox: A Toolbox which contains the evolution operators.
+    :param population: A list of individuals to evolve.
+    :param offsprings: The number of individuals to produce.
+    :param cx_prob: The probability of mating two individuals.
+    :param mut_prob: The probability of mutating an individual.
+    :return: A list of evolved individuals.
     """
     evolve_prob = cx_prob + mut_prob
     if evolve_prob > 1.0:

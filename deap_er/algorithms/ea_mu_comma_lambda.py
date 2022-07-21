@@ -23,9 +23,8 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import Hof, Stats, AlgoResult
-from deap_er.base.toolbox import Toolbox
-from deap_er.records import Logbook
+from deap_er.records import Logbook, Hof, Stats, AlgoResult
+from deap_er.base import Toolbox
 from .variation import *
 
 
@@ -39,23 +38,25 @@ def ea_mu_comma_lambda(toolbox: Toolbox, population: list,
                        mut_prob: float, hof: Hof = None,
                        stats: Stats = None, verbose: bool = False) -> AlgoResult:
     """
-    An evolutionary algorithm. This function expects the 'mate', 'mutate', 'select'
-    and 'evaluate' operators to be registered in the toolbox. The survivors are
-    selected only from the offspring population.
+    An evolutionary algorithm. This function expects the *'mate'*, *'mutate'*,
+    *'select'* and *'evaluate'* operators to be registered in the toolbox.
+    The survivors are selected only from the offspring population.
 
-    Parameters:
-        toolbox: A Toolbox which contains the evolution operators.
-        population: A list of individuals to evolve.
-        generations: The number of generations to compute.
-        survivors: The number of individuals to select from the offspring.
-        offsprings: The number of individuals to produce at each generation.
-        cx_prob: The probability of mating two individuals.
-        mut_prob: The probability of mutating an individual.
-        hof: A HallOfFame or a ParetoFront object, optional.
-        stats: A Statistics or a MultiStatistics object, optional.
-        verbose: Whether to print debug messages, optional.
-    Returns:
-        The final population and the logbook.
+    :param toolbox: A Toolbox which contains the evolution operators.
+    :param population: A list of individuals to evolve.
+    :param generations: The number of generations to compute.
+    :param survivors: The number of individuals to select from the offspring.
+    :param offsprings: The number of individuals to produce at each generation.
+    :param cx_prob: The probability of mating two individuals.
+    :param mut_prob: The probability of mutating an individual.
+    :param hof: A HallOfFame or a ParetoFront object, optional.
+    :param stats: A Statistics or a MultiStatistics object, optional.
+    :param verbose: Whether to print debug messages, optional.
+    :return: The final population and the logbook.
+
+    :type hof: :ref:`Hof <datatypes>`
+    :type stats: :ref:`Stats <datatypes>`
+    :rtype: :ref:`AlgoResult <datatypes>`
     """
     if offsprings < survivors:
         raise ValueError(

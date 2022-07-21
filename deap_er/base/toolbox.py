@@ -61,21 +61,19 @@ class Toolbox(LintHints):
     def register(self, alias: str, func: Callable,
                  *args: Optional, **kwargs: Optional) -> None:
         """
-        Registers a 'func' in the toolbox under the name 'alias'.
-        Any 'args' or 'kwargs' will be automatically passed to the
+        Registers a **func** in the toolbox under the name **alias**.
+        Any **args** or **kwargs** will be automatically passed to the
         registered function when it's called. Fixed arguments can
         be overridden at function call time.
 
-        Parameters:
-            alias: The name to register the 'func' under. The alias
-                will be overwritten if it already exists.
-            func: The function to which the alias is going to refer.
-            args: Positional arguments which are automatically
-                passed to the 'func' when it's called, optional.
-            kwargs: Keyword arguments which are automatically
-                passed to the 'func' when it's called, optional.
-        Returns:
-            None
+        :param alias: The name to register the 'func' under.
+            The alias will be overwritten if it already exists.
+        :param func: The function to which the alias is going to refer.
+        :param args: Positional arguments which are automatically
+            passed to the 'func' when it's called, optional.
+        :param kwargs: Keyword arguments which are automatically
+            passed to the 'func' when it's called, optional.
+        :return: Nothing.
         """
         p_func = partial(func, *args, **kwargs)
         p_func.__name__ = alias
@@ -88,12 +86,10 @@ class Toolbox(LintHints):
     # -------------------------------------------------------- #
     def unregister(self, alias: str) -> None:
         """
-        Removes an operator with the name 'alias' from the toolbox.
+        Removes an operator with the name **alias** from the toolbox.
 
-        Parameters:
-            alias: The name of the operator to remove from the toolbox.
-        Returns:
-            None
+        :param alias: The name of the operator to remove from the toolbox.
+        :return: Nothing.
         """
         delattr(self, alias)
 
@@ -101,15 +97,14 @@ class Toolbox(LintHints):
     def decorate(self, alias: str,
                  *decorators: Optional[Callable]) -> None:
         """
-        Decorates an operator 'alias' with the provided 'decorators'.
+        Decorates an operator **alias** with the provided **decorators**.
 
-        Parameters:
-            alias: Name of the operator to decorate. The 'alias'
-                must be a registered operator in the toolbox.
-            decorators: Positional arguments of decorator functions to apply
-                to the 'alias', optional. If none are provided, the operator
-                is left unchanged. If multiple are provided, they are applied
-                in order of the iteration over the 'decorators'.
+        :param alias: Name of the operator to decorate. The 'alias'
+            must be a registered operator in the toolbox.
+        :param decorators: Positional arguments of decorator functions
+            to apply to the 'alias', optional. If none are provided,
+            the operator is left unchanged. If multiple are provided,
+            they are applied in order of iteration over the 'decorators'.
         """
         if not decorators:
             return

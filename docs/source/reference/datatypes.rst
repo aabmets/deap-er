@@ -3,26 +3,57 @@
 Datatypes
 =========
 
-.. py:data:: deap_er.datatypes.Individual
+| These custom datatype aliases are available from their respective
+| subpackages, as well as from the general :data:`deap_er.datatypes` module.
+
+
+Base
+----
+
+.. py:data:: Individual
    :type: Union[list, array.array, numpy.ndarray]
 
-.. py:data:: deap_er.datatypes.Mates
-   :type: Tuple[Individual, Individual]
+.. py:data:: Mates
+   :type: tuple[Individual, Individual]
 
-.. py:data:: deap_er.datatypes.SeqOfNum
+.. py:data:: SeqOfNum
    :type: Union[Sequence[int], Sequence[float]]
 
-.. py:data:: deap_er.datatypes.NumOrSeq
+.. py:data:: NumOrSeq
    :type: Union[int, float, SeqOfNum]
 
-.. py:data:: deap_er.datatypes.Hof
+
+Records
+-------
+
+.. py:data:: Hof
    :type: Union[HallOfFame, ParetoFront]
 
-.. py:data:: deap_er.datatypes.Stats
+.. py:data:: Stats
    :type: Union[Statistics, MultiStatistics]
 
-.. py:data:: deap_er.datatypes.AlgoResult
-   :type: Tuple[list, Logbook]
+.. py:data:: AlgoResult
+   :type: tuple[list, Logbook]
 
-.. py:data:: deap_er.datatypes.Container
-   :type: Type[Union[list, tuple, set, str]]
+
+Genetic Programming (GP)
+------------------------
+
+.. py:data:: TerminalTypes
+   :type: Union[str, int, float, Callable]
+
+.. py:data:: ExprTypes
+   :type: Union[str, PrimitiveTree]
+
+.. py:data:: ListOfSets
+   :type: list[PrimitiveSetTyped]
+
+.. py:data:: Graph
+   :type: tuple[list, list, dict]
+
+
+Utilities
+---------
+
+.. py:data:: Containers
+   :type: type[Union[list, tuple, set, str]]

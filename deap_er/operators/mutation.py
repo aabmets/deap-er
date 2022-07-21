@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import NumOrSeq, Individual
+from deap_er.base import NumOrSeq, Individual
 from collections.abc import Sequence
 from itertools import repeat
 import random

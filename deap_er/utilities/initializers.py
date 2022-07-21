@@ -23,60 +23,65 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.datatypes import Container
 from collections.abc import Callable, Iterable
+from typing import Type, Union
 
 
-__all__ = ['init_repeat', 'init_iterate', 'init_cycle']
+__all__ = [
+    'init_repeat', 'init_iterate',
+    'init_cycle', 'Containers'
+]
+Containers = Type[Union[list, tuple, set, str]]
 
 
 # ====================================================================================== #
-def init_repeat(container: Container, func: Callable, count: int) -> Iterable:
+def init_repeat(container: Containers, func: Callable, count: int) -> Iterable:
     """
-    Calls the 'func' argument 'count' times and puts the results in a type 'container'.
-    This helper function can be used in conjunction with a Toolbox to register
-    a generator of filled containers, such as individuals or a population.
+    Calls the **func** argument **count** times and puts the results
+    into an instance of **container**. This helper function can be used
+    in conjunction with a Toolbox to register a generator of filled
+    containers, such as individuals or a population.
 
-    Parameters:
-        container: A type of iterable to put the results in.
-        func: The function to be called count times.
-        count: The number of times to call the func.
-    Returns:
-        An iterable filled with count results of func.
+    :param container: A type of iterable to put the results in.
+    :param func: The function to be called count times.
+    :param count: The number of times to call the func.
+    :return: An iterable filled with count results of func.
+
+    :type container: :ref:`Container <datatypes>`
     """
     return container(func() for _ in range(count))
 
 
 # -------------------------------------------------------------------------------------- #
-def init_iterate(container: Container, generator: Callable) -> Iterable:
+def init_iterate(container: Containers, generator: Callable) -> Iterable:
     """
-    Calls the 'generator' function and puts the results in a type 'container'.
-    The 'generator' function should return an iterable. This helper function
-    can be used in conjunction with a Toolbox to register a generator of
-    filled containers, as individuals or a population.
+    Calls the **generator** function and puts the results into an instance
+    of **container**. The **generator** function should return an iterable.
+    This helper function can be used in conjunction with a Toolbox to register
+    a generator of filled containers, as individuals or a population.
 
-    Parameters:
-        container: A type of iterable to put the results in.
-        generator: A function returning an iterable to fill the container with.
-    Returns:
-        An iterable filled with the results of the generator.
+    :param container: A type of iterable to put the results in.
+    :param generator: A function returning an iterable to fill the container with.
+    :return: An iterable filled with the results of the generator.
+
+    :type container: :ref:`Container <datatypes>`
     """
     return container(generator())
 
 
 # -------------------------------------------------------------------------------------- #
-def init_cycle(container: Container, funcs: Iterable, count: int = 1) -> Iterable:
+def init_cycle(container: Containers, funcs: Iterable, count: int = 1) -> Iterable:
     """
-    Calls each function in the 'funcs' iterable 'count' times and stores the
-    results from all function calls into the 'container'. This helper function
-    can be used in conjunction with a Toolbox to register a generator of filled
-    containers, as individuals or a population.
+    Calls each function in the **funcs** iterable **count** times and stores
+    the results from all function calls into the **container**. This helper
+    function can be used in conjunction with a Toolbox to register a generator
+    of filled containers, as individuals or a population.
 
-    Parameters:
-        container: A type of iterable to put the results in.
-        funcs: A sequence of functions to be called.
-        count: Number of times to iterate through the sequence of functions.
-    Returns:
-        An iterable filled with the results of all function calls.
+    :param container: A type of iterable to put the results in.
+    :param funcs: A sequence of functions to be called.
+    :param count: Number of times to iterate through the sequence of functions.
+    :return: An iterable filled with the results of all function calls.
+
+    :type container: :ref:`Container <datatypes>`
     """
     return container(func() for _ in range(count) for func in funcs)

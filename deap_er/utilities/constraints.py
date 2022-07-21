@@ -23,8 +23,8 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from deap_er.base import NumOrSeq
 from collections.abc import Sequence, Callable
-from deap_er.datatypes import NumOrSeq
 from itertools import repeat
 from functools import wraps
 
@@ -37,18 +37,19 @@ class DeltaPenalty:
     """
     This decorator returns penalized fitness for invalid individuals and
     the original fitness value for valid individuals. The penalized fitness
-    is made of a constant factor 'delta' added with an optional 'distance'
+    is made of a constant factor **delta** added with an optional **distance**
     penalty. The distance function, if provided, returns a value, which is
     growing as the individual moves away from the valid zone.
 
-    Parameters:
-        feasibility: A function returning the validity status of an individual.
-        delta: Constant or a sequence of constants
-            returned for an invalid individual.
-        distance: A function returning the distance between
-            the individual and a given valid point.
-    Returns:
-        A decorator for the fitness function.
+    :param feasibility: A function returning the
+        validity status of an individual.
+    :param delta: Constant or a sequence of constants
+        returned for an invalid individual.
+    :param distance: A function returning the distance
+        between the individual and a given valid point.
+    :return: A decorator for the fitness function.
+
+    :type delta: :ref:`NumOrSeq <datatypes>`
     """
     # -------------------------------------------------------- #
     def __init__(self, feasibility: Callable,
@@ -86,23 +87,22 @@ class ClosestValidPenalty:
     This decorator returns penalized fitness for invalid individuals and
     the original fitness value for valid individuals. The penalized fitness
     is made of the fitness of the closest valid individual added with an
-    optional weighted *distance* penalty. The distance function, if
+    optional weighted **distance** penalty. The distance function, if
     provided, returns a value, which is growing as the individual
     moves away from the valid zone.
 
-    Parameters:
-        feasibility: A function returning the validity status of any individual.
-        feasible: A function returning the closest feasible
-            individual from the current invalid individual.
-        alpha: Multiplication factor on the distance between
-            the valid and invalid individuals.
-        distance: A function returning the distance between
-            the individual and a given valid point.
-    Returns:
-        A decorator for the fitness function.
+    :param feasibility: A function returning the validity status of any individual.
+    :param feasible: A function returning the closest feasible
+        individual from the current invalid individual.
+    :param alpha: Multiplication factor on the distance
+        between the valid and invalid individuals.
+    :param distance: A function returning the distance
+        between the individual and a given valid point.
+    :return: A decorator for the fitness function.
     """
     # -------------------------------------------------------- #
-    def __init__(self, feasibility, feasible, alpha, distance=None):
+    def __init__(self, feasibility: Callable, feasible: Callable,
+                 alpha: float, distance: Callable = None):
         self.fea_func = feasibility
         self.fbl_fct = feasible
         self.alpha = alpha
@@ -121,8 +121,10 @@ class ClosestValidPenalty:
             weights = tuple(1.0 if w >= 0 else -1.0 for w in individual.fitness.weights)
 
             if len(weights) != len(f_fbl):
-                raise IndexError("Fitness weights and computed fitness are of different size.")
-
+                raise IndexError(
+                    "Fitness weights and computed "
+                    "fitness are of different size."
+                )
             dists = [0 for _ in individual.fitness.weights]
             if self.dist_fct is not None:
                 dists = self.dist_fct(f_ind, individual)

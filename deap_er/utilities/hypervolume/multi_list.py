@@ -34,8 +34,7 @@ class MultiList:
     It consists of several doubly linked lists that share common nodes.
     Every node has multiple predecessors and successors, one in every list.
 
-    Parameters:
-        dimensions: The number of dimensions in the multi-list.
+    :param dimensions: The number of dimensions in the multi-list.
     """
     # -------------------------------------------------------- #
     def __init__(self, dimensions: int) -> None:
