@@ -23,3 +23,12 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from .creator import creator
+from . import algorithms
+from . import base
+from . import gp
+from . import operators
+from . import records
+from . import strategies
+from . import utilities
+from . import datatypes
