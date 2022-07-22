@@ -1,9 +1,32 @@
 Strategies
 ==========
 
-.. toctree::
-   :maxdepth: 2
+Standard CMA
+------------
 
-   strategies/cma_standard.rst
-   strategies/cma_multi_objective.rst
-   strategies/cma_one_plus_lambda.rst
+.. autoclass:: deap_er.strategies.Strategy
+   :members:
+
+.. raw:: html
+
+   <br />
+   <hr>
+
+
+Multi-Objective CMA
+-------------------
+
+.. autoclass:: deap_er.strategies.StrategyMultiObjective
+   :members:
+
+.. raw:: html
+
+   <br />
+   <hr>
+
+
+One Plus Lambda CMA
+-------------------
+
+.. autoclass:: deap_er.strategies.StrategyOnePlusLambda
+   :members:

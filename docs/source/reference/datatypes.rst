@@ -16,11 +16,8 @@ Base
 .. py:data:: Mates
    :type: tuple[Individual, Individual]
 
-.. py:data:: SeqOfNum
-   :type: Union[Sequence[int], Sequence[float]]
-
 .. py:data:: NumOrSeq
-   :type: Union[int, float, SeqOfNum]
+   :type: Union[int, float, Sequence[int], Sequence[float]]
 
 
 Records

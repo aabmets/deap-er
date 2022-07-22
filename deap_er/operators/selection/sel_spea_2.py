@@ -33,7 +33,7 @@ __all__ = ['sel_spea_2']
 # ====================================================================================== #
 def sel_spea_2(individuals: list, sel_count: int) -> list:
     """
-    Selects the next generation of individuals using the SPEA2 algorithm.
+    Selects the next generation of individuals using the SPEA-II algorithm.
     Usually, the size of **individuals** should be larger than the **sel_count**
     parameter. If the size of **individuals** is equal to **sel_count**, the
     population will be sorted according to their pareto fronts.

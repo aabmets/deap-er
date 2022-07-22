@@ -56,6 +56,7 @@ def ea_generate_update(toolbox: Toolbox, generations: int,
     for gen in range(generations):
         population = toolbox.generate()
         fitness = toolbox.map(toolbox.evaluate, population)
+
         for ind, fit in zip(population, fitness):
             ind.fitness.values = fit
 

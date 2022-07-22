@@ -9,8 +9,9 @@ Welcome to the DEAP-er's documentation!
    reference/creator.rst
    reference/records.rst
    reference/algorithms.rst
-   reference/operators.rst
    reference/strategies.rst
+   reference/operators.rst
+   reference/benchmarks.rst
    reference/utilities.rst
    reference/gp.rst
    reference/datatypes.rst

@@ -21,10 +21,11 @@ release = '0.4.0'
 
 # -- General configuration ---------------------------------------------------
 extensions = [
-    'sphinx_rtd_theme',
     'sphinx.ext.intersphinx',
     'sphinx.ext.napoleon',
-    'sphinx.ext.autodoc'
+    'sphinx.ext.autodoc',
+    'sphinx_rtd_theme',
+    'sphinx_design'
 ]
 exclude_patterns = []
 templates_path = ['_templates']
