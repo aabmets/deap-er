@@ -85,9 +85,11 @@ def create(name: str, base: Union[type, object], **kwargs: Optional) -> None:
     new_class = type(name, tuple([base]), cls_attr)
 
     # define the replacement init func
-    def new_init_func(self, *_, **__):
+    def new_init_func(self, *args_, **kwargs_):
         for attr_name, attr_obj in inst_attr.items():
             setattr(self, attr_name, attr_obj())
+        if base.__init__ is not object.__init__:
+            base.__init__(self, *args_, **kwargs_)
 
     # override the init func and set the global name
     new_class.__init__ = new_init_func
