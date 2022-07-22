@@ -32,12 +32,6 @@ __all__ = ['create']
 
 
 # ====================================================================================== #
-class _DevTestClass:  # pragma: no cover
-    def __init__(self, *_, **__):
-        pass
-
-
-# ====================================================================================== #
 def create(name: str, base: Union[type, object], **kwargs: Optional) -> None:
     """
     Creates a new class named **name**, which inherits from the **base** class,

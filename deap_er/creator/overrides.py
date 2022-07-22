@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from typing import Iterable
+from typing import Sequence
 from copy import deepcopy
 import array
 import numpy
@@ -39,13 +39,13 @@ class _NumpyOverride(numpy.ndarray):
     the 'numpy.ndarray' class is problematic for DEAP-er.
     """
     @staticmethod
-    def __new__(cls, iterable: Iterable) -> numpy.array:
-        return numpy.array(list(iterable)).view(cls)
+    def __new__(cls, seq: Sequence) -> numpy.array:
+        return numpy.array(list(seq)).view(cls)
 
-    def __deepcopy__(self, memo, *_, **__):
+    def __deepcopy__(self, memo: dict, *_, **__):
         copy = numpy.ndarray.copy(self)
-        deep_copy = deepcopy(self.__dict__, memo)
-        copy.__dict__.update(deep_copy)
+        dc = deepcopy(self.__dict__, memo)
+        copy.__dict__.update(dc)
         return copy
 
     def __setstate__(self, state, *_, **__):
@@ -62,15 +62,15 @@ class _ArrayOverride(array.array):
     the 'array.array' class is problematic for DEAP-er.
     """
     @staticmethod
-    def __new__(cls, typecode: str,  sequence: Iterable) -> array.array:
-        return super().__new__(cls, typecode, sequence)
+    def __new__(cls, seq: Sequence) -> array.array:
+        return super().__new__(cls, cls.typecode, seq)
 
-    def __deepcopy__(self, memo) -> object:
+    def __deepcopy__(self, memo: dict) -> object:
         cls = self.__class__
-        copy = cls.__new__(cls, self.typecode, self)
+        copy = cls.__new__(cls, self)
         memo[id(self)] = copy
-        deep_copy = deepcopy(self.__dict__, memo)
-        copy.__dict__.update(deep_copy)
+        dc = deepcopy(self.__dict__, memo)
+        copy.__dict__.update(dc)
         return copy
 
     def __reduce__(self) -> tuple:
