@@ -90,7 +90,8 @@ class Fitness:
         if len(values) != len(self.weights):
             raise TypeError(
                 "The assigned values tuple must have the same length "
-                "as the 'weights' attribute of the 'Fitness' class.")
+                "as the 'weights' attribute of the 'Fitness' class."
+            )
         wvalues = map(mul, values, self.weights)
         self.wvalues = tuple(wvalues)
 

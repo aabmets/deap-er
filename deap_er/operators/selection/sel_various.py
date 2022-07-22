@@ -56,8 +56,11 @@ def sel_best(individuals: list, sel_count: int,
     :param fit_attr: The attribute of individuals to use as the selection criterion.
     :return: A list of selected individuals.
     """
-    key = attrgetter(fit_attr)
-    return sorted(individuals, key=key, reverse=True)[:sel_count]
+    return sorted(
+        individuals,
+        key=attrgetter(fit_attr),
+        reverse=True
+    )[:sel_count]
 
 
 # -------------------------------------------------------------------------------------- #
