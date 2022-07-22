@@ -24,9 +24,10 @@
 #                                                                                        #
 # ====================================================================================== #
 from __future__ import annotations
-from .datatypes import SeqOfNum
-from typing import Iterator
+from .datatypes import NumOrSeq
 from operator import mul, truediv
+from typing import Iterable
+import numpy
 
 
 __all__ = ['Fitness']
@@ -63,7 +64,7 @@ class Fitness:
     used internally by the Fitness comparison operators.
     """
     # -------------------------------------------------------- #
-    def __init__(self, values: SeqOfNum = None):
+    def __init__(self, values: NumOrSeq = None):
         if not self.weights:
             raise TypeError(
                 "Can't instantiate 'Fitness', when class "
@@ -74,19 +75,20 @@ class Fitness:
 
     # -------------------------------------------------------- #
     @property
-    def values(self) -> tuple[float]:
+    def values(self) -> Iterable[float]:
         """
         Fitness values of the individual. The setter accepts a sequence of
         integers or floats as input and the getter returns a tuple of floats.
         The deleter sets the internal 'wvalues' attribute to an empty tuple.
         """
         if self.is_valid():
-            values: Iterator = map(truediv, self.wvalues, self.weights)
-            return tuple(values)
+            return tuple(map(truediv, self.wvalues, self.weights))
         return tuple()
 
     @values.setter
-    def values(self, values: SeqOfNum) -> None:
+    def values(self, values: NumOrSeq) -> None:
+        if not isinstance(values, Iterable):
+            values = (values,)
         if len(values) != len(self.weights):
             raise TypeError(
                 "The assigned values tuple must have the same length "

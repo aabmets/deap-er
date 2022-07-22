@@ -28,9 +28,8 @@ from typing import Union, Tuple
 import numpy
 import array
 
-__all__ = ['Individual', 'Mates', 'SeqOfNum', 'NumOrSeq']
+__all__ = ['Individual', 'Mates', 'NumOrSeq']
 
 Individual = Union[list, array.array, numpy.ndarray]
 Mates = Tuple[Individual, Individual]
-SeqOfNum = Union[Sequence[int], Sequence[float]]
-NumOrSeq = Union[int, float, SeqOfNum]
+NumOrSeq = Union[int, float, Sequence[int], Sequence[float]]

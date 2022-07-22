@@ -51,7 +51,7 @@ class Terminal:
     :param symbolic: If True, the terminal is a string.
     :param ret_type: The return type of the terminal.
 
-    :type terminal: :ref:`TermType <datatypes>`
+    :type terminal: :ref:`TerminalTypes <datatypes>`
     """
     __slots__ = ('name', 'value', 'ret', 'conv_fct')
 
