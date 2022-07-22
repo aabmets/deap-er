@@ -23,13 +23,5 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .creator import creator
-from . import algorithms
-from . import base
-from . import gp
-from . import operators
-from . import benchmarks
-from . import records
-from . import strategies
-from . import utilities
-from . import datatypes
+from .single_objective import *
+from .multi_objective import *
