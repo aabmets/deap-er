@@ -23,5 +23,8 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .single_objective import *
-from .multi_objective import *
+from .single_obj import *
+from .multi_obj import *
+from .sym_reg import *
+from .moving_peaks import *
+from .binary import *

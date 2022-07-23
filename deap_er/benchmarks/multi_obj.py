@@ -115,11 +115,11 @@ def poloni(individual: Individual) -> tuple[float, float]:
        :margin: 0 5 5 5
 
        :math:`A_1 = 0.5 \\sin (1) - 2 \\cos (1) + \\sin (2) - 1.5 \\cos (2)`\n
-       :math:`A_2 = 1.5 \\sin (1) - \\cos (1) + 2 \\sin (2) - 0.5 \\cos (2)`
+       :math:`A_2 = 1.5 \\sin (1) - \\cos (1) + 2 \\sin (2) - 0.5 \\cos (2)`\n
        :math:`B_1 = 0.5 \\sin (x_1) - 2 \\cos (x_1) + \\sin (x_2) - 1.5 \\cos (x_2)`\n
-       :math:`B_2 = 1.5 \\sin (x_1) - cos(x_1) + 2 \\sin (x_2) - 0.5 \\cos (x_2)`
+       :math:`B_2 = 1.5 \\sin (x_1) - cos(x_1) + 2 \\sin (x_2) - 0.5 \\cos (x_2)`\n
        :math:`f_{1}(\\mathbf{x}) = 1 + (A_1 - B_1)^2 + (A_2 - B_2)^2`\n
-       :math:`f_{2}(\\mathbf{x}) = (x_1 + 3)^2 + (x_2 + 1)^2`
+       :math:`f_{2}(\\mathbf{x}) = (x_1 + 3)^2 + (x_2 + 1)^2`\n
        Returns :math:`f_{1}(\\mathbf{x})` and :math:`f_{2}(\\mathbf{x})`.
     """
     x_1 = individual[0]
@@ -147,8 +147,8 @@ def dent(individual: Individual, dent_size: float = 0.85) -> tuple[float, float]
     .. dropdown:: Equations
        :margin: 0 5 5 5
 
-       :math:`f_{1}(\\mathbf{x}) = ?`\n
-       :math:`f_{2}(\\mathbf{x}) = ?`\n
+       :math:`f_{1}(\\mathbf{x}) = \\text{ ?}`\n
+       :math:`f_{2}(\\mathbf{x}) = \\text{ ?}`\n
        Returns :math:`f_{1}(\\mathbf{x})` and :math:`f_{2}(\\mathbf{x})`.
     """
     d = dent_size * exp(-(individual[0] - individual[1]) ** 2)
