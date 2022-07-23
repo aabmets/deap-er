@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er import utilities as utils
+from deap_er import tools
 from typing import Optional, Callable
 from math import sqrt, exp
 import numpy
@@ -41,39 +41,36 @@ class StrategyMultiObjective:
     :param sigma: The initial step size of the complete system.
     :param kwargs: One or more keyword arguments, optional.
 
-    Optional **kwargs**:
+    .. dropdown:: Table of Kwargs
+       :margin: 0 5 5 0
 
-        * lambda *(int)*
-            | The number of children to produce at each generation.
-            | *Default:* :code:`1`
-        * mu *(int)*
-            | The number of children to keep as parents for the next generation.
-            | *Default:* :code:`len(population)`
-        * ss_dmp *(float)*
-            | Damping of the step-size.
-            | *Default:* :code:`1.0 + len(population) / 2.0`
-        * th_cum *(float)*
-            | Time horizon of the cumulative contribution.
-            | *Default:* :code:`2.0 / (len(population) + 2.0)`
-        * tgt_sr *(float)*
-            | Target success rate.
-            | *Default:* :code:`1.0 / (5 + 1.0 / 2.0)`
-        * thresh_sr *(float)*
-            | Threshold success rate.
-            | *Default:* :code:`0.44`
-        * ss_learn_rate *(float)*
-            | Learning rate of the step-size.
-            | *Default:* :code:`tgt_sr / (2.0 + tgt_sr)`
-        * cm_learn_rate *(float)*
-            | Learning rate of the covariance matrix.
-            | *Default:* :code:`2.0 / (len(population) ** 2 + 6.0)`
-        * indicator *(Callable)*
-            | The indicator function to use.
-            | *Default:* :code:`deap_er.utilities.least_contrib`
-
-    .. raw:: html
-
-       <br />
+       * lambda *(int)*
+           | The number of children to produce at each generation.
+           | *Default:* :code:`1`
+       * mu *(int)*
+           | The number of children to keep as parents for the next generation.
+           | *Default:* :code:`len(population)`
+       * ss_dmp *(float)*
+           | Damping of the step-size.
+           | *Default:* :code:`1.0 + len(population) / 2.0`
+       * th_cum *(float)*
+           | Time horizon of the cumulative contribution.
+           | *Default:* :code:`2.0 / (len(population) + 2.0)`
+       * tgt_sr *(float)*
+           | Target success rate.
+           | *Default:* :code:`1.0 / (5 + 1.0 / 2.0)`
+       * thresh_sr *(float)*
+           | Threshold success rate.
+           | *Default:* :code:`0.44`
+       * ss_learn_rate *(float)*
+           | Learning rate of the step-size.
+           | *Default:* :code:`tgt_sr / (2.0 + tgt_sr)`
+       * cm_learn_rate *(float)*
+           | Learning rate of the covariance matrix.
+           | *Default:* :code:`2.0 / (len(population) ** 2 + 6.0)`
+       * indicator *(Callable)*
+           | The indicator function to use.
+           | *Default:* :code:`deap_er.utilities.least_contrib`
     """
     # -------------------------------------------------------- #
     def __init__(self, population: list, sigma: float, **kwargs: Optional):
@@ -89,7 +86,7 @@ class StrategyMultiObjective:
         self.th_cum = kwargs.get("th_cum", 2.0 / (self.dim + 2.0))
         self.cm_learn_rate = kwargs.get("cm_learn_rate", 2.0 / (self.dim ** 2 + 6.0))
         self.thresh_sr = kwargs.get("thresh_sr", 0.44)
-        self.indicator = kwargs.get("indicator", utils.least_contrib)
+        self.indicator = kwargs.get("indicator", tools.least_contrib)
         self.timeout = kwargs.get("timeout", 60)
 
         self.sigmas = [sigma] * pop_size
@@ -103,7 +100,7 @@ class StrategyMultiObjective:
         if len(candidates) <= self.mu:
             return candidates, []
 
-        pareto_fronts = utils.sort_log_non_dominated(candidates, len(candidates))
+        pareto_fronts = tools.sort_log_non_dominated(candidates, len(candidates))
 
         chosen = list()
         mid_front = None
@@ -255,7 +252,7 @@ class StrategyMultiObjective:
                 individuals[-1].ps_ = "o", i
 
         else:
-            n_dom = utils.sort_log_non_dominated(
+            n_dom = tools.sort_log_non_dominated(
                 self.parents, len(self.parents),
                 first_front_only=True)
 

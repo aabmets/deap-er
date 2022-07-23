@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.utilities import initializers as init
+from deap_er.tools import initializers as init
 
 
 # ====================================================================================== #

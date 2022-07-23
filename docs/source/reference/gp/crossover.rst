@@ -1,6 +1,8 @@
 GP Crossover
 ============
 
-.. autofunction:: deap_er.gp.cx_one_point
-.. autofunction:: deap_er.gp.cx_one_point_leaf_biased
-.. autofunction:: deap_er.gp.cx_semantic
+.. automodule:: deap_er.gp.crossover
+   :imported-members:
+   :members:
+
+.. autofunction:: deap_er.gp.semantic.cx_semantic

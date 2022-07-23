@@ -33,6 +33,13 @@ Records
    :type: tuple[list, Logbook]
 
 
+Utilities
+---------
+
+.. py:data:: Containers
+   :type: type[Union[list, tuple, set, str]]
+
+
 Genetic Programming (GP)
 ------------------------
 
@@ -47,10 +54,3 @@ Genetic Programming (GP)
 
 .. py:data:: Graph
    :type: tuple[list, list, dict]
-
-
-Utilities
----------
-
-.. py:data:: Containers
-   :type: type[Union[list, tuple, set, str]]

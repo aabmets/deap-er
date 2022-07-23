@@ -6,12 +6,13 @@ Welcome to the DEAP-er's documentation!
    :caption: Reference:
 
    reference/base.rst
+
    reference/creator.rst
    reference/records.rst
    reference/algorithms.rst
    reference/strategies.rst
    reference/operators.rst
+   reference/tools.rst
    reference/benchmarks.rst
-   reference/utilities.rst
    reference/gp.rst
    reference/datatypes.rst
