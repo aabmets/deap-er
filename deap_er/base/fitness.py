@@ -77,9 +77,11 @@ class Fitness:
     @property
     def values(self) -> Iterable[float]:
         """
-        Fitness values of the individual. The setter accepts a sequence of
-        integers or floats as input and the getter returns a tuple of floats.
-        The deleter sets the internal 'wvalues' attribute to an empty tuple.
+        Fitness values of the individual. The setter accepts either
+        a number or a sequence of numbers as input. If the input is
+        a number, it is added as the first element of an empty tuple.
+        The getter returns a tuple of floats and the deleter sets
+        the internal 'wvalues' attribute to an empty tuple.
         """
         if self.is_valid():
             return tuple(map(truediv, self.wvalues, self.weights))
@@ -88,10 +90,16 @@ class Fitness:
     @values.setter
     def values(self, values: NumOrSeq) -> None:
         if not isinstance(values, Iterable):
-            values = (values,)
+            try:
+                values = (float(values),)
+            except ValueError:
+                raise TypeError(
+                    "Fitness values must either be a real "
+                    "number or a sequence of numbers."
+                )
         if len(values) != len(self.weights):
             raise TypeError(
-                "The assigned values tuple must have the same length "
+                "The assigned values s must have the same length "
                 "as the 'weights' attribute of the 'Fitness' class."
             )
         wvalues = map(mul, values, self.weights)
