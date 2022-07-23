@@ -27,7 +27,6 @@ from .crossover import *
 from .generators import *
 from .harm_gp import *
 from .mutation import *
-from .optimizers import *
 from .primitives import *
 from .semantic import *
 from .tools import *

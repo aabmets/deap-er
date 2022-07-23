@@ -27,4 +27,4 @@ from .base.datatypes import *
 from .gp.primitives import TerminalTypes
 from .gp.tools import ExprTypes, ListOfSets, Graph
 from .records import Hof, Stats, AlgoResult
-from .utilities import Containers
+from .tools import Containers

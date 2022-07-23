@@ -30,5 +30,10 @@ from .statistics import *
 from typing import Union, Tuple
 
 Hof = Union[HallOfFame, ParetoFront]
+""":meta private:"""
+
 Stats = Union[Statistics, MultiStatistics]
+""":meta private:"""
+
 AlgoResult = Tuple[list, Logbook]
+""":meta private:"""

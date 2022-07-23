@@ -31,5 +31,5 @@ from . import operators
 from . import benchmarks
 from . import records
 from . import strategies
-from . import utilities
+from . import tools
 from . import datatypes

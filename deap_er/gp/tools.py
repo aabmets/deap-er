@@ -36,9 +36,15 @@ __all__ = [
     'build_tree_graph', 'static_limit',
     'ExprTypes', 'ListOfSets', 'Graph'
 ]
+
 ExprTypes = Union[str, PrimitiveTree]
+""":meta private:"""
+
 ListOfSets = list[PrimitiveSetTyped]
+""":meta private:"""
+
 Graph = tuple[list, list, dict]
+""":meta private:"""
 
 
 # ====================================================================================== #
