@@ -40,166 +40,184 @@ __all__ = [
 
 
 # ====================================================================================== #
-def rand(*_) -> tuple[float]:
+def rand(*_) -> float:
     """
     Random test objective function. The unnamed **args** parameter is an input
     sink for DEAP-er internal functionality and has no effect on the result.
 
-    .. list-table::
-       :widths: 10 50
-       :stub-columns: 1
-
-       * - Type
-         - minimization or maximization
-       * - Range
-         - none
-       * - Global optima
-         - none
-       * - Function
-         - :math:`f(\\mathbf{x}) = \\text{random}(0,1)`
-
     :return: A completely random number.
+
+    .. dropdown:: Equations
+       :margin: 0 5 5 5
+
+       .. list-table::
+          :widths: 10 50
+          :stub-columns: 1
+
+          * - Type
+            - minimization or maximization
+          * - Range
+            - none
+          * - Global optima
+            - none
+          * - Function
+            - :math:`f(\\mathbf{x}) = \\text{random}(0,1)`
     """
     result = random.random()
-    return result,
+    return result
 
 
 # -------------------------------------------------------------------------------------- #
-def plane(individual: Individual) -> tuple[float]:
+def plane(individual: Individual) -> float:
     """
     Plane test objective function.
-
-    .. list-table::
-       :widths: 10 50
-       :stub-columns: 1
-
-       * - Type
-         - minimization
-       * - Range
-         - none
-       * - Global optima
-         - :math:`x_i = 0, \\forall i \\in \\lbrace 1 \\ldots \
-                N\\rbrace`, :math:`f(\\mathbf{x}) = 0`
-       * - Function
-         - :math:`f(\\mathbf{x}) = x_0`
 
     :param individual: The Individual to be evaluated.
     :return: The first Fitness value of the individual.
     :type individual: :ref:`Individual <datatypes>`
+
+    .. dropdown:: Equations
+       :margin: 0 5 5 5
+
+       .. list-table::
+          :widths: 10 50
+          :stub-columns: 1
+
+          * - Type
+            - minimization
+          * - Range
+            - none
+          * - Global optima
+            - :math:`x_i = 0, \\forall i \\in \\lbrace 1 \\ldots \
+               N\\rbrace`, :math:`f(\\mathbf{x}) = 0`
+          * - Function
+            - :math:`f(\\mathbf{x}) = x_0`
     """
     result = individual[0]
-    return result,
+    return result
 
 
 # -------------------------------------------------------------------------------------- #
-def sphere(individual: Individual) -> tuple[float]:
+def sphere(individual: Individual) -> float:
     """
     Sphere test objective function.
 
-    .. list-table::
-       :widths: 10 50
-       :stub-columns: 1
-
-       * - Type
-         - minimization
-       * - Range
-         - none
-       * - Global optima
-         - :math:`x_i = 0, \\forall i \\in \\lbrace 1 \\ldots \
-                N\\rbrace`, :math:`f(\\mathbf{x}) = 0`
-       * - Function
-         - :math:`f(\\mathbf{x}) = \\sum_{i=1}^Nx_i^2`
-
     :param individual: The Individual to be evaluated.
     :return: Fitness value of the individual.
     :type individual: :ref:`Individual <datatypes>`
+
+    .. dropdown:: Equations
+       :margin: 0 5 5 5
+
+       .. list-table::
+          :widths: 10 50
+          :stub-columns: 1
+
+          * - Type
+            - minimization
+          * - Range
+            - none
+          * - Global optima
+            - :math:`x_i = 0, \\forall i \\in \\lbrace 1 \\ldots \
+               N\\rbrace`, :math:`f(\\mathbf{x}) = 0`
+          * - Function
+            - :math:`f(\\mathbf{x}) = \\sum_{i=1}^Nx_i^2`
     """
     result = sum(gene * gene for gene in individual)
-    return result,
+    return result
 
 
 # -------------------------------------------------------------------------------------- #
-def cigar(individual: Individual) -> tuple[float]:
+def cigar(individual: Individual) -> float:
     """
     Cigar test objective function.
 
-    .. list-table::
-       :widths: 10 50
-       :stub-columns: 1
-
-       * - Type
-         - minimization
-       * - Range
-         - none
-       * - Global optima
-         - :math:`x_i = 0, \\forall i \\in \\lbrace 1 \\ldots \
-                N\\rbrace`, :math:`f(\\mathbf{x}) = 0`
-       * - Function
-         - :math:`f(\\mathbf{x}) = x_0^2 + 10^6\\sum_{i=1}^N\\,x_i^2`
-
     :param individual: The Individual to be evaluated.
     :return: Fitness value of the individual.
     :type individual: :ref:`Individual <datatypes>`
+
+    .. dropdown:: Equations
+       :margin: 0 5 5 5
+
+       .. list-table::
+          :widths: 10 50
+          :stub-columns: 1
+
+          * - Type
+            - minimization
+          * - Range
+            - none
+          * - Global optima
+            - :math:`x_i = 0, \\forall i \\in \\lbrace 1 \\ldots \
+               N\\rbrace`, :math:`f(\\mathbf{x}) = 0`
+          * - Function
+            - :math:`f(\\mathbf{x}) = x_0^2 + 10^6\\sum_{i=1}^N\\,x_i^2`
     """
     _sum = sum(gene * gene for gene in individual[1:])
     result = individual[0] ** 2 + 1e6 * _sum
-    return result,
+    return result
 
 
 # -------------------------------------------------------------------------------------- #
-def rosenbrock(individual: Individual) -> tuple[float]:
+def rosenbrock(individual: Individual) -> float:
     """
     Rosenbrock test objective function.
-
-    .. list-table::
-       :widths: 10 50
-       :stub-columns: 1
-
-       * - Type
-         - minimization
-       * - Range
-         - none
-       * - Global optima
-         - :math:`x_i = 1, \\forall i \\in \\lbrace 1 \\ldots \
-                N\\rbrace`, :math:`f(\\mathbf{x}) = 0`
-       * - Function
-         - :math:`f(\\mathbf{x}) = \\sum_{i=1}^{N-1} \
-                (1-x_i)^2 + 100 (x_{i+1} - x_i^2 )^2`
 
     :param individual: The Individual to be evaluated.
     :return: Fitness value of the individual.
     :type individual: :ref:`Individual <datatypes>`
+
+    .. dropdown:: Equations
+       :margin: 0 5 5 5
+
+       .. list-table::
+          :widths: 10 50
+          :stub-columns: 1
+
+          * - Type
+            - minimization
+          * - Range
+            - none
+          * - Global optima
+            - :math:`x_i = 1, \\forall i \\in \\lbrace 1 \\ldots \
+               N\\rbrace`, :math:`f(\\mathbf{x}) = 0`
+          * - Function
+            - :math:`f(\\mathbf{x}) = \\sum_{i=1}^{N-1} \
+               (1-x_i)^2 + 100 (x_{i+1} - x_i^2 )^2`
     """
     results = []
     for x, y in zip(individual[:-1], individual[1:]):
         results.append(100 * (x * x - y) ** 2 + (1 - x) ** 2)
     result = sum(results)
-    return result,
+    return result
 
 
 # -------------------------------------------------------------------------------------- #
-def h1(individual: Individual) -> tuple[float]:
+def h1(individual: Individual) -> float:
     """
     Simple two-dimensional function containing several local maxima.
-
-    .. list-table::
-       :widths: 10 50
-       :stub-columns: 1
-
-       * - Type
-         - maximization
-       * - Range
-         - :math:`x_i \\in [-100, 100]`
-       * - Global optima
-         - :math:`\\mathbf{x} = (8.6998, 6.7665)`, :math:`f(\\mathbf{x}) = 2`\n
-       * - Function
-         - :math:`f(\\mathbf{x}) = \\frac{\\sin(x_1 - \\frac{x_2}{8})^2 + \
-            \\sin(x_2 + \\frac{x_1}{8})^2}{\\sqrt{(x_1 - 8.6998)^2 + \
-            (x_2 - 6.7665)^2} + 1}`
 
     :param individual: The Individual to be evaluated.
     :return: Fitness value of the individual.
     :type individual: :ref:`Individual <datatypes>`
+
+    .. dropdown:: Equations
+       :margin: 0 5 5 5
+
+       .. list-table::
+          :widths: 10 50
+          :stub-columns: 1
+
+          * - Type
+            - maximization
+          * - Range
+            - :math:`x_i \\in [-100, 100]`
+          * - Global optima
+            - :math:`\\mathbf{x} = (8.6998, 6.7665)`, :math:`f(\\mathbf{x}) = 2`\n
+          * - Function
+            - :math:`f(\\mathbf{x}) = \\frac{\\sin(x_1 - \\frac{x_2}{8})^2 + \
+               \\sin(x_2 + \\frac{x_1}{8})^2}{\\sqrt{(x_1 - 8.6998)^2 + \
+               (x_2 - 6.7665)^2} + 1}`
     """
     def compute_num():
         var_1 = sin(individual[0] - individual[1] / 8) ** 2
@@ -212,62 +230,72 @@ def h1(individual: Individual) -> tuple[float]:
         return (var_1 + var_2) ** 0.5 + 1
 
     result = compute_num() / compute_denum()
-    return result,
+    return result
 
 
 # -------------------------------------------------------------------------------------- #
-def ackley(individual: Individual) -> tuple[float]:
+def ackley(individual: Individual) -> float:
     """
     Ackley test objective function.
-
-    .. list-table::
-       :widths: 10 50
-       :stub-columns: 1
-
-       * - Type
-         - minimization
-       * - Range
-         - :math:`x_i \\in [-15, 30]`
-       * - Global optima
-         - :math:`x_i = 0, \\forall i \\in \\lbrace 1 \\ldots N\\rbrace`, :math:`f(\\mathbf{x}) = 0`
-       * - Function
-         - :math:`f(\\mathbf{x}) = 20 - 20\\exp\\left(-0.2\\sqrt{\\frac{1}{N} \
-            \\sum_{i=1}^N x_i^2} \\right) + e - \\exp\\left(\\frac{1}{N} \
-            \\sum_{i=1}^N \\cos(2\\pi x_i) \\right)`
 
     :param individual: The Individual to be evaluated.
     :return: Fitness value of the individual.
     :type individual: :ref:`Individual <datatypes>`
+
+    .. dropdown:: Equations
+       :margin: 0 5 5 5
+
+       .. list-table::
+          :widths: 10 50
+          :stub-columns: 1
+
+          * - Type
+            - minimization
+          * - Range
+            - :math:`x_i \\in [-15, 30]`
+          * - Global optima
+            - :math:`x_i = 0, \\forall i \\in \\lbrace 1 \\ldots \
+               N\\rbrace`, :math:`f(\\mathbf{x}) = 0`
+          * - Function
+            - :math:`f(\\mathbf{x}) = 20 - 20\\exp\\left(-0.2 \
+               \\sqrt{\\frac{1}{N} \\sum_{i=1}^N x_i^2} \
+               \\right) + e - \\exp\\left(\\frac{1}{N} \
+               \\sum_{i=1}^N \\cos(2\\pi x_i) \\right)`
     """
     len_ind = len(individual)
     exp_1 = exp(-0.2 * sqrt(1 / len_ind * sum(x ** 2 for x in individual)))
     exp_2 = exp(1 / len_ind * sum(cos(2 * pi * x) for x in individual))
     result = 20 - 20 * exp_1 + e - exp_2
-    return result,
+    return result
 
 
 # -------------------------------------------------------------------------------------- #
-def bohachevsky(individual: Individual) -> tuple[float]:
+def bohachevsky(individual: Individual) -> float:
     """
     Bohachevsky test objective function.
-
-    .. list-table::
-       :widths: 10 50
-       :stub-columns: 1
-
-       * - Type
-         - minimization
-       * - Range
-         - :math:`x_i \\in [-100, 100]`
-       * - Global optima
-         - :math:`x_i = 0, \\forall i \\in \\lbrace 1 \\ldots N\\rbrace`, :math:`f(\\mathbf{x}) = 0`
-       * - Function
-         -  :math:`f(\\mathbf{x}) = \\sum_{i=1}^{N-1}(x_i^2 + 2x_{i+1}^2 - \
-                   0.3\\cos(3\\pi x_i) - 0.4\\cos(4\\pi x_{i+1}) + 0.7)`
 
     :param individual: The Individual to be evaluated.
     :return: Fitness value of the individual.
     :type individual: :ref:`Individual <datatypes>`
+
+    .. dropdown:: Equations
+       :margin: 0 5 5 5
+
+       .. list-table::
+          :widths: 10 50
+          :stub-columns: 1
+
+          * - Type
+            - minimization
+          * - Range
+            - :math:`x_i \\in [-100, 100]`
+          * - Global optima
+            - :math:`x_i = 0, \\forall i \\in \\lbrace 1 \\ldots \
+               N\\rbrace`, :math:`f(\\mathbf{x}) = 0`
+          * - Function
+            - :math:`f(\\mathbf{x}) = \\sum_{i=1}^{N-1}(x_i^2 + \
+               2x_{i+1}^2 - 0.3\\cos(3\\pi x_i) - 0.4\\cos(4 \
+               \\pi x_{i+1}) + 0.7)`
     """
     results = []
     for x, x1 in zip(individual[:-1], individual[1:]):
@@ -276,62 +304,71 @@ def bohachevsky(individual: Individual) -> tuple[float]:
         res = x ** 2 + 2 * x1 ** 2 - 0.3 * c1 - 0.4 * c2 + 0.7
         results.append(res)
     result = sum(results)
-    return result,
+    return result
 
 
 # -------------------------------------------------------------------------------------- #
-def griewank(individual: Individual) -> tuple[float]:
+def griewank(individual: Individual) -> float:
     """
     Griewank test objective function.
-
-    .. list-table::
-       :widths: 10 50
-       :stub-columns: 1
-
-       * - Type
-         - minimization
-       * - Range
-         - :math:`x_i \\in [-600, 600]`
-       * - Global optima
-         - :math:`x_i = 0, \\forall i \\in \\lbrace 1 \\ldots \
-                N\\rbrace`, :math:`f(\\mathbf{x}) = 0`
-       * - Function
-         - :math:`f(\\mathbf{x}) = \\frac{1}{4000}\\sum_{i=1}^N\\,x_i^2 - \
-                \\prod_{i=1}^N\\cos\\left(\\frac{x_i}{\\sqrt{i}}\\right) + 1`
 
     :param individual: The Individual to be evaluated.
     :return: Fitness value of the individual.
     :type individual: :ref:`Individual <datatypes>`
+
+    .. dropdown:: Equations
+       :margin: 0 5 5 5
+
+       .. list-table::
+          :widths: 10 50
+          :stub-columns: 1
+
+          * - Type
+            - minimization
+          * - Range
+            - :math:`x_i \\in [-600, 600]`
+          * - Global optima
+            - :math:`x_i = 0, \\forall i \\in \\lbrace 1 \\ldots \
+               N\\rbrace`, :math:`f(\\mathbf{x}) = 0`
+          * - Function
+            - :math:`f(\\mathbf{x}) = \\frac{1}{4000}\\sum_{i=1}^N \
+               \\,x_i^2 - \\prod_{i=1}^N\\cos\\left( \
+               \\frac{x_i}{\\sqrt{i}}\\right) + 1`
     """
     values = [cos(x/sqrt(i+1.0)) for i, x in enumerate(individual)]
     exp_sum = sum(x**2 for x in individual)
     result = 1 / 4000 * exp_sum - reduce(mul, values, 1) + 1
-    return result,
+    return result
 
 
 # -------------------------------------------------------------------------------------- #
-def schaffer(individual: Individual) -> tuple[float]:
+def schaffer(individual: Individual) -> float:
     """
     Schaffer test objective function.
-
-    .. list-table::
-       :widths: 10 50
-       :stub-columns: 1
-
-       * - Type
-         - minimization
-       * - Range
-         - :math:`x_i \\in [-100, 100]`
-       * - Global optima
-         - :math:`x_i = 0, \\forall i \\in \\lbrace 1 \\ldots \
-                N\\rbrace`, :math:`f(\\mathbf{x}) = 0`
-       * - Function
-         -  :math:`f(\\mathbf{x}) = \\sum_{i=1}^{N-1} (x_i^2+x_{i+1}^2)^{0.25} \
-                \\cdot \\left[ \\sin^2(50\\cdot(x_i^2+x_{i+1}^2)^{0.10}) + 1.0 \\right]`
 
     :param individual: The Individual to be evaluated.
     :return: Fitness value of the individual.
     :type individual: :ref:`Individual <datatypes>`
+
+    .. dropdown:: Equations
+       :margin: 0 5 5 5
+
+       .. list-table::
+          :widths: 10 50
+          :stub-columns: 1
+
+          * - Type
+            - minimization
+          * - Range
+            - :math:`x_i \\in [-100, 100]`
+          * - Global optima
+            - :math:`x_i = 0, \\forall i \\in \\lbrace 1 \
+               \\ldots N\\rbrace`, :math:`f(\\mathbf{x}) = 0`
+          * - Function
+            - :math:`f(\\mathbf{x}) = \\sum_{i=1}^{N-1} \
+               (x_i^2+x_{i+1}^2)^{0.25} \\cdot \\left[ \
+               \\sin^2(50\\cdot(x_i^2+x_{i+1}^2)^{0.10}) \
+               + 1.0 \\right]`
     """
     results = []
     for x, x1 in zip(individual[:-1], individual[1:]):
@@ -339,7 +376,7 @@ def schaffer(individual: Individual) -> tuple[float]:
         var_2 = sin(50 * (x ** 2 + x1 ** 2) ** 0.1) ** 2 + 1.0
         results.append(var_1 * var_2)
     result = sum(results)
-    return result,
+    return result
 
 
 # -------------------------------------------------------------------------------------- #
@@ -347,24 +384,27 @@ def schwefel(individual: Individual) -> tuple[float]:
     """
     Schwefel test objective function.
 
-    .. list-table::
-       :widths: 10 50
-       :stub-columns: 1
-
-       * - Type
-         - minimization
-       * - Range
-         - :math:`x_i \\in [-500, 500]`
-       * - Global optima
-         - :math:`x_i = 420.96874636, \\forall i \\in \\lbrace 1 \
-                \\ldots N\\rbrace`, :math:`f(\\mathbf{x}) = 0`
-       * - Function
-         - :math:`f(\\mathbf{x}) = 418.9828872724339\\cdot N - \
-                \\sum_{i=1}^N\\,x_i\\sin\\left(\\sqrt{|x_i|}\\right)`
-
     :param individual: The Individual to be evaluated.
     :return: Fitness value of the individual.
     :type individual: :ref:`Individual <datatypes>`
+
+    .. dropdown:: Equations
+       :margin: 0 5 5 5
+
+       .. list-table::
+          :widths: 10 50
+          :stub-columns: 1
+
+          * - Type
+            - minimization
+          * - Range
+            - :math:`x_i \\in [-500, 500]`
+          * - Global optima
+            - :math:`x_i = 420.96874636, \\forall i \\in \\lbrace 1 \
+               \\ldots N\\rbrace`, :math:`f(\\mathbf{x}) = 0`
+          * - Function
+            - :math:`f(\\mathbf{x}) = 418.9828872724339\\cdot N - \
+               \\sum_{i=1}^N\\,x_i\\sin\\left(\\sqrt{|x_i|}\\right)`
     """
     len_ind = len(individual)
     values = sum(x * sin(sqrt(abs(x))) for x in individual)
@@ -378,25 +418,28 @@ def himmelblau(individual: Individual) -> tuple[float]:
     The Himmelblaus function has 4 defined
     minimums in the range of :math:`[-6, 6]^2`.
 
-    .. list-table::
-       :widths: 10 50
-       :stub-columns: 1
-
-       * - Type
-         - minimization
-       * - Range
-         - :math:`x_i \\in [-6, 6]`
-       * - Global optima
-         - :math:`\\mathbf{x}_1 = (3.0, 2.0)`, :math:`f(\\mathbf{x}_1) = 0`\n
-           :math:`\\mathbf{x}_2 = (-2.805118, 3.131312)`, :math:`f(\\mathbf{x}_2) = 0`\n
-           :math:`\\mathbf{x}_3 = (-3.779310, -3.283186)`, :math:`f(\\mathbf{x}_3) = 0`\n
-           :math:`\\mathbf{x}_4 = (3.584428, -1.848126)`, :math:`f(\\mathbf{x}_4) = 0`\n
-       * - Function
-         - :math:`f(x_1, x_2) = (x_1^2 + x_2 - 11)^2 + (x_1 + x_2^2 -7)^2`
-
     :param individual: The Individual to be evaluated.
     :return: Fitness value of the individual.
     :type individual: :ref:`Individual <datatypes>`
+
+    .. dropdown:: Equations
+       :margin: 0 5 5 5
+
+       .. list-table::
+          :widths: 10 50
+          :stub-columns: 1
+
+          * - Type
+            - minimization
+          * - Range
+            - :math:`x_i \\in [-6, 6]`
+          * - Global optima
+            - :math:`\\mathbf{x}_1 = (3.0, 2.0)`, :math:`f(\\mathbf{x}_1) = 0`\n
+              :math:`\\mathbf{x}_2 = (-2.805118, 3.131312)`, :math:`f(\\mathbf{x}_2) = 0`\n
+              :math:`\\mathbf{x}_3 = (-3.779310, -3.283186)`, :math:`f(\\mathbf{x}_3) = 0`\n
+              :math:`\\mathbf{x}_4 = (3.584428, -1.848126)`, :math:`f(\\mathbf{x}_4) = 0`\n
+          * - Function
+            - :math:`f(x_1, x_2) = (x_1^2 + x_2 - 11)^2 + (x_1 + x_2^2 -7)^2`
     """
     var_1 = (individual[0] * individual[0] + individual[1] - 11) ** 2
     var_2 = (individual[0] + individual[1] * individual[1] - 7) ** 2
@@ -409,23 +452,27 @@ def rastrigin(individual: Individual) -> tuple[float]:
     """
     Rastrigin test objective function.
 
-    .. list-table::
-       :widths: 10 50
-       :stub-columns: 1
-
-       * - Type
-         - minimization
-       * - Range
-         - :math:`x_i \\in [-5.12, 5.12]`
-       * - Global optima
-         - :math:`x_i = 0, \\forall i \\in \\lbrace 1 \\ldots \
-                N\\rbrace`, :math:`f(\\mathbf{x}) = 0`
-       * - Function
-         - :math:`f(\\mathbf{x}) = 10N + \\sum_{i=1}^N x_i^2 - 10 \\cos(2\\pi x_i)`
-
     :param individual: The Individual to be evaluated.
     :return: Fitness value of the individual.
     :type individual: :ref:`Individual <datatypes>`
+
+    .. dropdown:: Equations
+       :margin: 0 5 5 5
+
+       .. list-table::
+          :widths: 10 50
+          :stub-columns: 1
+
+          * - Type
+            - minimization
+          * - Range
+            - :math:`x_i \\in [-5.12, 5.12]`
+          * - Global optima
+            - :math:`x_i = 0, \\forall i \\in \\lbrace 1 \
+               \\ldots N\\rbrace`, :math:`f(\\mathbf{x}) = 0`
+          * - Function
+            - :math:`f(\\mathbf{x}) = 10N + \\sum_{i=1}^N \
+               x_i^2 - 10 \\cos(2\\pi x_i)`
     """
     values = [gene * gene - 10 * cos(2 * pi * gene) for gene in individual]
     result = 10 * len(individual) + sum(values)
@@ -434,27 +481,32 @@ def rastrigin(individual: Individual) -> tuple[float]:
 
 # -------------------------------------------------------------------------------------- #
 def rastrigin_scaled(individual: Individual) -> tuple[float]:
-    """Scaled Rastrigin test objective function.
-
-    .. list-table::
-       :widths: 10 50
-       :stub-columns: 1
-
-       * - Type
-         - minimization
-       * - Range
-         - :math:`x_i \\in [-5.12, 5.12]`
-       * - Global optima
-         - :math:`x_i = 0, \\forall i \\in \\lbrace 1 \\ldots \
-                N\\rbrace`, :math:`f(\\mathbf{x}) = 0`
-       * - Function
-         - :math:`f(\\mathbf{x}) = 10N + \\sum_{i=1}^N \
-                \\left(10^{\\left(\\frac{i-1}{N-1}\\right)} x_i \\right)^2 - \
-                10\\cos\\left(2\\pi 10^{\\left(\\frac{i-1}{N-1}\\right)} x_i \\right)`
+    """
+    Scaled Rastrigin test objective function.
 
     :param individual: The Individual to be evaluated.
     :return: Fitness value of the individual.
     :type individual: :ref:`Individual <datatypes>`
+
+    .. dropdown:: Equations
+       :margin: 0 5 5 5
+
+       .. list-table::
+          :widths: 10 50
+          :stub-columns: 1
+
+          * - Type
+            - minimization
+          * - Range
+            - :math:`x_i \\in [-5.12, 5.12]`
+          * - Global optima
+            - :math:`x_i = 0, \\forall i \\in \\lbrace 1 \
+               \\ldots N\\rbrace`, :math:`f(\\mathbf{x}) = 0`
+          * - Function
+            - :math:`f(\\mathbf{x}) = 10N + \\sum_{i=1}^N \
+               \\left(10^{\\left(\\frac{i-1}{N-1}\\right)} \
+               x_i \\right)^2 - 10\\cos\\left(2\\pi 10^{\\left( \
+               \\frac{i-1}{N-1}\\right)} x_i \\right)`
     """
     results = []
     len_ind = len(individual)
@@ -471,23 +523,29 @@ def rastrigin_skewed(individual: Individual) -> tuple[float]:
     """
     Skewed Rastrigin test objective function.
 
-    .. list-table::
-       :widths: 10 50
-       :stub-columns: 1
-
-       * - Type
-         - minimization
-       * - Range
-         - :math:`x_i \\in [-5.12, 5.12]`
-       * - Global optima
-         - :math:`x_i = 0, \\forall i \\in \\lbrace 1 \\ldots N\\rbrace`, :math:`f(\\mathbf{x}) = 0`
-       * - Function
-         - :math:`f(\\mathbf{x}) = 10N + \\sum_{i=1}^N \\left(y_i^2 - 10 \\cos(2\\pi x_i)\\right)`\n
-           :math:`\\text{where } y_i = 10\\cdot x_i \\text{ if } x_i > 0 \\text{, else } x_i`
-
     :param individual: The Individual to be evaluated.
     :return: Fitness value of the individual.
     :type individual: :ref:`Individual <datatypes>`
+
+    .. dropdown:: Equations
+       :margin: 0 5 5 5
+
+       .. list-table::
+          :widths: 10 50
+          :stub-columns: 1
+
+          * - Type
+            - minimization
+          * - Range
+            - :math:`x_i \\in [-5.12, 5.12]`
+          * - Global optima
+            - :math:`x_i = 0, \\forall i \\in \\lbrace 1 \
+               \\ldots N\\rbrace`, :math:`f(\\mathbf{x}) = 0`
+          * - Function
+            - :math:`f(\\mathbf{x}) = 10N + \\sum_{i=1}^N \
+               \\left(y_i^2 - 10 \\cos(2\\pi x_i)\\right)`\n
+              :math:`\\text{where } y_i = 10\\cdot x_i \
+               \\text{ if } x_i > 0 \\text{, else } x_i`
     """
     results = []
     len_ind = len(individual)
@@ -503,21 +561,9 @@ def rastrigin_skewed(individual: Individual) -> tuple[float]:
 def shekel(individual: Individual, matrix: numpy.ndarray,
            vector: numpy.ndarray) -> tuple[float]:
     """
-    The Shekel multimodal function can have any number of maxima. The number
-    of maxima is given by the length of the arguments **matrix** and **vector**.
-
-    .. list-table::
-       :widths: 10 50
-       :stub-columns: 1
-
-       * - Type
-         - maximization
-       * - Range
-         - None
-       * - Global optima
-         - None
-       * - Function
-         - :math:`f(\\mathbf{x}) = \\sum_{i = 1}^{M} \\frac{1}{c_{i} + \\sum_{j = 1}^{N} (x_{j} - a_{ij})^2 }`
+    The Shekel multimodal function can have any number
+    of maxima. The maxima count is given by the length
+    of the arguments **matrix** and **vector**.
 
     :param individual: The Individual to be evaluated.
     :param matrix: Matrix of size :math:`M\\times N`,
@@ -528,6 +574,24 @@ def shekel(individual: Individual, matrix: numpy.ndarray,
     :return: Fitness value of the individual.
 
     :type individual: :ref:`Individual <datatypes>`
+
+    .. dropdown:: Equations
+       :margin: 0 5 5 5
+
+       .. list-table::
+          :widths: 10 50
+          :stub-columns: 1
+
+          * - Type
+            - maximization
+          * - Range
+            - None
+          * - Global optima
+            - None
+          * - Function
+            - :math:`f(\\mathbf{x}) = \\sum_{i = 1}^{M} \
+               \\frac{1}{c_{i} + \\sum_{j = 1}^{N} \
+               (x_{j} - a_{ij})^2 }`
     """
     results = []
     for i in range(len(vector)):
