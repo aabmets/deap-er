@@ -2,11 +2,14 @@ Moving Peaks
 ============
 
 .. autoclass:: deap_er.benchmarks.moving_peaks.MovingPeaks
-   :members:
+   :members: global_maximum, sorted_maxima, offline_error, current_error
+
+   .. automethod:: change_peaks
+   .. automethod:: __call__
+
 
 .. raw:: html
 
-   <br \>
    <hr>
 
 

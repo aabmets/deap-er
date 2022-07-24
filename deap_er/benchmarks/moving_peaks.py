@@ -25,7 +25,7 @@
 # ====================================================================================== #
 from types import MappingProxyType
 from deap_er.base import Individual
-from typing import Iterable
+from typing import Iterable, Optional
 import itertools
 import random
 import math
@@ -34,22 +34,12 @@ import math
 # ====================================================================================== #
 class MovingPeaks:
     """
-    The Moving Peaks Benchmark is a fitness function changing over time. It consists of
-    a number of peaks, changing in height, width and location. The peaks function is
-    given by *pfunc*, which is either a function object or a list of function objects
-    (the default is :func:`PeakFuncs.pf_1`). The number of peaks is determined by *npeaks*
-    (which defaults to 5). This parameter can be either an integer or a sequence. If it is
-    set to an integer, the number of peaks won't change, while if set to a sequence of 3
-    elements, the number of peaks will fluctuate between the first and the third element of
-    that sequence, the second element is the initial number of peaks. When fluctuating the
-    number of peaks, the parameter *number_severity* must be included, it represents the
-    number of peak fraction that is allowed to change. The dimensionality of the search
-    domain is *dim*. A basis function *bfunc* can also be given to act as static landscape
-    (the default is no basis function). The argument *random* serves to grant an independent
-    random number generator to the moving peaks so that the evolution is not influenced by
-    number drawn by this object (the default uses random functions from the Python module
-    :mod:`random`). Various other keyword parameters listed in the table below are required
-    to setup the benchmark, default parameters are based on scenario 1 of this benchmark.
+    | The Moving Peaks Benchmark is a fitness function changing over time.
+    | It consists of a number of peaks changing in height, width and location.
+    | The default configuration of the Moving Peaks benchmark is :data:`PeaksConfig.DEFAULT`.
+
+    :param dimensions: The dimensionality of the search domain.
+    :param kwargs: Keyword arguments, optional.
 
     .. dropdown:: Table of Kwargs
        :margin: 0 5 0 0
@@ -58,8 +48,8 @@ class MovingPeaks:
        Parameter           Type       Details
        =================== ========== =================================================================================
        ``pfunc``           *Callable* The peak function or a list of peak functions.
-       ``bfunc``           *Callable* Basis static function.
-       ``npeaks``          *NumOrSeq* Number of peaks. If a sequence, the number of peaks will fluctuate [min, max].
+       ``bfunc``           *Callable* Basis function for static landscape.
+       ``npeaks``          *NumOrSeq* Number of peaks. An integer or a sequence of three integers [min, initial, max].
        ``min_coord``       *float*    Minimum coordinate for the centre of the peaks.
        ``max_coord``       *float*    Maximum coordinate for the centre of the peaks.
        ``min_height``      *float*    Minimum height of the peaks.
@@ -75,15 +65,15 @@ class MovingPeaks:
        ``period``          *int*      Period between two changes.
        =================== ========== =================================================================================
     """
-    def __init__(self, dimensions, **kwargs):
+    def __init__(self, dimensions: int, **kwargs: Optional):
+        self.dim = dimensions
         sc = PeakConfigs.DEFAULT.copy()  # default config
         sc.update(kwargs)
 
-        self.dim = dimensions
-        self.period = sc.get("period")
         n_peaks = sc.get("npeaks")
         pfunc = sc.get("pfunc")
 
+        # ------------------------------------ #
         self.min_peaks, self.max_peaks = None, None
         if hasattr(n_peaks, "__getitem__"):
             self.min_peaks, n_peaks, self.max_peaks = n_peaks
@@ -98,63 +88,61 @@ class MovingPeaks:
             self.peaks_function = list(itertools.repeat(pfunc, n_peaks))
             self.pfunc_pool = (pfunc,)
 
-        self.basis_function = sc.get("bfunc")
-
-        self.min_coord = sc.get("min_coord")
-        self.max_coord = sc.get("max_coord")
-
-        self.min_height = sc.get("min_height")
-        self.max_height = sc.get("max_height")
-        uniform_height = sc.get("uniform_height")
-
-        self.min_width = sc.get("min_width")
-        self.max_width = sc.get("max_width")
-        uniform_width = sc.get("uniform_width")
-
-        self.lamb = sc.get("lambda")
-        self.move_severity = sc.get("move_severity")
-        self.height_severity = sc.get("height_severity")
-        self.width_severity = sc.get("width_severity")
-
-        self.peaks_position = [
-            [
-                random.uniform(self.min_coord, self.max_coord)
-                for _ in range(dimensions)
-            ] for _ in range(n_peaks)
-        ]
-
-        def rand_height():
-            return random.uniform(self.min_height, self.max_height)
-
-        def rand_width():
-            return random.uniform(self.min_width, self.max_width)
-
-        if uniform_height != 0:
-            self.peaks_height = [uniform_height for _ in range(n_peaks)]
-        else:
-            self.peaks_height = [rand_height() for _ in range(n_peaks)]
-
-        if uniform_width != 0:
-            self.peaks_width = [uniform_width for _ in range(n_peaks)]
-        else:
-            self.peaks_width = [rand_width() for _ in range(n_peaks)]
-
+        # ------------------------------------ #
         self.last_change_vector = [
             [
                 random.random() - 0.5
                 for _ in range(dimensions)
             ] for _ in range(n_peaks)
         ]
+        # ------------------------------------ #
+        self.min_coord = sc.get("min_coord")
+        self.max_coord = sc.get("max_coord")
+        self.peaks_position = [
+            [
+                random.uniform(self.min_coord, self.max_coord)
+                for _ in range(dimensions)
+            ] for _ in range(n_peaks)
+        ]
+        # ------------------------------------ #
+        uniform_height = sc.get("uniform_height")
+        self.min_height = sc.get("min_height")
+        self.max_height = sc.get("max_height")
+        if uniform_height != 0:
+            self.peaks_height = [uniform_height for _ in range(n_peaks)]
+        else:
+            def rand_height():
+                return random.uniform(self.min_height, self.max_height)
+            self.peaks_height = [rand_height() for _ in range(n_peaks)]
 
+        # ------------------------------------ #
+        uniform_width = sc.get("uniform_width")
+        self.min_width = sc.get("min_width")
+        self.max_width = sc.get("max_width")
+        if uniform_width != 0:
+            self.peaks_width = [uniform_width for _ in range(n_peaks)]
+        else:
+            def rand_width():
+                return random.uniform(self.min_width, self.max_width)
+            self.peaks_width = [rand_width() for _ in range(n_peaks)]
+
+        # ------------------------------------ #
+        self.basis_function = sc.get("bfunc")
+        self.move_severity = sc.get("move_severity")
+        self.height_severity = sc.get("height_severity")
+        self.width_severity = sc.get("width_severity")
+        self.period = sc.get("period")
+        self.lamb = sc.get("lambda")
         self._optimum = None
         self._error = None
         self._offline_error = 0
         self.nevals = 0
 
     # -------------------------------------------------------- #
-    def global_maximum(self):
+    @property
+    def global_maximum(self) -> tuple:
         """
-        Returns the global maximum value and position.
+        Returns the value and position of the largest peak.
         """
         potential_max = list()
         zipper = zip(
@@ -163,14 +151,15 @@ class MovingPeaks:
         )
         for func, pos, height, width in zipper:
             result = func(pos, pos, height, width)
-            potential_max.append((result, pos))
+            value: tuple = (result, pos)
+            potential_max.append(value)
         return max(potential_max)
 
     # -------------------------------------------------------- #
-    def maxima(self):
+    @property
+    def sorted_maxima(self) -> list:
         """
-        Returns all visible maximum values and positions
-        sorted by the global maximum first.
+        Returns all visible peak values and positions, sorted from the largest to the smallest peaks.
         """
         maximums = list()
         zipper = zip(
@@ -180,19 +169,36 @@ class MovingPeaks:
         for func, pos, height, width in zipper:
             result = func(pos, pos, height, width)
             if result >= self.__call__(pos, count=False):
-                maximums.append((result, pos))
+                value: tuple = (result, pos)
+                maximums.append(value)
         return sorted(maximums, reverse=True)
 
     # -------------------------------------------------------- #
-    def __call__(self, individual, count=True):
+    @property
+    def offline_error(self) -> float:
         """
-        Evaluate a given *individual* with the
-        current benchmark configuration.
+        Returns the offline error of the landscape.
+        """
+        return self._offline_error / self.nevals
 
-        :param individual: The individual to evaluate.
-        :param count: Whether or not to count this evaluation in
-                      the total evaluation count. (Defaults to
-                      :data:`True`)
+    # -------------------------------------------------------- #
+    @property
+    def current_error(self) -> Optional[float]:
+        """
+        Returns the current error of the landscape.
+        """
+        return self._error
+
+    # -------------------------------------------------------- #
+    def __call__(self, individual: Individual, count: bool = True) -> float:
+        """
+        Evaluate the given **individual** in the context of the current configuration.
+
+        :param individual: The individual to be evaluated.
+        :param count: Whether to count this evaluation in the
+            total evaluation count, optional.
+        :return: The fitness of the individual.
+        :type individual: :ref:`Individual <datatypes>`
         """
         possible_values = []
         zipper = zip(
@@ -212,7 +218,7 @@ class MovingPeaks:
         if count:
             self.nevals += 1
             if self._optimum is None:
-                self._optimum = self.global_maximum()[0]
+                self._optimum = self.global_maximum[0]
                 self._error = abs(fitness - self._optimum)
             self._error = min(self._error, abs(fitness - self._optimum))
             self._offline_error += self._error
@@ -223,17 +229,9 @@ class MovingPeaks:
         return fitness
 
     # -------------------------------------------------------- #
-    def offline_error(self):
-        return self._offline_error / self.nevals
-
-    # -------------------------------------------------------- #
-    def current_error(self):
-        return self._error
-
-    # -------------------------------------------------------- #
     def change_peaks(self):
         """
-        Changes the position, height, width and number of peaks.
+        Changes the position, the height, the width and the number of peaks.
         """
         self._optimum = None
 
@@ -339,7 +337,7 @@ class MovingPeaks:
 class PeakFuncs:
     """
     | This class contains the peak functions for the Moving Peaks problem.
-    | These functions are used for creating custom configuration presets.
+    | These functions can be used for creating custom configuration presets.
     """
     @staticmethod
     def pf1(individual: Individual, positions: Iterable,
