@@ -41,35 +41,35 @@ class Strategy:
     :param kwargs: One or more keyword arguments, optional.
 
     .. dropdown:: Table of Kwargs
-       :margin: 0 5 5 0
+       :margin: 0 5 0 0
 
-       * lambda *(int)*
-           | The number of children to produce at each generation.
-           | *Default:* :code:`int(4 + 3 * log(len(centroid)))`
-       * mu *(int)*
-           | The number of children to keep as parents for the next generation.
-           | *Default:* :code:`int(children / 2)`
-       * weights *(str)*
-           | Evolution decrease speed. Can be *'superlinear'*, *'linear'* or *'equal'*.
-           | *Default:* :code:`'superlinear'`
-       * cm_init *(numpy.ndarray)*
-           | The initial covariance matrix of the distribution.
-           | *Default:* :code:`numpy.identity(len(centroid))`
-       * cm_cum *(float)*
-           | Cumulation constant of the covariance matrix.
-           | *Default:* :code:`4 / (len(centroid) + 4)`
-       * ss_cum *(float)*
-           | Cumulation constant of the step-size.
-           | *Default:* :code:`(mueff + 2) / (len(centroid) + mueff + 3)`
-       * ss_dmp *(float)*
-           | Damping of the step-size.
-           | *Default:* :code:`1 + 2 * max(0, sqrt((mueff - 1) / (len(centroid) + 1)) - 1) + ss_cum`
-       * rank_one *(float)*
-           | Learning rate for rank-one update.
-           | *Default:* :code:`2 / ((len(centroid) + 1.3) ** 2 + mueff)`
-       * rank_mu *(float)*
-           | Learning rate for rank-mu update.
-           | *Default:* :code:`2 * (mueff - 2 + 1 / mueff) / ((len(centroid) + 2) ** 2 + mueff)`
+       * lambda - *(int)*
+          * The number of children to produce at each generation.
+          * *Default:* :code:`int(4 + 3 * log(len(centroid)))`
+       * mu - *(int)*
+          * The number of children to keep as parents for the next generation.
+          * *Default:* :code:`int(children / 2)`
+       * weights - *(str)*
+          * Evolution decrease speed. Can be *'superlinear'*, *'linear'* or *'equal'*.
+          * *Default:* :code:`'superlinear'`
+       * cm_init - *(numpy.ndarray)*
+          * The initial covariance matrix of the distribution.
+          * *Default:* :code:`numpy.identity(len(centroid))`
+       * cm_cum - *(float)*
+          * Cumulation constant of the covariance matrix.
+          * *Default:* :code:`4 / (len(centroid) + 4)`
+       * ss_cum - *(float)*
+          * Cumulation constant of the step-size.
+          * *Default:* :code:`(mueff + 2) / (len(centroid) + mueff + 3)`
+       * ss_dmp - *(float)*
+          * Damping of the step-size.
+          * *Default:* :code:`1 + 2 * max(0, sqrt((mueff - 1) / (len(centroid) + 1)) - 1) + ss_cum`
+       * rank_one - *(float)*
+          * Learning rate for rank-one update.
+          * *Default:* :code:`2 / ((len(centroid) + 1.3) ** 2 + mueff)`
+       * rank_mu - *(float)*
+          * Learning rate for rank-mu update.
+          * *Default:* :code:`2 * (mueff - 2 + 1 / mueff) / ((len(centroid) + 2) ** 2 + mueff)`
     """
     # -------------------------------------------------------- #
     def __init__(self, centroid: Iterable, sigma: float, **kwargs: Optional):

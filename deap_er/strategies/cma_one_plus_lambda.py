@@ -45,29 +45,29 @@ class StrategyOnePlusLambda:
     :type parent: :ref:`Individual <datatypes>`
 
     .. dropdown:: Table of Kwargs
-       :margin: 0 5 5 0
+       :margin: 0 5 0 0
 
-       * lambda *(int)*
-           | The number of children to produce at each generation.
-           | *Default:* :code:`1`
-       * ss_dmp *(float)*
-           | Damping of the step-size.
-           | *Default:* :code:`1.0 + len(population) / 2.0 * lambda`
-       * th_cum *(float)*
-           | Time horizon of the cumulative contribution.
-           | *Default:* :code:`2.0 / (len(population) + 2.0)`
-       * tgt_sr *(float)*
-           | Target success rate.
-           | *Default:* :code:`1.0 / (5 + sqrt(lambda) / 2.0)`
-       * thresh_sr *(float)*
-           | Threshold success rate.
-           | *Default:* :code:`0.44`
-       * ss_learn_rate *(float)*
-           | Learning rate of the step-size.
-           | *Default:* :code:`tgt_sr * lambda / (2.0 + tgt_sr * lambda)`
-       * cm_learn_rate *(float)*
-           | Learning rate of the covariance matrix.
-           | *Default:* :code:`2.0 / (len(population) ** 2 + 6.0)`
+       * lambda - *(int)*
+          * The number of children to produce at each generation.
+          * *Default:* :code:`1`
+       * ss_dmp - *(float)*
+          * Damping of the step-size.
+          * *Default:* :code:`1.0 + len(population) / 2.0 * lambda`
+       * th_cum - *(float)*
+          * Time horizon of the cumulative contribution.
+          * *Default:* :code:`2.0 / (len(population) + 2.0)`
+       * tgt_sr - *(float)*
+          * Target success rate.
+          * *Default:* :code:`1.0 / (5 + sqrt(lambda) / 2.0)`
+       * thresh_sr - *(float)*
+          * Threshold success rate.
+          * *Default:* :code:`0.44`
+       * ss_learn_rate - *(float)*
+          * Learning rate of the step-size.
+          * *Default:* :code:`tgt_sr * lambda / (2.0 + tgt_sr * lambda)`
+       * cm_learn_rate - *(float)*
+          * Learning rate of the covariance matrix.
+          * *Default:* :code:`2.0 / (len(population) ** 2 + 6.0)`
     """
     # -------------------------------------------------------- #
     def __init__(self, parent: Individual, sigma: float, **kwargs: Optional):

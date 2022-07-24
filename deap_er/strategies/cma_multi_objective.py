@@ -42,35 +42,35 @@ class StrategyMultiObjective:
     :param kwargs: One or more keyword arguments, optional.
 
     .. dropdown:: Table of Kwargs
-       :margin: 0 5 5 0
+       :margin: 0 5 0 0
 
-       * lambda *(int)*
-           | The number of children to produce at each generation.
-           | *Default:* :code:`1`
-       * mu *(int)*
-           | The number of children to keep as parents for the next generation.
-           | *Default:* :code:`len(population)`
-       * ss_dmp *(float)*
-           | Damping of the step-size.
-           | *Default:* :code:`1.0 + len(population) / 2.0`
-       * th_cum *(float)*
-           | Time horizon of the cumulative contribution.
-           | *Default:* :code:`2.0 / (len(population) + 2.0)`
-       * tgt_sr *(float)*
-           | Target success rate.
-           | *Default:* :code:`1.0 / (5 + 1.0 / 2.0)`
-       * thresh_sr *(float)*
-           | Threshold success rate.
-           | *Default:* :code:`0.44`
-       * ss_learn_rate *(float)*
-           | Learning rate of the step-size.
-           | *Default:* :code:`tgt_sr / (2.0 + tgt_sr)`
-       * cm_learn_rate *(float)*
-           | Learning rate of the covariance matrix.
-           | *Default:* :code:`2.0 / (len(population) ** 2 + 6.0)`
-       * indicator *(Callable)*
-           | The indicator function to use.
-           | *Default:* :code:`deap_er.utilities.least_contrib`
+       * lambda - *(int)*
+          * The number of children to produce at each generation.
+          * *Default:* :code:`1`
+       * mu - *(int)*
+          * The number of children to keep as parents for the next generation.
+          * *Default:* :code:`len(population)`
+       * ss_dmp - *(float)*
+          * Damping of the step-size.
+          * *Default:* :code:`1.0 + len(population) / 2.0`
+       * th_cum - *(float)*
+          * Time horizon of the cumulative contribution.
+          * *Default:* :code:`2.0 / (len(population) + 2.0)`
+       * tgt_sr - *(float)*
+          * Target success rate.
+          * *Default:* :code:`1.0 / 5.5`
+       * thresh_sr - *(float)*
+          * Threshold success rate.
+          * *Default:* :code:`0.44`
+       * ss_learn_rate - *(float)*
+          * Learning rate of the step-size.
+          * *Default:* :code:`tgt_sr / (2.0 + tgt_sr)`
+       * cm_learn_rate - *(float)*
+          * Learning rate of the covariance matrix.
+          * *Default:* :code:`2.0 / (len(population) ** 2 + 6.0)`
+       * indicator - *(Callable)*
+          * The indicator function to use.
+          * *Default:* :code:`deap_er.utilities.least_contrib`
     """
     # -------------------------------------------------------- #
     def __init__(self, population: list, sigma: float, **kwargs: Optional):
