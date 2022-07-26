@@ -38,7 +38,7 @@ class Translate:
     list of values. This decorator adds the :func:`translate` method to the decorated
     function, which can be used to update the translation vector values.
 
-    :param vector: The translation vector to be used.
+    :param vector: The translation vector values.
         Must have the same length as the individual.
     """
     vector = None
@@ -78,7 +78,7 @@ class Rotate:
     ndarray of values. This decorator adds a :func:`rotate` method to the decorated
     function, which can be used to update the rotation matrix values.
 
-    :param matrix: The rotation matrix to be used. Must be a valid orthogonal
+    :param matrix: The rotation matrix values. Must be a valid orthogonal
         N * N rotation matrix, where N is the length of the individual.
     """
     matrix = None
@@ -118,7 +118,7 @@ class Scale:
     list of values. This decorator adds the :func:`scale` method to the decorated
     function, which can be used to update the scale factor values.
 
-    :param factor: The scale factor to be used.
+    :param factor: The scale factor values.
         Must have the same length as the individual.
     """
     factor = None
