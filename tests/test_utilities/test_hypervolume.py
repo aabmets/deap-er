@@ -23,8 +23,8 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.tools.hypervolume import HyperVolume
-from deap_er.tools.hypervolume.node import Node
+from deap_er.utilities.hypervolume import HyperVolume
+from deap_er.utilities.hypervolume.node import Node
 import numpy
 
 
