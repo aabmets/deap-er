@@ -33,6 +33,7 @@ class TestHyperVolume:
 
     def test_1(self):
         front = [(a, a) for a in numpy.arange(1, 0, -0.01)]
+        front = numpy.array(front)
         ref = numpy.array([2, 2])
         hv = HyperVolume(ref)
         result = hv.compute(front)
@@ -41,6 +42,7 @@ class TestHyperVolume:
     # -------------------------------------------------------------------------------------- #
     def test_2(self):
         front = [(a, a) for a in numpy.arange(2, 0, -0.2)]
+        front = numpy.array(front)
         ref = numpy.array([3, 3])
         hv = HyperVolume(ref)
         result = hv.compute(front)
@@ -49,6 +51,7 @@ class TestHyperVolume:
     # -------------------------------------------------------------------------------------- #
     def test_3(self):
         front = [(a, a, a) for a in numpy.arange(3, 0, -0.03)]
+        front = numpy.array(front)
         ref = numpy.array([4, 5, 6])
         hv = HyperVolume(ref)
         result = hv.compute(front)
@@ -57,6 +60,7 @@ class TestHyperVolume:
     # -------------------------------------------------------------------------------------- #
     def test_4(self):
         front = [(a, a, a) for a in numpy.arange(4, 0, -0.4)]
+        front = numpy.array(front)
         ref = numpy.array([4, 5, 6])
         hv = HyperVolume(ref)
         result = hv.compute(front)
@@ -65,6 +69,7 @@ class TestHyperVolume:
     # -------------------------------------------------------------------------------------- #
     def test_5(self):
         front = [(a, a, a, a) for a in numpy.arange(5, 0, -0.567)]
+        front = numpy.array(front)
         ref = numpy.array([9, 2, 7, 4])
         hv = HyperVolume(ref)
         result = hv.compute(front)
@@ -73,6 +78,7 @@ class TestHyperVolume:
     # -------------------------------------------------------------------------------------- #
     def test_6(self):
         front = [(a, a, a, a) for a in numpy.arange(10, 0, -0.5)]
+        front = numpy.array(front)
         ref = numpy.array([1])
         hv = HyperVolume(ref)
         result = hv.compute(front)
@@ -80,8 +86,8 @@ class TestHyperVolume:
 
     # -------------------------------------------------------------------------------------- #
     def test_7(self):
-        front = []
-        ref = []
+        front = numpy.array([])
+        ref = numpy.array([])
         hv = HyperVolume(ref)
         result = hv.compute(front)
         assert result == 0.0

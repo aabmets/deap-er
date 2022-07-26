@@ -252,7 +252,7 @@ class StrategyMultiObjective:
                 individuals[-1].ps_ = "o", i
 
         else:
-            n_dom = tools.sort_log_non_dominated(
+            n_dom = utils.sort_log_non_dominated(
                 self.parents, len(self.parents),
                 first_front_only=True)
 
