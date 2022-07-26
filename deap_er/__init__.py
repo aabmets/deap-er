@@ -28,8 +28,8 @@ from . import algorithms
 from . import base
 from . import gp
 from . import operators
-from . import benchmarks
+from . import evaluators
 from . import records
 from . import strategies
-from . import tools
+from . import utilities
 from . import datatypes

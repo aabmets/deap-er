@@ -31,12 +31,15 @@ import random
 import math
 
 
+__all__ = ["MovingPeaks", "MPConfigs", "MPFuncs"]
+
+
 # ====================================================================================== #
 class MovingPeaks:
     """
     | The Moving Peaks Benchmark is a fitness function changing over time.
     | It consists of a number of peaks changing in height, width and location.
-    | The default configuration of the Moving Peaks benchmark is :data:`PeaksConfig.DEFAULT`.
+    | The default configuration of the Moving Peaks benchmark is :data:`MPConfigs.DEFAULT`.
 
     :param dimensions: The dimensionality of the search domain.
     :param kwargs: Keyword arguments, optional.
@@ -67,7 +70,7 @@ class MovingPeaks:
     """
     def __init__(self, dimensions: int, **kwargs: Optional):
         self.dim = dimensions
-        sc = PeakConfigs.DEFAULT.copy()  # default config
+        sc = MPConfigs.DEFAULT.copy()  # default config
         sc.update(kwargs)
 
         n_peaks = sc.get("npeaks")
@@ -159,7 +162,8 @@ class MovingPeaks:
     @property
     def sorted_maxima(self) -> list:
         """
-        Returns all visible peak values and positions, sorted from the largest to the smallest peaks.
+        Returns all visible peak values and positions,
+        sorted from the largest to the smallest peaks.
         """
         maximums = list()
         zipper = zip(
@@ -334,7 +338,7 @@ class MovingPeaks:
 
 
 # ====================================================================================== #
-class PeakFuncs:
+class MPFuncs:
     """
     | This class contains the peak functions for the Moving Peaks problem.
     | These functions can be used for creating custom configuration presets.
@@ -393,7 +397,7 @@ class PeakFuncs:
 
 
 # ====================================================================================== #
-class PeakConfigs:
+class MPConfigs:
     """
     | This class contains the configuration presets for the Moving Peaks problem.
     | The presets are of type :data:`dict` and can be accessed as **class attributes**.
@@ -404,7 +408,7 @@ class PeakConfigs:
         =================== ===================== ===================== =====================
         Keys / Presets      **DEFAULT**           **ALT1**              **ALT2**
         =================== ===================== ===================== =====================
-        ``pfunc``           :func:`PeakFuncs.pf1` :func:`PeakFuncs.pf2` :func:`PeakFuncs.pf2`
+        ``pfunc``           :func:`MPFuncs.pf1`   :func:`MPFuncs.pf2`   :func:`MPFuncs.pf2`
         ``bfunc``           :obj:`None`           :obj:`None`           :obj:`lambda x: 10`
         ``npeaks``          5                     10                    50
         ``min_coord``       0.0                   0.0                   0.0
@@ -425,7 +429,7 @@ class PeakConfigs:
     # -------------------------------------------------------- #
     DEFAULT = MappingProxyType(
         {
-            "pfunc": PeakFuncs.pf1,
+            "pfunc": MPFuncs.pf1,
             "npeaks": 5,
             "bfunc": None,
             "min_coord": 0.0,
@@ -447,7 +451,7 @@ class PeakConfigs:
     # -------------------------------------------------------- #
     ALT1 = MappingProxyType(
         {
-            "pfunc": PeakFuncs.pf2,
+            "pfunc": MPFuncs.pf2,
             "npeaks": 10,
             "bfunc": None,
             "min_coord": 0.0,
@@ -469,7 +473,7 @@ class PeakConfigs:
     # -------------------------------------------------------- #
     ALT2 = MappingProxyType(
         {
-            "pfunc": PeakFuncs.pf2,
+            "pfunc": MPFuncs.pf2,
             "npeaks": 50,
             "bfunc": lambda x: 10,
             "min_coord": 0.0,
@@ -487,25 +491,3 @@ class PeakConfigs:
             "period": 1000
         }
     )
-
-
-# def diversity(population):
-#     nind = len(population)
-#     ndim = len(population[0])
-#     d = [0.0] * ndim
-#     for x in population:
-#         d = [di + xi for di, xi in zip(d, x)]
-#     d = [di / nind for di in d]
-#     values = [
-#         (di - xi) ** 2
-#         for x in population
-#         for di, xi in zip(d, x)
-#     ]
-#     return math.sqrt(sum(values))
-#
-#
-# if __name__ == "__main__":
-#     mpb = MovingPeaks(dim=2, npeaks=[1, 1, 10], number_severity=0.1)
-#     print(mpb.maxima())
-#     mpb.change_peaks()
-#     print(mpb.maxima())

@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er import tools
+from deap_er import utilities as utils
 from typing import Optional, Callable
 from math import sqrt, exp
 import numpy
@@ -86,7 +86,7 @@ class StrategyMultiObjective:
         self.th_cum = kwargs.get("th_cum", 2.0 / (self.dim + 2.0))
         self.cm_learn_rate = kwargs.get("cm_learn_rate", 2.0 / (self.dim ** 2 + 6.0))
         self.thresh_sr = kwargs.get("thresh_sr", 0.44)
-        self.indicator = kwargs.get("indicator", tools.least_contrib)
+        self.indicator = kwargs.get("indicator", utils.least_contrib)
         self.timeout = kwargs.get("timeout", 60)
 
         self.sigmas = [sigma] * pop_size
@@ -100,7 +100,7 @@ class StrategyMultiObjective:
         if len(candidates) <= self.mu:
             return candidates, []
 
-        pareto_fronts = tools.sort_log_non_dominated(candidates, len(candidates))
+        pareto_fronts = utils.sort_log_non_dominated(candidates, len(candidates))
 
         chosen = list()
         mid_front = None

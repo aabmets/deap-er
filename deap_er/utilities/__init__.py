@@ -26,4 +26,6 @@
 from .hypervolume import *
 from .sorting import *
 from .constraints import *
+from .eval_decors import *
 from .initializers import *
+from .metrics import *

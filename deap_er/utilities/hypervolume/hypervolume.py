@@ -25,10 +25,32 @@
 # ====================================================================================== #
 from .multi_list import MultiList
 from .node import Node
-from numpy import ndarray
+import numpy
 
 
-__all__ = ['HyperVolume']
+__all__ = ['hypervolume', 'HyperVolume']
+
+
+# ====================================================================================== #
+def hypervolume(population: list, ref_point: numpy.ndarray = None) -> float:
+    """
+    Return the hypervolume of a **population**. If the **ref_point**
+    is not given, the worst value for each objective +1 is used.
+    Minimization is implicitly assumed.
+
+    :param population: A list of non-dominated individuals,
+        where each individual has a Fitness attribute.
+    :param ref_point: The reference point for the hypervolume, optional.
+    :return: The hypervolume of the given population.
+    """
+    wvals = [ind.fitness.wvalues for ind in population]
+    wvals = numpy.array(wvals) * -1
+    if ref_point is None:
+        ref_point = numpy.max(wvals, axis=0) + 1
+
+    hv = HyperVolume(ref_point)
+    pop = numpy.array(population)
+    return hv.compute(pop)
 
 
 # ====================================================================================== #
@@ -41,12 +63,12 @@ class HyperVolume:
     multi_list: MultiList
 
     # -------------------------------------------------------- #
-    def __init__(self, ref_point: ndarray) -> None:
+    def __init__(self, ref_point: numpy.ndarray) -> None:
         self.ref_point = ref_point
         self.dims = len(ref_point)
 
     # -------------------------------------------------------- #
-    def compute(self, point_set: ndarray) -> float:
+    def compute(self, point_set: numpy.ndarray) -> float:
         """
         Computes the hypervolume that is dominated by the non-dominated
         **point_set**. Minimization is implicitly assumed.
@@ -62,7 +84,7 @@ class HyperVolume:
         )
 
     # -------------------------------------------------------- #
-    def _pre_process(self, point_set: ndarray) -> None:
+    def _pre_process(self, point_set: numpy.ndarray) -> None:
         if any(self.ref_point):
             point_set -= self.ref_point
         node_list = MultiList(self.dims)

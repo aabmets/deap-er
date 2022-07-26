@@ -1,6 +1,6 @@
 Binary
 ======
 
-.. automodule:: deap_er.benchmarks.binary
+.. automodule:: deap_er.evaluators.binary
    :imported-members:
    :members:

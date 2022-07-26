@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.tools.sorting import *
+from deap_er.utilities.sorting import *
 from itertools import chain
 from numpy import ndarray
 import numpy

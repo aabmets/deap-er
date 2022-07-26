@@ -90,17 +90,11 @@ class Fitness:
     @values.setter
     def values(self, values: NumOrSeq) -> None:
         if not isinstance(values, Iterable):
-            try:
-                values = (float(values),)
-            except ValueError:
-                raise TypeError(
-                    "Fitness values must either be a real "
-                    "number or a sequence of numbers."
-                )
+            values = (float(values),)
         if len(values) != len(self.weights):
             raise TypeError(
-                "The assigned values s must have the same length "
-                "as the 'weights' attribute of the 'Fitness' class."
+                "The assigned values must have the same length as "
+                "the 'weights' attribute of the 'Fitness' class."
             )
         wvalues = map(mul, values, self.weights)
         self.wvalues = tuple(wvalues)

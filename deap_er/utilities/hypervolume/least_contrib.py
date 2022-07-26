@@ -42,20 +42,19 @@ def _hvol(point_set: ndarray, ref_point: ndarray) -> float:
 
 # -------------------------------------------------------------------------------------- #
 def least_contrib(population: list,
-                  ref: ndarray = None,
+                  ref_point: ndarray = None,
                   timeout: int = None) -> int:
     """
     Returns the index of the individual with the least hypervolume
-    contribution. The hypervolume is computed on a local or a remote
-    cluster using the Ray multiprocessing library, which must be
-    initialized by the user before this function can be called.
+    contribution. Minimization is implicitly assumed. The Ray
+    multiprocessing library must be initialized by the user with
+    :code:`ray.init()` before calls to this function can be made.
 
-    :param population: A sequence of non-dominated individuals,
+    :param population: A list of non-dominated individuals,
         where each individual has a Fitness attribute.
-    :param ref: The reference point for the hypervolume, optional.
-    :param timeout: The timeout for the computation. Defaults to
-        60 seconds. Raises a TimeoutError if the computation
-        does not finish within the given timeout.
+    :param ref_point: The reference point for the hypervolume, optional.
+    :param timeout: Timeout for the computation. Defaults to 60 seconds.
+    :raise TimeoutError: If the computation times out.
     :return: The index of the individual with the least hypervolume contribution.
     """
     if not ray.is_initialized():
@@ -66,14 +65,14 @@ def least_contrib(population: list,
 
     wvals = [ind.fitness.wvalues for ind in population]
     wvals = numpy.array(wvals) * -1
-    if ref is None:
-        ref = numpy.max(wvals, axis=0) + 1
+    if ref_point is None:
+        ref_point = numpy.max(wvals, axis=0) + 1
 
     object_refs = []
     for i in range(len(population)):
         front = (wvals[:i], wvals[i + 1:])
         front = numpy.concatenate(front)
-        object_ref = _hvol.remote(front, ref)
+        object_ref = _hvol.remote(front, ref_point)
         object_refs.append(object_ref)
 
     args = dict(object_refs=object_refs)
