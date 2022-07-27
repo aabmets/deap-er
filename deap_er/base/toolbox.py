@@ -35,6 +35,9 @@ __all__ = ['Toolbox']
 class LintHints:
     __test__: Callable
 
+    individual: Callable
+    population: Callable
+    attr_float: Callable
     generate: Callable
     evaluate: Callable
     update: Callable
