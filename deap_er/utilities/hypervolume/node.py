@@ -40,11 +40,9 @@ class Node:
 
     # -------------------------------------------------------- #
     def compare(self, other: Node, op: Callable) -> bool:
-        if self.cargo and other.cargo:
-            zipper = zip(self.cargo, other.cargo)
-            true = [op(a, b) for a, b in zipper]
-            return all(true)
-        return False
+        zipper = zip(self.cargo, other.cargo)
+        true = [op(a, b) for a, b in zipper]
+        return all(true)
 
     # -------------------------------------------------------- #
     def __gt__(self, other: Node) -> bool:

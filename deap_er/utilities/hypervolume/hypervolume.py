@@ -32,7 +32,7 @@ __all__ = ['hypervolume', 'HyperVolume']
 
 
 # ====================================================================================== #
-def hypervolume(population: list, ref_point: numpy.ndarray = None) -> float:
+def hypervolume(population: list, ref_point: list = None) -> float:
     """
     Return the hypervolume of a **population**. If the **ref_point**
     is not given, the worst value for each objective +1 is used.
@@ -45,12 +45,12 @@ def hypervolume(population: list, ref_point: numpy.ndarray = None) -> float:
     """
     wvals = [ind.fitness.wvalues for ind in population]
     wvals = numpy.array(wvals) * -1
-    if ref_point is None:
+    if not ref_point:
         ref_point = numpy.max(wvals, axis=0) + 1
-
+    else:
+        ref_point = numpy.array(ref_point)
     hv = HyperVolume(ref_point)
-    pop = numpy.array(population)
-    return hv.compute(pop)
+    return hv.compute(wvals)
 
 
 # ====================================================================================== #
