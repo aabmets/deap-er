@@ -44,10 +44,10 @@ class StrategyMultiObjective:
     .. dropdown:: Table of Kwargs
        :margin: 0 5 0 0
 
-       * lambda_ - *(int)*
+       * offsprings - *(int)*
           * The number of children to produce at each generation.
           * *Default:* :code:`1`
-       * mu - *(int)*
+       * survivors - *(int)*
           * The number of children to keep as parents for the next generation.
           * *Default:* :code:`len(population)`
        * ss_dmp - *(float)*
@@ -78,8 +78,8 @@ class StrategyMultiObjective:
         self.dim = len(self.parents[0])
         pop_size = len(population)
 
-        self.mu = kwargs.get("mu", pop_size)
-        self.lamb = kwargs.get("lambda_", 1)
+        self.mu = kwargs.get("survivors", pop_size)
+        self.lamb = kwargs.get("offsprings", 1)
         self.ss_dmp = kwargs.get("ss_dmp", 1.0 + self.dim / 2.0)
         self.tgt_sr = kwargs.get("tgt_sr", 1.0 / (5.0 + 0.5))
         self.ss_learn_rate = kwargs.get("ss_learn_rate", self.tgt_sr / (2.0 + self.tgt_sr))

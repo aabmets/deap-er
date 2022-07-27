@@ -47,7 +47,7 @@ class StrategyOnePlusLambda:
     .. dropdown:: Table of Kwargs
        :margin: 0 5 0 0
 
-       * lambda_ - *(int)*
+       * offsprings - *(int)*
           * The number of children to produce at each generation.
           * *Default:* :code:`1`
        * ss_dmp - *(float)*
@@ -104,7 +104,7 @@ class StrategyOnePlusLambda:
         :param kwargs: One or more keyword arguments, optional.
         :return: Nothing.
         """
-        self.lamb = kwargs.get("lambda_", 1)
+        self.lamb = kwargs.get("offsprings", 1)
         self.thresh_sr = kwargs.get("thresh_sr", 0.44)
 
         default = 1.0 + self.dim / (2.0 * self.lamb)
