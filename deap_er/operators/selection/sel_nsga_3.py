@@ -126,12 +126,11 @@ def sel_nsga_3(individuals: list,
     niche_counts[index] = counts
 
     chosen = list(chain(*pareto_fronts[:-1]))
-    sel_count = len(chosen)
-    diff = sel_count - sel_count
+    diff = sel_count - len(chosen)
     selected = _select_from_niche(
         pareto_fronts[-1], diff,
-        niches[sel_count:],
-        dist[sel_count:],
+        niches[len(chosen):],
+        dist[len(chosen):],
         niche_counts
     )
     chosen.extend(selected)

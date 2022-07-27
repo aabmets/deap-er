@@ -53,7 +53,7 @@ def sort_log_non_dominated(individuals: list, sel_count: int,
     for i, ind in enumerate(individuals):
         unique_fits[ind.fitness.wvalues].append(ind)
 
-    obj = len(individuals[0].fitness.wvalues)-1
+    obj = len(individuals[0].fitness.wvalues) - 1
     fitness = list(unique_fits.keys())
     front = dict.fromkeys(fitness, 0)
 
