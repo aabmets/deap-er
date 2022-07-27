@@ -46,7 +46,7 @@ def hypervolume(population: list, ref_point: Optional[list] = None) -> float:
     """
     wvals = [ind.fitness.wvalues for ind in population]
     wvals = numpy.array(wvals) * -1
-    if not ref_point:
+    if ref_point is None:
         ref_point = numpy.max(wvals, axis=0) + 1
     else:
         ref_point = numpy.array(ref_point)

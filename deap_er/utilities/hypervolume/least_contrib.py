@@ -24,24 +24,14 @@
 #                                                                                        #
 # ====================================================================================== #
 from .hypervolume import HyperVolume
-from ray import exceptions as ray_ex
-from numpy import ndarray
 import numpy
-import ray
 
 
 __all__ = ['least_contrib']
 
 
 # ====================================================================================== #
-@ray.remote  # pragma: no cover
-def _hvol(point_set: ndarray, ref_point: ndarray) -> float:
-    hv = HyperVolume(ref_point)
-    return hv.compute(point_set)
-
-
-# -------------------------------------------------------------------------------------- #
-def least_contrib(population: list, ref_point: list = None, timeout: int = None) -> int:
+def least_contrib(population: list, ref_point: list = None) -> int:
     """
     Returns the index of the individual with the least hypervolume
     contribution. Minimization is implicitly assumed. The Ray
@@ -51,41 +41,23 @@ def least_contrib(population: list, ref_point: list = None, timeout: int = None)
     :param population: A list of non-dominated individuals,
         where each individual has a Fitness attribute.
     :param ref_point: The reference point for the hypervolume, optional.
-    :param timeout: Timeout for the computation. Defaults to 60 seconds.
     :raise TimeoutError: If the computation times out.
     :return: The index of the individual with the least hypervolume contribution.
     """
-    if not ray.is_initialized():
-        raise RuntimeError(
-            'The user must initialize the Ray library with ray.init() '
-            'before any calls to the least_contrib function can be made.'
-        )
-
     wvals = [ind.fitness.wvalues for ind in population]
     wvals = numpy.array(wvals) * -1
-    if not ref_point:
+    if ref_point is None:
         ref_point = numpy.max(wvals, axis=0) + 1
     else:
         ref_point = numpy.array(ref_point)
 
-    object_refs = []
+    contrib_values = []
     for i in range(len(population)):
-        front = (wvals[:i], wvals[i + 1:])
-        front = numpy.concatenate(front)  # ndarray
-        object_ref = _hvol.remote(front, ref_point)
-        object_refs.append(object_ref)
-
-    args = dict(object_refs=object_refs)
-    if timeout:
-        args['timeout'] = float(timeout)
-    try:
-        contrib_values: list = ray.get(**args)
-    except ray_ex.GetTimeoutError as e:
-        ray.cancel(object_refs, force=True)
-        raise TimeoutError(
-            f'Indicator \'least_contrib\' hypervolume calculation '
-            f'exceeded the timeout of {timeout} seconds.'
-        ).with_traceback(e.__traceback__)
+        point_set = (wvals[:i], wvals[i + 1:])
+        point_set = numpy.concatenate(point_set)
+        hv = HyperVolume(ref_point)
+        contrib = hv.compute(point_set)
+        contrib_values.append(contrib)
 
     argmax = numpy.argmax(contrib_values)
     return int(argmax)

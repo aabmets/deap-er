@@ -44,7 +44,7 @@ class StrategyMultiObjective:
     .. dropdown:: Table of Kwargs
        :margin: 0 5 0 0
 
-       * lambda - *(int)*
+       * lambda_ - *(int)*
           * The number of children to produce at each generation.
           * *Default:* :code:`1`
        * mu - *(int)*
@@ -79,7 +79,7 @@ class StrategyMultiObjective:
         pop_size = len(population)
 
         self.mu = kwargs.get("mu", pop_size)
-        self.lamb = kwargs.get("lambda", 1)
+        self.lamb = kwargs.get("lambda_", 1)
         self.ss_dmp = kwargs.get("ss_dmp", 1.0 + self.dim / 2.0)
         self.tgt_sr = kwargs.get("tgt_sr", 1.0 / (5.0 + 0.5))
         self.ss_learn_rate = kwargs.get("ss_learn_rate", self.tgt_sr / (2.0 + self.tgt_sr))
@@ -87,7 +87,6 @@ class StrategyMultiObjective:
         self.cm_learn_rate = kwargs.get("cm_learn_rate", 2.0 / (self.dim ** 2 + 6.0))
         self.thresh_sr = kwargs.get("thresh_sr", 0.44)
         self.indicator = kwargs.get("indicator", utils.least_contrib)
-        self.timeout = kwargs.get("timeout", 60)
 
         self.sigmas = [sigma] * pop_size
         self.big_a = [numpy.identity(self.dim) for _ in range(pop_size)]
@@ -123,7 +122,7 @@ class StrategyMultiObjective:
             ref = numpy.max(ref, axis=0) + 1
 
             for _ in range(len(mid_front) - k):
-                idx = self.indicator(mid_front, ref, self.timeout)
+                idx = self.indicator(mid_front, ref)
                 not_chosen.append(mid_front.pop(idx))
 
             chosen += mid_front

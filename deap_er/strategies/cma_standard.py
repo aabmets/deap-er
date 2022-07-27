@@ -43,7 +43,7 @@ class Strategy:
     .. dropdown:: Table of Kwargs
        :margin: 0 5 0 0
 
-       * lambda - *(int)*
+       * lambda_ - *(int)*
           * The number of children to produce at each generation.
           * *Default:* :code:`int(4 + 3 * log(len(centroid)))`
        * mu - *(int)*
@@ -113,7 +113,7 @@ class Strategy:
         :return: Nothing.
         """
         default = int(4 + 3 * log(self.dim))
-        self.lamb = kwargs.get("lambda", default)
+        self.lamb = kwargs.get("lambda_", default)
 
         default = int(self.lamb / 2)
         self.mu = kwargs.get("mu", default)
