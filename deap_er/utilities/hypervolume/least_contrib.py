@@ -41,9 +41,7 @@ def _hvol(point_set: ndarray, ref_point: ndarray) -> float:
 
 
 # -------------------------------------------------------------------------------------- #
-def least_contrib(population: list,
-                  ref_point: ndarray = None,
-                  timeout: int = None) -> int:
+def least_contrib(population: list, ref_point: list = None, timeout: int = None) -> int:
     """
     Returns the index of the individual with the least hypervolume
     contribution. Minimization is implicitly assumed. The Ray
@@ -65,13 +63,15 @@ def least_contrib(population: list,
 
     wvals = [ind.fitness.wvalues for ind in population]
     wvals = numpy.array(wvals) * -1
-    if ref_point is None:
+    if not ref_point:
         ref_point = numpy.max(wvals, axis=0) + 1
+    else:
+        ref_point = numpy.array(ref_point)
 
     object_refs = []
     for i in range(len(population)):
         front = (wvals[:i], wvals[i + 1:])
-        front = numpy.concatenate(front)
+        front = numpy.concatenate(front)  # ndarray
         object_ref = _hvol.remote(front, ref_point)
         object_refs.append(object_ref)
 
