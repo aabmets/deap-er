@@ -37,10 +37,9 @@ Help us fix bugs faster by issuing **Great Bug Reports**.
 ## Coding Style
 - Code must be formatted with the **black** formatter.  
 - Indent with tabs, not spaces.  
-- Use code logic separators.
-- Separators must be 90 chars long and conform to the following styles:
-  - for classes: \# =========== #
-  - for functions: \# ------------------- #
+- Use code logic separators such as:
+  - \# =========== #
+  - \# ------------------- #
 
 
 ## License

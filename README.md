@@ -1,13 +1,11 @@
-# DEAP-er
+# DEAP-ER
 
-DEAP-er is a fully refactored rework of the original DEAP library.
-It's available for Python version 3.9 and the availability for 
-version 3.10 depends on the Ray dependency library.
+DEAP-ER is a full rework of the original DEAP library for Python 3.10 and up.
 
 
 ## Description
 
-DEAP is a novel evolutionary computation framework for rapid prototyping and testing of ideas. 
+DEAP-ER is a novel evolutionary computation framework for rapid prototyping and testing of ideas. 
 It seeks to make algorithms explicit and data structures transparent. 
 It works in perfect harmony with parallelization mechanisms such as 
 multiprocessing and [SCOOP](https://github.com/soravux/scoop).
@@ -31,7 +29,7 @@ DEAP includes the following features:
 
 ## Documentation
 
-See the [Documentation](http://deap.readthedocs.org/) for the DEAP user guide, tutorials and the reference manual.
+See the [Documentation](http://deap-er.readthedocs.org/) for the user guide, tutorials and the reference manual.
 
 
 ## Installation
@@ -41,15 +39,12 @@ pip install deap-er
 
 
 ## Importing
-Change the import statement from `import deap` to `import deap_er`.
-Everything should just work.
+```python
+# see the docs for available modules
+from deap_er import *
+```
 
 
 ## Contributing
 
 Please read the CONTRIBUTING.md file before submitting pull requests.
-
-
-## Notes
-
-The hypervolume submodule is currently pure-python only, because I could not get its C extension to compile.  
