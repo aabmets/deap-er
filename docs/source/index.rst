@@ -3,6 +3,12 @@ Welcome to the DEAP-er's documentation!
 
 .. toctree::
    :maxdepth: 2
+   :caption: Examples:
+
+   examples/genetic_algorithms.rst
+
+.. toctree::
+   :maxdepth: 2
    :caption: Reference:
 
    reference/base.rst
