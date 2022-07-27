@@ -33,6 +33,9 @@ __all__ = ['Toolbox']
 
 # ====================================================================================== #
 class LintHints:
+    map: partial
+    clone: partial
+
     __test__: Callable
 
     individual: Callable
@@ -44,9 +47,6 @@ class LintHints:
     mutate: Callable
     select: Callable
     mate: Callable
-
-    clone: partial
-    map: partial
 
 
 # ====================================================================================== #

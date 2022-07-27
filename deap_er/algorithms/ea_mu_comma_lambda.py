@@ -63,7 +63,7 @@ def ea_mu_comma_lambda(toolbox: Toolbox, population: list,
             '\'offsprings\' must be greater than or equal to \'survivors\'.'
         )
 
-    invalid_ind = [ind for ind in population if not ind.fitness.valid]
+    invalid_ind = [ind for ind in population if not ind.fitness.is_valid()]
     fitness = toolbox.map(toolbox.evaluate, invalid_ind)
     for ind, fit in zip(invalid_ind, fitness):
         ind.fitness.values = fit
@@ -82,7 +82,7 @@ def ea_mu_comma_lambda(toolbox: Toolbox, population: list,
     for gen in range(1, generations + 1):
         offspring = var_or(toolbox, population, offsprings, cx_prob, mut_prob)
 
-        invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
+        invalid_ind = [ind for ind in offspring if not ind.fitness.is_valid()]
         fitness = toolbox.map(toolbox.evaluate, invalid_ind)
         for ind, fit in zip(invalid_ind, fitness):
             ind.fitness.values = fit

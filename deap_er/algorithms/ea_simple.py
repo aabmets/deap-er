@@ -57,7 +57,7 @@ def ea_simple(toolbox: Toolbox, population: list,
     logbook = Logbook()
     logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
 
-    invalid_ind = [ind for ind in population if not ind.fitness.valid]
+    invalid_ind = [ind for ind in population if not ind.fitness.is_valid()]
     fitness = toolbox.map(toolbox.evaluate, invalid_ind)
     for ind, fit in zip(invalid_ind, fitness):
         ind.fitness.values = fit
@@ -74,7 +74,7 @@ def ea_simple(toolbox: Toolbox, population: list,
         offspring = toolbox.select(population, len(population))
         offspring = var_and(toolbox, offspring, cx_prob, mut_prob)
 
-        invalid_ind = [ind for ind in offspring if not ind.fitness.valid]
+        invalid_ind = [ind for ind in offspring if not ind.fitness.is_valid()]
         fitness = toolbox.map(toolbox.evaluate, invalid_ind)
 
         for ind, fit in zip(invalid_ind, fitness):
