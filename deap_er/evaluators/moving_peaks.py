@@ -39,6 +39,10 @@ class MovingPeaks:
     """
     | The Moving Peaks Benchmark is a fitness function changing over time.
     | It consists of a number of peaks changing in height, width and location.
+    | If the kwarg ``npeaks`` is a list of three integers, the number of peaks
+    | will fluctuate between the first and the third element of that list, where
+    | the second element is the initial number of peaks. When fluctuating the
+    | number of peaks, the kwarg *change_severity* must be included in kwargs.
     | The default configuration of the Moving Peaks benchmark is :data:`MPConfigs.DEFAULT`.
 
     :param dimensions: The dimensionality of the search domain.
@@ -52,7 +56,8 @@ class MovingPeaks:
        =================== ========== =================================================================================
        ``pfunc``           *Callable* The peak function or a list of peak functions.
        ``bfunc``           *Callable* Basis function for static landscape.
-       ``npeaks``          *NumOrSeq* Number of peaks. An integer or a sequence of three integers [min, initial, max].
+       ``npeaks``          *NumOrSeq* Number of peaks. An integer or a list of three integers [min, initial, max].
+       ``change_severity`` *float*    The fraction of the number of peaks that is allowed to change.
        ``min_coord``       *float*    Minimum coordinate for the centre of the peaks.
        ``max_coord``       *float*    Maximum coordinate for the centre of the peaks.
        ``min_height``      *float*    Minimum height of the peaks.
@@ -61,7 +66,7 @@ class MovingPeaks:
        ``min_width``       *float*    Minimum width of the peaks.
        ``max_width``       *float*    Maximum width of the peaks
        ``uniform_width``   *float*    Starting width of all peaks. Random, if ``uniform_width <= 0``.
-       ``lambda``          *float*    Correlation between changes.
+       ``lambda_``          *float*    Correlation between changes.
        ``move_severity``   *float*    The distance a single peak moves when peaks change.
        ``height_severity`` *float*    The standard deviation of the change to the height of a peak when peaks change.
        ``width_severity``  *float*    The standard deviation of the change to the width of a peak when peaks change.
@@ -135,7 +140,7 @@ class MovingPeaks:
         self.height_severity = sc.get("height_severity")
         self.width_severity = sc.get("width_severity")
         self.period = sc.get("period")
-        self.lamb = sc.get("lambda")
+        self.lamb = sc.get("lambda_")
         self._optimum = None
         self._error = None
         self._offline_error = 0
@@ -411,6 +416,7 @@ class MPConfigs:
         ``pfunc``           :func:`MPFuncs.pf1`   :func:`MPFuncs.pf2`   :func:`MPFuncs.pf2`
         ``bfunc``           :obj:`None`           :obj:`None`           :obj:`lambda x: 10`
         ``npeaks``          5                     10                    50
+        ``change_severity`` :obj:`None`           :obj:`None`           :obj:`None`
         ``min_coord``       0.0                   0.0                   0.0
         ``max_coord``       100.0                 100.0                 100.0
         ``min_height``      30.0                  30.0                  30.0
@@ -419,7 +425,7 @@ class MPConfigs:
         ``min_width``       0.0001                1.0                   1.0
         ``max_width``       0.2                   12.0                  12.0
         ``uniform_width``   0.1                   0.0                   0.0
-        ``lambda``          0.0                   0.5                   0.5
+        ``lambda_``         0.0                   0.5                   0.5
         ``move_severity``   1.0                   1.5                   1.0
         ``height_severity`` 7.0                   7.0                   1.0
         ``width_severity``  0.01                  1.0                   0.5
@@ -431,6 +437,7 @@ class MPConfigs:
         {
             "pfunc": MPFuncs.pf1,
             "npeaks": 5,
+            "change_severity": None,
             "bfunc": None,
             "min_coord": 0.0,
             "max_coord": 100.0,
@@ -440,7 +447,7 @@ class MPConfigs:
             "min_width": 0.0001,
             "max_width": 0.2,
             "uniform_width": 0.1,
-            "lambda": 0.0,
+            "lambda_": 0.0,
             "move_severity": 1.0,
             "height_severity": 7.0,
             "width_severity": 0.01,
@@ -453,6 +460,7 @@ class MPConfigs:
         {
             "pfunc": MPFuncs.pf2,
             "npeaks": 10,
+            "change_severity": None,
             "bfunc": None,
             "min_coord": 0.0,
             "max_coord": 100.0,
@@ -462,7 +470,7 @@ class MPConfigs:
             "min_width": 1.0,
             "max_width": 12.0,
             "uniform_width": 0,
-            "lambda": 0.5,
+            "lambda_": 0.5,
             "move_severity": 1.0,
             "height_severity": 7.0,
             "width_severity": 1.0,
@@ -475,6 +483,7 @@ class MPConfigs:
         {
             "pfunc": MPFuncs.pf2,
             "npeaks": 50,
+            "change_severity": None,
             "bfunc": lambda x: 10,
             "min_coord": 0.0,
             "max_coord": 100.0,
@@ -484,7 +493,7 @@ class MPConfigs:
             "min_width": 1.0,
             "max_width": 12.0,
             "uniform_width": 0,
-            "lambda": 0.5,
+            "lambda_": 0.5,
             "move_severity": 1.0,
             "height_severity": 1.0,
             "width_severity": 0.5,

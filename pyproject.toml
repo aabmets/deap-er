@@ -1,7 +1,7 @@
 # ====================================================================================== #
 [tool.poetry]
 name = "deap-er"
-version = "0.4.0"
+version = "0.5.0"
 description = "Distributed Evolutionary Algorithms in Python - Entirely Reworked"
 authors = ["Mattias Aabmets <mattias.aabmets@gmail.com>"]
 license = "MIT License"
@@ -10,6 +10,7 @@ keywords = [
     "evolutionary algorithms",
     "genetic algorithms",
     "genetic programming",
+    "symbolic regression",
     "hypervolume"
 ]
 classifiers = [
@@ -41,7 +42,7 @@ include = [
 
 # ====================================================================================== #
 [tool.poetry.dependencies]
-python = "3.9"
+python = "^3.9"
 numpy = "^1.23.1"
 scipy = "^1.8.1"
 
