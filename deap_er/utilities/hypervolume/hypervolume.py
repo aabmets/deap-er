@@ -23,6 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from typing import Optional
 from .multi_list import MultiList
 from .node import Node
 import numpy
@@ -32,15 +33,15 @@ __all__ = ['hypervolume', 'HyperVolume']
 
 
 # ====================================================================================== #
-def hypervolume(population: list, ref_point: list = None) -> float:
+def hypervolume(population: list, ref_point: Optional[list] = None) -> float:
     """
-    Return the hypervolume of a **population**. If the **ref_point**
-    is not given, the worst value for each objective +1 is used.
+    Returns the hypervolume of a **population**.
     Minimization is implicitly assumed.
 
     :param population: A list of non-dominated individuals,
         where each individual has a Fitness attribute.
     :param ref_point: The reference point for the hypervolume, optional.
+        If not provided, the worst value for each objective +1 is used.
     :return: The hypervolume of the given population.
     """
     wvals = [ind.fitness.wvalues for ind in population]
