@@ -7,3 +7,4 @@ Genetic Algorithms
    genetic_algorithms/onemax.rst
    genetic_algorithms/onemax_short.rst
    genetic_algorithms/onemax_numpy.rst
+   genetic_algorithms/onemax_multiprocess.rst
