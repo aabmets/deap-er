@@ -38,9 +38,11 @@ class LintHints:
 
     __test__: Callable
 
+    attr_int: Callable
+    attr_bool: Callable
+    attr_float: Callable
     individual: Callable
     population: Callable
-    attr_float: Callable
     generate: Callable
     evaluate: Callable
     update: Callable

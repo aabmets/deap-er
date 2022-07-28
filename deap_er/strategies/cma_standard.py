@@ -34,7 +34,7 @@ __all__ = ['Strategy']
 # ====================================================================================== #
 class Strategy:
     """
-    The basic Covariance Matrix Adaptation evolution strategy.
+    The standard Covariance Matrix Adaptation evolution strategy.
 
     :param centroid: An object that indicates where to start the evolution.
     :param sigma: The initial standard deviation of the distribution.
