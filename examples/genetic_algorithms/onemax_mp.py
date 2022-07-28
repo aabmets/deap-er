@@ -10,12 +10,15 @@ import numpy
 import array
 
 
+random.seed(1234)  # ensure reproducibility
+
+
 # Evaluator can't be a lambda, because lambdas can't be pickled.
-def eval_one_max(individual):
+def evaluate(individual):
     return sum(individual)
 
 
-# Can't be in setup(), because subprocesses need these custom objects.
+# Can't be in setup(), because subprocesses need these objects.
 creator.create("FitnessMax", base.Fitness, weights=(1.0,))
 creator.create("Individual", array.array, typecode='b', fitness=creator.FitnessMax)
 
@@ -28,7 +31,7 @@ def setup(toolbox, stats):
     toolbox.register("mate", ops.cx_two_point)
     toolbox.register("mutate", ops.mut_flip_bit, mut_prob=0.05)
     toolbox.register("select", ops.sel_tournament, contestants=3)
-    toolbox.register("evaluate", eval_one_max)
+    toolbox.register("evaluate", evaluate)
 
     stats.register("avg", numpy.mean)
     stats.register("std", numpy.std)
@@ -36,18 +39,22 @@ def setup(toolbox, stats):
     stats.register("max", numpy.max)
 
 
+def print_results(best_ind):
+    if not all(gene == 1 for gene in best_ind):
+        print('Evolution failed to converge.')
+    print(f'\nThe best individual is: [1, 1, 1, ..., 1] '
+          f'with a fitness score of 100.')
+
+
 def main():
-    random.seed()
     toolbox = base.Toolbox()
     stats = records.Statistics(lambda ind: ind.fitness.values)
     setup(toolbox, stats)
 
     with mp.Pool() as pool:
         toolbox.register("map", pool.map)
-
         pop = toolbox.population(count=300)
         hof = records.HallOfFame(maxsize=1)
-
         args = dict(
             toolbox=toolbox,
             population=pop,
@@ -56,15 +63,10 @@ def main():
             mut_prob=0.2,
             hof=hof,
             stats=stats,
-            verbose=True  # prints stats
+            verbose=True  # print stats
         )
         algos.ea_simple(**args)
-
-        best_ind = hof[0]
-        if not all(gene == 1 for gene in best_ind):
-            raise RuntimeError('Evolution failed to converge.')
-        print(f'\nThe best individual is: [1, 1, 1, ..., 1] '
-              f'with a fitness score of 100.')
+        print_results(hof[0])
 
 
 if __name__ == "__main__":

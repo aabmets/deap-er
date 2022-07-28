@@ -5,6 +5,9 @@ from deap_er import base
 import random
 
 
+random.seed(1234)  # ensure reproducibility
+
+
 def setup(toolbox):
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
     creator.create("Individual", list, fitness=creator.FitnessMax)
@@ -19,23 +22,15 @@ def setup(toolbox):
     toolbox.register("evaluate", lambda x: sum(x))
 
 
-def main():
-    random.seed()
-    toolbox = base.Toolbox()
-    setup(toolbox)
+def evolve(toolbox, population, max_gens, cx_prob, mut_prob):
+    fitness = map(toolbox.evaluate, population)
+    for ind, fit in zip(population, fitness):
+        ind.fitness.values = fit
+    fits = [ind.fitness.values[0] for ind in population]
 
     generation = 0
-    cx_prob = 0.5
-    mut_prob = 0.2
-
-    pop = toolbox.population(count=300)
-    fitness = map(toolbox.evaluate, pop)
-    for ind, fit in zip(pop, fitness):
-        ind.fitness.values = fit
-    fits = [ind.fitness.values[0] for ind in pop]
-
-    while max(fits) < 100 and generation < 1000:
-        offspring = toolbox.select(pop, len(pop))
+    while max(fits) < 100 and generation < max_gens:
+        offspring = toolbox.select(population, len(population))
         offspring = list(map(toolbox.clone, offspring))
 
         for child1, child2 in zip(offspring[::2], offspring[1::2]):
@@ -53,15 +48,35 @@ def main():
         fitness = map(toolbox.evaluate, invalid_ind)
         for ind, fit in zip(invalid_ind, fitness):
             ind.fitness.values = fit
-        pop[:] = offspring
-        fits = [ind.fitness.values[0] for ind in pop]
+        population[:] = offspring
+        fits = [ind.fitness.values[0] for ind in population]
         generation += 1
 
-    best_ind = ops.sel_best(pop, sel_count=1)[0]
+    best_ind = ops.sel_best(population, sel_count=1)[0]
+    return best_ind
+
+
+def print_results(best_ind):
     if not all(gene == 1 for gene in best_ind):
-        raise RuntimeError('Evolution failed to converge.')
+        print('Evolution failed to converge.')
     print(f'\nThe best individual is: [1, 1, 1, ..., 1] '
           f'with a fitness score of 100.')
+
+
+def main():
+    toolbox = base.Toolbox()
+    setup(toolbox)
+
+    pop = toolbox.population(count=300)
+    args = dict(
+        toolbox=toolbox,
+        population=pop,
+        max_gens=1000,
+        cx_prob=0.5,
+        mut_prob=0.2
+    )
+    best_ind = evolve(**args)
+    print_results(best_ind)
 
 
 if __name__ == "__main__":

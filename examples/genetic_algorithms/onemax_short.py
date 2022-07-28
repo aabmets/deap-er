@@ -9,6 +9,9 @@ import numpy
 import array
 
 
+random.seed(1234)  # ensure reproducibility
+
+
 def setup(toolbox, stats):
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
     creator.create("Individual", array.array, typecode='b', fitness=creator.FitnessMax)
@@ -28,15 +31,20 @@ def setup(toolbox, stats):
     stats.register("max", numpy.max)
 
 
+def print_results(best_ind):
+    if not all(gene == 1 for gene in best_ind):
+        print('Evolution failed to converge.')
+    print(f'\nThe best individual is: [1, 1, 1, ..., 1] '
+          f'with a fitness score of 100.')
+
+
 def main():
-    random.seed()
     toolbox = base.Toolbox()
     stats = records.Statistics(lambda ind: ind.fitness.values)
     setup(toolbox, stats)
 
     pop = toolbox.population(count=300)
     hof = records.HallOfFame(maxsize=1)
-
     args = dict(
         toolbox=toolbox,
         population=pop,
@@ -45,15 +53,10 @@ def main():
         mut_prob=0.2,
         hof=hof,
         stats=stats,
-        verbose=True  # prints stats
+        verbose=True  # print stats
     )
     algos.ea_simple(**args)
-
-    best_ind = hof[0]
-    if not all(gene == 1 for gene in best_ind):
-        raise RuntimeError('Evolution failed to converge.')
-    print(f'\nThe best individual is: [1, 1, 1, ..., 1] '
-          f'with a fitness score of 100.')
+    print_results(hof[0])
 
 
 if __name__ == "__main__":

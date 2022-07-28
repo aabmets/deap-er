@@ -8,7 +8,7 @@ import string
 import random
 
 
-random.seed(64)
+random.seed(1234)  # ensure reproducibility
 
 IND_INIT_SIZE = 5
 MAX_ITEM = 50
