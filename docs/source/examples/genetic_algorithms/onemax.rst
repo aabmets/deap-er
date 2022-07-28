@@ -1,10 +1,10 @@
 One Max Problem
 ===============
 
-Short Version
--------------
+Detailed Version
+----------------
 
-.. literalinclude:: ../../../../examples/genetic_algorithms/onemax_short.py
+.. literalinclude:: ../../../../examples/genetic_algorithms/onemax_detailed.py
    :language: python
    :linenos:
 
@@ -14,10 +14,10 @@ Short Version
    <hr>
 
 
-Detailed Version
-----------------
+Short Version
+-------------
 
-.. literalinclude:: ../../../../examples/genetic_algorithms/onemax_detailed.py
+.. literalinclude:: ../../../../examples/genetic_algorithms/onemax_short.py
    :language: python
    :linenos:
 
