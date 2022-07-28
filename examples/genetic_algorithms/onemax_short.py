@@ -1,28 +1,3 @@
-# ====================================================================================== #
-#                                                                                        #
-#   MIT License                                                                          #
-#                                                                                        #
-#   Copyright (c) 2022 - Mattias Aabmets, The DEAP Team and Other Contributors           #
-#                                                                                        #
-#   Permission is hereby granted, free of charge, to any person obtaining a copy         #
-#   of this software and associated documentation files (the "Software"), to deal        #
-#   in the Software without restriction, including without limitation the rights         #
-#   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell            #
-#   copies of the Software, and to permit persons to whom the Software is                #
-#   furnished to do so, subject to the following conditions:                             #
-#                                                                                        #
-#   The above copyright notice and this permission notice shall be included in all       #
-#   copies or substantial portions of the Software.                                      #
-#                                                                                        #
-#   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR           #
-#   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,             #
-#   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE          #
-#   AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER               #
-#   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,        #
-#   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE        #
-#   SOFTWARE.                                                                            #
-#                                                                                        #
-# ====================================================================================== #
 from deap_er import algorithms as algos
 from deap_er import operators as ops
 from deap_er import utilities as utils
@@ -34,16 +9,12 @@ import numpy
 import array
 
 
-random.seed(64)
-
-
-# -------------------------------------------------------- #
 def eval_one_max(individual):
     return sum(individual)
 
 
-# -------------------------------------------------------- #
 def main():
+    random.seed()
     toolbox = base.Toolbox()
 
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
@@ -65,22 +36,26 @@ def main():
     stats.register("max", numpy.max)
 
     pop = toolbox.population(count=300)
-    hof = records.HallOfFame(1)
+    hof = records.HallOfFame(maxsize=1)
 
     args = dict(
         toolbox=toolbox,
         population=pop,
-        generations=40,
+        generations=50,
         cx_prob=0.5,
         mut_prob=0.2,
         hof=hof,
         stats=stats,
-        verbose=True
+        verbose=False
     )
-    pop, log = algos.ea_simple(**args)
-    return pop, log, hof
+    algos.ea_simple(**args)
+
+    for gene in hof[0]:
+        if gene != 1:
+            raise RuntimeError('Evolution failed to converge.')
+    print(f'The best individual is: [1, 1, 1, ..., 1] '
+          f'with a fitness score of 100.')
 
 
-# -------------------------------------------------------- #
 if __name__ == "__main__":
     main()
