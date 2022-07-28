@@ -9,14 +9,7 @@ import numpy
 import array
 
 
-def eval_one_max(individual):
-    return sum(individual)
-
-
-def main():
-    random.seed()
-    toolbox = base.Toolbox()
-
+def setup(toolbox, stats):
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
     creator.create("Individual", array.array, typecode='b', fitness=creator.FitnessMax)
 
@@ -24,16 +17,22 @@ def main():
     toolbox.register("individual", utils.init_repeat, creator.Individual, toolbox.attr_bool, 100)
     toolbox.register("population", utils.init_repeat, list, toolbox.individual)
 
-    toolbox.register("evaluate", eval_one_max)
     toolbox.register("mate", ops.cx_two_point)
     toolbox.register("mutate", ops.mut_flip_bit, mut_prob=0.05)
     toolbox.register("select", ops.sel_tournament, contestants=3)
+    toolbox.register("evaluate", lambda x: sum(x))
 
-    stats = records.Statistics(lambda ind: ind.fitness.values)
     stats.register("avg", numpy.mean)
     stats.register("std", numpy.std)
     stats.register("min", numpy.min)
     stats.register("max", numpy.max)
+
+
+def main():
+    random.seed()
+    toolbox = base.Toolbox()
+    stats = records.Statistics(lambda ind: ind.fitness.values)
+    setup(toolbox, stats)
 
     pop = toolbox.population(count=300)
     hof = records.HallOfFame(maxsize=1)
@@ -50,7 +49,8 @@ def main():
     )
     algos.ea_simple(**args)
 
-    for gene in hof[0]:
+    best_ind = hof[0]
+    for gene in best_ind:
         if gene != 1:
             raise RuntimeError('Evolution failed to converge.')
     print(f'The best individual is: [1, 1, 1, ..., 1] '

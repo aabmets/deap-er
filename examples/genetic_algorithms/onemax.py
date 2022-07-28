@@ -5,14 +5,7 @@ from deap_er import base
 import random
 
 
-def eval_one_max(individual):
-    return sum(individual)
-
-
-def main():
-    random.seed()
-    toolbox = base.Toolbox()
-
+def setup(toolbox):
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
     creator.create("Individual", list, fitness=creator.FitnessMax)
 
@@ -20,10 +13,16 @@ def main():
     toolbox.register("individual", utils.init_repeat, creator.Individual, toolbox.attr_bool, 100)
     toolbox.register("population", utils.init_repeat, list, toolbox.individual)
 
-    toolbox.register("evaluate", eval_one_max)
+    toolbox.register("evaluate", lambda x: sum(x))
     toolbox.register("mate", ops.cx_two_point)
     toolbox.register("mutate", ops.mut_flip_bit, mut_prob=0.05)
     toolbox.register("select", ops.sel_tournament, contestants=3)
+
+
+def main():
+    random.seed()
+    toolbox = base.Toolbox()
+    setup(toolbox)
 
     pop = toolbox.population(count=300)
     fitness = map(toolbox.evaluate, pop)
