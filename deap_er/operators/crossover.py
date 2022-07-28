@@ -149,10 +149,11 @@ def cx_two_point(ind1: Individual, ind2: Individual) -> Mates:
 # -------------------------------------------------------------------------------------- #
 def cx_two_point_copy(ind1: Individual, ind2: Individual) -> Mates:
     """
-    Executes a two-point crossover on the copies of the two individuals.
-    This should be used instead of the regular *cx_two_point* operator
-    when the individuals are based on numpy arrays to avoid incorrect
-    mating behavior due to the specifics of the numpy array datatype.
+    Executes a two-point crossover on the copies of the two
+    individuals. This should be used instead of the regular
+    :func:`cx_two_point` operator when the individuals are
+    based on numpy arrays to avoid incorrect mating behavior
+    due to the specifics of the numpy array datatype.
 
     :param ind1: The first individual.
     :param ind2: The second individual.
@@ -190,9 +191,9 @@ def cx_es_two_point_copy(ind1: Individual, ind2: Individual) -> Mates:
     """
     Executes a two-point crossover on the copies of the two individuals
     and their evolution strategies. This should be used instead of the
-    regular *cx_two_point* operator when the individuals are based on
-    numpy arrays to avoid incorrect mating behavior due to the
-    specifics of the numpy array datatype.
+    regular :func:`cx_es_two_point` operator when the individuals are
+    based on numpy arrays to avoid incorrect mating behavior due to
+    the specifics of the numpy array datatype.
 
     :param ind1: The first individual.
     :param ind2: The second individual.

@@ -6,18 +6,17 @@ from deap_er import creator
 from deap_er import base
 import random
 import numpy
-import array
 
 
 def setup(toolbox, stats):
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-    creator.create("Individual", array.array, typecode='b', fitness=creator.FitnessMax)
+    creator.create("Individual", numpy.ndarray, fitness=creator.FitnessMax)
 
     toolbox.register("attr_bool", random.randint, 0, 1)
     toolbox.register("individual", utils.init_repeat, creator.Individual, toolbox.attr_bool, 100)
     toolbox.register("population", utils.init_repeat, list, toolbox.individual)
 
-    toolbox.register("mate", ops.cx_two_point)
+    toolbox.register("mate", ops.cx_two_point_copy)
     toolbox.register("mutate", ops.mut_flip_bit, mut_prob=0.05)
     toolbox.register("select", ops.sel_tournament, contestants=3)
     toolbox.register("evaluate", lambda x: sum(x))
@@ -35,7 +34,7 @@ def main():
     setup(toolbox, stats)
 
     pop = toolbox.population(count=300)
-    hof = records.HallOfFame(maxsize=1)
+    hof = records.HallOfFame(maxsize=1, similar=numpy.array_equal)
 
     args = dict(
         toolbox=toolbox,

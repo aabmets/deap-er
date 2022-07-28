@@ -13,10 +13,10 @@ def setup(toolbox):
     toolbox.register("individual", utils.init_repeat, creator.Individual, toolbox.attr_bool, 100)
     toolbox.register("population", utils.init_repeat, list, toolbox.individual)
 
-    toolbox.register("evaluate", lambda x: sum(x))
     toolbox.register("mate", ops.cx_two_point)
     toolbox.register("mutate", ops.mut_flip_bit, mut_prob=0.05)
     toolbox.register("select", ops.sel_tournament, contestants=3)
+    toolbox.register("evaluate", lambda x: sum(x))
 
 
 def main():
@@ -61,7 +61,7 @@ def main():
     for gene in best_ind:
         if gene != 1:
             raise RuntimeError('Evolution failed to converge.')
-    print(f'The best individual is: [1, 1, 1, ..., 1] '
+    print(f'\nThe best individual is: [1, 1, 1, ..., 1] '
           f'with a fitness score of 100.')
 
 
