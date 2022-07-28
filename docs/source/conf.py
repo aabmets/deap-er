@@ -16,7 +16,7 @@ sys.path.insert(0, os.path.abspath('../../'))
 project = 'deap-er'
 copyright = '2022, Mattias Aabmets'
 author = 'Mattias Aabmets'
-release = '0.4.0'
+release = '2.0.0'
 
 
 # -- General configuration ---------------------------------------------------
@@ -59,10 +59,7 @@ autodoc_class_signature = 'mixed'
 autodoc_member_order = 'bysource'
 autodoc_default_options = {}
 autodoc_type_aliases = {}
-autodoc_mock_imports = [
-    'numpy',
-    'ray'
-]
+autodoc_mock_imports = ['numpy']
 
 
 # -- Options for Napoleon -------------------------------------------------
