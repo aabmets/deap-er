@@ -32,7 +32,8 @@ import random
 
 __all__ = [
     'cx_one_point', 'cx_messy_one_point',
-    'cx_two_point', 'cx_es_two_point',
+    'cx_two_point', 'cx_two_point_copy',
+    'cx_es_two_point', 'cx_es_two_point_copy',
     'cx_partially_matched', 'cx_uniform_partially_matched',
     'cx_blend', 'cx_es_blend',
     'cx_simulated_binary', 'cx_simulated_binary_bounded',
@@ -42,7 +43,7 @@ __all__ = [
 
 # ====================================================================================== #
 def _slicer(ind1: Individual, ind2: Individual,
-            start: int, stop: int = None) -> None:
+            start: int, stop: int = None, copy: bool = False) -> Mates:
     if stop is None:
         s1 = slice(start, len(ind1))
         s2 = slice(start, len(ind2))
@@ -50,14 +51,16 @@ def _slicer(ind1: Individual, ind2: Individual,
         s1 = slice(start, stop)
         s2 = slice(start, stop)
 
-    temp_1 = ind1[s1]
-    temp_2 = ind2[s2]
+    temp_1 = ind1[s1] if not copy else ind1[s1].copy()
+    temp_2 = ind2[s2] if not copy else ind2[s2].copy()
     ind1[s1] = temp_2
     ind2[s2] = temp_1
+    return ind1, ind2
 
 
 # -------------------------------------------------------------------------------------- #
-def _two_point(ind1: Individual, ind2: Individual) -> tuple:
+def _two_point(ind1: Individual, ind2: Individual,
+               copy: bool = False, strat: bool = False) -> tuple:
     size = min(len(ind1), len(ind2))
     cxp1 = random.randint(1, size)
     cxp2 = random.randint(1, size - 1)
@@ -65,8 +68,14 @@ def _two_point(ind1: Individual, ind2: Individual) -> tuple:
         cxp2 += 1
     else:
         cxp1, cxp2 = cxp2, cxp1
-    _slicer(ind1, ind2, cxp1, cxp2)
-    return cxp1, cxp2
+    ind1, ind2 = _slicer(ind1, ind2, cxp1, cxp2, copy)
+    if strat:
+        _slicer(
+            ind1.strategy,
+            ind2.strategy,
+            cxp1, cxp2
+        )
+    return ind1, ind2
 
 
 # -------------------------------------------------------------------------------------- #
@@ -83,7 +92,7 @@ def _match(ind1: Individual, ind2: Individual,
 def cx_one_point(ind1: Individual, ind2: Individual) -> Mates:
     """
     Executes a one-point crossover on the two
-    individuals, who are modified in place.
+    individuals, who are modified in-place.
 
     :param ind1: The first individual.
     :param ind2: The second individual.
@@ -95,7 +104,7 @@ def cx_one_point(ind1: Individual, ind2: Individual) -> Mates:
     """
     size = min(len(ind1), len(ind2))
     cxp = random.randint(1, size - 1)
-    _slicer(ind1, ind2, cxp)
+    ind1, ind2 = _slicer(ind1, ind2, cxp)
     return ind1, ind2
 
 
@@ -103,7 +112,7 @@ def cx_one_point(ind1: Individual, ind2: Individual) -> Mates:
 def cx_messy_one_point(ind1: Individual, ind2: Individual) -> Mates:
     """
     Executes a messy one-point crossover on the two
-    individuals, who are modified in place.
+    individuals, who are modified in-place.
 
     :param ind1: The first individual.
     :param ind2: The second individual.
@@ -115,7 +124,7 @@ def cx_messy_one_point(ind1: Individual, ind2: Individual) -> Mates:
     """
     cxp1 = random.randint(0, len(ind1))
     cxp2 = random.randint(0, len(ind2))
-    _slicer(ind1, ind2, cxp1, cxp2)
+    ind1, ind2 = _slicer(ind1, ind2, cxp1, cxp2)
     return ind1, ind2
 
 
@@ -123,7 +132,7 @@ def cx_messy_one_point(ind1: Individual, ind2: Individual) -> Mates:
 def cx_two_point(ind1: Individual, ind2: Individual) -> Mates:
     """
     Executes a two-point crossover on the two
-    individuals, who are modified in place.
+    individuals, who are modified in-place.
 
     :param ind1: The first individual.
     :param ind2: The second individual.
@@ -133,15 +142,36 @@ def cx_two_point(ind1: Individual, ind2: Individual) -> Mates:
     :type ind2: :ref:`Individual <datatypes>`
     :rtype: :ref:`Mates <datatypes>`
     """
-    _two_point(ind1, ind2)
+    ind1, ind2 = _two_point(ind1, ind2)
+    return ind1, ind2
+
+
+# -------------------------------------------------------------------------------------- #
+def cx_two_point_copy(ind1: Individual, ind2: Individual) -> Mates:
+    """
+    Executes a two-point crossover on the copies of the two individuals.
+    This should be used instead of the regular *cx_two_point* operator
+    when the individuals are based on numpy arrays to avoid incorrect
+    mating behavior due to the specifics of the numpy array datatype.
+
+    :param ind1: The first individual.
+    :param ind2: The second individual.
+    :return: Two mated individuals.
+
+    :type ind1: :ref:`Individual <datatypes>`
+    :type ind2: :ref:`Individual <datatypes>`
+    :rtype: :ref:`Mates <datatypes>`
+    """
+    ind1, ind2 = _two_point(ind1, ind2, copy=True)
     return ind1, ind2
 
 
 # -------------------------------------------------------------------------------------- #
 def cx_es_two_point(ind1: Individual, ind2: Individual) -> Mates:
     """
-    Executes a two-point crossover on the
-    individuals and their strategies.
+    Executes a two-point crossover on the two
+    individuals and their evolution strategies,
+    who are modified in-place.
 
     :param ind1: The first individual.
     :param ind2: The second individual.
@@ -151,12 +181,28 @@ def cx_es_two_point(ind1: Individual, ind2: Individual) -> Mates:
     :type ind2: :ref:`Individual <datatypes>`
     :rtype: :ref:`Mates <datatypes>`
     """
-    cxp1, cxp2 = _two_point(ind1, ind2)
-    _slicer(
-        ind1.strategy,
-        ind2.strategy,
-        cxp1, cxp2
-    )
+    ind1, ind2 = _two_point(ind1, ind2, strat=True)
+    return ind1, ind2
+
+
+# -------------------------------------------------------------------------------------- #
+def cx_es_two_point_copy(ind1: Individual, ind2: Individual) -> Mates:
+    """
+    Executes a two-point crossover on the copies of the two individuals
+    and their evolution strategies. This should be used instead of the
+    regular *cx_two_point* operator when the individuals are based on
+    numpy arrays to avoid incorrect mating behavior due to the
+    specifics of the numpy array datatype.
+
+    :param ind1: The first individual.
+    :param ind2: The second individual.
+    :return: Two mated individuals.
+
+    :type ind1: :ref:`Individual <datatypes>`
+    :type ind2: :ref:`Individual <datatypes>`
+    :rtype: :ref:`Mates <datatypes>`
+    """
+    ind1, ind2 = _two_point(ind1, ind2, copy=True, strat=True)
     return ind1, ind2
 
 
@@ -164,7 +210,7 @@ def cx_es_two_point(ind1: Individual, ind2: Individual) -> Mates:
 def cx_partially_matched(ind1: Individual, ind2: Individual) -> Mates:
     """
     Executes a partially matched crossover on the
-    two individuals, who are modified in place.
+    two individuals, who are modified in-place.
 
     :param ind1: The first individual.
     :param ind2: The second individual.
@@ -200,7 +246,7 @@ def cx_uniform_partially_matched(ind1: Individual, ind2: Individual,
                                  cx_prob: float) -> Mates:
     """
     Executes a uniform partially matched crossover on
-    the two individuals, who are modified in place.
+    the two individuals, who are modified in-place.
 
     :param ind1: The first individual.
     :param ind2: The second individual.
@@ -229,7 +275,7 @@ def cx_uniform_partially_matched(ind1: Individual, ind2: Individual,
 def cx_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
     """
     Executes a blend crossover on the two
-    individuals, who are modified in place.
+    individuals, who are modified in-place.
 
     :param ind1: The first individual.
     :param ind2: The second individual.
@@ -254,7 +300,8 @@ def cx_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
 def cx_es_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
     """
     Executes a blend crossover on the two
-    individuals and their strategies.
+    individuals and their strategies, who
+    are modified in-place.
 
     :param ind1: The first individual.
     :param ind2: The second individual.
@@ -285,7 +332,7 @@ def cx_es_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
 def cx_simulated_binary(ind1: Individual, ind2: Individual, eta: float) -> Mates:
     """
     Executes a simulated binary crossover on the
-    two individuals, who are modified in place.
+    two individuals, who are modified in-place.
 
     :param ind1: The first individual.
     :param ind2: The second individual.
@@ -319,7 +366,7 @@ def cx_simulated_binary_bounded(ind1: Individual, ind2: Individual, eta: float,
                                 low: NumOrSeq, up: NumOrSeq) -> Mates:
     """
     Executes a simulated binary bounded crossover on
-    the two individuals, who are modified in place.
+    the two individuals, who are modified in-place.
 
     :param ind1: The first individual.
     :param ind2: The second individual.
@@ -388,7 +435,7 @@ def cx_simulated_binary_bounded(ind1: Individual, ind2: Individual, eta: float,
 def cx_uniform(ind1: Individual, ind2: Individual, cx_prob: float) -> Mates:
     """
     Executes a uniform crossover on the two
-    individuals, who are modified in place.
+    individuals, who are modified in-place.
 
     :param ind1: The first individual.
     :param ind2: The second individual.
@@ -410,7 +457,7 @@ def cx_uniform(ind1: Individual, ind2: Individual, cx_prob: float) -> Mates:
 def cx_ordered(ind1: Individual, ind2: Individual) -> Mates:
     """
     Executes an ordered crossover on the two
-    individuals, who are modified in place.
+    individuals, who are modified in-place.
 
     :param ind1: The first individual.
     :param ind2: The second individual.

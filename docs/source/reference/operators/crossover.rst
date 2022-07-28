@@ -15,7 +15,9 @@ One Point
 Two Point
 ---------
 .. autofunction:: deap_er.operators.cx_two_point
+.. autofunction:: deap_er.operators.cx_two_point_copy
 .. autofunction:: deap_er.operators.cx_es_two_point
+.. autofunction:: deap_er.operators.cx_es_two_point_copy
 
 .. raw:: html
 
