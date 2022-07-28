@@ -23,32 +23,13 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from .lint_hints import LintHints
 from typing import Callable, Optional
 from functools import partial
 from copy import deepcopy
 
 
 __all__ = ['Toolbox']
-
-
-# ====================================================================================== #
-class LintHints:
-    map: partial
-    clone: partial
-
-    __test__: Callable
-
-    attr_int: Callable
-    attr_bool: Callable
-    attr_float: Callable
-    individual: Callable
-    population: Callable
-    generate: Callable
-    evaluate: Callable
-    update: Callable
-    mutate: Callable
-    select: Callable
-    mate: Callable
 
 
 # ====================================================================================== #
