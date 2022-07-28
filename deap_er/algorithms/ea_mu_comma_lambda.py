@@ -33,8 +33,8 @@ __all__ = ['ea_mu_comma_lambda']
 
 # ====================================================================================== #
 def ea_mu_comma_lambda(toolbox: Toolbox, population: list,
-                       generations: int, survivors: int,
-                       offsprings: int, cx_prob: float,
+                       generations: int, offsprings: int,
+                       survivors: int, cx_prob: float,
                        mut_prob: float, hof: Hof = None,
                        stats: Stats = None, verbose: bool = False) -> AlgoResult:
     """
@@ -45,8 +45,8 @@ def ea_mu_comma_lambda(toolbox: Toolbox, population: list,
     :param toolbox: A Toolbox which contains the evolution operators.
     :param population: A list of individuals to evolve.
     :param generations: The number of generations to compute.
-    :param survivors: The number of individuals to select from the offspring.
     :param offsprings: The number of individuals to produce at each generation.
+    :param survivors: The number of individuals to select from the offspring.
     :param cx_prob: The probability of mating two individuals.
     :param mut_prob: The probability of mutating an individual.
     :param hof: A HallOfFame or a ParetoFront object, optional.
