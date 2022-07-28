@@ -58,9 +58,8 @@ def main():
         generation += 1
 
     best_ind = ops.sel_best(pop, sel_count=1)[0]
-    for gene in best_ind:
-        if gene != 1:
-            raise RuntimeError('Evolution failed to converge.')
+    if not all(gene == 1 for gene in best_ind):
+        raise RuntimeError('Evolution failed to converge.')
     print(f'\nThe best individual is: [1, 1, 1, ..., 1] '
           f'with a fitness score of 100.')
 
