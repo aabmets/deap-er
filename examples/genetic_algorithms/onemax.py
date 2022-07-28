@@ -24,15 +24,15 @@ def main():
     toolbox = base.Toolbox()
     setup(toolbox)
 
+    generation = 0
+    cx_prob = 0.5
+    mut_prob = 0.2
+
     pop = toolbox.population(count=300)
     fitness = map(toolbox.evaluate, pop)
     for ind, fit in zip(pop, fitness):
         ind.fitness.values = fit
     fits = [ind.fitness.values[0] for ind in pop]
-
-    cx_prob = 0.5
-    mut_prob = 0.2
-    generation = 0
 
     while max(fits) < 100 and generation < 1000:
         offspring = toolbox.select(pop, len(pop))
