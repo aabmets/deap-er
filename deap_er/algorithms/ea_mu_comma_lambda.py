@@ -73,9 +73,9 @@ def ea_mu_comma_lambda(toolbox: Toolbox, population: list,
 
     logbook = Logbook()
     logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
-
     record = stats.compile(population) if stats is not None else {}
     logbook.record(gen=0, nevals=len(invalid_ind), **record)
+
     if verbose:
         print(logbook.stream)
 
@@ -91,9 +91,9 @@ def ea_mu_comma_lambda(toolbox: Toolbox, population: list,
             hof.update(offspring)
 
         population[:] = toolbox.select(offspring, survivors)
-
         record = stats.compile(population) if stats is not None else {}
         logbook.record(gen=gen, nevals=len(invalid_ind), **record)
+
         if verbose:
             print(logbook.stream)
 

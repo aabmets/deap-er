@@ -56,11 +56,8 @@ def sel_best(individuals: list, sel_count: int,
     :param fit_attr: The attribute of individuals to use as the selection criterion.
     :return: A list of selected individuals.
     """
-    return sorted(
-        individuals,
-        key=attrgetter(fit_attr),
-        reverse=True
-    )[:sel_count]
+    key = attrgetter(fit_attr)
+    return sorted(individuals, key=key, reverse=True)[:sel_count]
 
 
 # -------------------------------------------------------------------------------------- #
@@ -96,7 +93,7 @@ def sel_roulette(individuals: list, sel_count: int,
     sorted_ = sorted(individuals, key=key, reverse=True)
     sum_fits = sum(getattr(ind, fit_attr).values[0] for ind in individuals)
     chosen = []
-    for i in range(sel_count):
+    for _ in range(sel_count):
         u = random.random() * sum_fits
         sum_ = 0
         for ind in sorted_:

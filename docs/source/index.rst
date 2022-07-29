@@ -6,6 +6,7 @@ Welcome to the DEAP-er's documentation!
    :caption: Examples:
 
    examples/genetic_algorithms.rst
+   examples/genetic_programming.rst
 
 .. toctree::
    :maxdepth: 2

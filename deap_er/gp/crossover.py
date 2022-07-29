@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .primitives import PrimitiveTree
+from .datatypes import *
 from collections import defaultdict
 from functools import partial
 from operator import eq, lt
@@ -34,7 +34,7 @@ __all__ = ['cx_one_point', 'cx_one_point_leaf_biased']
 
 
 # ====================================================================================== #
-def cx_one_point(ind1: PrimitiveTree, ind2: PrimitiveTree) -> tuple:
+def cx_one_point(ind1: GPIndividual, ind2: GPIndividual) -> GPMates:
     """
     Randomly selects a crossover point in each individual and exchanges
     each subtree with the point as the root between each individual.
@@ -42,6 +42,10 @@ def cx_one_point(ind1: PrimitiveTree, ind2: PrimitiveTree) -> tuple:
     :param ind1: The first individual to mate.
     :param ind2: The second individual to mate.
     :return: Two individuals.
+
+    :type ind1: :ref:`GPIndividual <datatypes>`
+    :type ind2: :ref:`GPIndividual <datatypes>`
+    :rtype: :ref:`GPMates <datatypes>`
     """
     if len(ind1) < 2 or len(ind2) < 2:
         return ind1, ind2
@@ -72,8 +76,8 @@ def cx_one_point(ind1: PrimitiveTree, ind2: PrimitiveTree) -> tuple:
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_one_point_leaf_biased(ind1: PrimitiveTree, ind2: PrimitiveTree,
-                             term_prob: float) -> tuple:
+def cx_one_point_leaf_biased(ind1: GPIndividual, ind2: GPIndividual,
+                             term_prob: float) -> GPMates:
     """
     Randomly selects a crossover point in each individual and exchanges
     each subtree with the point as the root between each individual.
@@ -83,6 +87,10 @@ def cx_one_point_leaf_biased(ind1: PrimitiveTree, ind2: PrimitiveTree,
     :param term_prob: The probability of selecting
         a terminal node as the crossover point.
     :return: Two individuals.
+
+    :type ind1: :ref:`GPIndividual <datatypes>`
+    :type ind2: :ref:`GPIndividual <datatypes>`
+    :rtype: :ref:`GPMates <datatypes>`
     """
     if len(ind1) < 2 or len(ind2) < 2:
         return ind1, ind2

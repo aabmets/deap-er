@@ -47,11 +47,11 @@ def sel_lexicase(individuals: list, sel_count: int) -> list:
         cases = list(range(len(individuals[0].fitness.values)))
         random.shuffle(cases)
         while len(cases) > 0 and len(candidates) > 1:
-            f = min
+            fn = min
             if fit_weights[cases[0]] > 0:
-                f = max
+                fn = max
             f_vals = [x.fitness.values[cases[0]] for x in candidates]
-            best_val = f(f_vals)
+            best_val = fn(f_vals)
             candidates = [x for x in candidates if x.fitness.values[cases[0]] == best_val]
             cases.pop(0)
         choice = random.choice(candidates)
@@ -80,20 +80,19 @@ def sel_epsilon_lexicase(individuals: list, sel_count: int,
         random.shuffle(cases)
         candidates = individuals
         while len(cases) > 0 and len(candidates) > 1:
-            f_vals = [x.fitness.values[cases[0]] for x in candidates]
+            errors = [x.fitness.values[cases[0]] for x in candidates]
             if not epsilon:
-                median = np.median(f_vals)
-                epsilon = np.median([abs(x - median) for x in f_vals])
+                median = np.median(errors)
+                epsilon = np.median([abs(x - median) for x in errors])
             if fit_weights[cases[0]] > 0:
-                best_val = max(f_vals)
+                best_val = max(errors)
                 min_val = best_val - epsilon
                 candidates = [x for x in candidates if x.fitness.values[cases[0]] >= min_val]
             else:
-                best_val = min(f_vals)
+                best_val = min(errors)
                 max_val = best_val + epsilon
                 candidates = [x for x in candidates if x.fitness.values[cases[0]] <= max_val]
             cases.pop(0)
-
         choice = random.choice(candidates)
         selected.append(choice)
     return selected

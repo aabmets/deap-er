@@ -51,8 +51,8 @@ class Translate:
     def __call__(self, func: Callable) -> Callable:
         @wraps(func)
         def wrapper(individual, *args, **kwargs):
-            mod_ind = [v - t for v, t in zip(individual, self.vector)]
-            return func(mod_ind, *args, **kwargs)
+            translated = [v - t for v, t in zip(individual, self.vector)]
+            return func(translated, *args, **kwargs)
         wrapper.translate = self.translate
         return wrapper
 
@@ -91,8 +91,8 @@ class Rotate:
     def __call__(self, func):
         @wraps(func)
         def wrapper(individual, *args, **kwargs):
-            mod_ind = numpy.dot(self.matrix, individual)
-            return func(mod_ind, *args, **kwargs)
+            rotated = numpy.dot(self.matrix, individual)
+            return func(rotated, *args, **kwargs)
         wrapper.rotate = self.rotate
         return wrapper
 
@@ -131,8 +131,8 @@ class Scale:
     def __call__(self, func):
         @wraps(func)
         def wrapper(individual, *args, **kwargs):
-            mod_ind = [v * f for v, f in zip(individual, self.factor)]
-            return func(mod_ind, *args, **kwargs)
+            scaled = [v * f for v, f in zip(individual, self.factor)]
+            return func(scaled, *args, **kwargs)
         wrapper.scale = self.scale
         return wrapper
 

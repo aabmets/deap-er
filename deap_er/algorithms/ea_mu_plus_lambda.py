@@ -71,11 +71,12 @@ def ea_mu_plus_lambda(toolbox: Toolbox, population: list,
 
     record = stats.compile(population) if stats is not None else {}
     logbook.record(gen=0, nevals=len(invalid_ind), **record)
+
     if verbose:
         print(logbook.stream)
 
     for gen in range(1, generations + 1):
-        offspring: list = var_or(toolbox, population, offsprings, cx_prob, mut_prob)
+        offspring = var_or(toolbox, population, offsprings, cx_prob, mut_prob)
 
         invalid_ind = [ind for ind in offspring if not ind.fitness.is_valid()]
         fitness = toolbox.map(toolbox.evaluate, invalid_ind)
@@ -86,9 +87,9 @@ def ea_mu_plus_lambda(toolbox: Toolbox, population: list,
             hof.update(offspring)
 
         population[:] = toolbox.select(population + offspring, survivors)
-
         record = stats.compile(population) if stats is not None else {}
         logbook.record(gen=gen, nevals=len(invalid_ind), **record)
+
         if verbose:
             print(logbook.stream)
 

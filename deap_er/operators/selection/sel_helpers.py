@@ -63,41 +63,39 @@ def assign_crowding_dist(individuals: list) -> None:
 
 
 # -------------------------------------------------------------------------------------- #
-def uniform_reference_points(n_obj: int, ppo: int = 4,
+def uniform_reference_points(objectives: int, ref_ppo: int = 4,
                              scaling: float = None) -> numpy.ndarray:
     """
     Generates reference points uniformly on the hyperplane
     intersecting each axis at 1. The scaling factor is used
     to combine multiple layers of reference points.
 
-    :param n_obj: Number of objectives.
-    :param ppo: Number of reference points per objective, optional.
+    :param objectives: Number of objectives.
+    :param ref_ppo: Number of reference points per objective, optional.
     :param scaling: Scaling factor, optional.
     :return: Uniform reference points.
     """
-    ref = numpy.zeros(n_obj)
-    result = _gen_refs(ref, n_obj, ppo, ppo, 0)
-    ref_points = numpy.array(result)
+    def _recursive(ref, ovs, left, total, depth) -> list:
+        points = []
+        if depth == ovs - 1:
+            ref[depth] = left / total
+            points.append(ref)
+        else:
+            for i in range(left + 1):
+                ref[depth] = i / total
+                rc = ref.copy()
+                li = left - i
+                d1 = depth + 1
+                result = _recursive(rc, ovs, li, total, d1)
+                points.extend(result)
+        return points
+    
+    zeros = numpy.zeros(objectives)
+    ref_points = _recursive(zeros, objectives, ref_ppo, ref_ppo, 0)
+    ref_points = numpy.array(ref_points)
 
     if scaling is not None:
         ref_points *= scaling
-        ref_points += (1 - scaling) / n_obj
+        ref_points += (1 - scaling) / objectives
 
     return ref_points
-
-
-# -------------------------------------------------------------------------------------- #
-def _gen_refs(ref, n_obj, left, total, depth) -> list:
-    points = []
-    if depth == n_obj - 1:
-        ref[depth] = left / total
-        points.append(ref)
-    else:
-        for i in range(left + 1):
-            ref[depth] = i / total
-            r_c = ref.copy()
-            l_i = left - i
-            d_1 = depth + 1
-            result = _gen_refs(r_c, n_obj, l_i, total, d_1)
-            points.extend(result)
-    return points

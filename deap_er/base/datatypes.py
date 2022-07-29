@@ -29,13 +29,16 @@ import numpy
 import array
 
 
-__all__ = ['Individual', 'Mates', 'NumOrSeq']
+__all__ = ['Individual', 'Mates', 'Mutant', 'NumOrSeq']
 
 
 Individual = Union[list, array.array, numpy.ndarray]
 """:meta private:"""
 
 Mates = Tuple[Individual, Individual]
+""":meta private:"""
+
+Mutant = Tuple[Individual]
 """:meta private:"""
 
 NumOrSeq = Union[int, float, Sequence[int], Sequence[float]]

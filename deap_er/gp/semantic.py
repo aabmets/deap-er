@@ -23,8 +23,9 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .generators import gen_grow
+from .datatypes import *
 from .primitives import *
+from .generators import gen_grow
 from typing import Callable
 import random
 
@@ -33,21 +34,21 @@ __all__ = ['mut_semantic', 'cx_semantic']
 
 
 # ====================================================================================== #
-def mut_semantic(individual: list, p_set: PrimitiveSetTyped,
-                 min_depth: int = 2, max_depth: int = 6,
-                 gen_func: Callable = None, mut_step: float = None) -> list:
+def mut_semantic(individual: list, prim_set: PrimitiveSetTyped,
+                 min_depth: int = 2, max_depth: int = 6, gen_func: Callable = None,
+                 mut_step: float = None) -> tuple[list]:
     """
     Perform a semantic mutation on the given individual.
 
     :param individual: The individual to be mutated.
-    :param p_set: Primitive set from which primitives are selected.
+    :param prim_set: Primitive set from which primitives are selected.
     :param gen_func: The function which generates the random tree.
     :param mut_step: The mutation step.
     :param min_depth: Minimum depth of the random tree.
     :param max_depth: Maximum depth of the random tree.
     :return: The mutated individual.
     """
-    _check(p_set, 'mutation')
+    _check(prim_set, 'mutation')
 
     if gen_func is None:
         gen_func = gen_grow
@@ -55,56 +56,53 @@ def mut_semantic(individual: list, p_set: PrimitiveSetTyped,
     if mut_step is None:
         mut_step = random.uniform(0, 2)
 
-    tr1 = gen_func(p_set, min_depth, max_depth)
-    tr2 = gen_func(p_set, min_depth, max_depth)
+    tr1 = gen_func(prim_set, min_depth, max_depth)
+    tr2 = gen_func(prim_set, min_depth, max_depth)
 
-    tr1.insert(0, p_set.mapping['lf'])
-    tr2.insert(0, p_set.mapping['lf'])
+    tr1.insert(0, prim_set.mapping['lf'])
+    tr2.insert(0, prim_set.mapping['lf'])
 
     new_ind = individual
-    new_ind.insert(0, p_set.mapping["add"])
-    new_ind.append(p_set.mapping["mul"])
+    new_ind.insert(0, prim_set.mapping["add"])
+    new_ind.append(prim_set.mapping["mul"])
 
     mutation_step = Terminal(mut_step, False, object)
     new_ind.append(mutation_step)
-    new_ind.append(p_set.mapping["sub"])
+    new_ind.append(prim_set.mapping["sub"])
 
     new_ind.extend(tr1)
     new_ind.extend(tr2)
 
-    return new_ind
+    return new_ind,
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_semantic(ind1: list, ind2: list, p_set: PrimitiveSetTyped,
-                min_depth: int = 2, max_depth: int = 6,
-                gen_func: Callable = None) -> tuple:
+def cx_semantic(ind1: list, ind2: list,
+                prim_set: PrimitiveSetTyped, min_depth: int = 2,
+                max_depth: int = 6, gen_func: Callable = gen_grow) -> tuple[list, list]:
     """
     Perform a semantic crossover on the given individuals.
 
     :param ind1: The first individual to be mated.
     :param ind2: The second individual to be mated.
-    :param p_set: Primitive set from which primitives are selected.
+    :param prim_set: Primitive set from which primitives are selected.
     :param gen_func: The function which generates the random tree.
     :param min_depth: Minimum depth of the random tree.
     :param max_depth: Maximum depth of the random tree.
     :return: Two mated individuals.
     """
-    _check(p_set, 'crossover')
+    _check(prim_set, 'crossover')
 
-    if gen_func is None:
-        gen_func = gen_grow
-
-    tr = gen_func(p_set, min_depth, max_depth)
-    tr.insert(0, p_set.mapping['lf'])
+    tr = gen_func(prim_set, min_depth, max_depth)
+    tr.insert(0, prim_set.mapping['lf'])
 
     def create_ind(ind, ind_ext):
         new_ind = ind
-        new_ind.insert(0, p_set.mapping["mul"])
-        new_ind.insert(0, p_set.mapping["add"])
+        new_ind.insert(0, prim_set.mapping["mul"])
+        new_ind.insert(0, prim_set.mapping["add"])
         new_ind.extend(tr)
-        new_ind.append(p_set.mapping["mul"])
-        new_ind.append(p_set.mapping["sub"])
+        new_ind.append(prim_set.mapping["mul"])
+        new_ind.append(prim_set.mapping["sub"])
         new_ind.append(Terminal(1.0, False, object))
         new_ind.extend(tr)
         new_ind.extend(ind_ext)

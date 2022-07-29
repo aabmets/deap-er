@@ -211,7 +211,7 @@ def test_nsga3():
     survivors = 16
     generations = 100
 
-    ref_points = ops.uniform_reference_points(2, ppo=12)
+    ref_points = ops.uniform_reference_points(2, ref_ppo=12)
 
     toolbox = base.Toolbox()
     toolbox.register("attr_float", random.uniform,

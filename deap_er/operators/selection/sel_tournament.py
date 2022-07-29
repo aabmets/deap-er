@@ -46,7 +46,7 @@ def sel_tournament(individuals: list, rounds: int,
     :return: A list of selected individuals.
     """
     chosen = []
-    for i in range(rounds):
+    for _ in range(rounds):
         aspirants = sel_random(individuals, contestants)
         chosen.append(max(aspirants, key=attrgetter(fit_attr)))
     return chosen
@@ -70,11 +70,14 @@ def sel_double_tournament(individuals: list, rounds: int,
     :param fit_attr: The attribute of individuals to use as the selection criterion.
     :return: A list of selected individuals.
     """
+    if not (1 <= parsimony_size <= 2):
+        raise ValueError("Parsimony tournament size has to be in the range of [1, 2].")
+
     def _size_tourney(select):
         chosen = []
         for i in range(rounds):
             prob = parsimony_size / 2.
-            ind1, ind2 = select(individuals, count=2)
+            ind1, ind2 = select(individuals, sel_count=2)
             if len(ind1) > len(ind2):
                 ind1, ind2 = ind2, ind1
             elif len(ind1) == len(ind2):
@@ -85,12 +88,9 @@ def sel_double_tournament(individuals: list, rounds: int,
     def _fit_tourney(select):
         chosen = []
         for i in range(rounds):
-            aspirants = select(individuals, count=fitness_size)
+            aspirants = select(individuals, sel_count=fitness_size)
             chosen.append(max(aspirants, key=attrgetter(fit_attr)))
         return chosen
-
-    if not (1 <= parsimony_size <= 2):
-        raise ValueError("Parsimony tournament size has to be in the range of [1, 2].")
 
     if fitness_first:
         t_fit = partial(_fit_tourney, select=sel_random)
@@ -115,6 +115,18 @@ def sel_tournament_dcd(individuals: list, sel_count: int) -> list:
     :param sel_count: The number of individuals to select.
     :return: A list of selected individuals.
     """
+    if sel_count > len(individuals):
+        raise ValueError(
+            "sel_tournament_dcd: count must be less "
+            "than or equal to individuals length."
+        )
+
+    if sel_count == len(individuals) and sel_count % 4 != 0:
+        raise ValueError(
+            "sel_tournament_dcd: sel_count must be divisible "
+            "by four if sel_count == len(individuals)"
+        )
+
     def tourney(ind1, ind2):
         if ind1.fitness.dominates(ind2.fitness):
             return ind1
@@ -127,12 +139,6 @@ def sel_tournament_dcd(individuals: list, sel_count: int) -> list:
         if random.random() <= 0.5:
             return ind1
         return ind2
-
-    if sel_count > len(individuals):
-        raise ValueError("count must be less than or equal to individuals length.")
-
-    if sel_count == len(individuals) and sel_count % 4 != 0:
-        raise ValueError("count must be divisible by four if k == len(individuals)")
 
     individuals_1 = random.sample(individuals, len(individuals))
     individuals_2 = random.sample(individuals, len(individuals))

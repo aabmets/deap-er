@@ -40,7 +40,7 @@ __all__ = [
 
 
 # ====================================================================================== #
-def rand(*_) -> float:
+def rand(*_) -> tuple[float]:
     """
     Random test objective function. The unnamed **args** parameter is an input
     sink for DEAP-er internal functionality and has no effect on the result.
@@ -64,11 +64,11 @@ def rand(*_) -> float:
             - :math:`f(\\mathbf{x}) = \\text{random}(0,1)`
     """
     result = random.random()
-    return result
+    return result,
 
 
 # -------------------------------------------------------------------------------------- #
-def plane(individual: Individual) -> float:
+def plane(individual: Individual) -> tuple[float]:
     """
     Plane test objective function.
 
@@ -94,11 +94,11 @@ def plane(individual: Individual) -> float:
             - :math:`f(\\mathbf{x}) = x_0`
     """
     result = individual[0]
-    return result
+    return result,
 
 
 # -------------------------------------------------------------------------------------- #
-def sphere(individual: Individual) -> float:
+def sphere(individual: Individual) -> tuple[float]:
     """
     Sphere test objective function.
 
@@ -124,11 +124,11 @@ def sphere(individual: Individual) -> float:
             - :math:`f(\\mathbf{x}) = \\sum_{i=1}^Nx_i^2`
     """
     result = sum(gene * gene for gene in individual)
-    return result
+    return result,
 
 
 # -------------------------------------------------------------------------------------- #
-def cigar(individual: Individual) -> float:
+def cigar(individual: Individual) -> tuple[float]:
     """
     Cigar test objective function.
 
@@ -155,11 +155,11 @@ def cigar(individual: Individual) -> float:
     """
     _sum = sum(gene * gene for gene in individual[1:])
     result = individual[0] ** 2 + 1e6 * _sum
-    return result
+    return result,
 
 
 # -------------------------------------------------------------------------------------- #
-def rosenbrock(individual: Individual) -> float:
+def rosenbrock(individual: Individual) -> tuple[float]:
     """
     Rosenbrock test objective function.
 
@@ -189,11 +189,11 @@ def rosenbrock(individual: Individual) -> float:
     for x, y in zip(individual[:-1], individual[1:]):
         results.append(100 * (x * x - y) ** 2 + (1 - x) ** 2)
     result = sum(results)
-    return result
+    return result,
 
 
 # -------------------------------------------------------------------------------------- #
-def h1(individual: Individual) -> float:
+def h1(individual: Individual) -> tuple[float]:
     """
     Simple two-dimensional function containing several local maxima.
 
@@ -230,11 +230,11 @@ def h1(individual: Individual) -> float:
         return (var_1 + var_2) ** 0.5 + 1
 
     result = compute_num() / compute_denum()
-    return result
+    return result,
 
 
 # -------------------------------------------------------------------------------------- #
-def ackley(individual: Individual) -> float:
+def ackley(individual: Individual) -> tuple[float]:
     """
     Ackley test objective function.
 
@@ -266,11 +266,11 @@ def ackley(individual: Individual) -> float:
     exp_1 = exp(-0.2 * sqrt(1 / len_ind * sum(x ** 2 for x in individual)))
     exp_2 = exp(1 / len_ind * sum(cos(2 * pi * x) for x in individual))
     result = 20 - 20 * exp_1 + e - exp_2
-    return result
+    return result,
 
 
 # -------------------------------------------------------------------------------------- #
-def bohachevsky(individual: Individual) -> float:
+def bohachevsky(individual: Individual) -> tuple[float]:
     """
     Bohachevsky test objective function.
 
@@ -304,11 +304,11 @@ def bohachevsky(individual: Individual) -> float:
         res = x ** 2 + 2 * x1 ** 2 - 0.3 * c1 - 0.4 * c2 + 0.7
         results.append(res)
     result = sum(results)
-    return result
+    return result,
 
 
 # -------------------------------------------------------------------------------------- #
-def griewank(individual: Individual) -> float:
+def griewank(individual: Individual) -> tuple[float]:
     """
     Griewank test objective function.
 
@@ -338,11 +338,11 @@ def griewank(individual: Individual) -> float:
     values = [cos(x/sqrt(i+1.0)) for i, x in enumerate(individual)]
     exp_sum = sum(x**2 for x in individual)
     result = 1 / 4000 * exp_sum - reduce(mul, values, 1) + 1
-    return result
+    return result,
 
 
 # -------------------------------------------------------------------------------------- #
-def schaffer(individual: Individual) -> float:
+def schaffer(individual: Individual) -> tuple[float]:
     """
     Schaffer test objective function.
 
@@ -376,7 +376,7 @@ def schaffer(individual: Individual) -> float:
         var_2 = sin(50 * (x ** 2 + x1 ** 2) ** 0.1) ** 2 + 1.0
         results.append(var_1 * var_2)
     result = sum(results)
-    return result
+    return result,
 
 
 # -------------------------------------------------------------------------------------- #

@@ -51,7 +51,7 @@ def mate(ind1: set, ind2: set) -> tuple[set, set]:
     return ind1, ind2
 
 
-def mutate(individual: set) -> set:
+def mutate(individual: set) -> tuple[set]:
     if random.random() < 0.5:
         if len(individual) > 0:
             items_ = sorted(tuple(individual))
@@ -60,21 +60,23 @@ def mutate(individual: set) -> set:
     else:
         names = list(items.keys())
         individual.add(random.choice(names))
-    return individual
+    return individual,  # The comma is essential here.
 
 
-def setup(toolbox):
+def setup():
     creator.create("Fitness", base.Fitness, weights=(-1.0, 1.0))
     creator.create("Individual", set, fitness=creator.Fitness)
 
+    toolbox = base.Toolbox()
     toolbox.register("attr_item", random.choice, list(items.keys()))
     toolbox.register("individual", utils.init_repeat, creator.Individual, toolbox.attr_item, IND_INIT_SIZE)
     toolbox.register("population", utils.init_repeat, list, toolbox.individual)
-
-    toolbox.register("evaluate", evaluate)
     toolbox.register("mate", mate)
     toolbox.register("mutate", mutate)
     toolbox.register("select", ops.sel_nsga_2)
+    toolbox.register("evaluate", evaluate)
+
+    return toolbox
 
 
 def print_results(hof):
@@ -101,10 +103,8 @@ def print_results(hof):
 
 def main():
     create_items()
-    toolbox = base.Toolbox()
-    setup(toolbox)
-
-    pop = toolbox.population(count=100)
+    toolbox = setup()
+    pop = toolbox.population(size=100)
     hof = records.ParetoFront()
 
     args = dict(

@@ -8,18 +8,20 @@ import random
 random.seed(1234)  # ensure reproducibility
 
 
-def setup(toolbox):
+def setup():
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
     creator.create("Individual", list, fitness=creator.FitnessMax)
 
+    toolbox = base.Toolbox()
     toolbox.register("attr_bool", random.randint, 0, 1)
     toolbox.register("individual", utils.init_repeat, creator.Individual, toolbox.attr_bool, 100)
     toolbox.register("population", utils.init_repeat, list, toolbox.individual)
-
     toolbox.register("mate", ops.cx_two_point)
     toolbox.register("mutate", ops.mut_flip_bit, mut_prob=0.05)
     toolbox.register("select", ops.sel_tournament, contestants=3)
     toolbox.register("evaluate", lambda x: sum(x))
+
+    return toolbox
 
 
 def evolve(toolbox, population, max_gens, cx_prob, mut_prob):
@@ -59,15 +61,15 @@ def evolve(toolbox, population, max_gens, cx_prob, mut_prob):
 def print_results(best_ind):
     if not all(gene == 1 for gene in best_ind):
         print('Evolution failed to converge.')
-    print(f'\nThe best individual is: [1, 1, 1, ..., 1] '
-          f'with a fitness score of 100.')
+    else:
+        print(f'\nThe best individual is: [1, 1, 1, ..., 1] '
+              f'with a fitness score of 100.')
 
 
 def main():
-    toolbox = base.Toolbox()
-    setup(toolbox)
+    toolbox = setup()
+    pop = toolbox.population(size=300)
 
-    pop = toolbox.population(count=300)
     args = dict(
         toolbox=toolbox,
         population=pop,

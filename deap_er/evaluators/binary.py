@@ -48,9 +48,9 @@ def bin2float(min_: float, max_: float, n_bits: int) -> Callable:
     :param n_bits: Number of bits used to represent the float.
     :return: Decorated function.
     """
-    def wrap(function):
+    def wrapper(function):
         @wraps(function)
-        def wrapped_function(individual, *args, **kwargs):
+        def wrapped(individual, *args, **kwargs):
             nelem = len(individual) // n_bits
             decoded = [0] * nelem
             for i in range(nelem):
@@ -62,12 +62,12 @@ def bin2float(min_: float, max_: float, n_bits: int) -> Callable:
                 div = 2 ** n_bits - 1
                 decoded[i] = min_ + ((gene / div) * (max_ - min_))
             return function(decoded, *args, **kwargs)
-        return wrapped_function
-    return wrap
+        return wrapped
+    return wrapper
 
 
 # -------------------------------------------------------------------------------------- #
-def royal_road_1(individual: Individual, order: int) -> int:
+def royal_road_1(individual: Individual, order: int) -> tuple[int]:
     """
     | Royal Road Function R1 as presented by Melanie Mitchell
     | in "An introduction to Genetic Algorithms".
@@ -87,11 +87,11 @@ def royal_road_1(individual: Individual, order: int) -> int:
         mapper = map(str, values)
         gene = int("".join(mapper), 2)
         total += order * int(gene / max_value)
-    return total
+    return total,
 
 
 # -------------------------------------------------------------------------------------- #
-def royal_road_2(individual: Individual, order: int) -> int:
+def royal_road_2(individual: Individual, order: int) -> tuple[int]:
     """
     | Royal Road Function R2 as presented by Melanie Mitchell
     | in "An introduction to Genetic Algorithms".
@@ -106,11 +106,11 @@ def royal_road_2(individual: Individual, order: int) -> int:
     while n_order < order ** 2:
         total += royal_road_1(individual, n_order)
         n_order *= 2
-    return total
+    return total,
 
 
 # -------------------------------------------------------------------------------------- #
-def chuang_f1(individual: Individual) -> int:
+def chuang_f1(individual: Individual) -> tuple[int]:
     """
     | Binary deceptive function by Chung-Yao Chuang and Wen-Lian Hsu from
     | "Multivariate Multi-Model Approach for Globally Multimodal Problems".
@@ -129,11 +129,11 @@ def chuang_f1(individual: Individual) -> int:
     else:
         for i in range(0, len(individual)-1, 4):
             total += _trap(individual[i:i + 4])
-    return total
+    return total,
 
 
 # -------------------------------------------------------------------------------------- #
-def chuang_f2(individual: Individual) -> int:
+def chuang_f2(individual: Individual) -> tuple[int]:
     """
     | Binary deceptive function by Chung-Yao Chuang and Wen-Lian Hsu from
     | "Multivariate Multi-Model Approach for Globally Multimodal Problems".
@@ -158,11 +158,11 @@ def chuang_f2(individual: Individual) -> int:
     else:
         for i in range(0, len(individual)-2, 8):
             total += _trap(individual[i:i + 4]) + _trap(individual[i + 4:i + 8])
-    return total
+    return total,
 
 
 # -------------------------------------------------------------------------------------- #
-def chuang_f3(individual: Individual) -> int:
+def chuang_f3(individual: Individual) -> tuple[int]:
     """
     | Binary deceptive function by Chung-Yao Chuang and Wen-Lian Hsu from
     | "Multivariate Multi-Model Approach for Globally Multimodal Problems".
@@ -182,7 +182,7 @@ def chuang_f3(individual: Individual) -> int:
         for i in range(2, len(individual)-3, 4):
             total += _inv_trap(individual[i:i + 4])
         total += _trap(individual[-2:] + individual[:2])
-    return total
+    return total,
 
 
 # -------------------------------------------------------------------------------------- #

@@ -59,5 +59,5 @@ def test_semantic_mutation():
     pset.add_primitive(operator.mul, 2)
     individual = gen_grow(pset, 1, 3)
     mutated = mut_semantic(individual, pset, max_depth=2)
-    ctr = sum([m.name == individual[i].name for i, m in enumerate(mutated)])
+    ctr = sum([m.name == individual[i].name for i, m in enumerate(mutated[0])])
     assert ctr == len(individual)

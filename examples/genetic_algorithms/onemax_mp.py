@@ -23,7 +23,8 @@ creator.create("FitnessMax", base.Fitness, weights=(1.0,))
 creator.create("Individual", array.array, typecode='b', fitness=creator.FitnessMax)
 
 
-def setup(toolbox, stats):
+def setup():
+    toolbox = base.Toolbox()
     toolbox.register("attr_bool", random.randint, 0, 1)
     toolbox.register("individual", utils.init_repeat, creator.Individual, toolbox.attr_bool, 100)
     toolbox.register("population", utils.init_repeat, list, toolbox.individual)
@@ -33,28 +34,31 @@ def setup(toolbox, stats):
     toolbox.register("select", ops.sel_tournament, contestants=3)
     toolbox.register("evaluate", evaluate)
 
+    stats = records.Statistics(lambda ind: ind.fitness.values)
     stats.register("avg", numpy.mean)
     stats.register("std", numpy.std)
     stats.register("min", numpy.min)
     stats.register("max", numpy.max)
 
+    return toolbox, stats
+
 
 def print_results(best_ind):
     if not all(gene == 1 for gene in best_ind):
         print('Evolution failed to converge.')
-    print(f'\nThe best individual is: [1, 1, 1, ..., 1] '
-          f'with a fitness score of 100.')
+    else:
+        print(f'\nThe best individual is: [1, 1, 1, ..., 1] '
+              f'with a fitness score of 100.')
 
 
 def main():
-    toolbox = base.Toolbox()
-    stats = records.Statistics(lambda ind: ind.fitness.values)
-    setup(toolbox, stats)
+    toolbox, stats = setup()
+    pop = toolbox.population(size=300)
+    hof = records.HallOfFame(maxsize=1)
 
     with mp.Pool() as pool:
         toolbox.register("map", pool.map)
-        pop = toolbox.population(count=300)
-        hof = records.HallOfFame(maxsize=1)
+
         args = dict(
             toolbox=toolbox,
             population=pop,

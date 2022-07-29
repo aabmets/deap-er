@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.base import NumOrSeq, Individual
+from deap_er.base import NumOrSeq, Individual, Mutant
 from collections.abc import Sequence
 from itertools import repeat
 import random
@@ -50,7 +50,7 @@ def _pre_process(name: str, var: NumOrSeq, size: int) -> Sequence:
 
 # -------------------------------------------------------------------------------------- #
 def mut_gaussian(individual: Individual, mu: NumOrSeq,
-                 sigma: NumOrSeq, mut_prob: float) -> Individual:
+                 sigma: NumOrSeq, mut_prob: float) -> Mutant:
     """
     Applies a gaussian mutation of mean **mu** and standard
     deviation **sigma** on the input individual.
@@ -64,7 +64,7 @@ def mut_gaussian(individual: Individual, mu: NumOrSeq,
     :type individual: :ref:`Individual <datatypes>`
     :type mu: :ref:`NumOrSeq <datatypes>`
     :type sigma: :ref:`NumOrSeq <datatypes>`
-    :rtype: :ref:`Individual <datatypes>`
+    :rtype: :ref:`Mutant <datatypes>`
     """
     size = len(individual)
     mu = _pre_process('mu', mu, size)
@@ -75,13 +75,13 @@ def mut_gaussian(individual: Individual, mu: NumOrSeq,
         if random.random() < mut_prob:
             individual[i] += random.gauss(m, s)
 
-    return individual
+    return individual,
 
 
 # -------------------------------------------------------------------------------------- #
 def mut_polynomial_bounded(individual: Individual,
                            eta: float, low: NumOrSeq,
-                           up: NumOrSeq, mut_prob: float) -> Individual:
+                           up: NumOrSeq, mut_prob: float) -> Mutant:
     """
     Applies a polynomial mutation with a crowding
     degree of **eta** on the input individual.
@@ -99,7 +99,7 @@ def mut_polynomial_bounded(individual: Individual,
     :type individual: :ref:`Individual <datatypes>`
     :type low: :ref:`NumOrSeq <datatypes>`
     :type up: :ref:`NumOrSeq <datatypes>`
-    :rtype: :ref:`Individual <datatypes>`
+    :rtype: :ref:`Mutant <datatypes>`
     """
     size = len(individual)
     low = _pre_process('low', low, size)
@@ -127,11 +127,11 @@ def mut_polynomial_bounded(individual: Individual,
             x = min(max(x, xl), xu)
             individual[i] = x
 
-    return individual
+    return individual,
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_shuffle_indexes(individual: Individual, mut_prob: float) -> Individual:
+def mut_shuffle_indexes(individual: Individual, mut_prob: float) -> Mutant:
     """
     Shuffles the attributes of the input individual.
 
@@ -140,7 +140,7 @@ def mut_shuffle_indexes(individual: Individual, mut_prob: float) -> Individual:
     :returns: A mutated individual.
 
     :type individual: :ref:`Individual <datatypes>`
-    :rtype: :ref:`Individual <datatypes>`
+    :rtype: :ref:`Mutant <datatypes>`
     """
     size = len(individual)
     for i in range(size):
@@ -151,11 +151,11 @@ def mut_shuffle_indexes(individual: Individual, mut_prob: float) -> Individual:
             individual[i], individual[swap_indx] = \
                 individual[swap_indx], individual[i]
 
-    return individual
+    return individual,
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_flip_bit(individual: Individual, mut_prob: float) -> Individual:
+def mut_flip_bit(individual: Individual, mut_prob: float) -> Mutant:
     """
     Flips the values of random attributes of the input individual.
 
@@ -164,19 +164,19 @@ def mut_flip_bit(individual: Individual, mut_prob: float) -> Individual:
     :returns: A mutated individual.
 
     :type individual: :ref:`Individual <datatypes>`
-    :rtype: :ref:`Individual <datatypes>`
+    :rtype: :ref:`Mutant <datatypes>`
     """
     for i in range(len(individual)):
         if random.random() < mut_prob:
             individual[i] = type(individual[i])(not individual[i])
 
-    return individual
+    return individual,
 
 
 # -------------------------------------------------------------------------------------- #
 def mut_uniform_int(individual: Individual,
                     low: int, up: int,
-                    mut_prob: float) -> Individual:
+                    mut_prob: float) -> Mutant:
     """
     | Mutates an individual by replacing attribute values with integers
     | chosen uniformly between the **low** and **up**, inclusively.
@@ -188,7 +188,7 @@ def mut_uniform_int(individual: Individual,
     :returns: A mutated individual.
 
     :type individual: :ref:`Individual <datatypes>`
-    :rtype: :ref:`Individual <datatypes>`
+    :rtype: :ref:`Mutant <datatypes>`
     """
     size = len(individual)
     low = _pre_process('low', low, size)
@@ -199,12 +199,12 @@ def mut_uniform_int(individual: Individual,
         if random.random() < mut_prob:
             individual[i] = random.randint(xl, xu)
 
-    return individual
+    return individual,
 
 
 # -------------------------------------------------------------------------------------- #
 def mut_es_log_normal(individual: Individual,
-                      learn_rate: float, mut_prob: float) -> Individual:
+                      learn_rate: float, mut_prob: float) -> Mutant:
     """
     Mutates an evolution strategy according to its *strategy* attribute.
 
@@ -215,7 +215,7 @@ def mut_es_log_normal(individual: Individual,
     :returns: A mutated individual.
 
     :type individual: :ref:`Individual <datatypes>`
-    :rtype: :ref:`Individual <datatypes>`
+    :rtype: :ref:`Mutant <datatypes>`
     """
     size = len(individual)
     t = learn_rate / math.sqrt(2. * math.sqrt(size))
@@ -229,4 +229,4 @@ def mut_es_log_normal(individual: Individual,
                 individual.strategy[indx] *= math.exp(t0_n + t * random.gauss(0, 1))
                 individual[indx] += individual.strategy[indx] * random.gauss(0, 1)
 
-    return individual
+    return individual,

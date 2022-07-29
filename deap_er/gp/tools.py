@@ -23,6 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from .datatypes import *
 from .primitives import *
 from typing import Any, Callable, Union
 from functools import wraps
@@ -33,40 +34,30 @@ import sys
 
 __all__ = [
     'compile_tree', 'compile_adf_tree',
-    'build_tree_graph', 'static_limit',
-    'ExprTypes', 'ListOfSets', 'Graph'
+    'build_tree_graph', 'static_limit'
 ]
-
-ExprTypes = Union[str, PrimitiveTree]
-""":meta private:"""
-
-ListOfSets = list[PrimitiveSetTyped]
-""":meta private:"""
-
-Graph = tuple[list, list, dict]
-""":meta private:"""
 
 
 # ====================================================================================== #
-def compile_tree(expr: ExprTypes, p_set: PrimitiveSetTyped) -> Any:
+def compile_tree(expr: GPExprTypes, prim_set: PrimitiveSetTyped) -> Any:
     """
     Evaluates the expression on the given primitive set.
 
     :param expr: The expression to compile. It can be a string,
         a PrimitiveTree or any object which produces a valid
         Python expression when converted into a string.
-    :param p_set: The primitive set to evaluate the expression on.
+    :param prim_set: The primitive set to evaluate the expression on.
     :return: A callable if the 'p_set' has 1 or more arguments,
         otherwise the result of the evaluation.
 
     :type expr: :ref:`Expression <datatypes>`
     """
     code = str(expr)
-    if len(p_set.arguments) > 0:
-        args = ",".join(arg for arg in p_set.arguments)
+    if len(prim_set.arguments) > 0:
+        args = ",".join(arg for arg in prim_set.arguments)
         code = "lambda {args}: {code}".format(args=args, code=code)
     try:
-        return eval(code, p_set.context, {})
+        return eval(code, prim_set.context, {})
     except MemoryError:
         _, _, traceback = sys.exc_info()
         raise MemoryError(
@@ -76,7 +67,7 @@ def compile_tree(expr: ExprTypes, p_set: PrimitiveSetTyped) -> Any:
 
 
 # -------------------------------------------------------------------------------------- #
-def compile_adf_tree(expr: ExprTypes, p_sets: ListOfSets) -> Any:
+def compile_adf_tree(expr: GPExprTypes, prim_sets: GPTypedSets) -> Any:
     """
     Compiles the expression represented by a list of trees.
     The first element of the list is the main tree, and the
@@ -86,7 +77,7 @@ def compile_adf_tree(expr: ExprTypes, p_sets: ListOfSets) -> Any:
     :param expr: The expression to compile. It can be a string,
         a PrimitiveTree or any object which produces a valid
         Python expression when converted into a string.
-    :param p_sets: List of primitive sets. The first element is
+    :param prim_sets: List of primitive sets. The first element is
         the main tree and the others are automatically defined
         functions (ADF) that can be called by the first tree.
         The last element is associated with the 'expr' and
@@ -95,19 +86,19 @@ def compile_adf_tree(expr: ExprTypes, p_sets: ListOfSets) -> Any:
         arguments, otherwise the result of the evaluation.
 
     :type expr: :ref:`Expression <datatypes>`
-    :type p_sets: :ref:`PrimSets <datatypes>`
+    :type prim_sets: :ref:`PrimSets <datatypes>`
     """
     adf_dict = dict()
     func = None
-    for p_set, sub_expr in reversed(list(zip(p_sets, expr))):
-        p_set.context.update(adf_dict)
-        func = compile_tree(sub_expr, p_set)
-        adf_dict.update({p_set.name: func})
+    for prim_set, sub_expr in reversed(list(zip(prim_sets, expr))):
+        prim_set.context.update(adf_dict)
+        func = compile_tree(sub_expr, prim_set)
+        adf_dict.update({prim_set.name: func})
     return func
 
 
 # -------------------------------------------------------------------------------------- #
-def build_tree_graph(expr: ExprTypes) -> Graph:
+def build_tree_graph(expr: GPExprTypes) -> GPGraph:
     """
     Builds a graph representation of the given expression. The graph
     is a tuple of three elements: a list of nodes, a list of edges and a
@@ -130,8 +121,10 @@ def build_tree_graph(expr: ExprTypes) -> Graph:
         if stack:
             edges.append((stack[-1][0], i))
             stack[-1][1] -= 1
-        cond = isinstance(node, Primitive)
-        labels[i] = node.name if cond else node.value
+        if isinstance(node, Primitive):
+            labels[i] = node.name
+        else:
+            labels[i] = node.value
         stack.append([i, node.arity])
         while stack and stack[-1][1] == 0:
             stack.pop()
@@ -140,26 +133,25 @@ def build_tree_graph(expr: ExprTypes) -> Graph:
 
 
 # -------------------------------------------------------------------------------------- #
-def static_limit(key: Callable, max_value: Union[int, float]) -> Callable:
+def static_limit(limiter: Callable, max_value: Union[int, float]) -> Callable:
     """
     Provides a decorator to limit the production of offspring.
     It may be used to decorate both crossover and mutation operators.
     When an invalid child is generated, it is replaced by one of its
     parents, which is randomly selected.
 
-    :param key: The function which obtains the measurement from an individual.
+    :param limiter: The function which obtains the measurement from an individual.
     :param max_value: The maximum value allowed for the given measurement.
     :return: A decorator which can be applied to a GP operator in a Toolbox.
     """
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            keep_individuals = [deepcopy(ind) for ind in args]
-            new_individuals = list(func(*args, **kwargs))
-            for i, ind in enumerate(new_individuals):
-                if key(ind) > max_value:
-                    choice = random.choice(keep_individuals)
-                    new_individuals[i] = choice
-            return new_individuals
+            keep_inds = [deepcopy(ind) for ind in args]
+            new_inds = list(func(*args, **kwargs))
+            for i, ind in enumerate(new_inds):
+                if limiter(ind) > max_value:
+                    new_inds[i] = random.choice(keep_inds)
+            return new_inds
         return wrapper
     return decorator

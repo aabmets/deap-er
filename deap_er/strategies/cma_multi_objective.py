@@ -253,7 +253,7 @@ class StrategyMultiObjective:
         else:
             n_dom = utils.sort_log_non_dominated(
                 self.parents, len(self.parents),
-                first_front_only=True)
+                ffo=True)
 
             for i in range(self.lamb):
                 j = numpy.random.randint(0, len(n_dom))

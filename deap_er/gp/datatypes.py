@@ -23,48 +23,30 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.utilities.sorting import *
-from .sel_helpers import assign_crowding_dist
-from operator import attrgetter
-from itertools import chain
+from .primitives import *
+from typing import Tuple, Union
 
 
-__all__ = ['sel_nsga_2']
+__all__ = [
+    'GPIndividual', 'GPMates', 'GPMutant',
+    'GPExprTypes', 'GPTypedSets', 'GPGraph'
+]
 
 
-# ====================================================================================== #
-def sel_nsga_2(individuals: list, sel_count: int,
-               sorting: str = 'standard') -> list:
-    """
-    Selects the next generation of individuals using the NSGA-II algorithm.
-    Usually, the size of **individuals** should be larger than the **sel_count**
-    parameter. If the size of **individuals** is equal to **sel_count**, the
-    population will be sorted according to their pareto fronts.
+GPIndividual = Union[list, PrimitiveTree]
+""":meta private:"""
 
-    :param individuals: A list of individuals to select from.
-    :param sel_count: The number of individuals to select.
-    :param sorting: The algorithm to use for non-dominated
-        sorting. Can be either 'log' or 'standard' string literal.
-    :return: A list of selected individuals.
-    """
-    if sorting == 'standard':
-        pareto_fronts = sort_non_dominated(individuals, sel_count)
-    elif sorting == 'log':
-        pareto_fronts = sort_log_non_dominated(individuals, sel_count)
-    else:
-        raise RuntimeError(
-            f'selNSGA2: The choice of non-dominated '
-            f'sorting method \'{sorting}\' is invalid.'
-        )
+GPMates = Tuple[GPIndividual, GPIndividual]
+""":meta private:"""
 
-    for front in pareto_fronts:
-        assign_crowding_dist(front)
+GPMutant = Tuple[GPIndividual]
+""":meta private:"""
 
-    chosen = list(chain(*pareto_fronts[:-1]))
-    sel_count = sel_count - len(chosen)
-    if sel_count > 0:
-        attr = attrgetter("fitness.crowding_dist")
-        sorted_front = sorted(pareto_fronts[-1], key=attr, reverse=True)
-        chosen.extend(sorted_front[:sel_count])
+GPExprTypes = Union[str, PrimitiveTree]
+""":meta private:"""
 
-    return chosen
+GPTypedSets = list[PrimitiveSetTyped]
+""":meta private:"""
+
+GPGraph = tuple[list, list, dict]
+""":meta private:"""

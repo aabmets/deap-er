@@ -31,7 +31,7 @@ __all__ = ['sort_non_dominated']
 
 # ====================================================================================== #
 def sort_non_dominated(individuals: list, sel_count: int,
-                       first_front_only: bool = False) -> list:
+                       ffo: bool = False) -> list:
     """
     Sorts the first 'sel_count' of 'individuals' into
     different non-domination levels using the
@@ -39,7 +39,7 @@ def sort_non_dominated(individuals: list, sel_count: int,
 
     :param individuals: A list of individuals to sort.
     :param sel_count: The number of individuals to select.
-    :param first_front_only: If True, only the first front is returned.
+    :param ffo: If True, only the first front is returned, optional.
     :return: A list of Pareto fronts, where the
         first element is the true Pareto front.
     """
@@ -72,7 +72,7 @@ def sort_non_dominated(individuals: list, sel_count: int,
         fronts[-1].extend(map_fit_ind[fit])
     pareto_sorted = len(fronts[-1])
 
-    if not first_front_only:
+    if not ffo:
         big_n = min(len(individuals), sel_count)
         while pareto_sorted < big_n:
             fronts.append([])

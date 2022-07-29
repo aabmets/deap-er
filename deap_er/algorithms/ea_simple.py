@@ -67,6 +67,7 @@ def ea_simple(toolbox: Toolbox, population: list,
 
     record = stats.compile(population) if stats else {}
     logbook.record(gen=0, nevals=len(invalid_ind), **record)
+
     if verbose:
         print(logbook.stream)
 
@@ -76,7 +77,6 @@ def ea_simple(toolbox: Toolbox, population: list,
 
         invalid_ind = [ind for ind in offspring if not ind.fitness.is_valid()]
         fitness = toolbox.map(toolbox.evaluate, invalid_ind)
-
         for ind, fit in zip(invalid_ind, fitness):
             ind.fitness.values = fit
 
@@ -84,9 +84,9 @@ def ea_simple(toolbox: Toolbox, population: list,
             hof.update(offspring)
 
         population[:] = offspring
-
         record = stats.compile(population) if stats else {}
         logbook.record(gen=gen, nevals=len(invalid_ind), **record)
+
         if verbose:
             print(logbook.stream)
 

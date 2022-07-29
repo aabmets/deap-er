@@ -147,59 +147,7 @@ class MovingPeaks:
         self.nevals = 0
 
     # -------------------------------------------------------- #
-    @property
-    def global_maximum(self) -> tuple:
-        """
-        Returns the value and position of the largest peak.
-        """
-        potential_max = list()
-        zipper = zip(
-            self.peaks_function, self.peaks_position,
-            self.peaks_height, self.peaks_width
-        )
-        for func, pos, height, width in zipper:
-            result = func(pos, pos, height, width)
-            value: tuple = (result, pos)
-            potential_max.append(value)
-        return max(potential_max)
-
-    # -------------------------------------------------------- #
-    @property
-    def sorted_maxima(self) -> list:
-        """
-        Returns all visible peak values and positions,
-        sorted from the largest to the smallest peaks.
-        """
-        maximums = list()
-        zipper = zip(
-            self.peaks_function, self.peaks_position,
-            self.peaks_height,  self.peaks_width
-        )
-        for func, pos, height, width in zipper:
-            result = func(pos, pos, height, width)
-            if result >= self.__call__(pos, count=False):
-                value: tuple = (result, pos)
-                maximums.append(value)
-        return sorted(maximums, reverse=True)
-
-    # -------------------------------------------------------- #
-    @property
-    def offline_error(self) -> float:
-        """
-        Returns the offline error of the landscape.
-        """
-        return self._offline_error / self.nevals
-
-    # -------------------------------------------------------- #
-    @property
-    def current_error(self) -> Optional[float]:
-        """
-        Returns the current error of the landscape.
-        """
-        return self._error
-
-    # -------------------------------------------------------- #
-    def __call__(self, individual: Individual, count: bool = True) -> float:
+    def __call__(self, individual: Individual, count: bool = True) -> tuple[float]:
         """
         Evaluate the given **individual** in the context of the current configuration.
 
@@ -211,8 +159,10 @@ class MovingPeaks:
         """
         possible_values = []
         zipper = zip(
-            self.peaks_function, self.peaks_position,
-            self.peaks_height, self.peaks_width
+            self.peaks_function,
+            self.peaks_position,
+            self.peaks_height,
+            self.peaks_width
         )
         for func, pos, height, width in zipper:
             result = func(individual, pos, height, width)
@@ -235,7 +185,63 @@ class MovingPeaks:
             if self.period > 0 and self.nevals % self.period == 0:
                 self.change_peaks()
 
-        return fitness
+        return fitness,
+
+    # -------------------------------------------------------- #
+    @property
+    def global_maximum(self) -> tuple:
+        """
+        Returns the value and position of the largest peak.
+        """
+        potential_max = list()
+        zipper = zip(
+            self.peaks_function,
+            self.peaks_position,
+            self.peaks_height,
+            self.peaks_width
+        )
+        for func, pos, height, width in zipper:
+            result = func(pos, pos, height, width)
+            value: tuple = (result, pos)
+            potential_max.append(value)
+        return max(potential_max)
+
+    # -------------------------------------------------------- #
+    @property
+    def sorted_maxima(self) -> list:
+        """
+        Returns all visible peak values and positions,
+        sorted from the largest to the smallest peaks.
+        """
+        maximums = list()
+        zipper = zip(
+            self.peaks_function,
+            self.peaks_position,
+            self.peaks_height,
+            self.peaks_width
+        )
+        for func, pos, height, width in zipper:
+            result = func(pos, pos, height, width)
+            if result >= self.__call__(pos, count=False)[0]:
+                value: tuple = (result, pos)
+                maximums.append(value)
+        return sorted(maximums, reverse=True)
+
+    # -------------------------------------------------------- #
+    @property
+    def offline_error(self) -> float:
+        """
+        Returns the offline error of the landscape.
+        """
+        return self._offline_error / self.nevals
+
+    # -------------------------------------------------------- #
+    @property
+    def current_error(self) -> Optional[float]:
+        """
+        Returns the current error of the landscape.
+        """
+        return self._error
 
     # -------------------------------------------------------- #
     def change_peaks(self):

@@ -16,6 +16,9 @@ Base
 .. py:data:: Mates
    :type: tuple[Individual, Individual]
 
+.. py:data:: Mutant
+   :type: tuple[Individual]
+
 .. py:data:: NumOrSeq
    :type: Union[int, float, Sequence[int], Sequence[float]]
 
@@ -33,24 +36,23 @@ Records
    :type: tuple[list, Logbook]
 
 
-Utilities
----------
-
-.. py:data:: Containers
-   :type: type[Union[list, tuple, set, str]]
-
-
 Genetic Programming (GP)
 ------------------------
 
-.. py:data:: TerminalTypes
-   :type: Union[str, int, float, Callable]
+.. py:data:: GPIndividual
+   :type: Union[list, PrimitiveTree]
 
-.. py:data:: ExprTypes
-   :type: Union[str, PrimitiveTree]
+.. py:data:: GPMates
+   :type: Tuple[GPIndividual, GPIndividual]
 
-.. py:data:: ListOfSets
+.. py:data:: GPMutant
+   :type: Tuple[GPIndividual]
+
+.. py:data:: GPExprTypes
+   :type: Union[str, GPIndividual]
+
+.. py:data:: GPTypedSets
    :type: list[PrimitiveSetTyped]
 
-.. py:data:: Graph
+.. py:data:: GPGraph
    :type: tuple[list, list, dict]

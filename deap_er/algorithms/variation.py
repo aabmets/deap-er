@@ -46,20 +46,24 @@ def var_and(toolbox: Toolbox, population: list,
     :param mut_prob: The probability of mutating an individual.
     :return: A list of evolved individuals.
     """
-    data = dict(crossover=cx_prob, mutation=mut_prob)
-    for key, value in data.items():
-        if not (0 <= value <= 1):
-            raise ValueError(f"The {key} probability must be in the range of [0, 1].")
+    err = "The {0} probability must be in the range of [0, 1]."
+    if not (0 <= cx_prob <= 1):
+        raise ValueError(err.format("crossover"))
+    if not (0 <= mut_prob <= 1):
+        raise ValueError(err.format("mutation"))
 
     offspring = [toolbox.clone(ind) for ind in population]
+
     for i in range(1, len(offspring), 2):
         if random.random() < cx_prob:
             offspring[i - 1], offspring[i] = toolbox.mate(offspring[i - 1], offspring[i])
             del offspring[i - 1].fitness.values, offspring[i].fitness.values
+
     for i in range(len(offspring)):
         if random.random() < mut_prob:
-            offspring[i] = toolbox.mutate(offspring[i])
+            offspring[i], = toolbox.mutate(offspring[i])  # don't remove the comma!
             del offspring[i].fitness.values
+
     return offspring
 
 
@@ -97,9 +101,10 @@ def var_or(toolbox: Toolbox, population: list, offsprings: int,
             offspring.append(ind1)
         elif op_choice < evolve_prob:
             ind = toolbox.clone(random.choice(population))
-            ind = toolbox.mutate(ind)
+            ind, = toolbox.mutate(ind)  # don't remove the comma!
             del ind.fitness.values
             offspring.append(ind)
         else:
             offspring.append(random.choice(population))
+
     return offspring

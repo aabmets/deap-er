@@ -25,7 +25,7 @@
 # ====================================================================================== #
 from __future__ import annotations
 from collections import defaultdict, deque
-from typing import Union, Type, Callable, Iterable
+from typing import Union, Type, Callable, Iterable, Any
 import copy
 import abc
 import re
@@ -34,11 +34,8 @@ import re
 __all__ = [
     'Terminal', 'Ephemeral',
     'Primitive', 'PrimitiveTree',
-    'PrimitiveSet', 'PrimitiveSetTyped',
-    'TerminalTypes'
+    'PrimitiveSet', 'PrimitiveSetTyped'
 ]
-
-TerminalTypes = Union[str, int, float, Callable]
 
 
 # ====================================================================================== #
@@ -56,7 +53,7 @@ class Terminal:
     __slots__ = ('name', 'value', 'ret', 'conv_fct')
 
     # -------------------------------------------------------- #
-    def __init__(self, terminal: TerminalTypes, symbolic: bool, ret_type: type):
+    def __init__(self, terminal: Any, symbolic: bool, ret_type: type):
         self.ret = ret_type
         self.value = terminal
         self.name = str(terminal)
@@ -162,36 +159,38 @@ class PrimitiveSetTyped:
             arg_str = "{prefix}{index}".format(prefix=prefix, index=i)
             self.arguments.append(arg_str)
             term = Terminal(arg_str, True, type_)
-            self._add(term)
+            self._add_prim(term)
             self.terms_count += 1
 
     # -------------------------------------------------------- #
-    def _add(self, prim: Union[Primitive, Terminal, Type[Ephemeral]]) -> None:
-        def add_type(_dict, ret_type):
-            if ret_type not in _dict:
-                new_list = []
-                for _type, list_ in list(_dict.items()):
-                    if issubclass(_type, ret_type):
-                        for item in list_:
-                            if item not in new_list:
-                                new_list.append(item)
-                _dict[ret_type] = new_list
+    @staticmethod
+    def _add_type(mapping: dict, ret_type: Any) -> None:
+        if ret_type not in mapping:
+            new_list = []
+            for type_, list_ in mapping.items():
+                if issubclass(type_, ret_type):
+                    for item in list_:
+                        if item not in new_list:
+                            new_list.append(item)
+            mapping[ret_type] = new_list
 
-        add_type(self.primitives, prim.ret)
-        add_type(self.terminals, prim.ret)
-
+    # -------------------------------------------------------- #
+    def _add_prim(self, prim: Union[Primitive, Terminal, Type[Ephemeral]]) -> None:
+        self._add_type(self.primitives, prim.ret)
+        self._add_type(self.terminals, prim.ret)
         self.mapping[prim.name] = prim
+
         if isinstance(prim, Primitive):
             for type_ in prim.args:
-                add_type(self.primitives, type_)
-                add_type(self.terminals, type_)
-            dict_ = self.primitives
+                self._add_type(self.primitives, type_)
+                self._add_type(self.terminals, type_)
+            mapping = self.primitives
         else:
-            dict_ = self.terminals
+            mapping = self.terminals
 
-        for type_ in dict_:
+        for type_ in mapping:
             if issubclass(prim.ret, type_):
-                dict_[type_].append(prim)
+                mapping[type_].append(prim)
 
     # -------------------------------------------------------- #
     def add_primitive(self, primitive: Callable, in_types: list,
@@ -217,7 +216,7 @@ class PrimitiveSetTyped:
             name = primitive.__name__
         prim = Primitive(name, in_types, ret_type)
 
-        self._add(prim)
+        self._add_prim(prim)
         self.context[prim.name] = primitive
         self.prims_count += 1
 
@@ -239,7 +238,6 @@ class PrimitiveSetTyped:
                 f'Consider using the argument \'{name}\' to '
                 f'rename your second \'{name}\' terminal.'
             )
-
         symbolic = False
         if name is None and callable(terminal):
             name = terminal.__name__
@@ -252,14 +250,16 @@ class PrimitiveSetTyped:
             self.context[str(terminal)] = terminal
 
         prim = Terminal(terminal, symbolic, ret_type)
-        self._add(prim)
+        self._add_prim(prim)
         self.terms_count += 1
 
     # -------------------------------------------------------- #
-    def add_ephemeral_constant(self, ephemeral: Callable,
-                               ret_type: type, name: str) -> None:
+    def add_ephemeral_constant(self, name: str, ephemeral: Callable,
+                               ret_type: type) -> None:
         """
-        Adds an ephemeral constant to the set.
+        Adds an ephemeral constant to the set. An ephemeral constant
+        is a function without arguments that returns a random value.
+        The value is immutable, but unique for each Tree.
 
         :param ephemeral: Callable object or a function.
         :param ret_type: Type returned by the ephemeral.
@@ -290,24 +290,24 @@ class PrimitiveSetTyped:
                     'than classes defined in the gp module.'
                 )
 
-        self._add(class_)
+        self._add_prim(class_)
         self.terms_count += 1
 
     # -------------------------------------------------------- #
-    def add_adf(self, adf_set: PrimitiveSetTyped) -> None:
+    def add_adf(self, prim_set: PrimitiveSetTyped) -> None:
         """
         Adds an Automatically Defined Function (ADF) to the set.
 
-        :param adf_set: PrimitiveSetTyped instance containing
+        :param prim_set: PrimitiveSetTyped instance containing
             the primitives with which the ADF can be built.
         :return: Nothing.
         """
         prim = Primitive(
-            adf_set.name,
-            adf_set.ins,
-            adf_set.ret
+            prim_set.name,
+            prim_set.ins,
+            prim_set.ret
         )
-        self._add(prim)
+        self._add_prim(prim)
         self.prims_count += 1
 
     # -------------------------------------------------------- #
@@ -351,22 +351,19 @@ class PrimitiveSet(PrimitiveSetTyped):
         super().__init__(name, args, object, prefix)
 
     # -------------------------------------------------------- #
-    def add_primitive(self, primitive: Callable, arity: int,
-                      name: str = None, *_, **__) -> None:
+    def add_primitive(self, primitive: Callable, arity: int, name: str = None, *_, **__) -> None:
         if not arity >= 1:
             raise ValueError('arity should be >= 1')
         args = [object] * arity
         super().add_primitive(primitive, args, object, name)
 
     # -------------------------------------------------------- #
-    def add_terminal(self, terminal: Callable,
-                     name: str = None, *_, **__) -> None:
+    def add_terminal(self, terminal: Any, name: str = None, *_, **__) -> None:
         super().add_terminal(terminal, object, name)
 
     # -------------------------------------------------------- #
-    def add_ephemeral_constant(self, ephemeral: Callable,
-                               name: str = None, *_, **__) -> None:
-        super().add_ephemeral_constant(ephemeral, object, name)
+    def add_ephemeral_constant(self, name: str, ephemeral: Callable, *_, **__) -> None:
+        super().add_ephemeral_constant(name, ephemeral, object)
 
 
 # ====================================================================================== #
@@ -391,8 +388,7 @@ class PrimitiveTree(list):
         return new
 
     # -------------------------------------------------------- #
-    def __setitem__(self, key: Union[int, slice],
-                    val: Union[Primitive, list]):
+    def __setitem__(self, key, val):
         if isinstance(key, slice):
             if key.start >= len(self):
                 raise IndexError(
@@ -431,14 +427,14 @@ class PrimitiveTree(list):
     # -------------------------------------------------------- #
     @classmethod
     def from_string(cls, string: str,
-                    p_set: PrimitiveSetTyped) -> PrimitiveTree:
+                    prim_set: PrimitiveSetTyped) -> PrimitiveTree:
         """
         Converts a string expression into a PrimitiveTree given a
         PrimitiveSet **p_set**. The primitive set needs to contain
         every primitive present in the expression.
 
         :param string: String representation of a Python expression.
-        :param p_set: Primitive set from which primitives are selected.
+        :param prim_set: Primitive set from which primitives are selected.
         :return: PrimitiveTree populated with the deserialized primitives.
         """
         tokens = re.split("[ \t\n\r\f\v(),]", string)
@@ -452,8 +448,8 @@ class PrimitiveTree(list):
             else:
                 ret_type = None
 
-            if token in p_set.mapping:
-                primitive = p_set.mapping[token]
+            if token in prim_set.mapping:
+                primitive = prim_set.mapping[token]
                 if ret_type is not None and not issubclass(primitive.ret, ret_type):
                     raise TypeError(
                         f'Primitive {primitive} return type {primitive.ret} '
@@ -474,7 +470,8 @@ class PrimitiveTree(list):
                         f'Terminal {token} type {type(token)} does '
                         f'not match the expected one: {ret_type}.'
                     )
-                expr.append(Terminal(token, False, ret_type))
+                prim = Terminal(token, False, ret_type)
+                expr.append(prim)
         return cls(expr)
 
     # -------------------------------------------------------- #
