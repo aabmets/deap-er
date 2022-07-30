@@ -21,7 +21,7 @@ def safe_div(left, right):
         return 1
 
 
-def evaluate(individual, toolbox, points):
+def evaluate(individual, points, toolbox):
     func = toolbox.compile(expr=individual)
     sq_errors = ((func(x) - x**4 - x**3 - x**2 - x)**2 for x in points)
     result = math.fsum(sq_errors) / len(points)
@@ -52,7 +52,7 @@ def setup():
     toolbox.register("expr_mut", gp.gen_full, min_depth=0, max_depth=2)
     toolbox.register("mutate", gp.mut_uniform, expr=toolbox.expr_mut, prim_set=pset)
     toolbox.register("select", ops.sel_tournament, contestants=3)
-    toolbox.register("evaluate", evaluate, toolbox=toolbox, points=[x / 10. for x in range(-10, 10)])
+    toolbox.register("evaluate", evaluate, points=[x / 10. for x in range(-10, 10)], toolbox=toolbox)
     toolbox.decorate("mate", gp.static_limit(limiter=operator.attrgetter("height"), max_value=17))
     toolbox.decorate("mutate", gp.static_limit(limiter=operator.attrgetter("height"), max_value=17))
 
@@ -87,7 +87,7 @@ def main():
         stats=mstats,
         verbose=True  # prints stats
     )
-    algos.ea_simple(**args)
+    gp.harm(**args)
     print_results(hof[0])
 
 

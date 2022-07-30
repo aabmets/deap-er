@@ -109,7 +109,7 @@ def main():
     args = dict(
         toolbox=toolbox,
         population=pop,
-        generations=110,
+        generations=50,
         offsprings=100,
         survivors=50,
         cx_prob=0.5,

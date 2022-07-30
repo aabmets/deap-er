@@ -91,7 +91,7 @@ class ClosestValidPenalty:
     provided, returns a value, which is growing as the individual
     moves away from the valid zone.
 
-    :param feasibility: A function returning the validity status of any individual.
+    :param validity: A function returning the validity status of any individual.
     :param feasible: A function returning the closest feasible
         individual from the current invalid individual.
     :param alpha: Multiplication factor on the distance
@@ -101,9 +101,9 @@ class ClosestValidPenalty:
     :return: A decorator for the fitness function.
     """
     # -------------------------------------------------------- #
-    def __init__(self, feasibility: Callable, feasible: Callable,
+    def __init__(self, validity: Callable, feasible: Callable,
                  alpha: float, distance: Callable = None):
-        self.fea_func = feasibility
+        self.fea_func = validity
         self.fbl_fct = feasible
         self.alpha = alpha
         self.dist_fct = distance

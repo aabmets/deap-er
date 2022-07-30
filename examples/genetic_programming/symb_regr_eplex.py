@@ -51,7 +51,7 @@ def setup():
     toolbox.register("mate", gp.cx_one_point)
     toolbox.register("expr_mut", gp.gen_full, min_depth=0, max_depth=2)
     toolbox.register("mutate", gp.mut_uniform, expr=toolbox.expr_mut, prim_set=pset)
-    toolbox.register("select", ops.sel_tournament, contestants=3)
+    toolbox.register("select", ops.sel_epsilon_lexicase)
     toolbox.register("evaluate", evaluate, toolbox=toolbox, points=[x / 10. for x in range(-10, 10)])
     toolbox.decorate("mate", gp.static_limit(limiter=operator.attrgetter("height"), max_value=17))
     toolbox.decorate("mutate", gp.static_limit(limiter=operator.attrgetter("height"), max_value=17))

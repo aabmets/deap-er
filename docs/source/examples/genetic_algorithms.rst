@@ -6,3 +6,4 @@ Genetic Algorithms
 
    genetic_algorithms/onemax.rst
    genetic_algorithms/knapsack.rst
+   genetic_algorithms/nqueens.rst

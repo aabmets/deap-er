@@ -144,7 +144,7 @@ def setup():
 
 
 def print_results(best_ind):
-    if not best_ind.fitness.values > (40,):
+    if not best_ind.fitness.values > (50,):
         raise RuntimeError('Evolution failed to converge.')
     print(f'\nEvolution converged correctly.')
 
@@ -158,7 +158,7 @@ def main():
         population=pop,
         generations=40,
         cx_prob=0.5,
-        mut_prob=0.2,
+        mut_prob=0.1,
         hof=hof,
         stats=stats,
         verbose=True  # prints stats
