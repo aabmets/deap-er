@@ -41,7 +41,7 @@ def cx_one_point(ind1: GPIndividual, ind2: GPIndividual) -> GPMates:
 
     :param ind1: The first individual to mate.
     :param ind2: The second individual to mate.
-    :return: Two individuals.
+    :return: Two mated individuals.
 
     :type ind1: :ref:`GPIndividual <datatypes>`
     :type ind2: :ref:`GPIndividual <datatypes>`
@@ -86,7 +86,7 @@ def cx_one_point_leaf_biased(ind1: GPIndividual, ind2: GPIndividual,
     :param ind2: The second individual to mate.
     :param term_prob: The probability of selecting
         a terminal node as the crossover point.
-    :return: Two individuals.
+    :return: Two mated individuals.
 
     :type ind1: :ref:`GPIndividual <datatypes>`
     :type ind2: :ref:`GPIndividual <datatypes>`

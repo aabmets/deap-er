@@ -11,7 +11,7 @@ import numpy
 import math
 
 
-random.seed(1234)  # ensure reproducibility
+random.seed(1234)  # disables randomization
 
 
 def safe_div(left, right):
@@ -24,7 +24,8 @@ def safe_div(left, right):
 def evaluate(individual, points, toolbox):
     func = toolbox.compile(expr=individual)
     sq_errors = ((func(x) - x**4 - x**3 - x**2 - x)**2 for x in points)
-    return math.fsum(sq_errors) / len(points),
+    result = math.fsum(sq_errors) / len(points)
+    return result,  # The comma is essential here.
 
 
 def setup():
@@ -55,8 +56,8 @@ def setup():
     toolbox.decorate("mate", gp.static_limit(limiter=operator.attrgetter("height"), max_value=17))
     toolbox.decorate("mutate", gp.static_limit(limiter=operator.attrgetter("height"), max_value=17))
 
-    stats_fit = records.Statistics(lambda ind: ind.fitness.values)
     stats_size = records.Statistics(len)
+    stats_fit = records.Statistics(lambda ind: ind.fitness.values)
     mstats = records.MultiStatistics(fitness=stats_fit, size=stats_size)
     mstats.register("avg", numpy.mean)
     mstats.register("std", numpy.std)
@@ -67,27 +68,24 @@ def setup():
 
 
 def print_results(best_ind):
-    predicted = "mul(add(mul(x, x), x), add(1, mul(x, x)))"
-    if str(best_ind) != predicted:
-        print('Symbolic regression failed to converge.')
-    else:
-        print(f'\nThe best individual is: \"{predicted}\".')
+    if not best_ind.fitness.values < (1.0e-3,):
+        raise RuntimeError('Evolution failed to converge.')
+    print(f'\nEvolution converged correctly.')
 
 
 def main():
     toolbox, mstats = setup()
     pop = toolbox.population(size=300)
     hof = records.HallOfFame(1)
-
     args = dict(
         toolbox=toolbox,
         population=pop,
         generations=40,
         cx_prob=0.5,
-        mut_prob=0.1,
+        mut_prob=0.2,
         hof=hof,
         stats=mstats,
-        verbose=True
+        verbose=True  # prints stats
     )
     algos.ea_simple(**args)
     print_results(hof[0])

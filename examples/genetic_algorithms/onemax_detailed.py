@@ -5,7 +5,7 @@ from deap_er import base
 import random
 
 
-random.seed(1234)  # ensure reproducibility
+random.seed(1234)  # disables randomization
 
 
 def setup():
@@ -60,16 +60,13 @@ def evolve(toolbox, population, max_gens, cx_prob, mut_prob):
 
 def print_results(best_ind):
     if not all(gene == 1 for gene in best_ind):
-        print('Evolution failed to converge.')
-    else:
-        print(f'\nThe best individual is: [1, 1, 1, ..., 1] '
-              f'with a fitness score of 100.')
+        raise RuntimeError('Evolution failed to converge.')
+    print(f'\nEvolution converged correctly.')
 
 
 def main():
     toolbox = setup()
     pop = toolbox.population(size=300)
-
     args = dict(
         toolbox=toolbox,
         population=pop,

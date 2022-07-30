@@ -8,7 +8,7 @@ import string
 import random
 
 
-random.seed(1234)  # ensure reproducibility
+random.seed(1234)  # disables randomization
 
 IND_INIT_SIZE = 5
 MAX_ITEM = 50
@@ -106,7 +106,6 @@ def main():
     toolbox = setup()
     pop = toolbox.population(size=100)
     hof = records.ParetoFront()
-
     args = dict(
         toolbox=toolbox,
         population=pop,

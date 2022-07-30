@@ -10,7 +10,7 @@ import random
 import numpy
 
 
-random.seed(1234)  # ensure reproducibility
+random.seed(1234)  # disables randomization
 
 
 PARITY_FANIN_M = 6
@@ -76,13 +76,9 @@ def setup():
 
 
 def print_results(best_ind):
-    predicted = "xor(or_(not_(1), xor(and_(1, IN2), xor(IN3, " \
-                "IN0))), xor(and_(xor(xor(1, IN4), IN4), not_" \
-                "(IN5)), xor(not_(IN1), xor(IN4, 1))))"
-    if str(best_ind) != predicted:
-        print('Symbolic regression failed to converge.')
-    else:
-        print(f'\nThe best individual is: \"{predicted}\".')
+    if not best_ind.fitness.values == (64,):
+        raise RuntimeError('Evolution failed to converge.')
+    print(f'\nEvolution converged correctly.')
 
 
 def main():
@@ -90,7 +86,6 @@ def main():
     toolbox, stats = setup()
     pop = toolbox.population(size=300)
     hof = records.HallOfFame(1)
-
     args = dict(
         toolbox=toolbox,
         population=pop,
@@ -107,4 +102,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

@@ -10,7 +10,7 @@ import numpy
 import array
 
 
-random.seed(1234)  # ensure reproducibility
+random.seed(1234)  # disables randomization
 
 
 # Evaluator can't be a lambda, because lambdas can't be pickled.
@@ -45,20 +45,16 @@ def setup():
 
 def print_results(best_ind):
     if not all(gene == 1 for gene in best_ind):
-        print('Evolution failed to converge.')
-    else:
-        print(f'\nThe best individual is: [1, 1, 1, ..., 1] '
-              f'with a fitness score of 100.')
+        raise RuntimeError('Evolution failed to converge.')
+    print(f'\nEvolution converged correctly.')
 
 
 def main():
     toolbox, stats = setup()
     pop = toolbox.population(size=300)
     hof = records.HallOfFame(maxsize=1)
-
     with mp.Pool() as pool:
         toolbox.register("map", pool.map)
-
         args = dict(
             toolbox=toolbox,
             population=pop,
@@ -67,7 +63,7 @@ def main():
             mut_prob=0.2,
             hof=hof,
             stats=stats,
-            verbose=True  # print stats
+            verbose=True  # prints stats
         )
         algos.ea_simple(**args)
         print_results(hof[0])
