@@ -150,7 +150,7 @@ def static_limit(limiter: Callable, max_value: Union[int, float]) -> Callable:
             keep_inds = [deepcopy(ind) for ind in args]
             new_inds = list(func(*args, **kwargs))
             for i, ind in enumerate(new_inds):
-                if limiter(ind) > max_value:
+                if keep_inds and limiter(ind) > max_value:
                     new_inds[i] = random.choice(keep_inds)
             return new_inds
         return wrapper
