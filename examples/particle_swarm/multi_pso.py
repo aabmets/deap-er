@@ -20,6 +20,7 @@ NPARTICLES = 5
 NEXCESS = 3
 RCLOUD = 0.5
 SWARM_DSTRB = "nuvd"
+
 AVG_OE_MEASURE_INTERVAL = 200
 AVG_OE_THRESHOLD = 5
 VERBOSE = True
@@ -106,7 +107,9 @@ def setup():
 
 def stop_condition(logbook):
     interval = AVG_OE_MEASURE_INTERVAL
-    if len(logbook) % interval == 0:
+    if len(logbook) >= 5e+5:
+        raise RuntimeError('Evolution failed to converge.')
+    elif len(logbook) % interval == 0:
         err_sum = 0
         for i in range(interval, 0, -1):
             val = logbook.select("offline_error")[-i]
@@ -119,8 +122,6 @@ def stop_condition(logbook):
 
 
 def print_results(avg_err):
-    if not avg_err <= AVG_OE_THRESHOLD:
-        raise RuntimeError('Evolution failed to converge.')
     print(f'\nAverage offline error: {avg_err:.3f} (<={AVG_OE_THRESHOLD}).')
     print(f'\nEvolution converged correctly.')
 
@@ -138,7 +139,8 @@ def main():
             group.bestfit.values = part.fitness.values
 
     def log_stats(ngen=0):
-        record = stats.compile(list(itertools.chain(*population)))
+        chain = itertools.chain(*population)
+        record = stats.compile(chain)
         args = dict(
             gen=ngen,
             evals=mpb.nevals,

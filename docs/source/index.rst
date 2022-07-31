@@ -9,6 +9,7 @@ Welcome to the DEAP-er's documentation!
    examples/genetic_programming.rst
    examples/evolution_strategies.rst
    examples/particle_swarm.rst
+   examples/differential_evolution.rst
 
 .. toctree::
    :maxdepth: 2

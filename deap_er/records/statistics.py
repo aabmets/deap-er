@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from typing import Callable, Sequence, Optional
+from typing import Callable, Optional, Iterable
 from functools import partial
 
 
@@ -71,7 +71,7 @@ class Statistics:
         self.fields.append(name)
 
     # -------------------------------------------------------- #
-    def compile(self, data: Sequence) -> dict:
+    def compile(self, data: Iterable) -> dict:
         """
         Compiles the statistics on the given data.
 
@@ -116,7 +116,7 @@ class MultiStatistics(dict):
             stats.register(name, func, *args, **kwargs)
 
     # -------------------------------------------------------- #
-    def compile(self, data: Sequence) -> dict:
+    def compile(self, data: Iterable) -> dict:
         """
         Compiles the statistics on the given data.
 
