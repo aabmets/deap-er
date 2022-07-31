@@ -27,6 +27,19 @@ Using Numpy
    <hr>
 
 
+Using ADF-s
+-----------
+
+.. literalinclude:: ../../../../examples/genetic_programming/symb_regr_adf.py
+   :language: python
+   :linenos:
+
+.. raw:: html
+
+   <br />
+   <hr>
+
+
 Using HARM-GP
 -------------
 
