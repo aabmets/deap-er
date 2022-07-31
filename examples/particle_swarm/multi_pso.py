@@ -17,8 +17,10 @@ NSWARMS = 1
 NPARTICLES = 5
 NEXCESS = 3
 RCLOUD = 0.5
-AVG_OE_VAL_COUNT = 300
+SWARM_DSTRB = "nuvd"
+AVG_OE_MEASURE_INTERVAL = 200
 AVG_OE_THRESHOLD = 5
+VERBOSE = True
 
 SCENARIO = evals.MPConfigs.ALT1
 BOUNDS = [SCENARIO["min_coord"], SCENARIO["max_coord"]]
@@ -85,7 +87,7 @@ def setup():
                      dim=NDIM, pmin=PMIN, pmax=PMAX, smin=SMIN, smax=SMAX)
     toolbox.register("swarm", utils.init_repeat, creator.Swarm, toolbox.particle)
     toolbox.register("update", update, chi=0.729843788, c=2.05)
-    toolbox.register("convert", convert, dist="nuvd")
+    toolbox.register("convert", convert, dist=SWARM_DSTRB)
     toolbox.register("evaluate", mpb)
 
     stats = records.Statistics(lambda ind: ind.fitness.values)
@@ -101,26 +103,27 @@ def setup():
 
 
 def avg_offline_error(logbook):
-    if len(logbook) < AVG_OE_VAL_COUNT:
+    interval = AVG_OE_MEASURE_INTERVAL
+    if len(logbook) % interval != 0:
         return AVG_OE_THRESHOLD + 1
     else:
-        avg_err = 0
-        for i in range(AVG_OE_VAL_COUNT, 0, -1):
+        err_sum = 0
+        for i in range(interval, 0, -1):
             val = logbook.select("offline_error")[-i]
-            avg_err += val
-        return avg_err / AVG_OE_VAL_COUNT
+            err_sum += val
+        avg = err_sum / interval
+        return avg
 
 
 def print_results(avg_err):
     if not avg_err <= AVG_OE_THRESHOLD:
         raise RuntimeError('Evolution failed to converge.')
-    print(f'\nAverage offline error: {avg_err}')
+    print(f'\nAverage offline error: {avg_err:.3f} (<={AVG_OE_THRESHOLD}).')
     print(f'\nEvolution converged correctly.')
 
 
 def main():
     toolbox, stats, logbook = setup()
-    population = [toolbox.swarm(size=NPARTICLES) for _ in range(NSWARMS)]
 
     def eval_fitness(group):
         part.fitness.values = toolbox.evaluate(part)
@@ -131,19 +134,30 @@ def main():
             group.best = toolbox.clone(part[:])
             group.bestfit.values = part.fitness.values
 
+    def log_stats(ngen):
+        record = stats.compile(list(itertools.chain(*population)))
+        args = dict(
+            gen=ngen,
+            evals=mpb.nevals,
+            nswarm=len(population),
+            error=mpb.current_error,
+            offline_error=mpb.offline_error
+        )
+        logbook.record(**args, **record)
+        if VERBOSE:
+            print(logbook.stream)
+
+    population = [toolbox.swarm(size=NPARTICLES) for _ in range(NSWARMS)]
     for swarm in population:
         for part in swarm:
             eval_fitness(swarm)
 
-    record_ = stats.compile(list(itertools.chain(*population)))
-    logbook.record(gen=0, evals=mpb.nevals, nswarm=len(population),
-                   error=mpb.current_error, offline_error=mpb.offline_error,
-                   **record_)
-    print(logbook.stream)
+    log_stats(0)
 
     generation = 1
     avg_err = AVG_OE_THRESHOLD + 1
-    while generation < AVG_OE_VAL_COUNT or avg_err > AVG_OE_THRESHOLD:
+
+    while avg_err > AVG_OE_THRESHOLD:
         rex_cl = (BOUNDS[1] - BOUNDS[0]) / (2 * len(population) ** (1.0 / NDIM))
         worst_swarm_idx = None
         worst_swarm = None
@@ -175,11 +189,7 @@ def main():
                     toolbox.update(part, swarm.best)
                 eval_fitness(swarm)
 
-        record_ = stats.compile(list(itertools.chain(*population)))
-        logbook.record(gen=generation, evals=mpb.nevals, nswarm=len(population),
-                       error=mpb.current_error, offline_error=mpb.offline_error,
-                       **record_)
-        print(logbook.stream)
+        log_stats(generation)
 
         reinit_swarms = set()
         for s1, s2 in itertools.combinations(range(len(population)), 2):
