@@ -8,6 +8,7 @@ Welcome to the DEAP-er's documentation!
    examples/genetic_algorithms.rst
    examples/genetic_programming.rst
    examples/evolution_strategies.rst
+   examples/particle_swarm.rst
 
 .. toctree::
    :maxdepth: 2
