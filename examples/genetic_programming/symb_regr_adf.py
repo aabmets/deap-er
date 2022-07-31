@@ -1,4 +1,3 @@
-from deap_er import algorithms as algos
 from deap_er import operators as ops
 from deap_er import utilities as utils
 from deap_er import records
