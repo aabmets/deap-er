@@ -27,13 +27,3 @@ from .hall_of_fame import *
 from .history import *
 from .logbook import *
 from .statistics import *
-from typing import Union, Tuple
-
-Hof = Union[HallOfFame, ParetoFront]
-""":meta private:"""
-
-Stats = Union[Statistics, MultiStatistics]
-""":meta private:"""
-
-AlgoResult = Tuple[list, Logbook]
-""":meta private:"""

@@ -24,50 +24,17 @@
 #                                                                                        #
 # ====================================================================================== #
 from __future__ import division
-from deap_er.base import Individual
-from functools import wraps
-from typing import Callable
+from deap_er.base.dtypes import *
 
 
 __all__ = [
-    'bin2float', 'royal_road_1', 'royal_road_2',
-    'chuang_f1', 'chuang_f2', 'chuang_f3'
+    'bm_royal_road_1', 'bm_royal_road_2',
+    'bm_chuang_f1', 'bm_chuang_f2', 'bm_chuang_f3'
 ]
 
 
 # ====================================================================================== #
-def bin2float(min_: float, max_: float, n_bits: int) -> Callable:
-    """
-    Returns a decorator, which converts a binary array into
-    an array of floats where each float is composed of **n_bits**
-    and has a value between **min** and **max** and returns the
-    result of the decorated function.
-
-    :param min_: Minimum value of the value range.
-    :param max_: Maximum value of the value range.
-    :param n_bits: Number of bits used to represent the float.
-    :return: Decorated function.
-    """
-    def wrapper(function):
-        @wraps(function)
-        def wrapped(individual, *args, **kwargs):
-            nelem = len(individual) // n_bits
-            decoded = [0] * nelem
-            for i in range(nelem):
-                start = i * n_bits
-                stop = i * n_bits + n_bits
-                values = individual[start:stop]
-                mapper = map(str, values)
-                gene = int("".join(mapper), 2)
-                div = 2 ** n_bits - 1
-                decoded[i] = min_ + ((gene / div) * (max_ - min_))
-            return function(decoded, *args, **kwargs)
-        return wrapped
-    return wrapper
-
-
-# -------------------------------------------------------------------------------------- #
-def royal_road_1(individual: Individual, order: int) -> tuple[int]:
+def bm_royal_road_1(individual: Individual, order: int) -> tuple[int]:
     """
     | Royal Road Function R1 as presented by Melanie Mitchell
     | in "An introduction to Genetic Algorithms".
@@ -91,7 +58,7 @@ def royal_road_1(individual: Individual, order: int) -> tuple[int]:
 
 
 # -------------------------------------------------------------------------------------- #
-def royal_road_2(individual: Individual, order: int) -> tuple[int]:
+def bm_royal_road_2(individual: Individual, order: int) -> tuple[int]:
     """
     | Royal Road Function R2 as presented by Melanie Mitchell
     | in "An introduction to Genetic Algorithms".
@@ -104,13 +71,13 @@ def royal_road_2(individual: Individual, order: int) -> tuple[int]:
     total = 0
     n_order = order
     while n_order < order ** 2:
-        total += royal_road_1(individual, n_order)
+        total += bm_royal_road_1(individual, n_order)
         n_order *= 2
     return total,
 
 
 # -------------------------------------------------------------------------------------- #
-def chuang_f1(individual: Individual) -> tuple[int]:
+def bm_chuang_f1(individual: Individual) -> tuple[int]:
     """
     | Binary deceptive function by Chung-Yao Chuang and Wen-Lian Hsu from
     | "Multivariate Multi-Model Approach for Globally Multimodal Problems".
@@ -133,7 +100,7 @@ def chuang_f1(individual: Individual) -> tuple[int]:
 
 
 # -------------------------------------------------------------------------------------- #
-def chuang_f2(individual: Individual) -> tuple[int]:
+def bm_chuang_f2(individual: Individual) -> tuple[int]:
     """
     | Binary deceptive function by Chung-Yao Chuang and Wen-Lian Hsu from
     | "Multivariate Multi-Model Approach for Globally Multimodal Problems".
@@ -162,7 +129,7 @@ def chuang_f2(individual: Individual) -> tuple[int]:
 
 
 # -------------------------------------------------------------------------------------- #
-def chuang_f3(individual: Individual) -> tuple[int]:
+def bm_chuang_f3(individual: Individual) -> tuple[int]:
     """
     | Binary deceptive function by Chung-Yao Chuang and Wen-Lian Hsu from
     | "Multivariate Multi-Model Approach for Globally Multimodal Problems".

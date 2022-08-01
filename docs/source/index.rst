@@ -20,7 +20,7 @@ Welcome to the DEAP-er's documentation!
    reference/algorithms.rst
    reference/strategies.rst
    reference/operators.rst
-   reference/evaluators.rst
+   reference/benchmarks.rst
    reference/utilities.rst
    reference/gp.rst
    reference/datatypes.rst

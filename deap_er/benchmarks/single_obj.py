@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.base import Individual
+from deap_er.base.dtypes import *
 from math import sin, cos, pi, exp, e, sqrt
 from functools import reduce
 from operator import mul
@@ -32,15 +32,15 @@ import numpy
 
 
 __all__ = [
-    'rand', 'plane', 'sphere', 'cigar', 'rosenbrock',
-    'h1', 'ackley', 'bohachevsky', 'griewank', 'schaffer',
-    'schwefel', 'himmelblau', 'rastrigin', 'rastrigin_scaled',
-    'rastrigin_skewed', 'shekel'
+    'bm_rand', 'bm_plane', 'bm_sphere', 'bm_cigar', 'bm_rosenbrock',
+    'bm_h1', 'bm_ackley', 'bm_bohachevsky', 'bm_griewank', 'bm_schaffer',
+    'bm_schwefel', 'bm_himmelblau', 'bm_rastrigin', 'bm_rastrigin_scaled',
+    'bm_rastrigin_skewed', 'bm_shekel'
 ]
 
 
 # ====================================================================================== #
-def rand(*_) -> tuple[float]:
+def bm_rand(*_) -> tuple[float]:
     """
     Random test objective function. The unnamed **args** parameter is an input
     sink for DEAP-er internal functionality and has no effect on the result.
@@ -68,7 +68,7 @@ def rand(*_) -> tuple[float]:
 
 
 # -------------------------------------------------------------------------------------- #
-def plane(individual: Individual) -> tuple[float]:
+def bm_plane(individual: Individual) -> tuple[float]:
     """
     Plane test objective function.
 
@@ -98,7 +98,7 @@ def plane(individual: Individual) -> tuple[float]:
 
 
 # -------------------------------------------------------------------------------------- #
-def sphere(individual: Individual) -> tuple[float]:
+def bm_sphere(individual: Individual) -> tuple[float]:
     """
     Sphere test objective function.
 
@@ -128,7 +128,7 @@ def sphere(individual: Individual) -> tuple[float]:
 
 
 # -------------------------------------------------------------------------------------- #
-def cigar(individual: Individual) -> tuple[float]:
+def bm_cigar(individual: Individual) -> tuple[float]:
     """
     Cigar test objective function.
 
@@ -159,7 +159,7 @@ def cigar(individual: Individual) -> tuple[float]:
 
 
 # -------------------------------------------------------------------------------------- #
-def rosenbrock(individual: Individual) -> tuple[float]:
+def bm_rosenbrock(individual: Individual) -> tuple[float]:
     """
     Rosenbrock test objective function.
 
@@ -193,7 +193,7 @@ def rosenbrock(individual: Individual) -> tuple[float]:
 
 
 # -------------------------------------------------------------------------------------- #
-def h1(individual: Individual) -> tuple[float]:
+def bm_h1(individual: Individual) -> tuple[float]:
     """
     Simple two-dimensional function containing several local maxima.
 
@@ -234,7 +234,7 @@ def h1(individual: Individual) -> tuple[float]:
 
 
 # -------------------------------------------------------------------------------------- #
-def ackley(individual: Individual) -> tuple[float]:
+def bm_ackley(individual: Individual) -> tuple[float]:
     """
     Ackley test objective function.
 
@@ -270,7 +270,7 @@ def ackley(individual: Individual) -> tuple[float]:
 
 
 # -------------------------------------------------------------------------------------- #
-def bohachevsky(individual: Individual) -> tuple[float]:
+def bm_bohachevsky(individual: Individual) -> tuple[float]:
     """
     Bohachevsky test objective function.
 
@@ -308,7 +308,7 @@ def bohachevsky(individual: Individual) -> tuple[float]:
 
 
 # -------------------------------------------------------------------------------------- #
-def griewank(individual: Individual) -> tuple[float]:
+def bm_griewank(individual: Individual) -> tuple[float]:
     """
     Griewank test objective function.
 
@@ -342,7 +342,7 @@ def griewank(individual: Individual) -> tuple[float]:
 
 
 # -------------------------------------------------------------------------------------- #
-def schaffer(individual: Individual) -> tuple[float]:
+def bm_schaffer(individual: Individual) -> tuple[float]:
     """
     Schaffer test objective function.
 
@@ -380,7 +380,7 @@ def schaffer(individual: Individual) -> tuple[float]:
 
 
 # -------------------------------------------------------------------------------------- #
-def schwefel(individual: Individual) -> tuple[float]:
+def bm_schwefel(individual: Individual) -> tuple[float]:
     """
     Schwefel test objective function.
 
@@ -413,7 +413,7 @@ def schwefel(individual: Individual) -> tuple[float]:
 
 
 # -------------------------------------------------------------------------------------- #
-def himmelblau(individual: Individual) -> tuple[float]:
+def bm_himmelblau(individual: Individual) -> tuple[float]:
     """
     The Himmelblaus function has 4 defined
     minimums in the range of :math:`[-6, 6]^2`.
@@ -448,7 +448,7 @@ def himmelblau(individual: Individual) -> tuple[float]:
 
 
 # -------------------------------------------------------------------------------------- #
-def rastrigin(individual: Individual) -> tuple[float]:
+def bm_rastrigin(individual: Individual) -> tuple[float]:
     """
     Rastrigin test objective function.
 
@@ -480,7 +480,7 @@ def rastrigin(individual: Individual) -> tuple[float]:
 
 
 # -------------------------------------------------------------------------------------- #
-def rastrigin_scaled(individual: Individual) -> tuple[float]:
+def bm_rastrigin_scaled(individual: Individual) -> tuple[float]:
     """
     Scaled Rastrigin test objective function.
 
@@ -519,7 +519,7 @@ def rastrigin_scaled(individual: Individual) -> tuple[float]:
 
 
 # -------------------------------------------------------------------------------------- #
-def rastrigin_skewed(individual: Individual) -> tuple[float]:
+def bm_rastrigin_skewed(individual: Individual) -> tuple[float]:
     """
     Skewed Rastrigin test objective function.
 
@@ -558,8 +558,8 @@ def rastrigin_skewed(individual: Individual) -> tuple[float]:
 
 
 # -------------------------------------------------------------------------------------- #
-def shekel(individual: Individual, matrix: numpy.ndarray,
-           vector: numpy.ndarray) -> tuple[float]:
+def bm_shekel(individual: Individual, matrix: numpy.ndarray,
+              vector: numpy.ndarray) -> tuple[float]:
     """
     The Shekel multimodal function can have any number
     of maxima. The maxima count is given by the length

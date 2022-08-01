@@ -1,6 +1,6 @@
 Symbolic Regression
 ===================
 
-.. automodule:: deap_er.evaluators.sym_reg
+.. automodule:: deap_er.benchmarks.symb_regr
    :imported-members:
    :members:

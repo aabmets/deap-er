@@ -1,7 +1,7 @@
 from deap_er import algorithms as algos
 from deap_er import operators as ops
 from deap_er import utilities as utils
-from deap_er import evaluators as evals
+from deap_er import benchmarks as evals
 from deap_er import records
 from deap_er import creator
 from deap_er import base

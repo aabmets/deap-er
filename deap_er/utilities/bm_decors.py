@@ -29,6 +29,9 @@ from functools import wraps
 import numpy
 
 
+__all__ = ["Translate", "Rotate", "Scale", "Noise", "bin2float"]
+
+
 # ====================================================================================== #
 class Translate:
     """
@@ -198,3 +201,34 @@ class Noise:
         """
         if not isinstance(funcs, Iterable):
             self.rand_funcs = repeat(funcs)
+
+
+# -------------------------------------------------------------------------------------- #
+def bin2float(min_: float, max_: float, n_bits: int) -> Callable:
+    """
+    Returns a decorator, which converts a binary array into
+    an array of floats where each float is composed of **n_bits**
+    and has a value between **min** and **max** and returns the
+    result of the decorated function.
+
+    :param min_: Minimum value of the value range.
+    :param max_: Maximum value of the value range.
+    :param n_bits: Number of bits used to represent the float.
+    :return: Decorated function.
+    """
+    def wrapper(function):
+        @wraps(function)
+        def wrapped(individual, *args, **kwargs):
+            nelem = len(individual) // n_bits
+            decoded = [0] * nelem
+            for i in range(nelem):
+                start = i * n_bits
+                stop = i * n_bits + n_bits
+                values = individual[start:stop]
+                mapper = map(str, values)
+                gene = int("".join(mapper), 2)
+                div = 2 ** n_bits - 1
+                decoded[i] = min_ + ((gene / div) * (max_ - min_))
+            return function(decoded, *args, **kwargs)
+        return wrapped
+    return wrapper

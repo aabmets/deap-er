@@ -24,10 +24,9 @@
 #                                                                                        #
 # ====================================================================================== #
 from __future__ import annotations
-from .datatypes import NumOrSeq
+from .dtypes import NumOrSeq
 from operator import mul, truediv
 from typing import Iterable
-import numpy
 
 
 __all__ = ['Fitness']

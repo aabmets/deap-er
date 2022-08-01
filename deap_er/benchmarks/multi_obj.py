@@ -23,21 +23,21 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.base import Individual
+from deap_er.base.dtypes import *
 from math import sin, cos, pi, exp, sqrt
 from functools import reduce
 from operator import mul
 
 
 __all__ = [
-    'kursawe', 'schaffer_mo', 'fonseca', 'poloni', 'dent',
-    'zdt_1', 'zdt_2', 'zdt_3', 'zdt_4', 'zdt_6',
-    'dtlz_1', 'dtlz_2', 'dtlz_3', 'dtlz_4', 'dtlz_5', 'dtlz_6', 'dtlz_7'
+    'bm_kursawe', 'bm_schaffer_mo', 'bm_fonseca', 'bm_poloni', 'bm_dent',
+    'bm_zdt_1', 'bm_zdt_2', 'bm_zdt_3', 'bm_zdt_4', 'bm_zdt_6',
+    'bm_dtlz_1', 'bm_dtlz_2', 'bm_dtlz_3', 'bm_dtlz_4', 'bm_dtlz_5', 'bm_dtlz_6', 'bm_dtlz_7'
 ]
 
 
 # ====================================================================================== #
-def kursawe(individual: Individual) -> tuple[float, float]:
+def bm_kursawe(individual: Individual) -> tuple[float, float]:
     """
     Kursawe multi-objective function.
 
@@ -61,7 +61,7 @@ def kursawe(individual: Individual) -> tuple[float, float]:
 
 
 # -------------------------------------------------------------------------------------- #
-def schaffer_mo(individual: Individual) -> tuple[float, float]:
+def bm_schaffer_mo(individual: Individual) -> tuple[float, float]:
     """
     Schaffer's multi-objective function on a one-attribute **individual**.
 
@@ -82,7 +82,7 @@ def schaffer_mo(individual: Individual) -> tuple[float, float]:
 
 
 # -------------------------------------------------------------------------------------- #
-def fonseca(individual: Individual) -> tuple[float, float]:
+def bm_fonseca(individual: Individual) -> tuple[float, float]:
     """
     Fonseca and Fleming's multiobjective function.
 
@@ -103,7 +103,7 @@ def fonseca(individual: Individual) -> tuple[float, float]:
 
 
 # -------------------------------------------------------------------------------------- #
-def poloni(individual: Individual) -> tuple[float, float]:
+def bm_poloni(individual: Individual) -> tuple[float, float]:
     """
     Poloni's multiobjective function on a two-attribute **individual**.
 
@@ -134,7 +134,7 @@ def poloni(individual: Individual) -> tuple[float, float]:
 
 
 # -------------------------------------------------------------------------------------- #
-def dent(individual: Individual, dent_size: float = 0.85) -> tuple[float, float]:
+def bm_dent(individual: Individual, dent_size: float = 0.85) -> tuple[float, float]:
     """
     | Two-objective problem with a "dent". The **individual** must have
     | two attributes that take values in the range of [-1.5, 1.5].
@@ -162,7 +162,7 @@ def dent(individual: Individual, dent_size: float = 0.85) -> tuple[float, float]
 
 
 # -------------------------------------------------------------------------------------- #
-def zdt_1(individual: Individual) -> tuple[float, float]:
+def bm_zdt_1(individual: Individual) -> tuple[float, float]:
     """
     ZDT1 multi-objective function.
 
@@ -186,7 +186,7 @@ def zdt_1(individual: Individual) -> tuple[float, float]:
 
 
 # -------------------------------------------------------------------------------------- #
-def zdt_2(individual: Individual) -> tuple[float, float]:
+def bm_zdt_2(individual: Individual) -> tuple[float, float]:
     """
     ZDT2 multi-objective function.
 
@@ -210,7 +210,7 @@ def zdt_2(individual: Individual) -> tuple[float, float]:
 
 
 # -------------------------------------------------------------------------------------- #
-def zdt_3(individual: Individual) -> tuple[float, float]:
+def bm_zdt_3(individual: Individual) -> tuple[float, float]:
     """
     ZDT3 multi-objective function.
 
@@ -235,7 +235,7 @@ def zdt_3(individual: Individual) -> tuple[float, float]:
 
 
 # -------------------------------------------------------------------------------------- #
-def zdt_4(individual: Individual) -> tuple[float, float]:
+def bm_zdt_4(individual: Individual) -> tuple[float, float]:
     """
     ZDT4 multi-objective function.
 
@@ -261,7 +261,7 @@ def zdt_4(individual: Individual) -> tuple[float, float]:
 
 
 # -------------------------------------------------------------------------------------- #
-def zdt_6(individual: Individual) -> tuple[float, float]:
+def bm_zdt_6(individual: Individual) -> tuple[float, float]:
     """
     ZDT6 multi-objective function.
 
@@ -286,7 +286,7 @@ def zdt_6(individual: Individual) -> tuple[float, float]:
 
 
 # -------------------------------------------------------------------------------------- #
-def dtlz_1(individual: Individual, count: int) -> list:
+def bm_dtlz_1(individual: Individual, count: int) -> list:
     """
     | DTLZ1 multi-objective function. Returns a list of size **count**.
     | The **individual** must have at least **count** number of elements.
@@ -332,7 +332,7 @@ def dtlz_1(individual: Individual, count: int) -> list:
 
 
 # -------------------------------------------------------------------------------------- #
-def dtlz_2(individual: Individual, count: int) -> list:
+def bm_dtlz_2(individual: Individual, count: int) -> list:
     """
     | DTLZ2 multi-objective function. Returns a list of size **count**.
     | The **individual** must have at least **count** number of elements.
@@ -365,7 +365,7 @@ def dtlz_2(individual: Individual, count: int) -> list:
 
 
 # -------------------------------------------------------------------------------------- #
-def dtlz_3(individual: Individual, count: int) -> list:
+def bm_dtlz_3(individual: Individual, count: int) -> list:
     """
     | DTLZ3 multi-objective function. Returns a list of size **count**.
     | The **individual** must have at least **count** number of elements.
@@ -403,7 +403,7 @@ def dtlz_3(individual: Individual, count: int) -> list:
 
 
 # -------------------------------------------------------------------------------------- #
-def dtlz_4(individual: Individual, count: int, alpha: float) -> list:
+def bm_dtlz_4(individual: Individual, count: int, alpha: float) -> list:
     """
     | DTLZ4 multi-objective function. Returns a list of size **count**.
     | The **individual** must have at least **count** number of elements.
@@ -438,7 +438,7 @@ def dtlz_4(individual: Individual, count: int, alpha: float) -> list:
 
 
 # -------------------------------------------------------------------------------------- #
-def dtlz_5(individual: Individual, count: int) -> list:
+def bm_dtlz_5(individual: Individual, count: int) -> list:
     """
     | DTLZ5 multi-objective function. Returns a list of size **count**.
     | The **individual** must have at least **count** number of elements.
@@ -466,7 +466,7 @@ def dtlz_5(individual: Individual, count: int) -> list:
 
 
 # -------------------------------------------------------------------------------------- #
-def dtlz_6(individual: Individual, count: int) -> list:
+def bm_dtlz_6(individual: Individual, count: int) -> list:
     """
     | DTLZ6 multi-objective function. Returns a list of size **count**.
     | The **individual** must have at least **count** number of elements.
@@ -494,7 +494,7 @@ def dtlz_6(individual: Individual, count: int) -> list:
 
 
 # -------------------------------------------------------------------------------------- #
-def dtlz_7(individual: Individual, count: int) -> list:
+def bm_dtlz_7(individual: Individual, count: int) -> list:
     """
     | DTLZ7 multi-objective function. Returns a list of size **count**.
     | The **individual** must have at least **count** number of elements.

@@ -23,8 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .single_obj import *
-from .multi_obj import *
-from .sym_reg import *
-from .moving_peaks import *
-from .binary import *
+from .base.dtypes import *
+from .records.dtypes import *
+from .gp.datatypes import *

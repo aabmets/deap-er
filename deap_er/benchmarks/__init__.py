@@ -23,6 +23,8 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .creator import creator
-from . import base
-from . import gp
+from .moving_peaks import *
+from .single_obj import *
+from .multi_obj import *
+from .symb_regr import *
+from .binary import *

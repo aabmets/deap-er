@@ -1,6 +1,6 @@
 Multi-Objective
 ===============
 
-.. automodule:: deap_er.evaluators.multi_obj
+.. automodule:: deap_er.benchmarks.multi_obj
    :imported-members:
    :members:

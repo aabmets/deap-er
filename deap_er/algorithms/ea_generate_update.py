@@ -23,7 +23,8 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.records import Logbook, Hof, Stats, AlgoResult
+from deap_er.records.dtypes import *
+from deap_er.records import Logbook
 from deap_er.base import Toolbox
 
 

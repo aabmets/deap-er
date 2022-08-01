@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.base import Individual
+from deap_er.base.dtypes import *
 from typing import Callable, Optional
 from bisect import bisect_right
 from copy import deepcopy

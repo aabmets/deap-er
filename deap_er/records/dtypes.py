@@ -23,6 +23,20 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .creator import creator
-from . import base
-from . import gp
+from .hall_of_fame import *
+from .statistics import *
+from .logbook import *
+from typing import Union, Tuple
+
+
+__all__ = ['Hof', 'Stats', 'AlgoResult']
+
+
+Hof = Union[HallOfFame, ParetoFront]
+""":meta private:"""
+
+Stats = Union[Statistics, MultiStatistics]
+""":meta private:"""
+
+AlgoResult = Tuple[list, Logbook]
+""":meta private:"""

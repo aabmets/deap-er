@@ -23,19 +23,19 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.base import Individual
+from deap_er.base.dtypes import *
 from math import exp, sin, cos
 
 
 __all__ = [
-    'ripple', 'sin_cos', 'unwrapped_ball',
-    'kotanchek', 'salustowicz_1d', 'salustowicz_2d',
-    'rational_polynomial_1', 'rational_polynomial_2'
+    'bm_ripple', 'bm_sin_cos', 'bm_unwrapped_ball',
+    'bm_kotanchek', 'bm_salustowicz_1d', 'bm_salustowicz_2d',
+    'bm_rational_polynomial_1', 'bm_rational_polynomial_2'
 ]
 
 
 # ====================================================================================== #
-def ripple(individual: Individual) -> float:
+def bm_ripple(individual: Individual) -> float:
     """
     Ripple benchmark function.
 
@@ -64,7 +64,7 @@ def ripple(individual: Individual) -> float:
 
 
 # -------------------------------------------------------------------------------------- #
-def sin_cos(individual: Individual) -> float:
+def bm_sin_cos(individual: Individual) -> float:
     """
     Sine cosine benchmark function.
 
@@ -90,7 +90,7 @@ def sin_cos(individual: Individual) -> float:
 
 
 # -------------------------------------------------------------------------------------- #
-def unwrapped_ball(individual: Individual) -> float:
+def bm_unwrapped_ball(individual: Individual) -> float:
     """
     Unwrapped ball benchmark function.
 
@@ -116,7 +116,7 @@ def unwrapped_ball(individual: Individual) -> float:
 
 
 # -------------------------------------------------------------------------------------- #
-def kotanchek(individual: Individual) -> float:
+def bm_kotanchek(individual: Individual) -> float:
     """
     Kotanchek benchmark function.
 
@@ -145,7 +145,7 @@ def kotanchek(individual: Individual) -> float:
 
 
 # -------------------------------------------------------------------------------------- #
-def salustowicz_1d(individual: Individual) -> float:
+def bm_salustowicz_1d(individual: Individual) -> float:
     """
     Salustowicz benchmark function.
 
@@ -173,7 +173,7 @@ def salustowicz_1d(individual: Individual) -> float:
 
 
 # -------------------------------------------------------------------------------------- #
-def salustowicz_2d(individual: Individual) -> float:
+def bm_salustowicz_2d(individual: Individual) -> float:
     """
     Salustowicz benchmark function.
 
@@ -202,7 +202,7 @@ def salustowicz_2d(individual: Individual) -> float:
 
 
 # -------------------------------------------------------------------------------------- #
-def rational_polynomial_1(individual: Individual) -> float:
+def bm_rational_polynomial_1(individual: Individual) -> float:
     """
     Rational polynomial ball benchmark function.
 
@@ -232,7 +232,7 @@ def rational_polynomial_1(individual: Individual) -> float:
 
 
 # -------------------------------------------------------------------------------------- #
-def rational_polynomial_2(individual: Individual) -> float:
+def bm_rational_polynomial_2(individual: Individual) -> float:
     """
     Rational polynomial benchmark function.
 

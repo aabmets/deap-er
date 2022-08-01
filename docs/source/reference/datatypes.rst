@@ -3,8 +3,7 @@
 Datatypes
 =========
 
-| These custom datatype aliases are available from their respective
-| subpackages, as well as from the general :data:`deap_er.datatypes` module.
+These custom datatype aliases are available from the :data:`deap_er.dtypes` module.
 
 
 Base

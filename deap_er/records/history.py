@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.base import Individual
+from deap_er.base.dtypes import *
 from typing import Callable
 from copy import deepcopy
 

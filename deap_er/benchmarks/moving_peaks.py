@@ -23,8 +23,8 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from deap_er.base.dtypes import *
 from types import MappingProxyType
-from deap_er.base import Individual
 from typing import Iterable, Optional
 import itertools
 import random

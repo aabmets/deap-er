@@ -24,7 +24,7 @@
 #                                                                                        #
 # ====================================================================================== #
 from __future__ import annotations
-from deap_er.base import NumOrSeq, Individual, Mates
+from deap_er.base.dtypes import *
 from collections.abc import Sequence
 from itertools import repeat
 import random

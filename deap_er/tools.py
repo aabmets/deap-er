@@ -23,6 +23,10 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .base.datatypes import *
-from .gp.datatypes import *
-from .records import Hof, Stats, AlgoResult
+from .dtypes import *
+from .algorithms import *
+from .strategies import *
+from .operators import *
+from .benchmarks import *
+from .utilities import *
+from .records import *

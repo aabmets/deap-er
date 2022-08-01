@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er.base import NumOrSeq
+from deap_er.base.dtypes import *
 from collections.abc import Sequence, Callable
 from itertools import repeat
 from functools import wraps

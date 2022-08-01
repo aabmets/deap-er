@@ -29,6 +29,22 @@ Population Initializers
    <hr>
 
 
+Hypervolume Indicators
+----------------------
+
+.. autofunction:: deap_er.utilities.least_contrib
+
+.. autofunction:: deap_er.utilities.hypervolume
+
+.. autoclass:: deap_er.utilities.HyperVolume
+   :members:
+
+.. raw:: html
+
+   <br />
+   <hr>
+
+
 Constraint Decorators
 ---------------------
 
@@ -44,24 +60,10 @@ Constraint Decorators
    <hr>
 
 
-Hypervolume Indicator
-----------------------
+Benchmark Decorators
+--------------------
 
-.. autofunction:: deap_er.utilities.least_contrib
-
-.. autoclass:: deap_er.utilities.HyperVolume
-   :members:
-
-.. raw:: html
-
-   <br />
-   <hr>
-
-
-Evaluator Modifiers
--------------------
-
-.. automodule:: deap_er.utilities.eval_decors
+.. automodule:: deap_er.utilities.bm_decors
    :members:
 
 .. raw:: html
