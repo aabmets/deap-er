@@ -24,6 +24,7 @@
 #                                                                                        #
 # ====================================================================================== #
 from .hypervolume import HyperVolume
+from typing import Callable, Optional
 import numpy
 
 
@@ -31,17 +32,26 @@ __all__ = ['least_contrib']
 
 
 # ====================================================================================== #
-def least_contrib(population: list, ref_point: list = None) -> int:
+def _compute_hv(data: tuple) -> float:
+    point_set, ref_point = data[0], data[1]
+    hv = HyperVolume(ref_point)
+    return hv.compute(point_set)
+
+
+# -------------------------------------------------------------------------------------- #
+def least_contrib(population: list, ref_point: Optional[list] = None,
+                  map_func: Optional[Callable] = map) -> int:
     """
     Returns the index of the individual with the least hypervolume
-    contribution. Minimization is implicitly assumed. The Ray
-    multiprocessing library must be initialized by the user with
-    :code:`ray.init()` before calls to this function can be made.
+    contribution. Minimization is implicitly assumed.
 
     :param population: A list of non-dominated individuals,
         where each individual has a Fitness attribute.
     :param ref_point: The reference point for the hypervolume, optional.
-    :raise TimeoutError: If the computation times out.
+    :param map_func: Any map function which maps an iterable to a callable,
+        optional. This can be used to speed up the computation by providing
+        a multiprocess mapping function associated to a pool of workers.
+        The default is the built-in single-core map function.
     :return: The index of the individual with the least hypervolume contribution.
     """
     wvals = [ind.fitness.wvalues for ind in population]
@@ -51,13 +61,12 @@ def least_contrib(population: list, ref_point: list = None) -> int:
     else:
         ref_point = numpy.array(ref_point)
 
-    contrib_values = []
+    data = []
     for i in range(len(population)):
         point_set = (wvals[:i], wvals[i + 1:])
         point_set = numpy.concatenate(point_set)
-        hv = HyperVolume(ref_point)
-        contrib = hv.compute(point_set)
-        contrib_values.append(contrib)
+        data.append((point_set, ref_point))
 
+    contrib_values = list(map_func(_compute_hv, data))
     argmax = numpy.argmax(contrib_values)
     return int(argmax)

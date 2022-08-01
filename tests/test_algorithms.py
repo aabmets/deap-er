@@ -23,11 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from deap_er import algorithms as algos
-from deap_er import strategies as strats
-from deap_er import benchmarks as evals
-from deap_er import utilities as utils
-from deap_er import operators as ops
+from deap_er import tools
 from deap_er import creator
 from deap_er import base
 import random
@@ -66,15 +62,15 @@ def test_standard_cma():
     setup_func_single_obj()
 
     dimensions = 5
-    strategy = strats.Strategy(centroid=[0.0]*dimensions, sigma=1.0)
+    strategy = tools.Strategy(centroid=[0.0]*dimensions, sigma=1.0)
 
     toolbox = base.Toolbox()
-    toolbox.register("evaluate", evals.sphere)
+    toolbox.register("evaluate", tools.bm_sphere)
     toolbox.register("generate", strategy.generate, creator.__dict__[INDCLSNAME])
     toolbox.register("update", strategy.update)
 
-    pop, _ = algos.ea_generate_update(toolbox, generations=100)
-    best, = ops.sel_best(pop, sel_count=1)
+    pop, _ = tools.ea_generate_update(toolbox, generations=100)
+    best, = tools.sel_best(pop, sel_count=1)
 
     assert best.fitness.values < (1e-8,)
 
@@ -93,27 +89,27 @@ def test_nsga2():
     toolbox = base.Toolbox()
     toolbox.register("attr_float", random.uniform,
                      bound_low, bound_up)
-    toolbox.register("individual", utils.init_repeat,
+    toolbox.register("individual", tools.init_repeat,
                      creator.__dict__[INDCLSNAME], toolbox.attr_float, dimensions)
-    toolbox.register("population", utils.init_repeat,
+    toolbox.register("population", tools.init_repeat,
                      list, toolbox.individual)
 
-    toolbox.register("mate", ops.cx_simulated_binary_bounded,
+    toolbox.register("mate", tools.cx_simulated_binary_bounded,
                      low=bound_low, up=bound_up, eta=20.0)
-    toolbox.register("mutate", ops.mut_polynomial_bounded,
+    toolbox.register("mutate", tools.mut_polynomial_bounded,
                      low=bound_low, up=bound_up, eta=20.0, mut_prob=1.0/dimensions)
 
-    toolbox.register("evaluate", evals.zdt_1)
-    toolbox.register("select", ops.sel_nsga_2)
+    toolbox.register("evaluate", tools.bm_zdt_1)
+    toolbox.register("select", tools.sel_nsga_2)
 
-    pop = toolbox.population(count=survivors)
+    pop = toolbox.population(size=survivors)
     fitness = toolbox.map(toolbox.evaluate, pop)
     for ind, fit in zip(pop, fitness):
         ind.fitness.values = fit
 
     pop = toolbox.select(pop, len(pop))
     for gen in range(1, generations):
-        offspring = ops.sel_tournament_dcd(pop, len(pop))
+        offspring = tools.sel_tournament_dcd(pop, len(pop))
         offspring = [toolbox.clone(ind) for ind in offspring]
 
         for ind1, ind2 in zip(offspring[::2], offspring[1::2]):
@@ -131,7 +127,7 @@ def test_nsga2():
 
         pop = toolbox.select(pop + offspring, survivors)
 
-    hv = utils.hypervolume(pop, [11.0, 11.0])
+    hv = tools.hypervolume(pop, [11.0, 11.0])
 
     assert hv > HV_THRESHOLD
     for ind in pop:
@@ -167,15 +163,15 @@ def test_mo_cma_es():
     numpy.random.seed(128)
 
     toolbox = base.Toolbox()
-    toolbox.register("evaluate", evals.zdt_1)
-    toolbox.decorate("evaluate", utils.ClosestValidPenalty(valid, closest_feasible, 1.0e+6, distance))
+    toolbox.register("evaluate", tools.bm_zdt_1)
+    toolbox.decorate("evaluate", tools.ClosestValidPenalty(valid, closest_feasible, 1.0e+6, distance))
 
     choices = numpy.random.uniform(bound_low, bound_up, (survivors, dimensions))
     population = [creator.__dict__[INDCLSNAME](x) for x in choices]
     for ind in population:
         ind.fitness.values = toolbox.evaluate(ind)
 
-    strategy = strats.StrategyMultiObjective(
+    strategy = tools.StrategyMultiObjective(
         population, sigma=1.0, survivors=survivors, offsprings=offsprings
     )
     toolbox.register("generate", strategy.generate, creator.__dict__[INDCLSNAME])
@@ -197,7 +193,7 @@ def test_mo_cma_es():
             num_valid += 1
     assert num_valid >= len(strategy.parents)
 
-    hv = utils.hypervolume(strategy.parents, [11.0, 11.0])
+    hv = tools.hypervolume(strategy.parents, [11.0, 11.0])
     assert hv > HV_THRESHOLD
     teardown_func()
 
@@ -211,33 +207,33 @@ def test_nsga3():
     survivors = 16
     generations = 100
 
-    ref_points = ops.uniform_reference_points(2, ref_ppo=12)
+    ref_points = tools.uniform_reference_points(2, ref_ppo=12)
 
     toolbox = base.Toolbox()
     toolbox.register("attr_float", random.uniform,
                      bound_low, bound_up)
-    toolbox.register("individual", utils.init_repeat,
+    toolbox.register("individual", tools.init_repeat,
                      creator.__dict__[INDCLSNAME], toolbox.attr_float, dimensions)
-    toolbox.register("population", utils.init_repeat,
+    toolbox.register("population", tools.init_repeat,
                      list, toolbox.individual)
 
-    toolbox.register("mate", ops.cx_simulated_binary_bounded,
+    toolbox.register("mate", tools.cx_simulated_binary_bounded,
                      low=bound_low, up=bound_up, eta=20.0)
-    toolbox.register("mutate", ops.mut_polynomial_bounded,
+    toolbox.register("mutate", tools.mut_polynomial_bounded,
                      low=bound_low, up=bound_up, eta=20.0, mut_prob=1.0/dimensions)
-    toolbox.register("select", ops.sel_nsga_3,
+    toolbox.register("select", tools.sel_nsga_3,
                      ref_points=ref_points)
 
-    toolbox.register("evaluate", evals.zdt_1)
+    toolbox.register("evaluate", tools.bm_zdt_1)
 
-    pop = toolbox.population(count=survivors)
+    pop = toolbox.population(size=survivors)
     fitness = toolbox.map(toolbox.evaluate, pop)
     for ind, fit in zip(pop, fitness):
         ind.fitness.values = fit
 
     pop = toolbox.select(pop, len(pop))
     for _ in range(1, generations):
-        offspring = algos.var_and(toolbox, pop, 1.0, 1.0)
+        offspring = tools.var_and(toolbox, pop, 1.0, 1.0)
 
         invalid_ind = [ind for ind in offspring if not ind.fitness.is_valid()]
 
@@ -247,7 +243,7 @@ def test_nsga3():
 
         pop = toolbox.select(pop + offspring, survivors)
 
-    hv = utils.hypervolume(pop, [11.0, 11.0])
+    hv = tools.hypervolume(pop, [11.0, 11.0])
 
     assert hv > HV_THRESHOLD
     for ind in pop:

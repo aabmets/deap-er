@@ -1,4 +1,4 @@
-Welcome to the DEAP-er's documentation!
+Welcome to the DEAP-ER's documentation!
 =======================================
 
 .. toctree::
