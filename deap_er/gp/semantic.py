@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .datatypes import *
+from .dtypes import *
 from .primitives import *
 from .generators import gen_grow
 from typing import Callable

@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .datatypes import *
+from .dtypes import *
 from collections import defaultdict
 from functools import partial
 from operator import eq, lt

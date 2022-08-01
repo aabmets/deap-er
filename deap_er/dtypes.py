@@ -25,4 +25,4 @@
 # ====================================================================================== #
 from .base.dtypes import *
 from .records.dtypes import *
-from .gp.datatypes import *
+from .gp.dtypes import *

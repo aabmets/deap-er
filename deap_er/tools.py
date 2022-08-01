@@ -23,7 +23,6 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .dtypes import *
 from .algorithms import *
 from .strategies import *
 from .operators import *

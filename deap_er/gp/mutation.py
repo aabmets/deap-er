@@ -23,7 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .datatypes import *
+from .dtypes import *
 from .primitives import *
 from typing import Callable
 from inspect import isclass
