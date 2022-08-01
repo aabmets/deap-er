@@ -1,9 +1,5 @@
-from deap_er import algorithms as algos
-from deap_er import operators as ops
-from deap_er import utilities as utils
-from deap_er import benchmarks as evals
-from deap_er import records
 from deap_er import creator
+from deap_er import tools
 from deap_er import base
 import random
 import numpy
@@ -11,7 +7,6 @@ import array
 
 
 random.seed(1234)  # disables randomization
-
 
 IND_SIZE = 30
 MIN_VALUE = 4
@@ -46,15 +41,15 @@ def setup():
 
     toolbox = base.Toolbox()
     toolbox.register("individual", gen_evo_strat, creator.Individual, creator.Strategy)
-    toolbox.register("population", utils.init_repeat, list, toolbox.individual)
-    toolbox.register("mate", ops.cx_es_blend, alpha=0.1)
-    toolbox.register("mutate", ops.mut_es_log_normal, learn_rate=1.0, mut_prob=0.03)
-    toolbox.register("select", ops.sel_tournament, contestants=3)
-    toolbox.register("evaluate", evals.sphere)
+    toolbox.register("population", tools.init_repeat, list, toolbox.individual)
+    toolbox.register("mate", tools.cx_es_blend, alpha=0.1)
+    toolbox.register("mutate", tools.mut_es_log_normal, learn_rate=1.0, mut_prob=0.03)
+    toolbox.register("select", tools.sel_tournament, contestants=3)
+    toolbox.register("evaluate", tools.bm_sphere)
     toolbox.decorate("mate", check_strategy(MIN_STRATEGY))
     toolbox.decorate("mutate", check_strategy(MIN_STRATEGY))
 
-    stats = records.Statistics(lambda ind: ind.fitness.values)
+    stats = tools.Statistics(lambda ind: ind.fitness.values)
     stats.register("avg", numpy.mean)
     stats.register("std", numpy.std)
     stats.register("min", numpy.min)
@@ -72,7 +67,7 @@ def print_results(best_ind):
 def main():
     toolbox, stats = setup()
     pop = toolbox.population(size=100)
-    hof = records.HallOfFame(1)
+    hof = tools.HallOfFame(1)
     args = dict(
         toolbox=toolbox,
         population=pop,
@@ -85,7 +80,7 @@ def main():
         stats=stats,
         verbose=True  # prints stats
     )
-    algos.ea_mu_comma_lambda(**args)
+    tools.ea_mu_comma_lambda(**args)
     print_results(hof[0])
 
 

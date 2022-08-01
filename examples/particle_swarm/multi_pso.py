@@ -1,7 +1,5 @@
-from deap_er import utilities as utils
-from deap_er import benchmarks as evals
-from deap_er import records
 from deap_er import creator
+from deap_er import tools
 from deap_er import base
 import itertools
 import operator
@@ -20,13 +18,11 @@ NPARTICLES = 5
 NEXCESS = 3
 RCLOUD = 0.5
 SWARM_DSTRB = "nuvd"
-
-AVG_OE_MEASURE_INTERVAL = 200
 AVG_OE_THRESHOLD = 5
-VERBOSE = True
+AVG_OE_MEASURE_INTERVAL = 200
 
-SCENARIO = evals.MPConfigs.ALT1
-mpb = evals.MovingPeaks(dimensions=NDIM, **SCENARIO)
+SCENARIO = tools.MPConfigs.ALT1
+mpb = tools.MovingPeaks(dimensions=NDIM, **SCENARIO)
 
 BOUNDS = [SCENARIO["min_coord"], SCENARIO["max_coord"]]
 SMIN = -(BOUNDS[1] - BOUNDS[0]) / 2.0
@@ -88,18 +84,18 @@ def setup():
     toolbox = base.Toolbox()
     toolbox.register("particle", generate_particle, creator.Particle,
                      dim=NDIM, pmin=PMIN, pmax=PMAX, smin=SMIN, smax=SMAX)
-    toolbox.register("swarm", utils.init_repeat, creator.Swarm, toolbox.particle)
+    toolbox.register("swarm", tools.init_repeat, creator.Swarm, toolbox.particle)
     toolbox.register("update", update_particle, chi=0.729843788, c=2.05)
     toolbox.register("convert", convert_swarm, dist=SWARM_DSTRB)
     toolbox.register("evaluate", mpb)
 
-    stats = records.Statistics(lambda ind: ind.fitness.values)
+    stats = tools.Statistics(lambda ind: ind.fitness.values)
     stats.register("avg", numpy.mean)
     stats.register("std", numpy.std)
     stats.register("min", numpy.min)
     stats.register("max", numpy.max)
 
-    logbook = records.Logbook()
+    logbook = tools.Logbook()
     logbook.header = "gen", "nswarm", "evals", "error", "offline_error", "avg", "max"
 
     return toolbox, stats, logbook
@@ -149,8 +145,7 @@ def main():
             offline_error=mpb.offline_error
         )
         logbook.record(**args, **record)
-        if VERBOSE:
-            print(logbook.stream)
+        print(logbook.stream)
 
     # Generate the initial population.
     population = [toolbox.swarm(size=NPARTICLES) for _ in range(NSWARMS)]

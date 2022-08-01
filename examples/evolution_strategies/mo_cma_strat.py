@@ -1,8 +1,5 @@
-from deap_er import strategies as strats
-from deap_er import utilities as utils
-from deap_er import benchmarks as evals
-from deap_er import records
 from deap_er import creator
+from deap_er import tools
 from deap_er import base
 import numpy
 
@@ -40,13 +37,13 @@ def setup():
     creator.create("Individual", list, fitness=creator.FitnessMin)
 
     toolbox = base.Toolbox()
-    toolbox.register("evaluate", evals.zdt_1)
-    toolbox.decorate("evaluate", utils.ClosestValidPenalty(validity, feasible, 1.0e+6, distance))
+    toolbox.register("evaluate", tools.bm_zdt_1)
+    toolbox.decorate("evaluate", tools.ClosestValidPenalty(validity, feasible, 1.0e+6, distance))
 
     pop = [creator.Individual(x) for x in (numpy.random.uniform(0, 1, (MU, SIZE)))]
     for ind in pop:
         ind.fitness.values = toolbox.evaluate(ind)
-    strategy = strats.StrategyMultiObjective(
+    strategy = tools.StrategyMultiObjective(
         population=pop,
         sigma=1.0,
         offsprings=LAMBDA,
@@ -55,18 +52,18 @@ def setup():
     toolbox.register("generate", strategy.generate, creator.Individual)
     toolbox.register("update", strategy.update)
 
-    stats = records.Statistics(lambda x: x.fitness.values)
+    stats = tools.Statistics(lambda x: x.fitness.values)
     stats.register("min", numpy.min, axis=0)
     stats.register("max", numpy.max, axis=0)
 
-    logbook = records.Logbook()
+    logbook = tools.Logbook()
     logbook.header = ["gen", "nevals"] + (stats.fields if stats else [])
 
     return toolbox, strategy, stats, logbook
 
 
 def print_results(valid, parents):
-    hv = utils.hypervolume(parents, [11.0, 11.0])
+    hv = tools.hypervolume(parents, [11.0, 11.0])
     if not hv > 110 and valid != len(parents):
         raise RuntimeError('Evolution failed to converge.')
     print(f"\nNumber of valid individuals is {valid}/{len(parents)}"

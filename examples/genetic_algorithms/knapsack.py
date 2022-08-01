@@ -1,8 +1,5 @@
-from deap_er import algorithms as algos
-from deap_er import operators as ops
-from deap_er import utilities as utils
-from deap_er import records
 from deap_er import creator
+from deap_er import tools
 from deap_er import base
 import string
 import random
@@ -69,11 +66,11 @@ def setup():
 
     toolbox = base.Toolbox()
     toolbox.register("attr_item", random.choice, list(items.keys()))
-    toolbox.register("individual", utils.init_repeat, creator.Individual, toolbox.attr_item, IND_INIT_SIZE)
-    toolbox.register("population", utils.init_repeat, list, toolbox.individual)
+    toolbox.register("individual", tools.init_repeat, creator.Individual, toolbox.attr_item, IND_INIT_SIZE)
+    toolbox.register("population", tools.init_repeat, list, toolbox.individual)
     toolbox.register("mate", mate)
     toolbox.register("mutate", mutate)
-    toolbox.register("select", ops.sel_nsga_2)
+    toolbox.register("select", tools.sel_nsga_2)
     toolbox.register("evaluate", evaluate)
 
     return toolbox
@@ -98,14 +95,14 @@ def print_results(hof):
     print('Values:\t\t' + '\t'.join([str(round(items[k][1], 2)) for k in keys]))
     print(f'\nItems chosen: {best_ind}')
     print(f'Total weight of chosen items: {best_weight}')
-    print(f'Total value of chosen items: {best_value}.')
+    print(f'Total value of chosen items: {best_value:.3f}.')
 
 
 def main():
     create_items()
     toolbox = setup()
     pop = toolbox.population(size=100)
-    hof = records.ParetoFront()
+    hof = tools.ParetoFront()
     args = dict(
         toolbox=toolbox,
         population=pop,
@@ -116,7 +113,7 @@ def main():
         mut_prob=0.2,
         hof=hof
     )
-    algos.ea_mu_plus_lambda(**args)
+    tools.ea_mu_plus_lambda(**args)
     print_results(hof)
 
 

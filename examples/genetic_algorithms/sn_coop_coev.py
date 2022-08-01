@@ -1,8 +1,5 @@
-from deap_er import utilities as utils
-from deap_er import algorithms as algos
-from deap_er import operators as ops
-from deap_er import records
 from deap_er import creator
+from deap_er import tools
 from deap_er import base
 import random
 import numpy
@@ -29,7 +26,7 @@ def gen_network(dimension, min_size, max_size):
 
 
 def eval_network(host, parasite, dimension):
-    network = utils.SortingNetwork(dimension, host)
+    network = tools.SortingNetwork(dimension, host)
     return network.evaluate(parasite),  # The comma is essential here.
 
 
@@ -60,7 +57,7 @@ def gen_parasite(dimension):
 def mut_parasite(individual, mut_prob):
     for i in individual:
         if random.random() < mut_prob:
-            ops.mut_flip_bit(i, mut_prob)
+            tools.mut_flip_bit(i, mut_prob)
     return individual,  # The comma is essential here.
 
 
@@ -78,30 +75,30 @@ def setup():
 
     h_toolbox = base.Toolbox()
     h_toolbox.register("host", gen_network, dimension=INPUTS, min_size=9, max_size=12)
-    h_toolbox.register("individual", utils.init_iterate, creator.Host, h_toolbox.host)
-    h_toolbox.register("population", utils.init_repeat, list, h_toolbox.individual)
+    h_toolbox.register("individual", tools.init_iterate, creator.Host, h_toolbox.host)
+    h_toolbox.register("population", tools.init_repeat, list, h_toolbox.individual)
     h_toolbox.register("evaluate", eval_network, dimension=INPUTS)
-    h_toolbox.register("mate", ops.cx_two_point)
+    h_toolbox.register("mate", tools.cx_two_point)
     h_toolbox.register("mutate", mut_network, dimension=INPUTS, mutpb=0.2, addpb=0.01, delpb=0.01, indpb=0.05)
-    h_toolbox.register("select", ops.sel_tournament, contestants=3)
+    h_toolbox.register("select", tools.sel_tournament, contestants=3)
     h_toolbox.register("clone", clone_network)
 
     p_toolbox = base.Toolbox()
     p_toolbox.register("parasite", gen_parasite, dimension=INPUTS)
-    p_toolbox.register("individual", utils.init_repeat, creator.Parasite, p_toolbox.parasite, 20)
-    p_toolbox.register("population", utils.init_repeat, list, p_toolbox.individual)
-    p_toolbox.register("mate", ops.cx_two_point)
+    p_toolbox.register("individual", tools.init_repeat, creator.Parasite, p_toolbox.parasite, 20)
+    p_toolbox.register("population", tools.init_repeat, list, p_toolbox.individual)
+    p_toolbox.register("mate", tools.cx_two_point)
     p_toolbox.register("mutate", mut_parasite, mut_prob=0.05)
-    p_toolbox.register("select", ops.sel_tournament, contestants=3)
+    p_toolbox.register("select", tools.sel_tournament, contestants=3)
     p_toolbox.register("clone", clone_parasite)
 
-    stats = records.Statistics(lambda ind: ind.fitness.values)
+    stats = tools.Statistics(lambda ind: ind.fitness.values)
     stats.register("avg", numpy.mean)
     stats.register("std", numpy.std)
     stats.register("min", numpy.min)
     stats.register("max", numpy.max)
 
-    logbook = records.Logbook()
+    logbook = tools.Logbook()
     logbook.header = "gen", "evals", "std", "min", "avg", "max"
 
     return h_toolbox, p_toolbox, stats, logbook
@@ -115,7 +112,7 @@ def print_results(best_network):
 
 def main():
     h_toolbox, p_toolbox, stats, logbook = setup()
-    hof = records.HallOfFame(1)
+    hof = tools.HallOfFame(1)
 
     def evaluate_fitness():
         fits = h_toolbox.map(h_toolbox.evaluate, hosts, parasites)
@@ -138,13 +135,13 @@ def main():
         hosts = h_toolbox.select(hosts, len(hosts))
         parasites = p_toolbox.select(parasites, len(parasites))
 
-        hosts = algos.var_and(h_toolbox, hosts, H_CX_PROB, H_MUT_PROB)
-        parasites = algos.var_and(p_toolbox, parasites, P_CX_PROB, P_MUT_PROB)
+        hosts = tools.var_and(h_toolbox, hosts, H_CX_PROB, H_MUT_PROB)
+        parasites = tools.var_and(p_toolbox, parasites, P_CX_PROB, P_MUT_PROB)
 
         evaluate_fitness()
         log_stats(gen)
 
-    best_network = utils.SortingNetwork(INPUTS, hof[0])
+    best_network = tools.SortingNetwork(INPUTS, hof[0])
     print_results(best_network)
 
 

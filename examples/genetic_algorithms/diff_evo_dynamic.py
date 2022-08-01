@@ -1,8 +1,5 @@
-from deap_er import utilities as utils
-from deap_er import benchmarks as evals
-from deap_er import operators as ops
-from deap_er import records
 from deap_er import creator
+from deap_er import tools
 from deap_er import base
 import itertools
 import random
@@ -24,8 +21,8 @@ NPOP = 10
 CR = 0.6
 F = 0.4
 
-SCENARIO = evals.MPConfigs.ALT1
-mpb = evals.MovingPeaks(dimensions=NDIM, **SCENARIO)
+SCENARIO = tools.MPConfigs.ALT1
+mpb = tools.MovingPeaks(dimensions=NDIM, **SCENARIO)
 
 BOUNDS = [SCENARIO["min_coord"], SCENARIO["max_coord"]]
 
@@ -40,20 +37,20 @@ def setup():
 
     toolbox = base.Toolbox()
     toolbox.register("attr_float", random.uniform, BOUNDS[0], BOUNDS[1])
-    toolbox.register("individual", utils.init_repeat, creator.Individual, toolbox.attr_float, NDIM)
+    toolbox.register("individual", tools.init_repeat, creator.Individual, toolbox.attr_float, NDIM)
     toolbox.register("brownian_individual", brown_ind, creator.Individual, sigma=0.3)
-    toolbox.register("population", utils.init_repeat, list, toolbox.individual)
+    toolbox.register("population", tools.init_repeat, list, toolbox.individual)
     toolbox.register("select", random.sample, k=4)
-    toolbox.register("best", ops.sel_best, sel_count=1)
+    toolbox.register("best", tools.sel_best, sel_count=1)
     toolbox.register("evaluate", mpb)
 
-    stats = records.Statistics(lambda ind: ind.fitness.values)
+    stats = tools.Statistics(lambda ind: ind.fitness.values)
     stats.register("avg", numpy.mean)
     stats.register("std", numpy.std)
     stats.register("min", numpy.min)
     stats.register("max", numpy.max)
 
-    logbook = records.Logbook()
+    logbook = tools.Logbook()
     logbook.header = "gen", "evals", "error", "offline_error", "avg", "max"
 
     return toolbox, stats, logbook

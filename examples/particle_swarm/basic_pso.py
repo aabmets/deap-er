@@ -1,7 +1,5 @@
-from deap_er import utilities as utils
-from deap_er import benchmarks as evals
-from deap_er import records
 from deap_er import creator
+from deap_er import tools
 from deap_er import base
 import operator
 import random
@@ -10,6 +8,8 @@ import math
 
 
 random.seed(1234)  # disables randomization
+
+NGEN = 1000
 
 
 def generate(size, pmin, pmax, smin, smax):
@@ -43,17 +43,20 @@ def setup():
 
     toolbox = base.Toolbox()
     toolbox.register("particle", generate, size=2, pmin=-6, pmax=6, smin=-3, smax=3)
-    toolbox.register("population", utils.init_repeat, list, toolbox.particle)
+    toolbox.register("population", tools.init_repeat, list, toolbox.particle)
     toolbox.register("update", update, phi1=2.0, phi2=2.0)
-    toolbox.register("evaluate", evals.h1)
+    toolbox.register("evaluate", tools.bm_h1)
 
-    stats = records.Statistics(lambda ind: ind.fitness.values)
+    stats = tools.Statistics(lambda ind: ind.fitness.values)
     stats.register("avg", numpy.mean)
     stats.register("std", numpy.std)
     stats.register("min", numpy.min)
     stats.register("max", numpy.max)
 
-    return toolbox, stats
+    logbook = tools.Logbook()
+    logbook.header = ["gen", "evals"] + stats.fields
+
+    return toolbox, stats, logbook
 
 
 def print_results(best_ind):
@@ -63,15 +66,11 @@ def print_results(best_ind):
 
 
 def main():
-    toolbox, stats = setup()
+    toolbox, stats, logbook = setup()
     pop = toolbox.population(size=5)
-    logbook = records.Logbook()
-    logbook.header = ["gen", "evals"] + stats.fields
 
-    GENS = 1000
     best = None
-
-    for g in range(GENS):
+    for generation in range(NGEN):
         for part in pop:
             part.fitness.values = toolbox.evaluate(part)
             if not part.best or part.best.fitness < part.fitness:
@@ -82,7 +81,7 @@ def main():
                 best.fitness.values = part.fitness.values
         for part in pop:
             toolbox.update(part, best)
-        logbook.record(gen=g, evals=len(pop), **stats.compile(pop))
+        logbook.record(gen=generation, evals=len(pop), **stats.compile(pop))
         print(logbook.stream)
 
     print_results(best)

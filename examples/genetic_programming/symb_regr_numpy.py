@@ -1,8 +1,5 @@
-from deap_er import algorithms as algos
-from deap_er import operators as ops
-from deap_er import utilities as utils
-from deap_er import records
 from deap_er import creator
+from deap_er import tools
 from deap_er import base
 from deap_er import gp
 import random
@@ -49,16 +46,16 @@ def setup():
 
     toolbox = base.Toolbox()
     toolbox.register("expr", gp.gen_half_and_half, prim_set=pset, min_depth=1, max_depth=2)
-    toolbox.register("individual", utils.init_iterate, creator.Individual, toolbox.expr)
-    toolbox.register("population", utils.init_repeat, list, toolbox.individual)
+    toolbox.register("individual", tools.init_iterate, creator.Individual, toolbox.expr)
+    toolbox.register("population", tools.init_repeat, list, toolbox.individual)
     toolbox.register("compile", gp.compile_tree, prim_set=pset)
     toolbox.register("evaluate", evaluate, toolbox=toolbox, samples=samples, values=values)
-    toolbox.register("select", ops.sel_tournament, contestants=3)
+    toolbox.register("select", tools.sel_tournament, contestants=3)
     toolbox.register("mate", gp.cx_one_point)
     toolbox.register("expr_mut", gp.gen_full, min_depth=0, max_depth=2)
     toolbox.register("mutate", gp.mut_uniform, expr=toolbox.expr_mut, prim_set=pset)
 
-    stats = records.Statistics(lambda ind: ind.fitness.values)
+    stats = tools.Statistics(lambda ind: ind.fitness.values)
     stats.register("avg", numpy.mean)
     stats.register("std", numpy.std)
     stats.register("min", numpy.min)
@@ -76,7 +73,7 @@ def print_results(best_ind):
 def main():
     toolbox, stats = setup()
     pop = toolbox.population(size=300)
-    hof = records.HallOfFame(1)
+    hof = tools.HallOfFame(1)
     args = dict(
         toolbox=toolbox,
         population=pop,
@@ -87,7 +84,7 @@ def main():
         stats=stats,
         verbose=True  # prints stats
     )
-    algos.ea_simple(**args)
+    tools.ea_simple(**args)
     print_results(hof[0])
 
 

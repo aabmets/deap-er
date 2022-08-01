@@ -1,7 +1,5 @@
-from deap_er import operators as ops
-from deap_er import utilities as utils
-from deap_er import records
 from deap_er import creator
+from deap_er import tools
 from deap_er import base
 from deap_er import gp
 import operator
@@ -74,31 +72,34 @@ def setup():
     toolbox.register('adf_expr_2', gp.gen_full, prim_set=adf_set_2, min_depth=1, max_depth=2)
     toolbox.register('main_expr', gp.gen_half_and_half, prim_set=pset, min_depth=1, max_depth=2)
 
-    toolbox.register('ADF0', utils.init_iterate, creator.Tree, toolbox.adf_expr_0)
-    toolbox.register('ADF1', utils.init_iterate, creator.Tree, toolbox.adf_expr_1)
-    toolbox.register('ADF2', utils.init_iterate, creator.Tree, toolbox.adf_expr_2)
-    toolbox.register('MAIN', utils.init_iterate, creator.Tree, toolbox.main_expr)
+    toolbox.register('ADF0', tools.init_iterate, creator.Tree, toolbox.adf_expr_0)
+    toolbox.register('ADF1', tools.init_iterate, creator.Tree, toolbox.adf_expr_1)
+    toolbox.register('ADF2', tools.init_iterate, creator.Tree, toolbox.adf_expr_2)
+    toolbox.register('MAIN', tools.init_iterate, creator.Tree, toolbox.main_expr)
 
     func_cycle = [toolbox.MAIN, toolbox.ADF0, toolbox.ADF1, toolbox.ADF2]
 
-    toolbox.register('individual', utils.init_cycle, creator.Individual, func_cycle)
-    toolbox.register('population', utils.init_repeat, list, toolbox.individual)
+    toolbox.register('individual', tools.init_cycle, creator.Individual, func_cycle)
+    toolbox.register('population', tools.init_repeat, list, toolbox.individual)
     toolbox.register('compile', gp.compile_adf_tree, prim_sets=prim_sets)
     toolbox.register('mate', gp.cx_one_point)
     toolbox.register('expr', gp.gen_full, min_depth=1, max_depth=2)
     toolbox.register('mutate', gp.mut_uniform, expr=toolbox.expr)
-    toolbox.register('select', ops.sel_tournament, contestants=3)
+    toolbox.register('select', tools.sel_tournament, contestants=3)
     toolbox.register('evaluate', evaluate, toolbox=toolbox, points=[x / 10. for x in range(-10, 10)])
     toolbox.decorate("mate", gp.static_limit(limiter=operator.attrgetter("height"), max_value=17))
     toolbox.decorate("mutate", gp.static_limit(limiter=operator.attrgetter("height"), max_value=17))
 
-    stats = records.Statistics(lambda ind: ind.fitness.values)
+    stats = tools.Statistics(lambda ind: ind.fitness.values)
     stats.register("avg", numpy.mean)
     stats.register("std", numpy.std)
     stats.register("min", numpy.min)
     stats.register("max", numpy.max)
 
-    return toolbox, stats, prim_sets
+    logbook = tools.Logbook()
+    logbook.header = "gen", "evals", "std", "min", "avg", "max"
+
+    return toolbox, stats, logbook, prim_sets
 
 
 def print_results(best_ind):
@@ -108,22 +109,22 @@ def print_results(best_ind):
 
 
 def main():
-    toolbox, stats, psets = setup()
+    toolbox, stats, logbook, psets = setup()
+    hof = tools.HallOfFame(1)
 
-    hof = records.HallOfFame(1)
-    logbook = records.Logbook()
-    logbook.header = "gen", "evals", "std", "min", "avg", "max"
+    def log_stats(ngen=0):
+        hof.update(pop)
+        record = stats.compile(pop)
+        logbook.record(gen=ngen, evals=len(pop), **record)
+        print(logbook.stream)
 
     pop = toolbox.population(size=100)
     for ind in pop:
         ind.fitness.values = toolbox.evaluate(ind)
 
-    hof.update(pop)
-    record = stats.compile(pop)
-    logbook.record(gen=0, evals=len(pop), **record)
-    print(logbook.stream)
+    log_stats()
 
-    for g in range(1, GENS):
+    for generations in range(1, GENS):
         offspring = toolbox.select(pop, len(pop))
         offspring = [toolbox.clone(ind) for ind in offspring]
 
@@ -143,12 +144,9 @@ def main():
         invalids = [ind for ind in offspring if not ind.fitness.is_valid()]
         for ind in invalids:
             ind.fitness.values = toolbox.evaluate(ind)
-
         pop = offspring
-        hof.update(pop)
-        record = stats.compile(pop)
-        logbook.record(gen=g, evals=len(invalids), **record)
-        print(logbook.stream)
+
+        log_stats(generations)
 
     print_results(hof[0])
 

@@ -1,8 +1,5 @@
-from deap_er import utilities as utils
-from deap_er import benchmarks as evals
-from deap_er import operators as ops
-from deap_er import records
 from deap_er import creator
+from deap_er import tools
 from deap_er import base
 import random
 import array
@@ -24,18 +21,18 @@ def setup():
 
     toolbox = base.Toolbox()
     toolbox.register("attr_float", random.uniform, -3, 3)
-    toolbox.register("individual", utils.init_repeat, creator.Individual, toolbox.attr_float, NDIM)
-    toolbox.register("population", utils.init_repeat, list, toolbox.individual)
-    toolbox.register("select", ops.sel_random, sel_count=3)
-    toolbox.register("evaluate", evals.sphere)
+    toolbox.register("individual", tools.init_repeat, creator.Individual, toolbox.attr_float, NDIM)
+    toolbox.register("population", tools.init_repeat, list, toolbox.individual)
+    toolbox.register("select", tools.sel_random, sel_count=3)
+    toolbox.register("evaluate", tools.bm_sphere)
 
-    stats = records.Statistics(lambda ind: ind.fitness.values)
+    stats = tools.Statistics(lambda ind: ind.fitness.values)
     stats.register("avg", numpy.mean)
     stats.register("std", numpy.std)
     stats.register("min", numpy.min)
     stats.register("max", numpy.max)
 
-    logbook = records.Logbook()
+    logbook = tools.Logbook()
     logbook.header = "gen", "evals", "std", "min", "avg", "max"
 
     return toolbox, stats, logbook
@@ -50,7 +47,7 @@ def print_results(best_ind):
 def main():
     toolbox, stats, logbook = setup()
     pop = toolbox.population(size=MU)
-    hof = records.HallOfFame(1)
+    hof = tools.HallOfFame(1)
 
     def log_stats(ngen=0):
         record = stats.compile(pop)

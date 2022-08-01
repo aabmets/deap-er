@@ -1,8 +1,5 @@
-from deap_er import utilities as utils
-from deap_er import algorithms as algos
-from deap_er import operators as ops
-from deap_er import records
 from deap_er import creator
+from deap_er import tools
 from deap_er import base
 import random
 import numpy
@@ -19,7 +16,7 @@ DEL_PROB = 0.01
 
 
 def eval_network(individual, dimension):
-    network = utils.SortingNetwork(dimension, individual)
+    network = tools.SortingNetwork(dimension, individual)
     return network.evaluate(), network.length, network.depth
 
 
@@ -57,23 +54,23 @@ def setup():
 
     toolbox = base.Toolbox()
     toolbox.register("network", gen_network, dimension=INPUTS, min_size=9, max_size=12)
-    toolbox.register("individual", utils.init_iterate, creator.Individual, toolbox.network)
-    toolbox.register("population", utils.init_repeat, list, toolbox.individual)
+    toolbox.register("individual", tools.init_iterate, creator.Individual, toolbox.network)
+    toolbox.register("population", tools.init_repeat, list, toolbox.individual)
 
     toolbox.register("evaluate", eval_network, dimension=INPUTS)
-    toolbox.register("mate", ops.cx_two_point)
+    toolbox.register("mate", tools.cx_two_point)
     toolbox.register("mutate", mut_wire, dimension=INPUTS, mut_prob=0.05)
     toolbox.register("addwire", mut_add_wire, dimension=INPUTS)
     toolbox.register("delwire", mut_del_wire)
-    toolbox.register("select", ops.sel_nsga_2)
+    toolbox.register("select", tools.sel_nsga_2)
 
-    stats = records.Statistics(lambda ind: ind.fitness.values)
+    stats = tools.Statistics(lambda ind: ind.fitness.values)
     stats.register("avg", numpy.mean, axis=0)
     stats.register("std", numpy.std, axis=0)
     stats.register("min", numpy.min, axis=0)
     stats.register("max", numpy.max, axis=0)
 
-    logbook = records.Logbook()
+    logbook = tools.Logbook()
     logbook.header = "gen", "evals", "std", "min", "avg", "max"
 
     return toolbox, stats, logbook
@@ -88,7 +85,7 @@ def print_results(best_network):
 def main():
     toolbox, stats, logbook = setup()
     population = toolbox.population(size=300)
-    hof = records.ParetoFront()
+    hof = tools.ParetoFront()
 
     def log_stats(ngen=0):
         hof.update(population)
@@ -131,7 +128,7 @@ def main():
 
         log_stats(generation)
 
-    best_network = utils.SortingNetwork(INPUTS, hof[0])
+    best_network = tools.SortingNetwork(INPUTS, hof[0])
     print_results(best_network)
 
 
