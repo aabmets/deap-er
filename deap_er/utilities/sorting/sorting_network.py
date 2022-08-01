@@ -23,6 +23,7 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from typing import Optional
 from itertools import product
 
 
@@ -40,18 +41,37 @@ class SortingNetwork:
     comparator, the comparator swaps the values if and only if the top wire's
     value is greater or equal to the bottom wire's value.
 
-    :param: dimension: The number of wires in the network.
-    :param: connectors: A list of pairs of wires
-        that are connected by a comparator.
+    :param dimension: The number of wires in the network.
+    :param connectors: A list of pairs of wires
+        that are connected by a comparator, optional.
     """
     # -------------------------------------------------------- #
-    def __init__(self, dimension: int, connectors: list = None):
+    def __init__(self, dimension: int, connectors: Optional[list] = None):
         self.dimension = dimension
         self.data = list()
         if connectors:
             for wire1, wire2 in connectors:
                 self.add_connector(wire1, wire2)
         super().__init__()
+
+    # -------------------------------------------------------- #
+    def __iter__(self):
+        return iter(self.data)
+
+    def __contains__(self, item):
+        return item in self.data
+
+    def __getitem__(self, key):
+        return self.data[key]
+
+    def __setitem__(self, key, value):
+        self.data[key] = value
+
+    def __delitem__(self, key):
+        del self.data[key]
+
+    def __len__(self):
+        return len(self.data)
 
     # -------------------------------------------------------- #
     @property
@@ -61,22 +81,36 @@ class SortingNetwork:
 
     # -------------------------------------------------------- #
     @property
-    def length(self):
+    def length(self) -> int:
         """Returns the length of the network."""
         return sum(len(level) for level in self.data)
 
     # -------------------------------------------------------- #
     @staticmethod
-    def check_conflict(level, wire1, wire2) -> bool:
-        """Checks if the given wires are in conflict with each other."""
+    def check_conflict(level: list, wire1: int, wire2: int) -> bool:
+        """
+        Checks if the given wires are in conflict
+        with each other on the given level.
+
+        :param level: The level of the network.
+        :param wire1: The index of the first wire.
+        :param wire2: The index of the second wire.
+        :return: True if the wires are in conflict, False otherwise.
+        """
         for wires in level:
             if wires[1] >= wire1 and wires[0] <= wire2:
                 return True
         return False
 
     # -------------------------------------------------------- #
-    def add_connector(self, wire1, wire2) -> None:
-        """Adds a connector to the network."""
+    def add_connector(self, wire1: int, wire2: int) -> None:
+        """
+        Adds a connector to the network.
+
+        :param wire1: The index of the first wire.
+        :param wire2: The index of the second wire.
+        :return: Nothing.
+        """
         if wire1 == wire2:
             return
 
@@ -97,19 +131,29 @@ class SortingNetwork:
 
     # -------------------------------------------------------- #
     def sort(self, values: list) -> None:
-        """Sorts the given values using the network."""
+        """
+        Sorts the given values using the network.
+
+        :param values: A list of values to be sorted.
+        :return: Nothing.
+        """
         for level in self.data:
             for wire1, wire2 in level:
                 if values[wire1] > values[wire2]:
                     values[wire1], values[wire2] = values[wire2], values[wire1]
 
     # -------------------------------------------------------- #
-    def assess(self, cases: list = None) -> int:
-        """Assesses the network for the given cases."""
+    def evaluate(self, cases: Optional[list] = None) -> int:
+        """
+        Evaluates the network's performance on the given cases.
+
+        :param cases: A list of pairs of values that are to be evaluated.
+        :return: The number of cases that were not correctly sorted.
+        """
         if cases is None:
             cases = product((0, 1), repeat=self.dimension)
 
-        misses = 0
+        errors = 0
         ordered = []
         for i in range(self.dimension + 1):
             result = [0] * (self.dimension - i) + [1] * i
@@ -117,12 +161,17 @@ class SortingNetwork:
         for sequence in cases:
             sequence = list(sequence)
             self.sort(sequence)
-            misses += (sequence != ordered[sum(sequence)])
-        return misses
+            idx = sum(sequence)
+            errors += int(sequence != ordered[idx])
+        return errors
 
     # -------------------------------------------------------- #
     def draw(self) -> str:
-        """Draws the network."""
+        """
+        Creates a visual representation of the network.
+
+        :return: The schemata of the network.
+        """
         str_wires = [["-"] * 7 * self.depth]
         str_wires[0][0] = "0"
         str_wires[0][1] = " o"

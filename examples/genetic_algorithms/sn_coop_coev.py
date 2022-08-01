@@ -8,7 +8,7 @@ import random
 import numpy
 
 
-# random.seed(1234)  # disables randomization
+random.seed(1234)  # disables randomization
 
 INPUTS = 12
 MAXGEN = 100
@@ -17,17 +17,20 @@ P_CX_PROB, P_MUT_PROB = 0.6, 0.3
 
 
 def gen_wire(dimension):
-    return random.randrange(dimension), random.randrange(dimension)
+    wire1 = random.randrange(dimension)
+    wire2 = random.randrange(dimension)
+    return wire1, wire2
 
 
 def gen_network(dimension, min_size, max_size):
     size = random.randint(min_size, max_size)
-    return [gen_wire(dimension) for _ in range(size)]
+    network = [gen_wire(dimension) for _ in range(size)]
+    return network
 
 
 def eval_network(host, parasite, dimension):
     network = utils.SortingNetwork(dimension, host)
-    return network.assess(parasite),
+    return network.evaluate(parasite),  # The comma is essential here.
 
 
 def mut_network(individual, dimension, mutpb, addpb, delpb, indpb):
@@ -41,7 +44,7 @@ def mut_network(individual, dimension, mutpb, addpb, delpb, indpb):
     if random.random() < delpb:
         index = random.randrange(len(individual))
         del individual[index]
-    return individual,
+    return individual,  # The comma is essential here.
 
 
 def clone_network(individual):
@@ -58,7 +61,7 @@ def mut_parasite(individual, mut_prob):
     for i in individual:
         if random.random() < mut_prob:
             ops.mut_flip_bit(i, mut_prob)
-    return individual,
+    return individual,  # The comma is essential here.
 
 
 def clone_parasite(individual):
