@@ -51,7 +51,7 @@ def least_contrib(population: list, ref_point: Optional[list] = None,
     :param map_func: Any map function which maps an iterable to a callable,
         optional. This can be used to speed up the computation by providing
         a multiprocess mapping function associated to a pool of workers.
-        The default is the built-in single-core map function.
+        The default is the built-in single-process map function.
     :return: The index of the individual with the least hypervolume contribution.
     """
     wvals = [ind.fitness.wvalues for ind in population]
