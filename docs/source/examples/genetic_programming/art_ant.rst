@@ -13,5 +13,5 @@ Food Trail
 ----------
 
 .. literalinclude:: ../../../../examples/genetic_programming/art_ant_trail.txt
-   :language: python
+   :language: text
    :linenos:

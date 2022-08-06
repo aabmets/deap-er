@@ -1,5 +1,5 @@
-Particle Swarm Optimization
-===========================
+Particle Swarms
+===============
 
 .. toctree::
    :maxdepth: 2
