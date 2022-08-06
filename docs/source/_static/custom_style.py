@@ -15,7 +15,7 @@ from pygments.token import Keyword, Name, Comment, String, Escape, \
     Error, Text, Number, Operator, Generic, Punctuation, Literal
 
 
-class MaterialStyle(Style):
+class CustomStyle(Style):
     """
     This style mimics the Material Theme color scheme.
     """
@@ -24,8 +24,8 @@ class MaterialStyle(Style):
     black = '#000000'
     red = '#FF5370'
     orange = '#F78C6C'
-    yellow = '#FFCB6B'
-    green = '#C3E88D'
+    yellow = '#FFCE29'
+    green = '#A6CA6F'
     cyan = '#89DDFF'
     blue = '#82AAFF'
     paleblue = '#B2CCD6'
@@ -33,15 +33,15 @@ class MaterialStyle(Style):
     brown = '#C17E70'
     pink = '#F07178'
     violet = '#BB80B3'
-    foreground = '#EEFFFF'
-    faded = '#546E7A'
+    foreground = '#EEEEEE'
+    faded = '#607A86'
 
     default_style = ""
     background_color = dark_teal
     highlight_color = '#2C3B41'
-    line_number_color = '#37474F'
+    line_number_color = faded
     line_number_background_color = dark_teal
-    line_number_special_color = '#607A86'
+    line_number_special_color = faded
     line_number_special_background_color = dark_teal
 
     styles = {
@@ -88,7 +88,7 @@ class MaterialStyle(Style):
         String.Delimiter:              foreground,
         String.Doc:                    'italic ' + faded,
         String.Double:                 green,
-        String.Escape:                 foreground,
+        String.Escape:                 orange,
         String.Heredoc:                green,
         String.Interpol:               cyan,
         String.Other:                  green,
