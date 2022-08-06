@@ -38,15 +38,13 @@ def create(name: str, base: Union[type, object], **kwargs: Optional) -> None:
     and registers it into the global namespace. Any optional **kwargs** provided
     to this function will be set as attributes of the new class.
 
-    Parameters:
-        name: The name of the new class to create.
-        base: A type or an object from which to inherit.
-        kwargs: One or more keyword arguments to add to the new class
-            as attributes, optional. If a kwarg is an instance, it will
-            be added as a class attribute. If a kwarg is a class, it
-            will be instantiated and added as an instance attribute.
-    Returns:
-        None
+    :param name: The name of the new class to create.
+    :param base: A type or an object from which to inherit.
+    :param kwargs: One or more keyword arguments to add to the new class
+        as attributes, optional. If a kwarg is an instance, it will
+        be added as a class attribute. If a kwarg is a class, it
+        will be instantiated and added as an instance attribute.
+    :return: Nothing.
     """
     # warn about class definition overwrite
     if name in globals():

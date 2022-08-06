@@ -2,7 +2,14 @@ Welcome to the DEAP-ER's documentation!
 =======================================
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
+   :caption: Tutorials:
+
+   tutorials/creating_components.rst
+
+
+.. toctree::
+   :maxdepth: 3
    :caption: Examples:
 
    examples/genetic_algorithms.rst
@@ -11,7 +18,7 @@ Welcome to the DEAP-ER's documentation!
    examples/particle_swarm.rst
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 3
    :caption: Reference:
 
    reference/base.rst
