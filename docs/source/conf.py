@@ -34,8 +34,8 @@ add_module_names = False
 
 # -- Options for HTML output -------------------------------------------------
 html_theme = 'sphinx_rtd_theme'
+pygments_style = 'material'
 highlight_language = 'python3'
-pygments_style = 'default'
 html_static_path = ['_static']
 
 
