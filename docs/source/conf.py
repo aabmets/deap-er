@@ -22,7 +22,6 @@ release = '2.0.0'
 # -- General configuration ---------------------------------------------------
 extensions = [
     'sphinx.ext.intersphinx',
-    'sphinx.ext.napoleon',
     'sphinx.ext.autodoc',
     'sphinx_rtd_theme',
     'sphinx_design'
@@ -60,20 +59,3 @@ autodoc_member_order = 'bysource'
 autodoc_default_options = {}
 autodoc_type_aliases = {}
 autodoc_mock_imports = ['numpy']
-
-
-# -- Options for Napoleon -------------------------------------------------
-napoleon_google_docstring = True
-napoleon_numpy_docstring = True
-napoleon_include_init_with_doc = False
-napoleon_include_private_with_doc = False
-napoleon_include_special_with_doc = True
-napoleon_use_admonition_for_examples = False
-napoleon_use_admonition_for_notes = False
-napoleon_use_admonition_for_references = False
-napoleon_use_ivar = False
-napoleon_use_param = True
-napoleon_use_rtype = True
-napoleon_preprocess_types = False
-napoleon_attr_annotations = True
-napoleon_type_aliases = {}
