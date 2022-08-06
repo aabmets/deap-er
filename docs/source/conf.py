@@ -31,11 +31,15 @@ templates_path = ['_templates']
 add_module_names = False
 
 
+from pygments.styles import STYLE_MAP
+keys = list(STYLE_MAP.keys())
+print(f"#$% the style is available? {'material' in keys}")
+
 # -- Options for HTML output -------------------------------------------------
 html_theme = 'sphinx_rtd_theme'
+pygments_style = 'material'
 highlight_language = 'python3'
 html_static_path = ['_static']
-pygments_style = ['material']
 
 
 # -- Options for intersphinx -------------------------------------------------
