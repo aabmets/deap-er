@@ -5,8 +5,8 @@ Welcome to the DEAP-ER's documentation!
    :maxdepth: 3
    :caption: Tutorials:
 
+   tutorials/using_the_toolbox.rst
    tutorials/creating_components.rst
-
 
 .. toctree::
    :maxdepth: 3

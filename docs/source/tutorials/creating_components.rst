@@ -49,13 +49,14 @@ a base class to inherit from. All subsequent arguments, if there are any, become
 Individuals
 -----------
 
-Individuals are collections of fitness values which mutate and mate with each other in order to produce offsprings
-that have altered fitness values. In each generation, the current set of individuals is evaluated and those with
-better fitness scores have a higher probability of passing their fitness values to the next generation of individuals.
+Individuals are collections of solution values which mutate and mate with each other in order to produce offsprings
+with altered solution values. Each individual has a *fitness* attribute, which represents the suitability of the
+solution values for the given problem. During evolution, the population of each generation is evaluated and those
+individuals with better fitness scores pass their solution values to the next generation.
 
 Individuals are created by using the :mod:`~deap_er.creator` module and must inherit from mutable types of
-:class:`~collections.abc.Collection`. Therefore, in addition to the standard :external+python:class:`list`,
-it is also possible to create individuals from the :external+python:class:`array.array` or
+:class:`~collections.abc.Collection`. In addition to the standard :external+python:class:`list` class,
+it is also possible to create individuals based on the :external+python:class:`array.array` or
 :external+numpy:class:`numpy.ndarray` classes:
 
 .. code-block::
@@ -64,10 +65,11 @@ it is also possible to create individuals from the :external+python:class:`array
     creator.create("Individual", numpy.ndarray, fitness=creator.FitnessMax)
     creator.create("Individual", array.array, typecode="i", fitness=creator.FitnessMax)
 
-After an **Individual** with a *fitness* attribute has been created, it must be initialized into
-a Toolbox instance. The :func:`~deap_er.base.Toolbox.register()` method takes at least two arguments:
-an alias and a function that is going to be assigned to this alias. All subsequent arguments, if
-there are any, will be passed into the registered function when it's called.
+
+After an **Individual** with a *fitness* attribute has been created, it must be registered into a
+:class:`~deap_er.base.Toolbox`. After registering the individual into a toolbox, it can be used to
+create a single individual by calling the :code:`toolbox.individual()` function. Individuals are
+usually not created like this one-by-one, but in bulk by a population generator from the toolbox.
 
 .. code-block::
 
@@ -78,6 +80,7 @@ there are any, will be passed into the registered function when it's called.
         func=toolbox.attr_float,                       # passed to init_repeat
         size=10                                        # passed to init_repeat
     )
+    ind = toolbox.individual()  # creates a single individual
 
 .. raw:: html
 
@@ -87,14 +90,14 @@ there are any, will be passed into the registered function when it's called.
 Populations
 -----------
 
-Populations are collections of individuals, strategies or particles.
-They are registered into the toolbox with the :func:`~deap_er.base.Toolbox.register()` method
-and created by calling the registered function:
+Populations are collections of individuals, strategies or particles, which can be created as follows:
 
 .. code-block::
 
-    toolbox.register("population", tools.init_repeat, list, toolbox.individual)
-    pop = toolbox.population(size=100)  # creates a population of individuals of size 100
+    toolbox.register("population", tools.init_repeat,  # alias and func
+        container=list, func=toolbox.individual        # passed to init_repeat
+    )
+    pop = toolbox.population(size=100)  # creates a population of 100 individuals
 
 .. raw:: html
 
