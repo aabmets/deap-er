@@ -68,9 +68,9 @@ class StrategyMultiObjective:
        * cm_learn_rate - *(float)*
           * Learning rate of the covariance matrix.
           * *Default:* :code:`2.0 / (len(population) ** 2 + 6.0)`
-       * indicator - *(Callable)*
-          * The indicator function to use.
-          * *Default:* :code:`deap_er.utilities.least_contrib`
+       * mp_pool - *(object)*
+          * Any multiprocessing *Pool* object, which has a :code:`map` method.
+          * *Default:* None
     """
     # -------------------------------------------------------- #
     def __init__(self, population: list, sigma: float, **kwargs: Optional):
@@ -86,7 +86,7 @@ class StrategyMultiObjective:
         self.th_cum = kwargs.get("th_cum", 2.0 / (self.dim + 2.0))
         self.cm_learn_rate = kwargs.get("cm_learn_rate", 2.0 / (self.dim ** 2 + 6.0))
         self.thresh_sr = kwargs.get("thresh_sr", 0.44)
-        self.indicator = kwargs.get("indicator", utils.least_contrib)
+        self.mp_pool = kwargs.get("mp_pool", None)
 
         self.sigmas = [sigma] * pop_size
         self.big_a = [numpy.identity(self.dim) for _ in range(pop_size)]
@@ -121,8 +121,13 @@ class StrategyMultiObjective:
             ref = numpy.array(ref) * -1
             ref = numpy.max(ref, axis=0) + 1
 
+            mapper = map
+            if self.mp_pool and hasattr(self.mp_pool, "map"):
+                if callable(self.mp_pool.map):
+                    mapper = self.mp_pool.map
+
             for _ in range(len(mid_front) - k):
-                idx = self.indicator(mid_front, ref)
+                idx = utils.least_contrib(mid_front, ref, mapper)
                 not_chosen.append(mid_front.pop(idx))
 
             chosen += mid_front

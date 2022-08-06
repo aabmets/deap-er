@@ -24,7 +24,7 @@
 #                                                                                        #
 # ====================================================================================== #
 from .hypervolume import HyperVolume
-from typing import Callable, Optional
+from typing import Callable, Optional, Union
 import numpy
 
 
@@ -40,7 +40,7 @@ def _compute_hv(data: tuple) -> float:
 
 # -------------------------------------------------------------------------------------- #
 def least_contrib(population: list, ref_point: Optional[list] = None,
-                  map_func: Optional[Callable] = map) -> int:
+                  map_func: Optional[Callable] = map) -> Union[int, numpy.ndarray]:
     """
     Returns the index of the individual with the least hypervolume
     contribution. Minimization is implicitly assumed.
@@ -50,8 +50,8 @@ def least_contrib(population: list, ref_point: Optional[list] = None,
     :param ref_point: The reference point for the hypervolume, optional.
     :param map_func: Any map function which maps an iterable to a callable,
         optional. This can be used to speed up the computation by providing
-        a multiprocess mapping function associated to a pool of workers.
-        The default is the built-in single-process map function.
+        a multiprocess mapping function which is associated to a pool of
+        workers. The default is the regular single-process map function.
     :return: The index of the individual with the least hypervolume contribution.
     """
     wvals = [ind.fitness.wvalues for ind in population]
@@ -68,5 +68,4 @@ def least_contrib(population: list, ref_point: Optional[list] = None,
         data.append((point_set, ref_point))
 
     contrib_values = list(map_func(_compute_hv, data))
-    argmax = numpy.argmax(contrib_values)
-    return int(argmax)
+    return numpy.argmax(contrib_values)
