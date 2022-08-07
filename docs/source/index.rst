@@ -4,7 +4,7 @@ Welcome to the DEAP-ER's documentation!
 .. _tutorials:
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: Tutorials:
 
    tutorials/using_the_toolbox.rst
@@ -15,7 +15,7 @@ Welcome to the DEAP-ER's documentation!
 .. _examples:
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: Examples:
 
    examples/genetic_algorithms.rst
@@ -27,7 +27,7 @@ Welcome to the DEAP-ER's documentation!
 .. _reference:
 
 .. toctree::
-   :maxdepth: 3
+   :maxdepth: 2
    :caption: Reference:
 
    reference/base.rst

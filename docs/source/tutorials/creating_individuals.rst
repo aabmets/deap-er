@@ -5,7 +5,7 @@ Creating Individuals
 
 This tutorial introduces the fundamental concepts of the **fitness**, **individual** and **population**
 objects and how they relate with each other. We will explore the the usage of the :mod:`~deap_er.creator`
-and the :mod:`~deap_er.base` modules to implement these fundamental concepts.
+and the :mod:`~deap_er.base` modules, which are used to create and initialize these objects.
 
 .. raw:: html
 
