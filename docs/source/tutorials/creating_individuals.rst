@@ -1,8 +1,11 @@
-Creating Components
-===================
+.. _individuals:
 
-This tutorial introduces the fundamental components of computational evolution and demonstrates
-the usage of the :mod:`~deap_er.creator` module and the :class:`~deap_er.base.Toolbox` class.
+Creating Individuals
+====================
+
+This tutorial introduces the fundamental concepts of the **fitness**, **individual** and **population**
+objects and how they relate with each other. We will explore the the usage of the :mod:`~deap_er.creator`
+and the :mod:`~deap_er.base` modules to implement these fundamental concepts.
 
 .. raw:: html
 
@@ -15,7 +18,8 @@ Overview
 Fitness
 -------
 
-Fitness represents the capability of an individual to survive in a given environment.
+Fitness represents the suitability of the solution values of an individual for the given problem.
+Individuals with higher fitness have solutions which represent better solutions to the problem.
 
 :class:`~deap_er.base.Fitness` types are created with the :mod:`~deap_er.creator` module and require their *weights*
 attribute to be set in order to be functional. The *weights* attribute is a sequence of either positive or negative

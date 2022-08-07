@@ -1,12 +1,18 @@
 Welcome to the DEAP-ER's documentation!
 =======================================
 
+.. _tutorials:
+
 .. toctree::
    :maxdepth: 3
    :caption: Tutorials:
 
    tutorials/using_the_toolbox.rst
-   tutorials/creating_components.rst
+   tutorials/creating_individuals.rst
+   tutorials/operators_and_algorithms.rst
+
+
+.. _examples:
 
 .. toctree::
    :maxdepth: 3
@@ -16,6 +22,9 @@ Welcome to the DEAP-ER's documentation!
    examples/genetic_programming.rst
    examples/evolution_strategies.rst
    examples/particle_swarm.rst
+
+
+.. _reference:
 
 .. toctree::
    :maxdepth: 3

@@ -1,3 +1,5 @@
+.. _sel_ops:
+
 Selection Operators
 ===================
 

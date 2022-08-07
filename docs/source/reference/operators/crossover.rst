@@ -1,3 +1,5 @@
+.. _cx_ops:
+
 Crossover Operators
 ===================
 
