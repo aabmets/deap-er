@@ -11,9 +11,11 @@ the operators during evolution in a plug-and-play manner as needed.
 The two most important methods of a toolbox are :func:`~deap_er.base.Toolbox.register()` and
 :func:`~deap_er.base.Toolbox.unregister()`, which are used to add or remove tools from the toolbox.
 The :func:`~deap_er.base.Toolbox.register()` method takes at least two arguments: an alias and a
-function that is going to be assigned to the alias. All subsequent arguments, if there are any,
-will be implicitly passed into the registered function when the tool is called. Any name can be
-registered into a toolbox as long as it's unique for that toolbox instance.
+function that is going to be associated with the alias. All subsequent arguments, if there are any,
+will be implicitly passed into the associated function when the registered method is called.
+
+.. attention::
+    Alias names must be valid Python identifiers and can be registered into each toolbox only once.
 
 .. code-block::
 
@@ -33,28 +35,29 @@ The preceding code registers two aliases in the toolbox: **first_alias** and **o
 point to the same function **add_func**. In the case of :code:`toolbox.first_alias()`, the arguments
 were already passed during registration, so the method needs to be called without arguments. In the
 case of :code:`toolbox.other_alias(1, 2, 3)`, the arguments must be passed explicitly, because the
-method was registered without arguments. The difference between the two methods is that the arguments
-of **first_alias** are static, while the arguments of the **other_alias** are dynamic.
+method was registered without arguments. The difference between the two is that the arguments of
+**first_alias** are static, while the arguments of **other_alias** are dynamic.
 
 .. raw:: html
 
    <br />
 
+
 Tool Registration
 -----------------
 
-A toolbox is only as useful as the tools registered into it. When a function is registered into a toolbox,
-it can be called as a method of the toolbox with the same alias that was used to register it. Because the
-methods are added in a dynamic manner, linting hints are not available for them and IDEs incorrectly mark
-their usage as erroneous due to lack of code references.
+A toolbox is only as useful as the tools registered into it. The **tools** module contains a number
+of useful tools that can be registered into a toolbox. While all tools in the module can be registered
+into a toolbox, some of them such as algorithms or statistics, are equally useful independently.
+More on tools in the :ref:`Operators and Algorithms <ops_and_algos>` chapter.
+
+| Because tools are registered into toolboxes dynamically at runtime, linting hints are not available
+| for these toolbox methods and IDEs incorrectly mark their usage as erroneous due to lack of object references.
 
 .. note::
-    Some commonly used tool aliases, such as **mate**, **mutate**, **select** and **evaluate**, do
-    have linting hints available in Toolbox objects and IDEs don't complain about their code references.
-
-The **tools** module contains a number of useful tools that can be registered into a toolbox. While all
-tools in the module can be registered into a toolbox, some of them, such as algorithms or statistics, are
-equally useful independently. More on tools in the :ref:`Operators and Algorithms <ops_and_algos>` chapter.
+    Some commonly used aliases, such as **mate**, **mutate**, **select**, **evaluate** and others,
+    do have *abstract* references available, which enables IDE autocompletion support for them. Note
+    that these references are *abstract* and must be overridden by the user before they can be used.
 
 .. code-block::
 

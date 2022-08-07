@@ -24,16 +24,16 @@
 #                                                                                        #
 # ====================================================================================== #
 from __future__ import annotations
-from .dtypes import NumOrSeq
+from collections.abc import Sized, Iterable
 from operator import mul, truediv
-from typing import Iterable
+from .dtypes import NumOrSeq
 
 
 __all__ = ['Fitness']
 
 
 # ====================================================================================== #
-class Fitness:
+class Fitness(Sized):
     """
     A fitness object measures the quality of a solution. The class
     attribute *'weights'* must be set before a Fitness object can be
@@ -135,9 +135,6 @@ class Fitness:
         return a == b and a > 0
 
     # -------------------------------------------------------- #
-    def __hash__(self):
-        return hash(self.wvalues)
-
     def __gt__(self, other: Fitness) -> bool:
         return self.wvalues > other.wvalues
 
@@ -157,6 +154,12 @@ class Fitness:
         return self.wvalues != other.wvalues
 
     # -------------------------------------------------------- #
+    def __len__(self):
+        return len(self.wvalues)
+
+    def __hash__(self):
+        return hash(self.wvalues)
+
     def __str__(self):
         return str(self.values)
 
