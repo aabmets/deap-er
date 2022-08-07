@@ -29,20 +29,48 @@ from typing import Callable
 
 # ====================================================================================== #
 class LintHints:
-    map: partial
-    clone: partial
 
-    __test__: Callable
+    def __test__(self, *_, **__):
+        raise NotImplementedError()
 
-    attr_int: Callable
-    attr_bool: Callable
-    attr_float: Callable
-    attr_item: Callable
-    individual: Callable
-    population: Callable
-    generate: Callable
-    evaluate: Callable
-    update: Callable
-    mutate: Callable
-    select: Callable
-    mate: Callable
+    def map(self, *_, **__):
+        raise NotImplementedError()
+
+    def clone(self, *_, **__):
+        raise NotImplementedError()
+
+    def attr_int(self, *_, **__):
+        raise NotImplementedError()
+
+    def attr_bool(self, *_, **__):
+        raise NotImplementedError()
+
+    def attr_float(self, *_, **__):
+        raise NotImplementedError()
+
+    def attr_item(self, *_, **__):
+        raise NotImplementedError()
+
+    def individuals(self, *_, **__):
+        raise NotImplementedError()
+
+    def population(self, *_, **__):
+        raise NotImplementedError()
+
+    def generate(self, *_, **__):
+        raise NotImplementedError()
+
+    def update(self, *_, **__):
+        raise NotImplementedError()
+
+    def evaluate(self, *_, **__):
+        raise NotImplementedError()
+
+    def select(self, *_, **__):
+        raise NotImplementedError()
+
+    def mate(self, *_, **__):
+        raise NotImplementedError()
+
+    def mutate(self, *_, **__):
+        raise NotImplementedError()
