@@ -23,67 +23,34 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
+from typing import Callable
+from functools import partial
+
+
+# ====================================================================================== #
 class LintHints:
+    __test__: Callable
 
-    def __test__(self, *_, **__):
-        raise NotImplementedError()
+    map: partial
+    clone: partial
 
-    def map(self, *_, **__):
-        raise NotImplementedError()
+    attr_int: Callable
+    attr_bool: Callable
+    attr_float: Callable
+    attr_item: Callable
 
-    def clone(self, *_, **__):
-        raise NotImplementedError()
+    individual: Callable
+    individuals: Callable
+    population: Callable
+    populations: Callable
+    particle: Callable
+    particles: Callable
+    swarm: Callable
+    swarms: Callable
 
-    def attr_int(self, *_, **__):
-        raise NotImplementedError()
-
-    def attr_bool(self, *_, **__):
-        raise NotImplementedError()
-
-    def attr_float(self, *_, **__):
-        raise NotImplementedError()
-
-    def attr_item(self, *_, **__):
-        raise NotImplementedError()
-
-    def individuals(self, *_, **__):
-        raise NotImplementedError()
-
-    def individual(self, *_, **__):
-        raise NotImplementedError()
-
-    def population(self, *_, **__):
-        raise NotImplementedError()
-
-    def populations(self, *_, **__):
-        raise NotImplementedError()
-
-    def particle(self, *_, **__):
-        raise NotImplementedError()
-
-    def particles(self, *_, **__):
-        raise NotImplementedError()
-
-    def swarm(self, *_, **__):
-        raise NotImplementedError()
-
-    def swarms(self, *_, **__):
-        raise NotImplementedError()
-
-    def generate(self, *_, **__):
-        raise NotImplementedError()
-
-    def update(self, *_, **__):
-        raise NotImplementedError()
-
-    def evaluate(self, *_, **__):
-        raise NotImplementedError()
-
-    def select(self, *_, **__):
-        raise NotImplementedError()
-
-    def mate(self, *_, **__):
-        raise NotImplementedError()
-
-    def mutate(self, *_, **__):
-        raise NotImplementedError()
+    evaluate: Callable
+    select: Callable
+    mate: Callable
+    mutate: Callable
+    generate: Callable
+    update: Callable

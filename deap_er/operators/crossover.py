@@ -60,7 +60,7 @@ def _slicer(ind1: Individual, ind2: Individual,
 
 # -------------------------------------------------------------------------------------- #
 def _two_point(ind1: Individual, ind2: Individual,
-               copy: bool = False, strat: bool = False) -> tuple:
+               copy: bool = False, strategy: bool = False) -> tuple:
     size = min(len(ind1), len(ind2))
     cxp1 = random.randint(1, size)
     cxp2 = random.randint(1, size - 1)
@@ -69,7 +69,7 @@ def _two_point(ind1: Individual, ind2: Individual,
     else:
         cxp1, cxp2 = cxp2, cxp1
     ind1, ind2 = _slicer(ind1, ind2, cxp1, cxp2, copy)
-    if strat:
+    if strategy:
         _slicer(
             ind1.strategy,
             ind2.strategy,
@@ -182,7 +182,7 @@ def cx_es_two_point(ind1: Individual, ind2: Individual) -> Mates:
     :type ind2: :ref:`Individual <datatypes>`
     :rtype: :ref:`Mates <datatypes>`
     """
-    ind1, ind2 = _two_point(ind1, ind2, strat=True)
+    ind1, ind2 = _two_point(ind1, ind2, strategy=True)
     return ind1, ind2
 
 
@@ -203,7 +203,7 @@ def cx_es_two_point_copy(ind1: Individual, ind2: Individual) -> Mates:
     :type ind2: :ref:`Individual <datatypes>`
     :rtype: :ref:`Mates <datatypes>`
     """
-    ind1, ind2 = _two_point(ind1, ind2, copy=True, strat=True)
+    ind1, ind2 = _two_point(ind1, ind2, copy=True, strategy=True)
     return ind1, ind2
 
 
