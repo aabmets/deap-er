@@ -24,7 +24,7 @@
 #                                                                                        #
 # ====================================================================================== #
 from __future__ import annotations
-from collections.abc import Sized, Iterable
+from collections.abc import Iterable
 from operator import mul, truediv
 from .dtypes import NumOrSeq
 
@@ -33,7 +33,7 @@ __all__ = ['Fitness']
 
 
 # ====================================================================================== #
-class Fitness(Sized):
+class Fitness:
     """
     A fitness object measures the quality of a solution. The class
     attribute *'weights'* must be set before a Fitness object can be
