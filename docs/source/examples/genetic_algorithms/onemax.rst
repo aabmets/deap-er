@@ -40,6 +40,8 @@ Using Numpy
    <hr>
 
 
+.. _using_mp:
+
 Using Multiprocessing
 ---------------------
 

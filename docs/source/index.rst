@@ -10,6 +10,7 @@ Welcome to the DEAP-ER's documentation!
    tutorials/using_the_toolbox.rst
    tutorials/creating_individuals.rst
    tutorials/operators_and_algorithms.rst
+   tutorials/multiprocessing.rst
 
 
 .. _examples:
