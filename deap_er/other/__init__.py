@@ -23,10 +23,4 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .algorithms import *
-from .strategies import *
-from .operators import *
-from .benchmarks import *
-from .utilities import *
-from .records import *
-from .other import *
+from .persistence import *
