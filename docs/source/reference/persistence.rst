@@ -1,5 +1,5 @@
 State Persistence
 =================
 
-.. automodule:: deap_er.persistence
+.. autoclass:: deap_er.persistence.Checkpoint
     :members:
