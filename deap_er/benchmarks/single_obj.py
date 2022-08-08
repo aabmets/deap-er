@@ -43,7 +43,7 @@ __all__ = [
 def bm_rand(*_) -> tuple[float]:
     """
     Random test objective function. The unnamed **args** parameter is an input
-    sink for DEAP-er internal functionality and has no effect on the result.
+    sink for internal **DEAP-ER** functionality and has no effect on the result.
 
     :return: A completely random number.
 

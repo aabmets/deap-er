@@ -1,10 +1,7 @@
 .. _datatypes:
 
-Datatypes
-=========
-
-These custom datatype aliases are available from the :data:`deap_er.dtypes` module.
-
+Type Aliases
+============
 
 Base
 ----

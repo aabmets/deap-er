@@ -29,3 +29,4 @@ from .operators import *
 from .benchmarks import *
 from .utilities import *
 from .records import *
+from .persistence import *

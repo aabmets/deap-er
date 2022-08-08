@@ -11,6 +11,7 @@ Welcome to the DEAP-ER's documentation!
    tutorials/creating_individuals.rst
    tutorials/operators_and_algorithms.rst
    tutorials/multiprocessing.rst
+   tutorials/saving_progress.rst
 
 
 .. _examples:
@@ -33,11 +34,12 @@ Welcome to the DEAP-ER's documentation!
 
    reference/base.rst
    reference/creator.rst
-   reference/records.rst
    reference/algorithms.rst
-   reference/strategies.rst
    reference/operators.rst
-   reference/benchmarks.rst
+   reference/strategies.rst
+   reference/records.rst
    reference/utilities.rst
+   reference/benchmarks.rst
    reference/gp.rst
-   reference/datatypes.rst
+   reference/persistence.rst
+   reference/aliases.rst

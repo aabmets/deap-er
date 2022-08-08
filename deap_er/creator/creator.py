@@ -34,9 +34,9 @@ __all__ = ['create']
 # ====================================================================================== #
 def create(name: str, base: Union[type, object], **kwargs: Optional) -> None:
     """
-    Creates a new class named **name**, which inherits from the **base** class,
-    and registers it into the global namespace. Any optional **kwargs** provided
-    to this function will be set as attributes of the new class.
+    Creates a new class named **name**, which inherits from the **base** class, and
+    registers it into the global namespace of the *creator* module. Any optional
+    **kwargs** provided to this function will be set as attributes of the new class.
 
     :param name: The name of the new class to create.
     :param base: A type or an object from which to inherit.
