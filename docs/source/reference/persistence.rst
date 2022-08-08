@@ -2,4 +2,5 @@ State Persistence
 =================
 
 .. autoclass:: deap_er.other.Checkpoint
-    :members:
+   :members:
+   :undoc-members:
