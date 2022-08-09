@@ -2,20 +2,20 @@ Saving Progress
 ===============
 
 In this tutorial, we will describe how persistence can be achieved for evolution algorithms.
-This library has a helper class named :class:`~deap_er.persistence.Checkpoint`, which can be
+This library has a helper class named :class:`~deap_er.other.Checkpoint`, which can be
 used to save the current state of an evolution algorithm to disk and to restore it later to
 resume the computation.
 
-:class:`~deap_er.persistence.Checkpoint` objects use the `dill <https://pypi.org/project/dill/>`_ library for
+:class:`~deap_er.other.Checkpoint` objects use the `dill <https://pypi.org/project/dill/>`_ library for
 object (de-)serialization, because it supports more Python types, like lambdas, than the default :mod:`pickle`.
-Checkpoint objects can be used either manually by using the :func:`~deap_er.persistence.Checkpoint.save()` and
-:func:`~deap_er.persistence.Checkpoint.load()` methods or automatically by using the custom
-:func:`~deap_er.persistence.Checkpoint.range()` method. Automatic checkpointing is also available
+Checkpoint objects can be used either manually by using the :func:`~deap_er.other.Checkpoint.save()` and
+:func:`~deap_er.other.Checkpoint.load()` methods or automatically by using the custom
+:func:`~deap_er.other.Checkpoint.range()` method. Automatic checkpointing is also available
 for the standard evolution algorithms of this library.
 
-In the following partial example, we will use the :func:`~deap_er.persistence.Checkpoint.range()` method to save
+In the following partial example, we will use the :func:`~deap_er.other.Checkpoint.range()` method to save
 the progress to disk every **SAVE_FREQ** generations. If one should want to resume the computation later, they
-would only have to pass the name or path of the checkpoint file to the :class:`~deap_er.persistence.Checkpoint`
+would only have to pass the name or path of the checkpoint file to the :class:`~deap_er.other.Checkpoint`
 constructor, as the data is automatically loaded from disk on initialization by default.
 
 
