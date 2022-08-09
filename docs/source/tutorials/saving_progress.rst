@@ -16,7 +16,7 @@ for the standard evolution algorithms of this library.
 In the following partial example, we will use the :func:`~deap_er.other.Checkpoint.range()` method to save
 the progress to disk every **SAVE_FREQ** generations. If one should want to resume the computation later, they
 would only have to pass the name or path of the checkpoint file to the :class:`~deap_er.other.Checkpoint`
-constructor, as the data is automatically loaded from disk on initialization by default.
+constructor, as the data is automatically loaded from disk on object initialization by default.
 
 
 .. code-block::
@@ -36,7 +36,7 @@ constructor, as the data is automatically loaded from disk on initialization by 
             cp.log = tools.Logbook()
 
         for gen in cp.range(NUM_GENS, SAVE_FREQ):
-            population = algorithms.var_and(
+            population = tools.var_and(
                 toolbox=toolbox, population=cp.pop,
                 cx_prob=0.5, mut_prob=0.2
             )
@@ -53,3 +53,7 @@ constructor, as the data is automatically loaded from disk on initialization by 
 
 .. attention::
     Only those objects that are in the :code:`__dict__` attribute of the checkpoint object will be saved.
+
+.. raw:: html
+
+   <br />
