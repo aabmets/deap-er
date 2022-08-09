@@ -37,6 +37,21 @@ __all__ = ['Checkpoint']
 
 # ====================================================================================== #
 class Checkpoint:
+    """
+    This class can be used to save and load evolution progress to and from files.
+    It's implemented as a lightweight wrapper around the builtin :code:`open()` function.
+    Objects are (de-)serialized using the `dill <https://pypi.org/project/dill/>`_ library.
+    The target checkpoint file is assigned on instantiation. Checkpoint objects also
+    automatically persist the states of the builtin :mod:`random` and :mod:`numpy.random` *RNG-s*.
+
+    :param name: The name of the checkpoint file. If not given, a random
+        UUID + :code:`.dcpf` extension is used.
+    :param path: The path to the checkpoints directory.
+        If not given, the current working directory + :code:`/deap-er` is used.
+    :param autoload: If True **and** the checkpoint file exists,
+        load the file on initialization, optional.
+        The default value is True.
+    """
     # -------------------------------------------------------- #
     _dir = 'deap-er'  # Checkpoint Directory
     _ext = '.dcpf'    # [D]eaper [C]heck [P]oint [F]ile
@@ -63,6 +78,15 @@ class Checkpoint:
 
     # -------------------------------------------------------- #
     def load(self, raise_errors: Optional[bool] = False) -> bool:
+        """
+        Loads the contents of the checkpoint file into :code:`self.__dict__`.
+
+        :param raise_errors: If True, errors are propagated, optional.
+            By default, errors are not propagated and False is returned instead.
+        :raise IOError: If the operation failed and **raise_errors** is True.
+        :raise dill.PickleError: If the operation failed and **raise_errors** is True.
+        :return: True if the operation completed successfully.
+        """
         if self.file_path.exists():
             try:
                 with open(self.file_path, 'rb') as f:
@@ -78,6 +102,17 @@ class Checkpoint:
 
     # -------------------------------------------------------- #
     def save(self, raise_errors: Optional[bool] = False) -> bool:
+        """
+        Saves the contents of :code:`self.__dict__` into the checkpoint file.
+        If the file already exists, it will be overwritten.
+        If the target directory does not exist, it will be created recursively.
+
+        :param raise_errors: If True, errors are propagated, optional.
+            By default, errors are not propagated and False is returned instead.
+        :raise IOError: If the operation failed and **raise_errors** is True.
+        :raise dill.PickleError: If the operation failed and **raise_errors** is True.
+        :return: True if the operation completed successfully.
+        """
         self._rand_state = random.getstate()
         self._np_state = np.random.get_state()
         try:
@@ -100,6 +135,17 @@ class Checkpoint:
 
     # -------------------------------------------------------- #
     def range(self, stop: int, save_freq: int) -> int:
+        """
+        A special generator method that behaves almost like the builtin
+        :code:`range()` function, but the attributes of the checkpoint object
+        are automatically saved into the checkpoint file every **save_freq**
+        iterations. The start value is automatically determined depending on
+        the current state of the checkpoint object.
+
+        :param stop: The stop value of the iterator, exclusive.
+        :param save_freq: The frequency at which the checkpoint is saved to file.
+        :return: A generator that yields integer values up to **stop**, exclusive.
+        """
         if stop < 0:
             raise ValueError('Iterator stop value cannot be a negative number.')
         elif stop < self._counter:

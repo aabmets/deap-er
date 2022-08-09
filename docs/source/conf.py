@@ -59,4 +59,4 @@ autodoc_class_signature = 'mixed'
 autodoc_member_order = 'bysource'
 autodoc_default_options = {}
 autodoc_type_aliases = {}
-autodoc_mock_imports = ['numpy']
+autodoc_mock_imports = ['numpy', 'scipy', 'dill']
