@@ -23,4 +23,76 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from .persistence import *
+from deap_er import env
+from pathlib import Path
+import os
+
+
+# ====================================================================================== #
+class TestCheckpoint:
+
+    work_dir = Path(os.getcwd()).resolve().joinpath('qwerty')
+
+    def test_file_name(self):
+        _dir = self.work_dir
+        cpt = env.Checkpoint(
+            dir_path=_dir,
+            autoload=False
+        )
+        assert cpt.file_path.suffix == '.dcpf'
+        assert cpt.file_path.parent == _dir
+
+    # -------------------------------------------------------- #
+    def test_dir_path(self):
+        _dir = self.work_dir
+        cpt = env.Checkpoint(
+            file_name='asdfg.cpt',
+            autoload=False
+        )
+        assert cpt.file_path.name == 'asdfg.cpt'
+        assert cpt.file_path.parent == _dir.with_name('deap-er')
+
+    # -------------------------------------------------------- #
+    def test_saving(self, tmp_path):
+        cpt1 = env.Checkpoint(
+            file_name='asdfg.cpt',
+            dir_path=tmp_path,
+            autoload=False
+        )
+        cpt1.my_dict = {'key': 'value'}
+
+        assert not cpt1.file_path.exists()
+        cpt1.save()
+        assert cpt1.file_path.exists()
+
+        cpt2 = env.Checkpoint(
+            file_name='asdfg.cpt',
+            dir_path=tmp_path,
+            autoload=False
+        )
+
+        assert not hasattr(cpt2, 'my_dict')
+        cpt2.load()
+        assert getattr(cpt2, 'my_dict') == {'key': 'value'}
+
+    # -------------------------------------------------------- #
+    def test_range(self, tmp_path):
+        cpt1 = env.Checkpoint(
+            file_name='asdfg.cpt',
+            dir_path=tmp_path,
+            autoload=False
+        )
+        assert cpt1.last_op == 'none'
+        for i in cpt1.range(5, 5):
+            assert 0 < i < 6
+        assert cpt1.last_op == 'save_success'
+
+        cpt2 = env.Checkpoint(
+            file_name='asdfg.cpt',
+            dir_path=tmp_path,
+            autoload=True
+        )
+        assert cpt2.last_op == 'load_success'
+        for i in cpt2.range(5, 5):
+            assert 5 < i < 11
+        assert cpt2.last_op == 'save_success'

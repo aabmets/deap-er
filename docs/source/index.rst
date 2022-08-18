@@ -11,7 +11,14 @@ Welcome to the DEAP-ER's documentation!
    tutorials/creating_individuals.rst
    tutorials/operators_and_algorithms.rst
    tutorials/multiprocessing.rst
-   tutorials/saving_progress.rst
+   tutorials/progress_checkpoint.rst
+
+..
+   tutorials/logging_statistics.rst
+   tutorials/genetic_programming.rst
+   tutorials/seeding_populations.rst
+   tutorials/constraint_handling.rst
+   tutorials/using_numpy.rst
 
 
 .. _examples:
@@ -41,5 +48,5 @@ Welcome to the DEAP-ER's documentation!
    reference/utilities.rst
    reference/benchmarks.rst
    reference/gp.rst
-   reference/persistence.rst
+   reference/controllers.rst
    reference/aliases.rst

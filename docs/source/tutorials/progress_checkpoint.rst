@@ -1,23 +1,20 @@
-Saving Progress
-===============
+Saving and Loading Progress
+===========================
 
 In this tutorial, we will describe how persistence can be achieved for evolution algorithms.
-This library has a helper class named :class:`~deap_er.other.Checkpoint`, which can be
-used to save the current state of an evolution algorithm to disk and to restore it later to
-resume the computation.
+This library has a helper class named :class:`~deap_er.controllers.checkpoint.Checkpoint`, which can
+be used to save the current state of an evolution algorithm to disk and restore it later to resume
+the computation. The checkpoint controller is available from the ``env`` sub-package of this library.
 
-:class:`~deap_er.other.Checkpoint` objects use the `dill <https://pypi.org/project/dill/>`_ library for
-object (de-)serialization, because it supports more Python types, like lambdas, than the default :mod:`pickle`.
-Checkpoint objects can be used either manually by using the :func:`~deap_er.other.Checkpoint.save()` and
-:func:`~deap_er.other.Checkpoint.load()` methods or automatically by using the custom
-:func:`~deap_er.other.Checkpoint.range()` method. Automatic checkpointing is also available
-for the standard evolution algorithms of this library.
+Checkpoint objects use the `dill <https://pypi.org/project/dill/>`_ library for object (de-)serialization, because
+it supports more Python types like lambdas, than the default :mod:`pickle` library. Checkpoints can be used either
+manually with the :func:`save()` and :func:`load()` methods or automatically with the custom :func:`range()` method.
+Automatic checkpointing is also available for the standard evolution algorithms of this library.
 
-In the following partial example, we will use the :func:`~deap_er.other.Checkpoint.range()` method to save
-the progress to disk every **SAVE_FREQ** generations. If one should want to resume the computation later, they
-would only have to pass the name or path of the checkpoint file to the :class:`~deap_er.other.Checkpoint`
-constructor, as the data is automatically loaded from disk on object initialization by default.
-
+In the following partial example, we will use the :func:`range()` method to save the progress to disk every
+**save_freq** generations. If one should wish to resume the computation later, they would only have to pass
+the name or path of the checkpoint file to the checkpoint constructor, as the data is automatically loaded
+from the disk on object initialization by default.
 
 .. code-block::
 
