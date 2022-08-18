@@ -59,42 +59,26 @@ def ea_mu_comma_lambda(toolbox: Toolbox, population: list,
     :type stats: :ref:`Stats <datatypes>`
     :rtype: :ref:`AlgoResult <datatypes>`
     """
-    if offsprings < survivors:
-        raise ValueError(
-            '\'offsprings\' must be greater than or equal to \'survivors\'.'
-        )
-
-    invalid_ind = [ind for ind in population if not ind.fitness.is_valid()]
-    fitness = toolbox.map(toolbox.evaluate, invalid_ind)
-    for ind, fit in zip(invalid_ind, fitness):
-        ind.fitness.values = fit
-
-    if hof is not None:
-        hof.update(population)
+    if survivors > offsprings:  # pragma: no cover
+        offsprings, survivors = survivors, offsprings
 
     logbook = Logbook()
     logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
-    record = stats.compile(population) if stats is not None else {}
-    logbook.record(gen=0, nevals=len(invalid_ind), **record)
-
-    if verbose:
-        print(logbook.stream)
 
     for gen in range(1, generations + 1):
         offspring = var_or(toolbox, population, offsprings, cx_prob, mut_prob)
 
-        invalid_ind = [ind for ind in offspring if not ind.fitness.is_valid()]
-        fitness = toolbox.map(toolbox.evaluate, invalid_ind)
-        for ind, fit in zip(invalid_ind, fitness):
+        invalids = [ind for ind in offspring if not ind.fitness.is_valid()]
+        fitness = toolbox.map(toolbox.evaluate, invalids)
+        for ind, fit in zip(invalids, fitness):
             ind.fitness.values = fit
+
+        population[:] = toolbox.select(offspring, survivors)
 
         if hof is not None:
             hof.update(offspring)
-
-        population[:] = toolbox.select(offspring, survivors)
-        record = stats.compile(population) if stats is not None else {}
-        logbook.record(gen=gen, nevals=len(invalid_ind), **record)
-
+        record = stats.compile(population) if stats else {}
+        logbook.record(gen=gen, nevals=len(invalids), **record)
         if verbose:
             print(logbook.stream)
 

@@ -56,15 +56,16 @@ def ea_generate_update(toolbox: Toolbox, generations: int,
     population = None
     for gen in range(generations):
         population = toolbox.generate()
+
         fitness = toolbox.map(toolbox.evaluate, population)
         for ind, fit in zip(population, fitness):
             ind.fitness.values = fit
 
+        toolbox.update(population)
+
         if hof is not None:
             hof.update(population)
-
-        toolbox.update(population)
-        record = stats.compile(population) if stats is not None else {}
+        record = stats.compile(population) if stats else {}
         logbook.record(gen=gen, nevals=len(population), **record)
         if verbose:
             print(logbook.stream)
