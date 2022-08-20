@@ -23,10 +23,11 @@
 #   SOFTWARE.                                                                            #
 #                                                                                        #
 # ====================================================================================== #
-from typing import Optional
+from typing import Optional, Union
 from pathlib import Path
 import numpy as np
 import random
+import time
 import uuid
 import dill
 import os
@@ -41,12 +42,14 @@ class Checkpoint:
     This class can be used to save and load evolution progress to and from files.
     It's implemented as a lightweight wrapper around the builtin :code:`open()` function.
     Objects are (de-)serialized using the `dill <https://pypi.org/project/dill/>`_ library.
-    The target checkpoint file is assigned on instantiation. Checkpoint objects also
-    automatically persist the *RNG* states of the :mod:`random` and :mod:`numpy.random` modules.
+    Only those objects which have been set as attributes of the checkpoint object are
+    persisted to disk. The target save file is assigned on object instantiation.
+    Checkpoint objects automatically persist also the *RNG* states of the
+    :mod:`random` and :mod:`numpy.random` modules.
 
     :param file_name: The name of the checkpoint file.
         By default, a random UUID + :code:`.dcpf` extension is used.
-    :param dir_path: The path to the checkpoints directory. By default,
+    :param dir_path: The path to the checkpoint directory. By default,
         the current working directory + :code:`/deap-er` is used.
     :param autoload: If True **and** the checkpoint file exists, loads the
         file during initialization, optional. The default value is True.
@@ -63,6 +66,7 @@ class Checkpoint:
     _rand_state_: object = None
     _numpy_state_: dict = None
     _range_counter_: int = 0
+    _save_freq_: float = 60.0
     _last_op_: str = 'none'
 
     # -------------------------------------------------------- #
@@ -86,7 +90,7 @@ class Checkpoint:
     # -------------------------------------------------------- #
     def load(self) -> bool:
         """
-        Loads the contents of the checkpoint file into :code:`self.__dict__`.
+        Loads objects from the checkpoint file and sets them as attributes of ``self``.
 
         :raise IOError: If the operation failed and :code:`self.raise_errors` is True.
         :raise dill.PickleError: If the operation failed and :code:`self.raise_errors` is True.
@@ -108,7 +112,7 @@ class Checkpoint:
     # -------------------------------------------------------- #
     def save(self) -> bool:
         """
-        Saves the contents of :code:`self.__dict__` into the checkpoint file.
+        Saves the attributes of ``self`` into the checkpoint file.
         If the file already exists, it will be overwritten.
         If the target directory does not exist, it will be created recursively.
 
@@ -138,30 +142,60 @@ class Checkpoint:
         return True
 
     # -------------------------------------------------------- #
-    def range(self, iterations: int, save_freq: int) -> range:
+    def range(self, generations: int) -> range:
         """
-        A special generator method that behaves almost like the builtin
-        :code:`range()` function, but the checkpoint object is automatically
-        saved into the checkpoint file every **save_freq** iterations. The
-        start and stop values are automatically determined from the current
-        *(loaded)* state of the checkpoint object.
+        A special generator method that behaves almost like the builtin :code:`range()`
+        function, but it accepts only a single argument of the number of generations to
+        compute. It is intended to be used in a ``for`` loop to iterate over the main
+        evolutionary process. The checkpoint is saved to disk every ``self.save_freq``
+        seconds and also at the end of the loop, if saving is enabled. The saving
+        frequency can be changed while the ``for`` loop is running. The values of
+        the range counter are automatically determined from the current *(loaded)*
+        state of the checkpoint object.
 
-        :param iterations: The count of iterations to loop over.
-            Each iteration, the internal counter is incremented by 1.
-        :param save_freq: The frequency at which the checkpoint is saved to file.
-        :return: A generator that yields the values of the internal counter.
+        :param generations: The amount of generations to compute.
+        :return: A generator that yields the integer values of the internal counter.
         """
-        if iterations < 0:
+        if generations < 0:
             raise ValueError(
                 'Iterations argument cannot be a negative number.'
             )
-        start = self._range_counter_ + 1
-        stop = self._range_counter_ + iterations + 1
-        for i in range(start, stop):
-            self._range_counter_ = i
-            if i % save_freq == 0:
-                self.save()
-            yield i
+        from_ = self._range_counter_ + 1
+        to_excl = self._range_counter_ + generations + 1
+
+        if self.save_freq == -1:             # saving is disabled
+            for i in range(from_, to_excl):
+                yield i
+                self._range_counter_ = i
+        else:                                # saving is enabled
+            last_save = time.time()
+            for i in range(from_, to_excl):
+                yield i
+                self._range_counter_ = i
+                now = time.time()
+                elapsed = now - last_save
+                if elapsed >= self._save_freq_:
+                    last_save = now
+                    self.save()
+            self.save()
+
+    # -------------------------------------------------------- #
+    @property
+    def save_freq(self) -> float:
+        """
+        The time in seconds after which to periodically save the checkpoint to
+        a file, when the ``range()`` function is being executed in a ``for`` loop.
+        Setting the value to ``-1`` disables saving. Accepts ``int`` and ``float``
+        types as values. Float-types allow sub-second timing precision.
+
+        :return: The current saving frequency period, in
+            seconds. The default value is 60 seconds.
+        """
+        return self._save_freq_
+
+    @save_freq.setter
+    def save_freq(self, value: Union[int, float]) -> None:
+        self._save_freq_ = float(value)
 
     # -------------------------------------------------------- #
     @property
@@ -177,3 +211,21 @@ class Checkpoint:
             * *save_error*
         """
         return self._last_op_
+
+    # -------------------------------------------------------- #
+    def is_loaded(self) -> bool:
+        """
+        Shorthand for ``checkpoint.last_op == 'load_success'``.
+
+        :return: True if the checkpoint was successfully loaded from file.
+        """
+        return self._last_op_ == 'load_success'
+
+    # -------------------------------------------------------- #
+    def is_saved(self) -> bool:
+        """
+        Shorthand for ``checkpoint.last_op == 'save_success'``.
+
+        :return: True if the checkpoint was successfully saved to file.
+        """
+        return self._last_op_ == 'save_success'

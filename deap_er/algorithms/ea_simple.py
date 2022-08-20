@@ -33,9 +33,9 @@ __all__ = ['ea_simple']
 
 
 # ====================================================================================== #
-def ea_simple(toolbox: Toolbox, population: list,
-              generations: int, cx_prob: float, mut_prob: float,
-              hof: Hof = None, stats: Stats = None, verbose: bool = False) -> AlgoResult:
+def ea_simple(toolbox: Toolbox, population: list, generations: int,
+              cx_prob: float, mut_prob: float, hof: Hof = None,
+              stats: Stats = None, verbose: bool = False) -> AlgoResult:
     """
     An evolutionary algorithm. This function expects the *'mate'*, *'mutate'*,
     *'select'* and *'evaluate'* operators to be registered in the toolbox.

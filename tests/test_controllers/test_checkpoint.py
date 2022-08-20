@@ -25,6 +25,7 @@
 # ====================================================================================== #
 from deap_er import env
 from pathlib import Path
+import time
 import os
 
 
@@ -76,14 +77,14 @@ class TestCheckpoint:
         assert getattr(cpt2, 'my_dict') == {'key': 'value'}
 
     # -------------------------------------------------------- #
-    def test_range(self, tmp_path):
+    def test_range_1(self, tmp_path):
         cpt1 = env.Checkpoint(
             file_name='asdfg.cpt',
             dir_path=tmp_path,
             autoload=False
         )
         assert cpt1.last_op == 'none'
-        for i in cpt1.range(5, 5):
+        for i in cpt1.range(5):
             assert 0 < i < 6
         assert cpt1.last_op == 'save_success'
 
@@ -93,6 +94,20 @@ class TestCheckpoint:
             autoload=True
         )
         assert cpt2.last_op == 'load_success'
-        for i in cpt2.range(5, 5):
+        for i in cpt2.range(5):
             assert 5 < i < 11
         assert cpt2.last_op == 'save_success'
+
+    # -------------------------------------------------------- #
+    def test_range_2(self, tmp_path):
+        cpt = env.Checkpoint(
+            file_name='asdfg.cpt',
+            dir_path=tmp_path,
+            autoload=False
+        )
+        cpt.save_freq = 0.1
+        assert cpt.last_op == 'none'
+        for i in cpt.range(10):
+            time.sleep(0.021)
+            if i == 5:
+                assert cpt.last_op == 'save_success'
