@@ -1,14 +1,10 @@
 # DEAP-ER
 
-DEAP-ER is a full rework of the original DEAP library for Python 3.10 and up.
-
-
-## Description
-
-DEAP-ER is a novel evolutionary computation framework for rapid prototyping and testing of ideas. 
+DEAP-ER is a complete rework and refactor of the original DEAP evolutionary 
+computation framework library for Python 3.9, 3.10 and up.
 It seeks to make algorithms explicit and data structures transparent. 
 It works in perfect harmony with parallelization mechanisms such as 
-multiprocessing and [SCOOP](https://github.com/soravux/scoop).
+multiprocessing and [Ray](https://github.com/ray-project/ray).
 
 DEAP includes the following features:
 
@@ -40,8 +36,7 @@ pip install deap-er
 
 ## Importing
 ```python
-# see the docs for available modules
-from deap_er import *
+from deap_er import base, creator, tools, env, gp
 ```
 
 
