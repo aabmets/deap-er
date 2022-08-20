@@ -9,8 +9,8 @@ the computation. The checkpoint controller is available from the ``env`` sub-pac
 Checkpoint objects use the `dill <https://pypi.org/project/dill/>`_ library for object (de-)serialization,
 because it supports more Python types like lambdas, than the default :mod:`pickle` library. Checkpoints can
 be used either manually with the :func:`save()` and :func:`load()` methods or automatically with the custom
-:func:`range()` generator. Automatic checkpointing is also available for the standard evolution algorithms
-of this library.
+:func:`range()` generator. The builtin algorithms don't implement automatic checkpointing due to their
+simplistic nature.
 
 In the following partial example, we will use the :func:`range()` generator to save the progress to disk
 every **save_freq** generations. If one should wish to resume the computation later, they would only have
