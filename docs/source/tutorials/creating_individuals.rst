@@ -404,3 +404,47 @@ a population of 3 demes is created, where each deme has a different number of in
 .. raw:: html
 
    <br />
+   <hr>
+
+
+Seeding Populations
++++++++++++++++++++
+
+Sometimes, it could be useful to initialize the population from a list of predefined first-guess individuals.
+This can be achieved by defining a population initialization function that gets called when the population is
+being created. In the following example, the population will be initialized from the ``first_guess.json`` file
+that contains a list of first-guess individuals. This can be combined with a regular population initializer to
+create a population of part random and part non-random individuals *(not part of the example)*.
+
+.. code-block::
+
+   from deap_er import base, creator
+   import json
+
+   def init_population(pop_type, ind, filename):
+      with open(filename, "r") as pop_file:
+         contents = json.load(pop_file)
+      return pop_type(ind(c) for c in contents)
+
+   creator.create("FitnessMax", base.Fitness, weights=(1.0, 1.0))
+   creator.create("Individual", list, fitness=creator.FitnessMax)
+
+   toolbox = base.Toolbox()
+   toolbox.register("population", init_population,
+      list, creator.Individual, "first_guess.json")
+
+   population = toolbox.population()
+
+
+.. code-block:: text
+   :caption: first_guess.json
+
+    [
+        [1, 2, 3, 4, 5, 6],
+        [0, 0, 0, 0, 0, 0],
+        [1, 1, 1, 1, 1, 1]
+    ]
+
+.. raw:: html
+
+   <br />
