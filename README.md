@@ -10,7 +10,7 @@ DEAP-ER is a complete rework of the original DEAP library, which includes featur
   * Evolution Strategies (Covariance Matrix Adaptation)
   * Multi-objective optimisation (SPEA-II, NSGA-II, NSGA-III, MO-CMA)
   * Co-evolution (cooperative and competitive) of multiple populations
-  * Parallelization of the evolution processes using multiprocessing or with [Ray](https://github.com/ray-project/ray)
+  * Parallelization of evolution processes using multiprocessing or with [Ray](https://github.com/ray-project/ray)
   * Records to track the evolution and to collect the best individuals
   * Checkpoints to persist the progress of evolutions to disk
   * Benchmarks to test evolution algorithms against common test functions
