@@ -1,8 +1,8 @@
 Records
 =======
 
-Evolution
----------
+For Evolution
+-------------
 
 .. autoclass:: deap_er.records.Logbook
    :members:
@@ -19,8 +19,8 @@ Evolution
    <hr>
 
 
-Individuals
------------
+For Individuals
+---------------
 
 .. autoclass:: deap_er.records.HallOfFame
    :members:

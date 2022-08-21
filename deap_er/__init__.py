@@ -24,6 +24,6 @@
 #                                                                                        #
 # ====================================================================================== #
 from .creator import creator
-from . import controllers as env
+from . import persistence as env
 from . import base
 from . import gp

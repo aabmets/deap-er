@@ -1,21 +1,23 @@
-Saving and Loading Progress
-===========================
+Using Checkpoints
+=================
 
 In this tutorial, we will describe how persistence can be achieved for evolution algorithms.
-This library has a helper class named :class:`~deap_er.controllers.checkpoint.Checkpoint`, which can
+This library has a helper class named :class:`~deap_er.persistence.checkpoint.Checkpoint`, which can
 be used to save the current state of an evolution algorithm to disk and restore it later to resume
-the computation. The checkpoint controller is available from the ``env`` sub-package of this library.
+the computation. You can read more about the Checkpoint object from the :ref:`State Persistence
+<persistence>` section of the Reference Manual.
 
 Checkpoint objects use the `dill <https://pypi.org/project/dill/>`_ library for object (de-)serialization,
 because it supports more Python types like lambdas, than the default :mod:`pickle` library. Checkpoints can
 be used either manually with the :func:`save()` and :func:`load()` methods or automatically with the custom
 :func:`range()` generator. The builtin algorithms don't implement automatic checkpointing due to their
-simplistic nature.
+simplistic nature, but the user is able to implement manual checkpointing around them.
 
-In the following partial example, we will use the :func:`range()` generator to save the progress to disk
-every **save_freq** generations. If one should wish to resume the computation later, they would only have
-to pass the name or path of the checkpoint file to the checkpoint constructor, as the data is automatically
+In the following example, we will use the :func:`range()` generator to save the progress to disk every
+**save_freq** seconds. If one should wish to resume the computation later, they would only have to pass
+the name or path of the checkpoint file to the checkpoint constructor, as the data is automatically
 loaded from the disk on object initialization by default.
+
 
 .. code-block::
 
@@ -32,6 +34,8 @@ loaded from the disk on object initialization by default.
             cp.pop = toolbox.population(size=300)
             cp.hof = tools.HallOfFame(maxsize=1)
             cp.log = tools.Logbook()
+            fields = stats.fields if stats else []
+            cp.log.header = ['gen', 'nevals'] + fields
 
         for gen in cp.range(1000):
             # evolve new offspring from parent pop
@@ -50,7 +54,7 @@ loaded from the disk on object initialization by default.
             # persist the hof, log and offspring
             cp.hof.update(offspring)
             record = stats.compile(offspring)
-            cp.log.record(gen=gen, evals=len(invalids), **record)
+            cp.log.record(gen=gen, nevals=len(invalids), **record)
             cp.pop = toolbox.select(offspring, sel_count=len(offspring))
 
             # the range() generator persists the cp to disk

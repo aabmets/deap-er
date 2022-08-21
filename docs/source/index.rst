@@ -1,6 +1,15 @@
 Welcome to the DEAP-ER's documentation!
 =======================================
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Overview:
+
+   overview/introduction.rst
+   overview/differences.rst
+   overview/getting_started.rst
+
+
 .. _tutorials:
 
 .. toctree::
@@ -11,12 +20,11 @@ Welcome to the DEAP-ER's documentation!
    tutorials/creating_individuals.rst
    tutorials/operators_and_algorithms.rst
    tutorials/multiprocessing.rst
-   tutorials/progress_checkpoint.rst
+   tutorials/using_checkpoints.rst
 
 ..
    tutorials/logging_statistics.rst
    tutorials/genetic_programming.rst
-   tutorials/seeding_populations.rst
    tutorials/constraint_handling.rst
    tutorials/using_numpy.rst
 
@@ -48,5 +56,5 @@ Welcome to the DEAP-ER's documentation!
    reference/utilities.rst
    reference/benchmarks.rst
    reference/gp.rst
-   reference/controllers.rst
+   reference/persistence.rst
    reference/aliases.rst
