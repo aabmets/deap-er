@@ -19,11 +19,11 @@ Welcome to the DEAP-ER's documentation!
    tutorials/using_the_toolbox.rst
    tutorials/creating_individuals.rst
    tutorials/operators_and_algorithms.rst
+   tutorials/logging_statistics.rst
    tutorials/multiprocessing.rst
    tutorials/using_checkpoints.rst
 
 ..
-   tutorials/logging_statistics.rst
    tutorials/genetic_programming.rst
    tutorials/constraint_handling.rst
    tutorials/using_numpy.rst

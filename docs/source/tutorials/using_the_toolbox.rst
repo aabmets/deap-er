@@ -57,7 +57,7 @@ More on tools in the :ref:`Operators and Algorithms <ops_and_algos>` chapter.
 .. note::
     Some commonly used aliases, such as **mate**, **mutate**, **select**, **evaluate** and others,
     do have *abstract* references available, which enables IDE autocompletion support for them. Note
-    that these references are *abstract* and must be overridden by the user before they can be used.
+    that these references are *abstract* and must be implemented by the user before they can be used.
 
 .. code-block::
 

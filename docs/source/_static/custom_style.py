@@ -34,11 +34,11 @@ class CustomStyle(Style):
     pink = '#F07178'
     violet = '#BB80B3'
     foreground = '#EEEEEE'
-    faded = '#607A86'
+    faded = '#728F9E'
 
     default_style = ""
     background_color = dark_teal
-    highlight_color = '#2C3B41'
+    highlight_color = '#3B4E57'
     line_number_color = faded
     line_number_background_color = dark_teal
     line_number_special_color = faded
