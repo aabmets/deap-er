@@ -12,19 +12,22 @@ import math
 random.seed(1234)
 
 # Define constants, objects and functions.
-AVG_OE_MEASURE_INTERVAL = 100
-AVG_OE_THRESHOLD = 3
-VERBOSE = True
+REG_POP_SIZE = 4
+RAND_POP_SIZE = 2
+TOTAL_POP_SIZE = 6
 
-NDIM = 5
-NPOP = 10
+NDIMS = 5
+NPOPS = 10
 CR = 0.6
 F = 0.4
 
 SCENARIO = tools.MPConfigs.ALT1
-mpb = tools.MovingPeaks(dimensions=NDIM, **SCENARIO)
-
 BOUNDS = [SCENARIO["min_coord"], SCENARIO["max_coord"]]
+MPB = tools.MovingPeaks(dimensions=NDIMS, **SCENARIO)
+
+AVG_OE_MEASURE_INTERVAL = 100
+AVG_OE_THRESHOLD = 3
+VERBOSE = True
 
 
 def brown_ind(iter_, best, sigma):
@@ -37,12 +40,12 @@ def setup():
 
     toolbox = base.Toolbox()
     toolbox.register("attr_float", random.uniform, BOUNDS[0], BOUNDS[1])
-    toolbox.register("individual", tools.init_repeat, creator.Individual, toolbox.attr_float, NDIM)
+    toolbox.register("individual", tools.init_repeat, creator.Individual, toolbox.attr_float, NDIMS)
     toolbox.register("brownian_individual", brown_ind, creator.Individual, sigma=0.3)
     toolbox.register("population", tools.init_repeat, list, toolbox.individual)
     toolbox.register("select", random.sample, k=4)
     toolbox.register("best", tools.sel_best, sel_count=1)
-    toolbox.register("evaluate", mpb)
+    toolbox.register("evaluate", MPB)
 
     stats = tools.Statistics(lambda ind: ind.fitness.values)
     stats.register("avg", numpy.mean)
@@ -77,26 +80,73 @@ def print_results(avg_err):
     print(f'\nEvolution converged correctly.')
 
 
-def main():
-    toolbox, stats, logbook = setup()
-    regular, brownian = 4, 2
-    pop_size = regular + brownian
+class Logger:
+    def __init__(self, logbook, stats):
+        self.logbook = logbook
+        self.stats = stats
 
-    def log_stats(ngen=0):
-        chain = itertools.chain(*populations)
-        record = stats.compile(chain)
+    def log(self, ngen, pops):
+        chain = itertools.chain(*pops)
+        record = self.stats.compile(chain)
         args = dict(
             gen=ngen,
-            evals=mpb.nevals,
-            error=mpb.current_error,
-            offline_error=mpb.offline_error
+            evals=MPB.nevals,
+            error=MPB.current_error,
+            offline_error=MPB.offline_error
         )
-        logbook.record(**args, **record)
+        self.logbook.record(**args, **record)
         if VERBOSE:
-            print(logbook.stream)
+            print(self.logbook.stream)
+
+
+def get_best_and_invalidate(toolbox, populations) -> list:
+    bests = [toolbox.best(subpop)[0] for subpop in populations]
+    if any(b.fitness.values != toolbox.evaluate(b) for b in bests):
+        for individual in itertools.chain(*populations):
+            del individual.fitness.values
+    return bests
+
+
+def exclude_best_inds(toolbox, bests, populations) -> None:
+    rex_cl = (BOUNDS[1] - BOUNDS[0]) / (2 * NPOPS ** (1.0 / NDIMS))
+    for i, j in itertools.combinations(range(NPOPS), 2):
+        if bests[i].fitness.is_valid() and bests[j].fitness.is_valid():
+            d = sum((bests[i][k] - bests[j][k]) ** 2 for k in range(NDIMS))
+            d = math.sqrt(d)
+            if d < rex_cl:
+                k = i if bests[i].fitness < bests[j].fitness else j
+                populations[k] = toolbox.population(size=TOTAL_POP_SIZE)
+
+
+def regular_diff_evo(toolbox, subpop, xbest, new_pop) -> None:
+    for individual in subpop[:REG_POP_SIZE]:
+        x1, x2, x3, x4 = toolbox.select(subpop)
+        offspring = toolbox.clone(individual)
+        index = random.randrange(NDIMS)
+        for i, value in enumerate(individual):
+            if i == index or random.random() < CR:
+                offspring[i] = xbest[i] + F * (x1[i] + x2[i] - x3[i] - x4[i])
+        offspring.fitness.values = toolbox.evaluate(offspring)
+        if offspring.fitness >= individual.fitness:
+            new_pop.append(offspring)
+        else:
+            new_pop.append(individual)
+
+
+def brownian_diff_evo(toolbox, xbest, new_pop) -> None:
+    inds = []
+    for _ in range(RAND_POP_SIZE):
+        ind = toolbox.brownian_individual(xbest)
+        inds.append(ind)
+    new_pop.extend(inds)
+
+
+def main():
+    toolbox, stats, logbook = setup()
+    logger = Logger(logbook, stats)
 
     # Generate the initial populations.
-    populations = [toolbox.population(size=pop_size) for _ in range(NPOP)]
+    populations = [toolbox.population(size=TOTAL_POP_SIZE) for _ in range(NPOPS)]
 
     # Evaluate the initial populations.
     for idx, subpop in enumerate(populations):
@@ -104,7 +154,7 @@ def main():
         for ind, fit in zip(subpop, fitness):
             ind.fitness.values = fit
 
-    log_stats()
+    logger.log(0, populations)
 
     generation = 1
 
@@ -112,23 +162,10 @@ def main():
     while not stop_condition(logbook):
 
         # Detect changes and invalidate fitness if necessary.
-        bests = [toolbox.best(subpop)[0] for subpop in populations]
-        if any(b.fitness.values != toolbox.evaluate(b) for b in bests):
-            for individual in itertools.chain(*populations):
-                del individual.fitness.values
+        bests = get_best_and_invalidate(toolbox, populations)
 
         # Apply exclusionary pressure to the best individuals.
-        rex_cl = (BOUNDS[1] - BOUNDS[0]) / (2 * NPOP**(1.0/NDIM))
-        for i, j in itertools.combinations(range(NPOP), 2):
-            if bests[i].fitness.is_valid() and bests[j].fitness.is_valid():
-                d = sum((bests[i][k] - bests[j][k])**2 for k in range(NDIM))
-                d = math.sqrt(d)
-                if d < rex_cl:
-                    if bests[i].fitness < bests[j].fitness:
-                        k = i
-                    else:
-                        k = j
-                    populations[k] = toolbox.population(size=pop_size)
+        exclude_best_inds(toolbox, bests, populations)
 
         # Evaluate the individuals with an invalid fitness.
         chain = itertools.chain(*populations)
@@ -137,7 +174,7 @@ def main():
         for ind, fit in zip(invalid_ind, fitness):
             ind.fitness.values = fit
 
-        log_stats(generation)
+        logger.log(generation, populations)
 
         # Evolve the subpopulations.
         for idx, subpop in enumerate(populations):
@@ -145,24 +182,13 @@ def main():
             xbest, = toolbox.best(subpop)
 
             # Apply regular DE to the first part of the population.
-            for individual in subpop[:regular]:
-                x1, x2, x3, x4 = toolbox.select(subpop)
-                offspring = toolbox.clone(individual)
-                index = random.randrange(NDIM)
-                for i, value in enumerate(individual):
-                    if i == index or random.random() < CR:
-                        offspring[i] = xbest[i] + F * (x1[i] + x2[i] - x3[i] - x4[i])
-                offspring.fitness.values = toolbox.evaluate(offspring)
-                if offspring.fitness >= individual.fitness:
-                    new_pop.append(offspring)
-                else:
-                    new_pop.append(individual)
+            regular_diff_evo(toolbox, subpop, xbest, new_pop)
 
             # Apply brownian DE to the last part of the population.
-            new_pop.extend(toolbox.brownian_individual(xbest) for _ in range(brownian))
+            brownian_diff_evo(toolbox, xbest, new_pop)
 
             # Evaluate the brownian individuals.
-            for individual in new_pop[-brownian:]:
+            for individual in new_pop[-RAND_POP_SIZE:]:
                 individual.fitness.value = toolbox.evaluate(individual)
 
             # Replace the population with the new one.
