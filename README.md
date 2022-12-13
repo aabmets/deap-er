@@ -1,6 +1,6 @@
 # DEAP-ER
 
-DEAP-ER is a complete rework of the original DEAP library, which includes features such as:
+DEAP-ER is a complete rewrite of the original DEAP library for Python 3.10 and up, which includes features such as:
 
   * Genetic algorithms using any imaginable containers like:
     * List, Array, Set, Dictionary, Tree, Numpy Array, etc.
