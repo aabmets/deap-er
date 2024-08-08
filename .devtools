@@ -1,0 +1,17 @@
+{
+  "license_cmd": {
+    "header": {
+      "title": "MIT License",
+      "year": "2022",
+      "holder": "Mattias Aabmets",
+      "spdx_id": "MIT",
+      "spaces": 3,
+      "oss": true
+    },
+    "paths": [
+      "deap_er",
+      "tests"
+    ],
+    "file_name": "mi.json"
+  }
+}
