@@ -1,7 +1,7 @@
 # codebase-memory — tool catalog
 
 Read this only when the short `SKILL.md` mandates are not enough.
-Setup: skill `install-codebase-memory-mcp`.
+If `.bin/codebase-memory-mcp` is missing, `source tools/dev`.
 
 ## Tools
 
@@ -29,4 +29,4 @@ Setup: skill `install-codebase-memory-mcp`.
 
 ## Graph UI
 
-While the MCP server is up it may serve a UI at <http://localhost:9749>.
+While the MCP server is up it may serve a UI at <http://localhost:9749>. After `source tools/dev`, `codegraph` opens that URL.

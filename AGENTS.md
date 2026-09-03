@@ -2,7 +2,7 @@
 
 This document contains **always-on** mandates for AI agents. Procedural playbooks live in [`.cursor/skills/`](.cursor/skills/) — read the relevant skill **before** starting work that needs it.
 
-**deap-er** is a single-package scientific library (`deap_er/`) for evolutionary algorithms. There is no `backend/`, `tools/` app tree, frontend, database, or devstack.
+**deap-er** is a single-package scientific library (`deap_er/`) for evolutionary algorithms. There is no `backend/`, frontend, database, or devstack. `tools/dev` is developer bootstrap only — not a second installable package.
 
 ## 1. Core Principles
 
@@ -41,9 +41,9 @@ These rules apply on every task regardless of skills.
 
 ### Single-package library
 
-This repo is `deap_er/` + `tests/` + `examples/` + MkDocs `docs/`.
+This repo is `deap_er/` + `tests/` + `examples/` + MkDocs `docs/`. `tools/dev` is sourced bootstrap (CLI helpers, host tools, `.bin/` binaries, uv/bun installs).
 
-- Do not invent `backend/`, `tools/`, `frontend/`, `services/`, or a second installable package.
+- Do not invent `backend/`, `frontend/`, `services/`, a second installable package, or a `tools/` app tree.
 - Do not impose service/DI/Pydantic patterns. Operators and algorithms are **module-level functions**. Package `__init__.py` star-exports are the public surface.
 - `creator.create` mutates types at runtime; `env.Checkpoint` serializes with **dill**. Do not "fix" either.
 - Runtime dependencies are `numpy`, `scipy`, and `dill` unless the user asks to add one.
@@ -63,8 +63,8 @@ Follow the typing already used in the file you are editing (`deap_er.base.dtypes
 
 ### Tool Usage
 
-- **Hooks:** project `preToolUse` rewrites supported Shell commands via RTK (`.cursor/hooks.json` → `.cursor/hooks/rtk-pretooluse.sh`). Fails open until `.bin/rtk` exists. Never run `rtk init -g`.
-- **MCP:** `.cursor/mcp.json` points at **this** repo’s `.bin/codebase-memory-mcp`. Do not use another project’s server. Graph tools are unavailable until that binary exists.
+- **Hooks:** project `preToolUse` rewrites supported Shell commands via RTK (`.cursor/hooks.json` → `.cursor/hooks/rtk-pretooluse.sh`). Fails open until `.bin/rtk` exists. Never run `rtk init -g`. If the binary is missing, `source tools/dev`.
+- **MCP:** `.cursor/mcp.json` points at **this** repo’s `.bin/codebase-memory-mcp`. Do not use another project’s server. Graph tools are unavailable until that binary exists. If the binary is missing, `source tools/dev`.
 - **Structured tools first:** Use Read, Grep, Write, and StrReplace when they fit; Shell is for commands that need a real terminal environment.
 
 ## 3. Task Skills (Read Before Doing)
@@ -79,24 +79,25 @@ This is required for every Python touch — including narrow one-function fixes,
 
 | Skill | Path | Read when |
 |:------|:-----|:----------|
-| **Codebase Memory MCP** | [`.cursor/skills/use-codebase-memory-mcp/SKILL.md`](.cursor/skills/use-codebase-memory-mcp/SKILL.md) | Exploring code structure, tracing calls, finding symbols, impact analysis |
+| **Codebase Memory MCP** | [`.cursor/skills/codebase-memory-mcp/SKILL.md`](.cursor/skills/codebase-memory-mcp/SKILL.md) | Exploring code structure, tracing calls, finding symbols, impact analysis |
 | **Python architecture** | [`.cursor/skills/python-architecture/SKILL.md`](.cursor/skills/python-architecture/SKILL.md) | **Required** — any Python work under `deap_er/`, `tests/`, or `examples/` |
 | **Pytest** | [`.cursor/skills/python-pytest/SKILL.md`](.cursor/skills/python-pytest/SKILL.md) | Writing or fixing tests — **only when tests are in scope** (see Scope Discipline) |
 | **MkDocs docs** | [`.cursor/skills/mkdocs-docs/SKILL.md`](.cursor/skills/mkdocs-docs/SKILL.md) | Updating `docs/`, `mkdocs.yml`, or README — **only when docs are in scope** |
 | **Validation** | [`.cursor/skills/python-validation/SKILL.md`](.cursor/skills/python-validation/SKILL.md) | After Python edits, before reporting a task complete (when validation is in scope) |
-| **RTK** | [`.cursor/skills/use-rtk/SKILL.md`](.cursor/skills/use-rtk/SKILL.md) | Compact shell output; hook repair: [`install-rtk`](.cursor/skills/install-rtk/SKILL.md) |
+| **RTK** | [`.cursor/skills/rtk/SKILL.md`](.cursor/skills/rtk/SKILL.md) | Compact shell output; missing binary: `source tools/dev` |
+| **Allure** | [`.cursor/skills/install-allure/SKILL.md`](.cursor/skills/install-allure/SKILL.md) | Project-local `node_modules/.bin/allure` via bun / `source tools/dev` |
 
 ### Typical Task → Skill Sequence
 
 | User task | Skills to read (in order) |
 |:----------|:--------------------------|
-| Find how an operator or algorithm works | use-codebase-memory-mcp |
-| Implement a library feature (full request) | use-codebase-memory-mcp → **python-architecture** → python-pytest (if tests requested) → mkdocs-docs (if docs requested) → python-validation |
-| Fix a bug with tests requested | use-codebase-memory-mcp → **python-architecture** → python-pytest → python-validation |
+| Find how an operator or algorithm works | codebase-memory-mcp |
+| Implement a library feature (full request) | codebase-memory-mcp → **python-architecture** → python-pytest (if tests requested) → mkdocs-docs (if docs requested) → python-validation |
+| Fix a bug with tests requested | codebase-memory-mcp → **python-architecture** → python-pytest → python-validation |
 | Any Python edit (narrow or broad) | **python-architecture** (always) → other skills only when in scope for that task |
 | Update tutorials / reference / Pages | **mkdocs-docs** (always when docs are in scope) |
 
-**Indexed codebase graph project:** `mnt-projects-private-deap-er` (repo root `/mnt/projects/private/deap-er`). Session startup: see [`use-codebase-memory-mcp`](.cursor/skills/use-codebase-memory-mcp/SKILL.md) and [`install-codebase-memory-mcp`](.cursor/skills/install-codebase-memory-mcp/SKILL.md).
+**Indexed codebase graph project:** `mnt-projects-private-deap-er` (repo root `/mnt/projects/private/deap-er`). Session startup: see [`codebase-memory-mcp`](.cursor/skills/codebase-memory-mcp/SKILL.md). Missing `.bin/codebase-memory-mcp`: `source tools/dev`.
 
 ## 4. Finishing a Task
 

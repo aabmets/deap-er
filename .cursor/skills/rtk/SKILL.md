@@ -1,20 +1,20 @@
 ---
-name: use-rtk
+name: rtk
 description: >-
   Use the RTK CLI proxy for compact shell output. Use when running git, pytest,
   grep, ls, find, or other RTK-supported commands, when shell output is large,
   or when compacting results before they reach the model.
 ---
 
-# Use RTK
+# RTK
 
 [RTK](https://github.com/rtk-ai/rtk) rewrites supported commands to `rtk <command>` so the model sees compact output.
 
-Binary: `.bin/rtk`. Hook setup: skill `install-rtk`.
+Binary: `.bin/rtk` (gitignored). Project hook: `.cursor/hooks.json` → `.cursor/hooks/rtk-pretooluse.sh` (fails open if the binary is missing). Bootstrap: `source tools/dev`. Never run `rtk init -g`.
 
 ## Before using
 
-1. Prefer the project hook (`.cursor/hooks.json` → `.cursor/hooks/rtk-pretooluse.sh`). If it is missing, follow `install-rtk`.
+1. Prefer the project hook. If `.bin/rtk` is missing, `source tools/dev`.
 2. If `.bin/rtk` is not on `PATH` for a direct call:
 
 ```bash
@@ -46,5 +46,5 @@ rewritten=$(rtk rewrite "$cmd" 2>/dev/null) || true
 
 ## Related
 
-- Wire hooks: skill `install-rtk`
-- Structural exploration: skill `use-codebase-memory-mcp`
+- Bootstrap: `source tools/dev`
+- Graph exploration: skill `codebase-memory-mcp`

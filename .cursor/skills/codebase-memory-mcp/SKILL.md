@@ -1,23 +1,23 @@
 ---
-name: use-codebase-memory-mcp
+name: codebase-memory-mcp
 description: >-
   Explore deap-er via the codebase-memory-mcp knowledge graph (MCP or CLI). Use
   when tracing call graphs, finding symbols, understanding package structure, or
   analyzing dependencies more efficiently than grep.
 ---
 
-# Use codebase-memory MCP
+# codebase-memory MCP
 
-Graph of **this** repo (`deap_er`, `tests`, `examples`, `docs`). Setup: skill `install-codebase-memory-mcp`. Tool catalog: [reference.md](reference.md).
+Graph of **this** repo (`deap_er`, `tests`, `examples`, `docs`). Binary: `.bin/codebase-memory-mcp` (gitignored). Cursor config: `.cursor/mcp.json` (absolute `command` and `cwd`). Bootstrap: `source tools/dev`. Tool catalog: [reference.md](reference.md).
 
-If MCP is not wired, follow install first. CLI fallback:
+If the binary is missing, `source tools/dev` or use Grep / Read / Glob. Do not call another project's server.
+
+CLI fallback:
 
 ```bash
 .bin/codebase-memory-mcp cli <tool> --flag value
 .bin/codebase-memory-mcp cli <tool> --help
 ```
-
-If the binary is missing, use Grep / Read / Glob. Do not call another project's server.
 
 ## Mandates
 
