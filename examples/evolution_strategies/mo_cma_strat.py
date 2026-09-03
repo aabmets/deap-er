@@ -68,7 +68,7 @@ def print_results(valid, parents):
         raise RuntimeError('Evolution failed to converge.')
     print(f"\nNumber of valid individuals is {valid}/{len(parents)}"
           f" with a hypervolume of {hv:.2f}.")
-    print(f'Evolution converged correctly.')
+    print('Evolution converged correctly.')
 
 
 def main():

@@ -75,7 +75,7 @@ def setup():
 def print_results(best_ind):
     if not best_ind.fitness.values == (64,):
         raise RuntimeError('Evolution failed to converge.')
-    print(f'\nEvolution converged correctly.')
+    print('\nEvolution converged correctly.')
 
 
 def main():

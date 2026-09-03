@@ -119,7 +119,7 @@ def stop_condition(logbook):
 
 def print_results(avg_err):
     print(f'\nAverage offline error: {avg_err:.3f} (<={AVG_OE_THRESHOLD}).')
-    print(f'\nEvolution converged correctly.')
+    print('\nEvolution converged correctly.')
 
 
 def main():

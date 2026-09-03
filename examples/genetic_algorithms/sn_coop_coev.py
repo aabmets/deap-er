@@ -107,7 +107,7 @@ def setup():
 def print_results(best_network):
     print('\nBest sorting network schematic:')
     print(best_network.draw())
-    print(f'\nEvolution converged correctly.')
+    print('\nEvolution converged correctly.')
 
 
 def main():

@@ -57,7 +57,7 @@ def print_results(best_ind):
     if not best_ind.fitness.values == (0.0,):
         raise RuntimeError('Evolution failed to converge.')
     print(f'\nRow numbers for each queen on each column of the chessboard: \n{best_ind}')
-    print(f'\nEvolution converged correctly.')
+    print('\nEvolution converged correctly.')
 
 
 def main():
