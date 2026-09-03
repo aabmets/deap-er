@@ -1,10 +1,10 @@
 {
   "license_cmd": {
     "header": {
-      "title": "MIT License",
+      "title": "Apache License 2.0",
       "year": "2022",
       "holder": "Mattias Aabmets",
-      "spdx_id": "MIT",
+      "spdx_id": "Apache-2.0",
       "spaces": 3,
       "oss": true
     },
