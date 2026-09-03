@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from .sel_various import sel_random
@@ -14,12 +14,13 @@ from functools import partial
 import random
 
 
-__all__ = ['sel_tournament', 'sel_double_tournament', 'sel_tournament_dcd']
+__all__ = ["sel_tournament", "sel_double_tournament", "sel_tournament_dcd"]
 
 
 # ====================================================================================== #
-def sel_tournament(individuals: list, rounds: int,
-                   contestants: int, fit_attr: str = "fitness") -> list:
+def sel_tournament(
+    individuals: list, rounds: int, contestants: int, fit_attr: str = "fitness"
+) -> list:
     """
     Selects the best individual among the randomly
     chosen **contestants** for **rounds** times.
@@ -38,9 +39,14 @@ def sel_tournament(individuals: list, rounds: int,
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_double_tournament(individuals: list, rounds: int,
-                          fitness_size: int, parsimony_size: int,
-                          fitness_first: bool, fit_attr: str = "fitness") -> list:
+def sel_double_tournament(
+    individuals: list,
+    rounds: int,
+    fitness_size: int,
+    parsimony_size: int,
+    fitness_first: bool,
+    fit_attr: str = "fitness",
+) -> list:
     """
     Tournament selection which uses the size of the individuals in
     order to discriminate good solutions. It can also be used for
@@ -61,7 +67,7 @@ def sel_double_tournament(individuals: list, rounds: int,
     def _size_tourney(select):
         chosen = []
         for i in range(rounds):
-            prob = parsimony_size / 2.
+            prob = parsimony_size / 2.0
             ind1, ind2 = select(individuals, sel_count=2)
             if len(ind1) > len(ind2):
                 ind1, ind2 = ind2, ind1
@@ -102,8 +108,7 @@ def sel_tournament_dcd(individuals: list, sel_count: int) -> list:
     """
     if sel_count > len(individuals):
         raise ValueError(
-            "sel_tournament_dcd: count must be less "
-            "than or equal to individuals length."
+            "sel_tournament_dcd: count must be less than or equal to individuals length."
         )
 
     if sel_count == len(individuals) and sel_count % 4 != 0:
@@ -130,9 +135,9 @@ def sel_tournament_dcd(individuals: list, sel_count: int) -> list:
 
     chosen = []
     for i in range(0, sel_count, 4):
-        chosen.append(tourney(individuals_1[i],   individuals_1[i+1]))
-        chosen.append(tourney(individuals_1[i+2], individuals_1[i+3]))
-        chosen.append(tourney(individuals_2[i],   individuals_2[i+1]))
-        chosen.append(tourney(individuals_2[i+2], individuals_2[i+3]))
+        chosen.append(tourney(individuals_1[i], individuals_1[i + 1]))
+        chosen.append(tourney(individuals_1[i + 2], individuals_1[i + 3]))
+        chosen.append(tourney(individuals_2[i], individuals_2[i + 1]))
+        chosen.append(tourney(individuals_2[i + 2], individuals_2[i + 3]))
 
     return chosen

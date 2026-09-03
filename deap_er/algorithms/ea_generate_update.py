@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.records.dtypes import *
@@ -13,13 +13,13 @@ from deap_er.records import Logbook
 from deap_er.base import Toolbox
 
 
-__all__ = ['ea_generate_update']
+__all__ = ["ea_generate_update"]
 
 
 # ====================================================================================== #
-def ea_generate_update(toolbox: Toolbox, generations: int,
-                       hof: Hof = None, stats: Stats = None,
-                       verbose: bool = False) -> AlgoResult:
+def ea_generate_update(
+    toolbox: Toolbox, generations: int, hof: Hof = None, stats: Stats = None, verbose: bool = False
+) -> AlgoResult:
     """
     An evolutionary algorithm. This function expects the *'generate'*,
     *'update'*, and *'evaluate'* operators to be registered in the toolbox.
@@ -36,7 +36,7 @@ def ea_generate_update(toolbox: Toolbox, generations: int,
     :rtype: :ref:`AlgoResult <datatypes>`
     """
     logbook = Logbook()
-    logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
+    logbook.header = ["gen", "nevals"] + (stats.fields if stats else [])
 
     population = None
     for gen in range(generations):

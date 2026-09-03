@@ -102,7 +102,7 @@ def prog3(out1, out2, out3):
 def evaluate(individual, ant, prim_set):
     routine = gp.compile_tree(individual, prim_set)
     ant.run(routine)
-    return ant.eaten,  # The comma is essential here.
+    return (ant.eaten,)  # The comma is essential here.
 
 
 def setup():
@@ -137,13 +137,13 @@ def setup():
     stats.register("min", numpy.min)
     stats.register("max", numpy.max)
 
-    return toolbox,  stats
+    return toolbox, stats
 
 
 def print_results(best_ind):
     if not best_ind.fitness.values > (50,):
-        raise RuntimeError('Evolution failed to converge.')
-    print('\nEvolution converged correctly.')
+        raise RuntimeError("Evolution failed to converge.")
+    print("\nEvolution converged correctly.")
 
 
 def main():
@@ -158,7 +158,7 @@ def main():
         mut_prob=0.1,
         hof=hof,
         stats=stats,
-        verbose=True  # prints stats
+        verbose=True,  # prints stats
     )
     tools.ea_simple(**args)
     print_results(hof[0])

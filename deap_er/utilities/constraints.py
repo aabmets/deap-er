@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.base.dtypes import *
@@ -14,7 +14,7 @@ from itertools import repeat
 from functools import wraps
 
 
-__all__ = ['DeltaPenalty', 'ClosestValidPenalty']
+__all__ = ["DeltaPenalty", "ClosestValidPenalty"]
 
 
 # ====================================================================================== #
@@ -36,9 +36,9 @@ class DeltaPenalty:
 
     :type delta: :ref:`NumOrSeq <datatypes>`
     """
+
     # -------------------------------------------------------- #
-    def __init__(self, feasibility: Callable,
-                 delta: NumOrSeq, distance: Callable = None):
+    def __init__(self, feasibility: Callable, delta: NumOrSeq, distance: Callable = None):
         self.fea_func = feasibility
         if not isinstance(delta, Sequence):
             self.delta = repeat(delta)
@@ -85,9 +85,11 @@ class ClosestValidPenalty:
         between the individual and a given valid point.
     :return: A decorator for the fitness function.
     """
+
     # -------------------------------------------------------- #
-    def __init__(self, validity: Callable, feasible: Callable,
-                 alpha: float, distance: Callable = None):
+    def __init__(
+        self, validity: Callable, feasible: Callable, alpha: float, distance: Callable = None
+    ):
         self.fea_func = validity
         self.fbl_fct = feasible
         self.alpha = alpha
@@ -106,10 +108,7 @@ class ClosestValidPenalty:
             weights = tuple(1.0 if w >= 0 else -1.0 for w in individual.fitness.weights)
 
             if len(weights) != len(f_fbl):
-                raise IndexError(
-                    "Fitness weights and computed "
-                    "fitness are of different size."
-                )
+                raise IndexError("Fitness weights and computed fitness are of different size.")
             dists = [0 for _ in individual.fitness.weights]
             if self.dist_fct is not None:
                 dists = self.dist_fct(f_ind, individual)

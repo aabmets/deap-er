@@ -29,8 +29,8 @@ def setup():
 
 def print_results(best_ind):
     if not all(gene == 1 for gene in best_ind):
-        raise RuntimeError('Evolution failed to converge.')
-    print('\nEvolution converged correctly.')
+        raise RuntimeError("Evolution failed to converge.")
+    print("\nEvolution converged correctly.")
 
 
 def main():

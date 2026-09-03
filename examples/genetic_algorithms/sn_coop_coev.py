@@ -27,7 +27,7 @@ def gen_network(dimension, min_size, max_size):
 
 def eval_network(host, parasite, dimension):
     network = tools.SortingNetwork(dimension, host)
-    return network.evaluate(parasite),  # The comma is essential here.
+    return (network.evaluate(parasite),)  # The comma is essential here.
 
 
 def mut_network(individual, dimension, mutpb, addpb, delpb, indpb):
@@ -41,7 +41,7 @@ def mut_network(individual, dimension, mutpb, addpb, delpb, indpb):
     if random.random() < delpb:
         index = random.randrange(len(individual))
         del individual[index]
-    return individual,  # The comma is essential here.
+    return (individual,)  # The comma is essential here.
 
 
 def clone_network(individual):
@@ -58,7 +58,7 @@ def mut_parasite(individual, mut_prob):
     for i in individual:
         if random.random() < mut_prob:
             tools.mut_flip_bit(i, mut_prob)
-    return individual,  # The comma is essential here.
+    return (individual,)  # The comma is essential here.
 
 
 def clone_parasite(individual):
@@ -79,7 +79,9 @@ def setup():
     h_toolbox.register("population", tools.init_repeat, list, h_toolbox.individual)
     h_toolbox.register("evaluate", eval_network, dimension=INPUTS)
     h_toolbox.register("mate", tools.cx_two_point)
-    h_toolbox.register("mutate", mut_network, dimension=INPUTS, mutpb=0.2, addpb=0.01, delpb=0.01, indpb=0.05)
+    h_toolbox.register(
+        "mutate", mut_network, dimension=INPUTS, mutpb=0.2, addpb=0.01, delpb=0.01, indpb=0.05
+    )
     h_toolbox.register("select", tools.sel_tournament, contestants=3)
     h_toolbox.register("clone", clone_network)
 
@@ -105,9 +107,9 @@ def setup():
 
 
 def print_results(best_network):
-    print('\nBest sorting network schematic:')
+    print("\nBest sorting network schematic:")
     print(best_network.draw())
-    print('\nEvolution converged correctly.')
+    print("\nEvolution converged correctly.")
 
 
 def main():

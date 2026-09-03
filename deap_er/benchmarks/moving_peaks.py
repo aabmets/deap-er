@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.base.dtypes import *
@@ -58,6 +58,7 @@ class MovingPeaks:
        ``period``          *int*      Period between two changes.
        =================== ========== =================================================================================
     """
+
     def __init__(self, dimensions: int, **kwargs: Optional):
         self.dim = dimensions
         sc = MPConfigs.DEFAULT.copy()  # default config
@@ -83,19 +84,14 @@ class MovingPeaks:
 
         # ------------------------------------ #
         self.last_change_vector = [
-            [
-                random.random() - 0.5
-                for _ in range(dimensions)
-            ] for _ in range(n_peaks)
+            [random.random() - 0.5 for _ in range(dimensions)] for _ in range(n_peaks)
         ]
         # ------------------------------------ #
         self.min_coord = sc.get("min_coord")
         self.max_coord = sc.get("max_coord")
         self.peaks_position = [
-            [
-                random.uniform(self.min_coord, self.max_coord)
-                for _ in range(dimensions)
-            ] for _ in range(n_peaks)
+            [random.uniform(self.min_coord, self.max_coord) for _ in range(dimensions)]
+            for _ in range(n_peaks)
         ]
         # ------------------------------------ #
         uniform_height = sc.get("uniform_height")
@@ -104,8 +100,10 @@ class MovingPeaks:
         if uniform_height != 0:
             self.peaks_height = [uniform_height for _ in range(n_peaks)]
         else:
+
             def rand_height():
                 return random.uniform(self.min_height, self.max_height)
+
             self.peaks_height = [rand_height() for _ in range(n_peaks)]
 
         # ------------------------------------ #
@@ -115,8 +113,10 @@ class MovingPeaks:
         if uniform_width != 0:
             self.peaks_width = [uniform_width for _ in range(n_peaks)]
         else:
+
             def rand_width():
                 return random.uniform(self.min_width, self.max_width)
+
             self.peaks_width = [rand_width() for _ in range(n_peaks)]
 
         # ------------------------------------ #
@@ -143,12 +143,7 @@ class MovingPeaks:
         :type individual: :ref:`Individual <datatypes>`
         """
         possible_values = []
-        zipper = zip(
-            self.peaks_function,
-            self.peaks_position,
-            self.peaks_height,
-            self.peaks_width
-        )
+        zipper = zip(self.peaks_function, self.peaks_position, self.peaks_height, self.peaks_width)
         for func, pos, height, width in zipper:
             result = func(individual, pos, height, width)
             possible_values.append(result)
@@ -170,7 +165,7 @@ class MovingPeaks:
             if self.period > 0 and self.nevals % self.period == 0:
                 self.change_peaks()
 
-        return fitness,
+        return (fitness,)
 
     # -------------------------------------------------------- #
     @property
@@ -179,12 +174,7 @@ class MovingPeaks:
         Returns the value and position of the largest peak.
         """
         potential_max = list()
-        zipper = zip(
-            self.peaks_function,
-            self.peaks_position,
-            self.peaks_height,
-            self.peaks_width
-        )
+        zipper = zip(self.peaks_function, self.peaks_position, self.peaks_height, self.peaks_width)
         for func, pos, height, width in zipper:
             result = func(pos, pos, height, width)
             value: tuple = (result, pos)
@@ -199,12 +189,7 @@ class MovingPeaks:
         sorted from the largest to the smallest peaks.
         """
         maximums = list()
-        zipper = zip(
-            self.peaks_function,
-            self.peaks_position,
-            self.peaks_height,
-            self.peaks_width
-        )
+        zipper = zip(self.peaks_function, self.peaks_position, self.peaks_height, self.peaks_width)
         for func, pos, height, width in zipper:
             result = func(pos, pos, height, width)
             if result >= self.__call__(pos, count=False)[0]:
@@ -258,10 +243,7 @@ class MovingPeaks:
                 for i in range(n):
                     rand = random.choice(self.pfunc_pool)
                     self.peaks_function.append(rand)
-                    rand = [
-                        random.uniform(self.min_coord, self.max_coord)
-                        for _ in range(self.dim)
-                    ]
+                    rand = [random.uniform(self.min_coord, self.max_coord) for _ in range(self.dim)]
                     self.peaks_position.append(rand)
                     rand = random.uniform(self.min_height, self.max_height)
                     self.peaks_height.append(rand)
@@ -271,12 +253,13 @@ class MovingPeaks:
                     self.last_change_vector.append(rand)
 
         for i in range(len(self.peaks_function)):
+
             def fn_shift(s, c):
                 return shift_length * (1.0 - self.lamb) * s + self.lamb * c
 
             len_ = len(self.peaks_position[i])
             shift = [random.random() - 0.5 for _ in range(len_)]
-            shift_length = sum(s ** 2 for s in shift)
+            shift_length = sum(s**2 for s in shift)
             if shift_length > 0:
                 shift_length = self.move_severity / math.sqrt(shift_length)
             else:
@@ -284,7 +267,7 @@ class MovingPeaks:
 
             zipper = zip(shift, self.last_change_vector[i])
             shift = [fn_shift(s, c) for s, c in zipper]
-            shift_length = sum(s ** 2 for s in shift)
+            shift_length = sum(s**2 for s in shift)
             if shift_length > 0:
                 shift_length = self.move_severity / math.sqrt(shift_length)
             else:
@@ -319,18 +302,8 @@ class MovingPeaks:
                 else:
                     axis[i] = new_value
 
-            change_shape(
-                self.peaks_height,
-                self.min_height,
-                self.max_height,
-                self.height_severity
-            )
-            change_shape(
-                self.peaks_width,
-                self.min_width,
-                self.max_width,
-                self.width_severity
-            )
+            change_shape(self.peaks_height, self.min_height, self.max_height, self.height_severity)
+            change_shape(self.peaks_width, self.min_width, self.max_width, self.width_severity)
 
 
 # ====================================================================================== #
@@ -339,9 +312,9 @@ class MPFuncs:
     | This class contains the peak functions for the Moving Peaks problem.
     | These functions can be used for creating custom configuration presets.
     """
+
     @staticmethod
-    def pf1(individual: Individual, positions: Iterable,
-            height: float, width: float) -> float:
+    def pf1(individual: Individual, positions: Iterable, height: float, width: float) -> float:
         """
         The peak function of the :data:`DEFAULT` preset.
 
@@ -358,8 +331,7 @@ class MPFuncs:
 
     # -------------------------------------------------------- #
     @staticmethod
-    def pf2(individual: Individual, positions: Iterable,
-            height: float, width: float) -> float:
+    def pf2(individual: Individual, positions: Iterable, height: float, width: float) -> float:
         """
         The peak function of the :data:`ALT1` and :data:`ALT2` presets.
 
@@ -376,8 +348,7 @@ class MPFuncs:
 
     # -------------------------------------------------------- #
     @staticmethod
-    def pf3(individual: Individual, positions: Iterable,
-            height: float, *_) -> float:
+    def pf3(individual: Individual, positions: Iterable, height: float, *_) -> float:
         """
         An optional peak function.
 
@@ -423,6 +394,7 @@ class MPConfigs:
         ``period``          5000                  5000                  1000
         =================== ===================== ===================== =====================
     """
+
     # -------------------------------------------------------- #
     DEFAULT = MappingProxyType(
         {
@@ -442,7 +414,7 @@ class MPConfigs:
             "move_severity": 1.0,
             "height_severity": 7.0,
             "width_severity": 0.01,
-            "period": 5000
+            "period": 5000,
         }
     )
 
@@ -465,7 +437,7 @@ class MPConfigs:
             "move_severity": 1.0,
             "height_severity": 7.0,
             "width_severity": 1.0,
-            "period": 5000
+            "period": 5000,
         }
     )
 
@@ -488,6 +460,6 @@ class MPConfigs:
             "move_severity": 1.0,
             "height_severity": 1.0,
             "width_severity": 0.5,
-            "period": 1000
+            "period": 1000,
         }
     )

@@ -30,13 +30,17 @@ def check_strategy(strat):
                     if s < strat:
                         child.strategy[i] = strat
             return children
+
         return wrapped
+
     return wrapper
 
 
 def setup():
     creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-    creator.create("Individual", array.array, typecode="d", fitness=creator.FitnessMin, strategy=None)
+    creator.create(
+        "Individual", array.array, typecode="d", fitness=creator.FitnessMin, strategy=None
+    )
     creator.create("Strategy", array.array, typecode="d")
 
     toolbox = base.Toolbox()
@@ -60,8 +64,8 @@ def setup():
 
 def print_results(best_ind):
     if not best_ind.fitness.values < (0.5,):
-        raise RuntimeError('Evolution failed to converge.')
-    print('\nEvolution converged correctly.')
+        raise RuntimeError("Evolution failed to converge.")
+    print("\nEvolution converged correctly.")
 
 
 def main():
@@ -78,7 +82,7 @@ def main():
         mut_prob=0.3,
         hof=hof,
         stats=stats,
-        verbose=True  # prints stats
+        verbose=True,  # prints stats
     )
     tools.ea_mu_comma_lambda(**args)
     print_results(hof[0])

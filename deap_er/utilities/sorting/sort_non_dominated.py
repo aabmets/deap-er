@@ -1,22 +1,21 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from collections import defaultdict
 
 
-__all__ = ['sort_non_dominated']
+__all__ = ["sort_non_dominated"]
 
 
 # ====================================================================================== #
-def sort_non_dominated(individuals: list, sel_count: int,
-                       ffo: bool = False) -> list:
+def sort_non_dominated(individuals: list, sel_count: int, ffo: bool = False) -> list:
     """
     Sorts the first 'sel_count' of 'individuals' into
     different non-domination levels using the
@@ -42,7 +41,7 @@ def sort_non_dominated(individuals: list, sel_count: int,
     dominated_fits = defaultdict(list)
 
     for i, fit_i in enumerate(fits):
-        for fit_j in fits[i+1:]:
+        for fit_j in fits[i + 1 :]:
             if fit_i.dominates(fit_j):
                 dominating_fits[fit_j] += 1
                 dominated_fits[fit_i].append(fit_j)

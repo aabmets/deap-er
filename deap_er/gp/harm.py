@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.records.dtypes import *
@@ -16,24 +16,26 @@ import random
 import math
 
 
-__all__ = ['harm']
+__all__ = ["harm"]
 
 
 # ====================================================================================== #
-def harm(toolbox: Toolbox,
-         population: list,
-         generations: int,
-         cx_prob: float,
-         mut_prob: float,
-         alpha: float = 0.05,
-         beta: float = 10.0,
-         gamma: float = 0.25,
-         rho: float = 0.9,
-         nb_model: int = -1,
-         min_cutoff: int = 20,
-         hof: Hof = None,
-         stats: Stats = None,
-         verbose: bool = False) -> AlgoResult:
+def harm(
+    toolbox: Toolbox,
+    population: list,
+    generations: int,
+    cx_prob: float,
+    mut_prob: float,
+    alpha: float = 0.05,
+    beta: float = 10.0,
+    gamma: float = 0.25,
+    rho: float = 0.9,
+    nb_model: int = -1,
+    min_cutoff: int = 20,
+    hof: Hof = None,
+    stats: Stats = None,
+    verbose: bool = False,
+) -> AlgoResult:
     """
     Implements population bloat control by an evolution algorithm for a genetic
     program. The default parameter values are recommended for most use-cases.
@@ -72,6 +74,7 @@ def harm(toolbox: Toolbox,
     :type stats: :ref:`Stats <datatypes>`
     :rtype: :ref:`AlgoResult <datatypes>`
     """
+
     # -------------------------------------------------------- #
     def _harm_target_func(x: int) -> float:
         half_life = x * float(alpha) + beta
@@ -86,8 +89,9 @@ def harm(toolbox: Toolbox,
         return random.random() <= prob
 
     # -------------------------------------------------------- #
-    def _harm_gen_pop(n: int, pick_from: list = None,
-                      accept_func: Callable = lambda s: True) -> tuple:
+    def _harm_gen_pop(
+        n: int, pick_from: list = None, accept_func: Callable = lambda s: True
+    ) -> tuple:
 
         if pick_from is None:
             pick_from = list()
@@ -128,7 +132,7 @@ def harm(toolbox: Toolbox,
 
     # -------------------------------------------------------- #
     logbook = Logbook()
-    logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
+    logbook.header = ["gen", "nevals"] + (stats.fields if stats else [])
 
     invalid_ind = [ind for ind in population if not ind.fitness.is_valid()]
     fitness = toolbox.map(toolbox.evaluate, invalid_ind)
@@ -161,7 +165,7 @@ def harm(toolbox: Toolbox,
 
         natural_hist = [val * len(population) / nb_model for val in natural_hist]
         sorted_natural = sorted(natural_pop, key=lambda ind: ind.fitness)
-        cutoff_candidates = sorted_natural[int(len(population) * rho - 1):]
+        cutoff_candidates = sorted_natural[int(len(population) * rho - 1) :]
         cutoff_size = max(min_cutoff, len(min(cutoff_candidates, key=len)))
 
         target_hist = list()
@@ -173,9 +177,7 @@ def harm(toolbox: Toolbox,
                 target_hist.append(target)
 
         offspring, _ = _harm_gen_pop(
-            n=len(population),
-            pick_from=natural_pop,
-            accept_func=_harm_accept_func
+            n=len(population), pick_from=natural_pop, accept_func=_harm_accept_func
         )
 
         invalid_ind = [ind for ind in offspring if not ind.fitness.is_valid()]

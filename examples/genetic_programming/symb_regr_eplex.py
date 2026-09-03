@@ -20,9 +20,9 @@ def safe_div(left, right):
 
 def evaluate(individual, toolbox, points):
     func = toolbox.compile(expr=individual)
-    sq_errors = ((func(x) - x**4 - x**3 - x**2 - x)**2 for x in points)
+    sq_errors = ((func(x) - x**4 - x**3 - x**2 - x) ** 2 for x in points)
     result = math.fsum(sq_errors) / len(points)
-    return result,  # The comma is essential here.
+    return (result,)  # The comma is essential here.
 
 
 def setup():
@@ -35,7 +35,7 @@ def setup():
     pset.add_primitive(math.cos, 1)
     pset.add_primitive(math.sin, 1)
     pset.add_ephemeral_constant("rand101", lambda: random.randint(-1, 1))
-    pset.rename_arguments(ARG0='x')
+    pset.rename_arguments(ARG0="x")
 
     creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
     creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
@@ -49,7 +49,9 @@ def setup():
     toolbox.register("expr_mut", gp.gen_full, min_depth=0, max_depth=2)
     toolbox.register("mutate", gp.mut_uniform, expr=toolbox.expr_mut, prim_set=pset)
     toolbox.register("select", tools.sel_epsilon_lexicase)
-    toolbox.register("evaluate", evaluate, toolbox=toolbox, points=[x / 10. for x in range(-10, 10)])
+    toolbox.register(
+        "evaluate", evaluate, toolbox=toolbox, points=[x / 10.0 for x in range(-10, 10)]
+    )
     toolbox.decorate("mate", gp.static_limit(limiter=operator.attrgetter("height"), max_value=17))
     toolbox.decorate("mutate", gp.static_limit(limiter=operator.attrgetter("height"), max_value=17))
 
@@ -66,8 +68,8 @@ def setup():
 
 def print_results(best_ind):
     if not best_ind.fitness.values < (1.0e-3,):
-        raise RuntimeError('Evolution failed to converge.')
-    print('\nEvolution converged correctly.')
+        raise RuntimeError("Evolution failed to converge.")
+    print("\nEvolution converged correctly.")
 
 
 def main():
@@ -82,7 +84,7 @@ def main():
         mut_prob=0.1,
         hof=hof,
         stats=mstats,
-        verbose=True  # prints stats
+        verbose=True,  # prints stats
     )
     tools.ea_simple(**args)
     print_results(hof[0])

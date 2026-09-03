@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.creator import overrides as ovr
@@ -17,7 +17,6 @@ import numpy
 
 # ====================================================================================== #
 class TestNumpyOverrideClass:
-
     def test_numpy_override_instantiation(self):
         data = [x for x in range(0, 10)]
         obj = ovr._NumpyOverride(data)
@@ -54,7 +53,7 @@ class TestNumpyOverrideClass:
 
 # ====================================================================================== #
 class TestArrayOverrideClass:
-    ovr._ArrayOverride.typecode = 'i'
+    ovr._ArrayOverride.typecode = "i"
 
     def test_array_override_instantiation(self):
         data = [x for x in range(0, 10)]

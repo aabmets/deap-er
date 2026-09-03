@@ -20,14 +20,12 @@ def create_items():
     alphabet = list(string.ascii_uppercase)
     for _ in range(NBR_ITEMS):
         while True:
-            name = ''.join(random.choice(alphabet) for _ in range(NAME_LEN))
+            name = "".join(random.choice(alphabet) for _ in range(NAME_LEN))
             if name not in items:
                 break
         weight = random.randint(1, 10)
         value = random.uniform(0, 100)
-        items.update(
-            {name: (weight, value)}
-        )
+        items.update({name: (weight, value)})
 
 
 def evaluate(individual: set) -> tuple[int, int]:
@@ -57,7 +55,7 @@ def mutate(individual: set) -> tuple[set]:
     else:
         names = list(items.keys())
         individual.add(random.choice(names))
-    return individual,  # The comma is essential here.
+    return (individual,)  # The comma is essential here.
 
 
 def setup():
@@ -66,7 +64,9 @@ def setup():
 
     toolbox = base.Toolbox()
     toolbox.register("attr_item", random.choice, list(items.keys()))
-    toolbox.register("individual", tools.init_repeat, creator.Individual, toolbox.attr_item, IND_INIT_SIZE)
+    toolbox.register(
+        "individual", tools.init_repeat, creator.Individual, toolbox.attr_item, IND_INIT_SIZE
+    )
     toolbox.register("population", tools.init_repeat, list, toolbox.individual)
     toolbox.register("mate", mate)
     toolbox.register("mutate", mutate)
@@ -89,13 +89,13 @@ def print_results(hof):
             keys.remove(key)
             keys.append(key)
 
-    print('\nAvailable items to choose from:')
-    print('Names:\t\t' + '\t\t'.join([str(k) for k in keys]))
-    print('Weights:\t' + '\t\t'.join([str(items[k][0]) for k in keys]))
-    print('Values:\t\t' + '\t'.join([str(round(items[k][1], 2)) for k in keys]))
-    print(f'\nItems chosen: {best_ind}')
-    print(f'Total weight of chosen items: {best_weight}')
-    print(f'Total value of chosen items: {best_value:.3f}.')
+    print("\nAvailable items to choose from:")
+    print("Names:\t\t" + "\t\t".join([str(k) for k in keys]))
+    print("Weights:\t" + "\t\t".join([str(items[k][0]) for k in keys]))
+    print("Values:\t\t" + "\t".join([str(round(items[k][1], 2)) for k in keys]))
+    print(f"\nItems chosen: {best_ind}")
+    print(f"Total weight of chosen items: {best_weight}")
+    print(f"Total value of chosen items: {best_value:.3f}.")
 
 
 def main():
@@ -111,11 +111,11 @@ def main():
         survivors=50,
         cx_prob=0.5,
         mut_prob=0.2,
-        hof=hof
+        hof=hof,
     )
     tools.ea_mu_plus_lambda(**args)
     print_results(hof)
 
 
 if __name__ == "__main__":
-    main()                 
+    main()

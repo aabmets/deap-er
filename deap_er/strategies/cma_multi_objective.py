@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er import utilities as utils
@@ -14,7 +14,7 @@ from math import sqrt, exp
 import numpy
 
 
-__all__ = ['StrategyMultiObjective']
+__all__ = ["StrategyMultiObjective"]
 
 
 # ====================================================================================== #
@@ -57,6 +57,7 @@ class StrategyMultiObjective:
           * Any multiprocessing *Pool* object, which has a :code:`map` method.
           * *Default:* None
     """
+
     # -------------------------------------------------------- #
     def __init__(self, population: list, sigma: float, **kwargs: Optional):
         self.parents = population
@@ -69,7 +70,7 @@ class StrategyMultiObjective:
         self.tgt_sr = kwargs.get("tgt_sr", 1.0 / (5.0 + 0.5))
         self.ss_learn_rate = kwargs.get("ss_learn_rate", self.tgt_sr / (2.0 + self.tgt_sr))
         self.th_cum = kwargs.get("th_cum", 2.0 / (self.dim + 2.0))
-        self.cm_learn_rate = kwargs.get("cm_learn_rate", 2.0 / (self.dim ** 2 + 6.0))
+        self.cm_learn_rate = kwargs.get("cm_learn_rate", 2.0 / (self.dim**2 + 6.0))
         self.thresh_sr = kwargs.get("thresh_sr", 0.44)
         self.mp_pool = kwargs.get("mp_pool", None)
 
@@ -126,12 +127,12 @@ class StrategyMultiObjective:
 
         if w.max(initial=None) > 1e-20:
             w_inv = numpy.dot(w, inv_cholesky)
-            norm_w2 = numpy.sum(w ** 2)
+            norm_w2 = numpy.sum(w**2)
             a = sqrt(alpha)
             root = numpy.sqrt(1 + beta / alpha * norm_w2)
             b = a / norm_w2 * (root - 1)
             big_a = a * big_a + b * numpy.outer(v, w)
-            part = (a ** 2 + a * b * norm_w2)
+            part = a**2 + a * b * norm_w2
             inv_cholesky = 1.0 / a * inv_cholesky - b / part * numpy.outer(w, w_inv)
 
         return inv_cholesky, big_a
@@ -151,7 +152,7 @@ class StrategyMultiObjective:
 
         bag = [list() for _ in range(6)]
         for ind in chosen:
-            if ind.ps_[0] == 'o':
+            if ind.ps_[0] == "o":
                 idx = ind.ps_[1]
                 bag[0].append(self.sigmas[idx])
                 bag[1].append(self.sigmas[idx])
@@ -200,11 +201,11 @@ class StrategyMultiObjective:
                 self.sigmas[p_idx] = self.sigmas[p_idx] * exp_
 
         sources = {
-            'inv_cholesky': inv_cholesky,
-            'sigmas': sigmas,
-            'big_a': big_a,
-            'psucc': psucc,
-            'pc': pc
+            "inv_cholesky": inv_cholesky,
+            "sigmas": sigmas,
+            "big_a": big_a,
+            "psucc": psucc,
+            "pc": pc,
         }
         for name, var in sources.items():
             attr = getattr(self, name)
@@ -241,9 +242,7 @@ class StrategyMultiObjective:
                 individuals[-1].ps_ = "o", i
 
         else:
-            n_dom = utils.sort_log_non_dominated(
-                self.parents, len(self.parents),
-                ffo=True)
+            n_dom = utils.sort_log_non_dominated(self.parents, len(self.parents), ffo=True)
 
             for i in range(self.lamb):
                 j = numpy.random.randint(0, len(n_dom))

@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.base.dtypes import *
@@ -15,9 +15,23 @@ from operator import mul
 
 
 __all__ = [
-    'bm_kursawe', 'bm_schaffer_mo', 'bm_fonseca', 'bm_poloni', 'bm_dent',
-    'bm_zdt_1', 'bm_zdt_2', 'bm_zdt_3', 'bm_zdt_4', 'bm_zdt_6',
-    'bm_dtlz_1', 'bm_dtlz_2', 'bm_dtlz_3', 'bm_dtlz_4', 'bm_dtlz_5', 'bm_dtlz_6', 'bm_dtlz_7'
+    "bm_kursawe",
+    "bm_schaffer_mo",
+    "bm_fonseca",
+    "bm_poloni",
+    "bm_dent",
+    "bm_zdt_1",
+    "bm_zdt_2",
+    "bm_zdt_3",
+    "bm_zdt_4",
+    "bm_zdt_6",
+    "bm_dtlz_1",
+    "bm_dtlz_2",
+    "bm_dtlz_3",
+    "bm_dtlz_4",
+    "bm_dtlz_5",
+    "bm_dtlz_6",
+    "bm_dtlz_7",
 ]
 
 
@@ -37,6 +51,7 @@ def bm_kursawe(individual: Individual) -> tuple[float, float]:
        :math:`f_{2}(\\mathbf{x}) = \\sum_{i=1}^{N} |x_i|^{0.8} + 5 \\sin(x_i^3)`\n
        Returns :math:`f_{1}(\\mathbf{x})` and :math:`f_{2}(\\mathbf{x})`.
     """
+
     def fn(x, y):
         return -10 * exp(-0.2 * sqrt(x * x + y * y))
 
@@ -82,8 +97,8 @@ def bm_fonseca(individual: Individual) -> tuple[float, float]:
        :math:`f_{2}(\\mathbf{x}) = 1 - e^{-\\sum_{i=1}^{3}(x_i + \\frac{1}{\\sqrt{3}})^2}`\n
        Returns :math:`f_{1}(\\mathbf{x})` and :math:`f_{2}(\\mathbf{x})`.
     """
-    f1 = 1 - exp(-sum((xi - 1/sqrt(3))**2 for xi in individual[:3]))
-    f2 = 1 - exp(-sum((xi + 1/sqrt(3))**2 for xi in individual[:3]))
+    f1 = 1 - exp(-sum((xi - 1 / sqrt(3)) ** 2 for xi in individual[:3]))
+    f2 = 1 - exp(-sum((xi + 1 / sqrt(3)) ** 2 for xi in individual[:3]))
     return f1, f2
 
 
@@ -136,13 +151,27 @@ def bm_dent(individual: Individual, dent_size: float = 0.85) -> tuple[float, flo
        :math:`f_{2}(\\mathbf{x}) = \\text{ ?}`\n
        Returns :math:`f_{1}(\\mathbf{x})` and :math:`f_{2}(\\mathbf{x})`.
     """
-    d = dent_size * exp(-(individual[0] - individual[1]) ** 2)
-    f1 = 0.5 * (sqrt(1 + (individual[0] + individual[1]) ** 2) +
-                sqrt(1 + (individual[0] - individual[1]) ** 2) +
-                individual[0] - individual[1]) + d
-    f2 = 0.5 * (sqrt(1 + (individual[0] + individual[1]) ** 2) +
-                sqrt(1 + (individual[0] - individual[1]) ** 2) -
-                individual[0] + individual[1]) + d
+    d = dent_size * exp(-((individual[0] - individual[1]) ** 2))
+    f1 = (
+        0.5
+        * (
+            sqrt(1 + (individual[0] + individual[1]) ** 2)
+            + sqrt(1 + (individual[0] - individual[1]) ** 2)
+            + individual[0]
+            - individual[1]
+        )
+        + d
+    )
+    f2 = (
+        0.5
+        * (
+            sqrt(1 + (individual[0] + individual[1]) ** 2)
+            + sqrt(1 + (individual[0] - individual[1]) ** 2)
+            - individual[0]
+            + individual[1]
+        )
+        + d
+    )
     return f1, f2
 
 
@@ -188,7 +217,7 @@ def bm_zdt_2(individual: Individual) -> tuple[float, float]:
             \\left(\\frac{x_1}{g(\\mathbf{x})}\\right)^2\\right]`\n
        Returns :math:`f_{1}(\\mathbf{x})` and :math:`f_{2}(\\mathbf{x})`.
     """
-    g = 1.0 + 9.0*sum(individual[1:])/(len(individual)-1)
+    g = 1.0 + 9.0 * sum(individual[1:]) / (len(individual) - 1)
     f1 = individual[0]
     f2 = g * (1 - (f1 / g) ** 2)
     return f1, f2
@@ -213,7 +242,7 @@ def bm_zdt_3(individual: Individual) -> tuple[float, float]:
             \\sin(10\\pi x_1)\\right]`\n
        Returns :math:`f_{1}(\\mathbf{x})` and :math:`f_{2}(\\mathbf{x})`.
     """
-    g = 1.0 + 9.0*sum(individual[1:])/(len(individual)-1)
+    g = 1.0 + 9.0 * sum(individual[1:]) / (len(individual) - 1)
     f1 = individual[0]
     f2 = g * (1 - sqrt(f1 / g) - f1 / g * sin(10 * pi * f1))
     return f1, f2
@@ -238,8 +267,8 @@ def bm_zdt_4(individual: Individual) -> tuple[float, float]:
             \\sqrt{ \\frac{x_1}{g(\\mathbf{x})}} \\right]`\n
        Returns :math:`f_{1}(\\mathbf{x})` and :math:`f_{2}(\\mathbf{x})`.
     """
-    var = sum(xi ** 2 - 10 * cos(4 * pi * xi) for xi in individual[1:])
-    g = 1 + 10 * (len(individual)-1) + var
+    var = sum(xi**2 - 10 * cos(4 * pi * xi) for xi in individual[1:])
+    g = 1 + 10 * (len(individual) - 1) + var
     f1 = individual[0]
     f2 = g * (1 - sqrt(f1 / g))
     return f1, f2
@@ -264,7 +293,7 @@ def bm_zdt_6(individual: Individual) -> tuple[float, float]:
             \\frac{f_{1}(\\mathbf{x})}{g(\\mathbf{x})}\\right)^2 \\right]`\n
        Returns :math:`f_{1}(\\mathbf{x})` and :math:`f_{2}(\\mathbf{x})`.
     """
-    g = 1 + 9 * (sum(individual[1:]) / (len(individual)-1)) ** 0.25
+    g = 1 + 9 * (sum(individual[1:]) / (len(individual) - 1)) ** 0.25
     f1 = 1 - exp(-4 * individual[0]) * sin(6 * pi * individual[0]) ** 6
     f2 = g * (1 - (f1 / g) ** 2)
     return f1, f2
@@ -301,6 +330,7 @@ def bm_dtlz_1(individual: Individual, count: int) -> list:
        is a vector of the remaining attributes :math:`[x_m~\\ldots~x_n]`
        of the individual in :math:`n > m` dimensions.
     """
+
     def fn_xi(xi):
         _cos = cos(20 * pi * (xi - 0.5))
         return (xi - 0.5) ** 2 - _cos
@@ -309,10 +339,10 @@ def bm_dtlz_1(individual: Individual, count: int) -> list:
         rdc = reduce(mul, individual[:m], 1)
         return 0.5 * rdc * (1 - individual[m]) * (1 + gval)
 
-    _sum = sum(fn_xi(xi) for xi in individual[count-1:])
-    gval = 100 * (len(individual[count-1:]) + _sum)
-    fit = [0.5 * reduce(mul, individual[:count-1], 1) * (1 + gval)]
-    fit.extend(fn_m(m) for m in reversed(range(count-1)))
+    _sum = sum(fn_xi(xi) for xi in individual[count - 1 :])
+    gval = 100 * (len(individual[count - 1 :]) + _sum)
+    fit = [0.5 * reduce(mul, individual[: count - 1], 1) * (1 + gval)]
+    fit.extend(fn_m(m) for m in reversed(range(count - 1)))
     return fit
 
 
@@ -344,7 +374,7 @@ def bm_dtlz_2(individual: Individual, count: int) -> list:
        is a vector of the remaining attributes :math:`[x_m~\\ldots~x_n]`
        of the individual in :math:`n > m` dimensions.
     """
-    xm = individual[count - 1:]
+    xm = individual[count - 1 :]
     gval = sum((xi - 0.5) ** 2 for xi in xm)
     return _dtlz_helper_1(individual, count, gval)
 
@@ -378,11 +408,12 @@ def bm_dtlz_3(individual: Individual, count: int) -> list:
        is a vector of the remaining attributes :math:`[x_m~\\ldots~x_n]`
        of the individual in :math:`n > m` dimensions.
     """
+
     def fn(xi):
         _cos = cos(20 * pi * (xi - 0.5))
         return (xi - 0.5) ** 2 - _cos
 
-    xm = individual[count - 1:]
+    xm = individual[count - 1 :]
     gval = 100 * (len(xm) + sum(fn(xi) for xi in xm))
     return _dtlz_helper_1(individual, count, gval)
 
@@ -417,7 +448,7 @@ def bm_dtlz_4(individual: Individual, count: int, alpha: float) -> list:
        is a vector of the remaining attributes :math:`[x_m~\\ldots~x_n]`
        of the individual in :math:`n > m` dimensions.
     """
-    xm = individual[count - 1:]
+    xm = individual[count - 1 :]
     gval = sum((xi - 0.5) ** 2 for xi in xm)
     return _dtlz_helper_1(individual, count, gval, alpha)
 
@@ -446,7 +477,7 @@ def bm_dtlz_5(individual: Individual, count: int) -> list:
        is a vector of the remaining attributes :math:`[x_m~\\ldots~x_n]`
        of the individual in :math:`n > m` dimensions.
     """
-    gval = sum([(a - 0.5) ** 2 for a in individual[count - 1:]])
+    gval = sum([(a - 0.5) ** 2 for a in individual[count - 1 :]])
     return _dtlz_helper_2(individual, count, gval)
 
 
@@ -474,7 +505,7 @@ def bm_dtlz_6(individual: Individual, count: int) -> list:
        is a vector of the remaining attributes :math:`[x_m~\\ldots~x_n]`
        of the individual in :math:`n > m` dimensions.
     """
-    gval = sum([a ** 0.1 for a in individual[count - 1:]])
+    gval = sum([a**0.1 for a in individual[count - 1 :]])
     return _dtlz_helper_2(individual, count, gval)
 
 
@@ -502,14 +533,15 @@ def bm_dtlz_7(individual: Individual, count: int) -> list:
        is a vector of the remaining attributes :math:`[x_m~\\ldots~x_n]`
        of the individual in :math:`n > m` dimensions.
     """
+
     def fn(a):
         return a / (1 + gval) * (1 + sin(3 * pi * a))
 
-    gval = sum([a for a in individual[count - 1:]])
-    gval = 1 + 9 / len(individual[count - 1:]) * gval
+    gval = sum([a for a in individual[count - 1 :]])
+    gval = 1 + 9 / len(individual[count - 1 :]) * gval
 
-    fit = [x for x in individual[:count - 1]]
-    vals = [fn(a) for a in individual[:count - 1]]
+    fit = [x for x in individual[: count - 1]]
+    vals = [fn(a) for a in individual[: count - 1]]
     res = (1 + gval) * (count - sum(vals))
     fit.append(res)
     return fit
@@ -518,13 +550,13 @@ def bm_dtlz_7(individual: Individual, count: int) -> list:
 # -------------------------------------------------------------------------------------- #
 def _dtlz_helper_1(individual, count, gval, alpha=1.0) -> list:
     def fn(m):
-        vals_ = [cos(0.5 * xi ** alpha * pi) for xi in xc[:m]]
+        vals_ = [cos(0.5 * xi**alpha * pi) for xi in xc[:m]]
         rdc = reduce(mul, vals_, 1)
         _sin = sin(0.5 * xc[m] ** alpha * pi)
         return (1 + gval) * rdc * _sin
 
-    xc = individual[:count - 1]
-    vals = (cos(0.5 * xi ** alpha * pi) for xi in xc)
+    xc = individual[: count - 1]
+    vals = (cos(0.5 * xi**alpha * pi) for xi in xc)
     fit = [(1 + gval) * reduce(mul, vals, 1)]
     vals = [fn(m) for m in range(count - 2, -1, -1)]
     fit.extend(vals)
@@ -544,7 +576,7 @@ def _dtlz_helper_2(individual, count, gval) -> list:
         if m == 1:
             res = (1 + gval) * sin(pi / 2 * individual[0])
         else:
-            vals = [cos(theta(a)) for a in individual[1:m - 1]]
+            vals = [cos(theta(a)) for a in individual[1 : m - 1]]
             rdc = reduce(lambda x, y: x * y, vals, 1)
             _cos = cos(pi / 2 * individual[0])
             _sin = sin(theta(individual[m - 1]))

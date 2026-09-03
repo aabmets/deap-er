@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.utilities import initializers as init
@@ -13,7 +13,7 @@ from deap_er.utilities import initializers as init
 
 # ====================================================================================== #
 def test_func_a() -> str:
-    return 'gene'
+    return "gene"
 
 
 def test_func_b() -> list:
@@ -22,13 +22,12 @@ def test_func_b() -> list:
 
 # ====================================================================================== #
 class TestHelpers:
-
     def test_init_repeat_1(self):
         rtype = list
         count = 3
         result = init.init_repeat(rtype, test_func_a, count)
         assert isinstance(result, rtype)
-        assert result.count('gene') == count
+        assert result.count("gene") == count
         assert len(result) == count
 
     # -------------------------------------------------------------------------------------- #
@@ -38,7 +37,7 @@ class TestHelpers:
         result = init.init_repeat(rtype, test_func_a, count)
         assert isinstance(result, rtype)
         assert len(result) == count
-        assert result.count('gene') == count
+        assert result.count("gene") == count
 
     # -------------------------------------------------------------------------------------- #
     def test_init_iterate_1(self):
@@ -62,7 +61,7 @@ class TestHelpers:
         result = init.init_cycle(rtype, funcs, count)
         assert isinstance(result, rtype)
         assert len(result) == 6
-        assert result.count('gene') == 3
+        assert result.count("gene") == 3
         assert result.count([0, 1, 2]) == 3
 
     # -------------------------------------------------------------------------------------- #
@@ -73,5 +72,5 @@ class TestHelpers:
         result = init.init_cycle(rtype, funcs, count)
         assert isinstance(result, rtype)
         assert len(result) == 6
-        assert result.count('gene') == 3
+        assert result.count("gene") == 3
         assert result.count([0, 1, 2]) == 3

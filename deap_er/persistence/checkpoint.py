@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from typing import Optional, Union
@@ -18,7 +18,7 @@ import dill
 import os
 
 
-__all__ = ['Checkpoint']
+__all__ = ["Checkpoint"]
 
 
 # ====================================================================================== #
@@ -43,24 +43,27 @@ class Checkpoint:
     :param raise_errors: If True, errors are propagated, optional.
         By default, errors are not propagated and False is returned instead.
     """
+
     # -------------------------------------------------------- #
-    _dir_ = 'deap-er'  # Checkpoint Directory
-    _ext_ = '.dcpf'    # [D]eaper [C]heck [P]oint [F]ile
-    _omit_ = ['_last_op_']
+    _dir_ = "deap-er"  # Checkpoint Directory
+    _ext_ = ".dcpf"  # [D]eaper [C]heck [P]oint [F]ile
+    _omit_ = ["_last_op_"]
 
     _rand_state_: object = None
     _numpy_state_: dict = None
     _range_counter_: int = 0
     _save_freq_: float = 60.0
-    _last_op_: str = 'none'
+    _last_op_: str = "none"
 
     # -------------------------------------------------------- #
-    def __init__(self,
-                 file_name: Optional[str] = None,
-                 dir_path: Optional[Path] = None,
-                 autoload: Optional[bool] = True,
-                 make_dir: Optional[bool] = True,
-                 raise_errors: Optional[bool] = False):
+    def __init__(
+        self,
+        file_name: Optional[str] = None,
+        dir_path: Optional[Path] = None,
+        autoload: Optional[bool] = True,
+        make_dir: Optional[bool] = True,
+        raise_errors: Optional[bool] = False,
+    ):
         if file_name is None:
             file_name = str(uuid.uuid4()) + self._ext_
         if dir_path is None:
@@ -82,16 +85,16 @@ class Checkpoint:
         :return: True if the operation completed successfully, False otherwise.
         """
         try:
-            with open(self.file_path, 'rb') as f:
+            with open(self.file_path, "rb") as f:
                 self.__dict__ = dill.load(f)
             random.setstate(self._rand_state_)
             np.random.set_state(self._numpy_state_)
         except (IOError, dill.PickleError) as ex:
             if self.raise_errors:
                 raise ex
-            self._last_op_ = 'load_error'
+            self._last_op_ = "load_error"
             return False
-        self._last_op_ = 'load_success'
+        self._last_op_ = "load_success"
         return True
 
     # -------------------------------------------------------- #
@@ -109,11 +112,8 @@ class Checkpoint:
             self._rand_state_ = random.getstate()
             self._numpy_state_ = np.random.get_state()
             if self.make_dir:
-                self.file_path.parent.mkdir(
-                    parents=True,
-                    exist_ok=True
-                )
-            with open(self.file_path, 'wb') as f:
+                self.file_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(self.file_path, "wb") as f:
                 _dict_ = vars(self).copy()
                 for key in self._omit_:
                     _dict_.pop(key, None)
@@ -121,9 +121,9 @@ class Checkpoint:
         except (IOError, dill.PickleError) as ex:
             if self.raise_errors:
                 raise ex
-            self._last_op_ = 'save_error'
+            self._last_op_ = "save_error"
             return False
-        self._last_op_ = 'save_success'
+        self._last_op_ = "save_success"
         return True
 
     # -------------------------------------------------------- #
@@ -142,17 +142,15 @@ class Checkpoint:
         :return: A generator that yields the integer values of the internal counter.
         """
         if generations < 0:
-            raise ValueError(
-                'Iterations argument cannot be a negative number.'
-            )
+            raise ValueError("Iterations argument cannot be a negative number.")
         from_ = self._range_counter_ + 1
         to_excl = self._range_counter_ + generations + 1
 
-        if self.save_freq == -1:             # saving is disabled
+        if self.save_freq == -1:  # saving is disabled
             for i in range(from_, to_excl):
                 yield i
                 self._range_counter_ = i
-        else:                                # saving is enabled
+        else:  # saving is enabled
             last_save = time.time()
             for i in range(from_, to_excl):
                 yield i
@@ -204,7 +202,7 @@ class Checkpoint:
 
         :return: True if the checkpoint was successfully loaded from file.
         """
-        return self._last_op_ == 'load_success'
+        return self._last_op_ == "load_success"
 
     # -------------------------------------------------------- #
     def is_saved(self) -> bool:
@@ -213,4 +211,4 @@ class Checkpoint:
 
         :return: True if the checkpoint was successfully saved to file.
         """
-        return self._last_op_ == 'save_success'
+        return self._last_op_ == "save_success"

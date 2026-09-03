@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.records.dtypes import *
@@ -14,13 +14,20 @@ from deap_er.base import Toolbox
 from .variation import *
 
 
-__all__ = ['ea_simple']
+__all__ = ["ea_simple"]
 
 
 # ====================================================================================== #
-def ea_simple(toolbox: Toolbox, population: list, generations: int,
-              cx_prob: float, mut_prob: float, hof: Hof = None,
-              stats: Stats = None, verbose: bool = False) -> AlgoResult:
+def ea_simple(
+    toolbox: Toolbox,
+    population: list,
+    generations: int,
+    cx_prob: float,
+    mut_prob: float,
+    hof: Hof = None,
+    stats: Stats = None,
+    verbose: bool = False,
+) -> AlgoResult:
     """
     An evolutionary algorithm. This function expects the *'mate'*, *'mutate'*,
     *'select'* and *'evaluate'* operators to be registered in the toolbox.
@@ -40,7 +47,7 @@ def ea_simple(toolbox: Toolbox, population: list, generations: int,
     :rtype: :ref:`AlgoResult <datatypes>`
     """
     logbook = Logbook()
-    logbook.header = ['gen', 'nevals'] + (stats.fields if stats else [])
+    logbook.header = ["gen", "nevals"] + (stats.fields if stats else [])
 
     for gen in range(1, generations + 1):
         offspring = toolbox.select(population, len(population))

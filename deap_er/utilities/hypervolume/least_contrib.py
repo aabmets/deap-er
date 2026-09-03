@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from .hypervolume import HyperVolume
@@ -13,7 +13,7 @@ from typing import Callable, Optional, Union
 import numpy
 
 
-__all__ = ['least_contrib']
+__all__ = ["least_contrib"]
 
 
 # ====================================================================================== #
@@ -24,8 +24,9 @@ def _compute_hv(data: tuple) -> float:
 
 
 # -------------------------------------------------------------------------------------- #
-def least_contrib(population: list, ref_point: Optional[list] = None,
-                  map_func: Optional[Callable] = map) -> Union[int, numpy.ndarray]:
+def least_contrib(
+    population: list, ref_point: Optional[list] = None, map_func: Optional[Callable] = map
+) -> Union[int, numpy.ndarray]:
     """
     Returns the index of the individual with the least hypervolume
     contribution. Minimization is implicitly assumed.
@@ -48,7 +49,7 @@ def least_contrib(population: list, ref_point: Optional[list] = None,
 
     data = []
     for i in range(len(population)):
-        point_set = (wvals[:i], wvals[i + 1:])
+        point_set = (wvals[:i], wvals[i + 1 :])
         point_set = numpy.concatenate(point_set)
         data.append((point_set, ref_point))
 

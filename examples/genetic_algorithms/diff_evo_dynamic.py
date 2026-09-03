@@ -36,7 +36,7 @@ def brown_ind(iter_, best, sigma):
 
 def setup():
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-    creator.create("Individual", array.array, typecode='d', fitness=creator.FitnessMax)
+    creator.create("Individual", array.array, typecode="d", fitness=creator.FitnessMax)
 
     toolbox = base.Toolbox()
     toolbox.register("attr_float", random.uniform, BOUNDS[0], BOUNDS[1])
@@ -61,8 +61,8 @@ def setup():
 
 def stop_condition(logbook):
     interval = AVG_OE_MEASURE_INTERVAL
-    if len(logbook) >= 5e+5:
-        raise RuntimeError('Evolution failed to converge.')
+    if len(logbook) >= 5e5:
+        raise RuntimeError("Evolution failed to converge.")
     elif len(logbook) % interval == 0:
         err_sum = 0
         for i in range(interval, 0, -1):
@@ -76,8 +76,8 @@ def stop_condition(logbook):
 
 
 def print_results(avg_err):
-    print(f'\nAverage offline error: {avg_err:.3f} (<={AVG_OE_THRESHOLD}).')
-    print('\nEvolution converged correctly.')
+    print(f"\nAverage offline error: {avg_err:.3f} (<={AVG_OE_THRESHOLD}).")
+    print("\nEvolution converged correctly.")
 
 
 class Logger:
@@ -89,10 +89,7 @@ class Logger:
         chain = itertools.chain(*pops)
         record = self.stats.compile(chain)
         args = dict(
-            gen=ngen,
-            evals=MPB.nevals,
-            error=MPB.current_error,
-            offline_error=MPB.offline_error
+            gen=ngen, evals=MPB.nevals, error=MPB.current_error, offline_error=MPB.offline_error
         )
         self.logbook.record(**args, **record)
         if VERBOSE:
@@ -160,7 +157,6 @@ def main():
 
     # Define the main evolution loop.
     while not stop_condition(logbook):
-
         # Detect changes and invalidate fitness if necessary.
         bests = get_best_and_invalidate(toolbox, populations)
 
@@ -179,7 +175,7 @@ def main():
         # Evolve the subpopulations.
         for idx, subpop in enumerate(populations):
             new_pop = []
-            xbest, = toolbox.best(subpop)
+            (xbest,) = toolbox.best(subpop)
 
             # Apply regular DE to the first part of the population.
             regular_diff_evo(toolbox, subpop, xbest, new_pop)

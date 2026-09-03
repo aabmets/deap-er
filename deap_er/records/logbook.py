@@ -1,18 +1,18 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from collections import defaultdict
 from itertools import chain
 
 
-__all__ = ['Logbook']
+__all__ = ["Logbook"]
 
 
 # ====================================================================================== #
@@ -21,6 +21,7 @@ class Logbook(list):
     Contains evolution records as a chronological list of dictionaries.
     Data can be retrieved using the *select* method with the appropriate names.
     """
+
     # -------------------------------------------------------- #
     def __init__(self):
         self.chapters = defaultdict(Logbook)
@@ -84,7 +85,7 @@ class Logbook(list):
     # -------------------------------------------------------- #
     def __delitem__(self, key) -> None:
         if isinstance(key, slice):
-            for i, in range(*key.indices(len(self))):
+            for (i,) in range(*key.indices(len(self))):
                 self.pop(i)
                 for chapter in self.chapters.values():
                     chapter.pop(i)
@@ -97,7 +98,7 @@ class Logbook(list):
     def __txt__(self, start_index: int) -> list:
         columns = self.header
         if not len(self):
-            return ['The Logbook is empty.']
+            return ["The Logbook is empty."]
         if not columns:
             columns = sorted(self[0].keys()) + sorted(self.chapters.keys())
         if not self.columns_len or len(self.columns_len) != len(columns):
@@ -115,7 +116,7 @@ class Logbook(list):
             str_line = []
             for j, name in enumerate(columns):
                 if name in chapters_txt:
-                    column = chapters_txt[name][i+offsets[name]]
+                    column = chapters_txt[name][i + offsets[name]]
                 else:
                     value = line.get(name, "")
                     string = "{0:n}" if isinstance(value, float) else "{0}"
@@ -136,9 +137,9 @@ class Logbook(list):
                     for i in range(blanks):
                         header[i].append(" " * length)
                     header[blanks].append(name.center(length))
-                    header[blanks+1].append("-" * length)
+                    header[blanks + 1].append("-" * length)
                     for i in range(offsets[name]):
-                        header[blanks+2+i].append(chapters_txt[name][i])
+                        header[blanks + 2 + i].append(chapters_txt[name][i])
                 else:
                     length = max(len(line[j].expandtabs()) for line in str_matrix)
                     for line in header[:-1]:

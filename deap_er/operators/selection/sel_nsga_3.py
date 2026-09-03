@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.utilities.sorting import *
@@ -14,7 +14,7 @@ from numpy import ndarray
 import numpy
 
 
-__all__ = ['sel_nsga_3', 'SelNSGA3WithMemory']
+__all__ = ["sel_nsga_3", "SelNSGA3WithMemory"]
 
 
 # ====================================================================================== #
@@ -27,6 +27,7 @@ class SelNSGA3WithMemory:
     :param sorting: The algorithm to use for non-dominated
         sorting. Can be either 'log' or 'standard' string literal.
     """
+
     # -------------------------------------------------------- #
     def __init__(self, ref_points: ndarray, sorting: str = "log"):
         self.ref_points = ref_points
@@ -53,20 +54,22 @@ class SelNSGA3WithMemory:
             self.best_point,
             self.worst_point,
             self.extreme_points,
-            self
+            self,
         )
         return chosen
 
 
 # ====================================================================================== #
-def sel_nsga_3(individuals: list,
-               sel_count: int,
-               ref_points: ndarray,
-               sorting: str = "log",
-               best_point: ndarray = None,
-               worst_point: ndarray = None,
-               extreme_points: ndarray = None,
-               _memory: SelNSGA3WithMemory = None) -> list:
+def sel_nsga_3(
+    individuals: list,
+    sel_count: int,
+    ref_points: ndarray,
+    sorting: str = "log",
+    best_point: ndarray = None,
+    worst_point: ndarray = None,
+    extreme_points: ndarray = None,
+    _memory: SelNSGA3WithMemory = None,
+) -> list:
     """
     Selects the next generation of individuals using the NSGA-III algorithm.
 
@@ -91,8 +94,7 @@ def sel_nsga_3(individuals: list,
         pareto_fronts = sort_log_non_dominated(individuals, sel_count)
     else:
         raise RuntimeError(
-            f'selNSGA3: The choice of non-dominated '
-            f'sorting method \'{sorting}\' is invalid.'
+            f"selNSGA3: The choice of non-dominated sorting method '{sorting}' is invalid."
         )
 
     fitness = numpy.array([ind.fitness.wvalues for f in pareto_fronts for ind in f])
@@ -106,22 +108,18 @@ def sel_nsga_3(individuals: list,
         worst_point = numpy.max(fitness, axis=0)
 
     extreme_points = _find_extreme_points(fitness, best_point, extreme_points)
-    front_worst = numpy.max(fitness[:sum(len(f) for f in pareto_fronts), :], axis=0)
+    front_worst = numpy.max(fitness[: sum(len(f) for f in pareto_fronts), :], axis=0)
     intercepts = _find_intercepts(extreme_points, best_point, worst_point, front_worst)
     niches, dist = _associate_to_niche(fitness, ref_points, best_point, intercepts)
 
     niche_counts = numpy.zeros(len(ref_points), dtype=numpy.int64)
-    index, counts = numpy.unique(niches[:-len(pareto_fronts[-1])], return_counts=True)
+    index, counts = numpy.unique(niches[: -len(pareto_fronts[-1])], return_counts=True)
     niche_counts[index] = counts
 
     chosen = list(chain(*pareto_fronts[:-1]))
     selected = len(chosen)
     selected = _select_from_niche(
-        pareto_fronts[-1],
-        sel_count - selected,
-        niches[selected:],
-        dist[selected:],
-        niche_counts
+        pareto_fronts[-1], sel_count - selected, niches[selected:], dist[selected:], niche_counts
     )
     chosen.extend(selected)
 
@@ -134,8 +132,9 @@ def sel_nsga_3(individuals: list,
 
 
 # -------------------------------------------------------------------------------------- #
-def _find_extreme_points(fitness: ndarray, best_point: ndarray,
-                         extreme_points: ndarray = None) -> ndarray:
+def _find_extreme_points(
+    fitness: ndarray, best_point: ndarray, extreme_points: ndarray = None
+) -> ndarray:
 
     if extreme_points is not None:
         fitness = numpy.concatenate((fitness, extreme_points), axis=0)
@@ -150,8 +149,9 @@ def _find_extreme_points(fitness: ndarray, best_point: ndarray,
 
 
 # -------------------------------------------------------------------------------------- #
-def _find_intercepts(extreme_points: ndarray, best_point: ndarray,
-                     current_worst: ndarray, front_worst: ndarray) -> ndarray:
+def _find_intercepts(
+    extreme_points: ndarray, best_point: ndarray, current_worst: ndarray, front_worst: ndarray
+) -> ndarray:
 
     b = numpy.ones(extreme_points.shape[1])
     big_a = extreme_points - best_point
@@ -165,17 +165,20 @@ def _find_intercepts(extreme_points: ndarray, best_point: ndarray,
         else:
             intercepts = 1 / x
 
-            if (not numpy.allclose(numpy.dot(big_a, x), b) or
-                    numpy.any(intercepts <= 1e-6) or
-                    numpy.any((intercepts + best_point) > current_worst)):
+            if (
+                not numpy.allclose(numpy.dot(big_a, x), b)
+                or numpy.any(intercepts <= 1e-6)
+                or numpy.any((intercepts + best_point) > current_worst)
+            ):
                 intercepts = front_worst
 
     return intercepts
 
 
 # -------------------------------------------------------------------------------------- #
-def _associate_to_niche(fitness: ndarray, reference_points: ndarray,
-                        best_point: ndarray, intercepts: ndarray) -> tuple:
+def _associate_to_niche(
+    fitness: ndarray, reference_points: ndarray, best_point: ndarray, intercepts: ndarray
+) -> tuple:
     fn = (fitness - best_point) / (intercepts - best_point)
     fn = numpy.repeat(numpy.expand_dims(fn, axis=1), len(reference_points), axis=1)
     norm = numpy.linalg.norm(reference_points, axis=1)
@@ -193,9 +196,9 @@ def _associate_to_niche(fitness: ndarray, reference_points: ndarray,
 
 
 # -------------------------------------------------------------------------------------- #
-def _select_from_niche(individuals: list, count: int,
-                       niches: ndarray, distances: ndarray,
-                       niche_counts: ndarray) -> list:
+def _select_from_niche(
+    individuals: list, count: int, niches: ndarray, distances: ndarray, niche_counts: ndarray
+) -> list:
     selected = []
     available = numpy.ones(len(individuals), dtype=numpy.bool)
     while len(selected) < count:

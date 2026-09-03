@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.base.dtypes import *
@@ -15,7 +15,7 @@ import numpy
 import copy
 
 
-__all__ = ['StrategyOnePlusLambda']
+__all__ = ["StrategyOnePlusLambda"]
 
 
 # ====================================================================================== #
@@ -54,10 +54,11 @@ class StrategyOnePlusLambda:
           * Learning rate of the covariance matrix.
           * *Default:* :code:`2.0 / (len(population) ** 2 + 6.0)`
     """
+
     # -------------------------------------------------------- #
     def __init__(self, parent: Individual, sigma: float, **kwargs: Optional):
-        if not hasattr(parent, 'fitness'):
-            raise TypeError('The parent must have a fitness attribute.')
+        if not hasattr(parent, "fitness"):
+            raise TypeError("The parent must have a fitness attribute.")
 
         self.parent = parent
         self.sigma = sigma
@@ -104,7 +105,7 @@ class StrategyOnePlusLambda:
         default = 2.0 / (self.dim + 2.0)
         self.th_cum = kwargs.get("th_cum", default)
 
-        default = 2.0 / (self.dim ** 2 + 6.0)
+        default = 2.0 / (self.dim**2 + 6.0)
         self.cm_learn_rate = kwargs.get("cm_learn_rate", default)
 
         self.psucc = self.tgt_sr
@@ -130,7 +131,7 @@ class StrategyOnePlusLambda:
         :param population: A list of individuals.
         :return: Nothing.
         """
-        if hasattr(self.parent, 'fitness'):
+        if hasattr(self.parent, "fitness"):
             population.sort(key=lambda ind: ind.fitness, reverse=True)
             lambda_succ = sum(self.parent.fitness <= ind.fitness for ind in population)
             psucc = float(lambda_succ) / self.lamb
@@ -150,6 +151,6 @@ class StrategyOnePlusLambda:
                     temp_2 = temp_1 + self.th_cum * (2 - self.th_cum) * self.big_c
                     self.big_c = (1 - self.cm_learn_rate) * self.big_c + self.cm_learn_rate * temp_2
 
-            temp_1 = (self.psucc - self.tgt_sr)
+            temp_1 = self.psucc - self.tgt_sr
             self.sigma *= exp(1.0 / self.ss_dmp * temp_1 / (1.0 - self.tgt_sr))
             self.big_a = numpy.linalg.cholesky(self.big_c)

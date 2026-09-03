@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.base.dtypes import *
@@ -13,7 +13,7 @@ from typing import Callable
 from copy import deepcopy
 
 
-__all__ = ['History']
+__all__ = ["History"]
 
 
 # ====================================================================================== #
@@ -21,6 +21,7 @@ class History:
     """
     Maintains a history of the individuals produced in the evolution.
     """
+
     # -------------------------------------------------------- #
     def __init__(self):
         self.genealogy_index = int()
@@ -33,12 +34,15 @@ class History:
         """
         A decorator that adds genealogy history to the individuals.
         """
+
         def wrapper(func):
             def wrapped(*args, **kwargs):
                 individuals = func(*args, **kwargs)
                 self.update(individuals)
                 return individuals
+
             return wrapped
+
         return wrapper
 
     # -------------------------------------------------------- #
@@ -78,6 +82,7 @@ class History:
 
         :type individual: :ref:`Individual <datatypes>`
         """
+
         def _recursive(index, depth):
             if index not in self.genealogy_tree:
                 return
@@ -91,12 +96,10 @@ class History:
                     _recursive(ind, depth)
                 visited.add(ind)
 
-        if hasattr(individual, 'history_index'):
+        if hasattr(individual, "history_index"):
             visited = set()
             gtree = dict()
             _recursive(individual.history_index, 0)
             return gtree
         else:
-            raise AttributeError(
-                "The individual must have the 'history_index' attribute."
-            )
+            raise AttributeError("The individual must have the 'history_index' attribute.")

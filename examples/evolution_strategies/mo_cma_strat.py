@@ -11,7 +11,7 @@ SIZE = 5
 MU, LAMBDA = 10, 10
 MIN_BOUND = numpy.zeros(SIZE)
 MAX_BOUND = numpy.ones(SIZE)
-EPS_BOUND = 2.e-5
+EPS_BOUND = 2.0e-5
 NGEN = 500
 
 
@@ -29,7 +29,7 @@ def feasible(individual):
 
 
 def distance(feasible_ind, original_ind):
-    return sum((f - o)**2 for f, o in zip(feasible_ind, original_ind))
+    return sum((f - o) ** 2 for f, o in zip(feasible_ind, original_ind))
 
 
 def setup():
@@ -38,16 +38,13 @@ def setup():
 
     toolbox = base.Toolbox()
     toolbox.register("evaluate", tools.bm_zdt_1)
-    toolbox.decorate("evaluate", tools.ClosestValidPenalty(validity, feasible, 1.0e+6, distance))
+    toolbox.decorate("evaluate", tools.ClosestValidPenalty(validity, feasible, 1.0e6, distance))
 
     pop = [creator.Individual(x) for x in (numpy.random.uniform(0, 1, (MU, SIZE)))]
     for ind in pop:
         ind.fitness.values = toolbox.evaluate(ind)
     strategy = tools.StrategyMultiObjective(
-        population=pop,
-        sigma=1.0,
-        offsprings=LAMBDA,
-        survivors=MU
+        population=pop, sigma=1.0, offsprings=LAMBDA, survivors=MU
     )
     toolbox.register("generate", strategy.generate, creator.Individual)
     toolbox.register("update", strategy.update)
@@ -65,10 +62,11 @@ def setup():
 def print_results(valid, parents):
     hv = tools.hypervolume(parents, [11.0, 11.0])
     if not hv > 110 and valid != len(parents):
-        raise RuntimeError('Evolution failed to converge.')
-    print(f"\nNumber of valid individuals is {valid}/{len(parents)}"
-          f" with a hypervolume of {hv:.2f}.")
-    print('Evolution converged correctly.')
+        raise RuntimeError("Evolution failed to converge.")
+    print(
+        f"\nNumber of valid individuals is {valid}/{len(parents)} with a hypervolume of {hv:.2f}."
+    )
+    print("Evolution converged correctly.")
 
 
 def main():
@@ -91,7 +89,7 @@ def main():
     num_valid = 0
     for ind in strategy.parents:
         dist = distance(feasible(ind), ind)
-        if numpy.isclose(dist, 0.0, rtol=1.e-5, atol=1.e-5):
+        if numpy.isclose(dist, 0.0, rtol=1.0e-5, atol=1.0e-5):
             num_valid += 1
 
     print_results(num_valid, strategy.parents)

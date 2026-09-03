@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.base.dtypes import *
@@ -31,26 +31,24 @@ def nsga_diversity(population: list, first: Individual, last: Individual) -> flo
     :type last: :ref:`Individual <datatypes>`
     """
     df = hypot(
-        population[0].fitness.values[0] - first[0],
-        population[0].fitness.values[1] - first[1]
+        population[0].fitness.values[0] - first[0], population[0].fitness.values[1] - first[1]
     )
     dl = hypot(
-        population[-1].fitness.values[0] - last[0],
-        population[-1].fitness.values[1] - last[1]
+        population[-1].fitness.values[0] - last[0], population[-1].fitness.values[1] - last[1]
     )
 
     def fn(f_, s_):
         return hypot(
-            f_.fitness.values[0] - s_.fitness.values[0],
-            f_.fitness.values[1] - s_.fitness.values[1]
+            f_.fitness.values[0] - s_.fitness.values[0], f_.fitness.values[1] - s_.fitness.values[1]
         )
+
     zipper = zip(population[:-1], population[1:])
     dt = [fn(first, second) for first, second in zipper]
 
     if len(population) == 1:
         return df + dl
 
-    dm = sum(dt)/len(dt)
+    dm = sum(dt) / len(dt)
     di = sum(abs(d_i - dm) for d_i in dt)
     delta = (df + dl + di) / (df + dl + len(dt) * dm)
     return delta
@@ -71,9 +69,9 @@ def nsga_convergence(population: list, optimal: list) -> float:
     for ind in population:
         distances.append(float("inf"))
         for opt_ind in optimal:
-            dist = 0.
+            dist = 0.0
             for i in range(len(opt_ind)):
-                dist += (ind.fitness.values[i] - opt_ind[i])**2
+                dist += (ind.fitness.values[i] - opt_ind[i]) ** 2
             if dist < distances[-1]:
                 distances[-1] = dist
         distances[-1] = sqrt(distances[-1])
@@ -95,6 +93,7 @@ def inv_gen_dist(ind1: Individual, ind2: Individual) -> tuple[Any, Optional[Any]
     :type ind2: :ref:`Individual <datatypes>`
     """
     from scipy import spatial
+
     distances = spatial.distance.cdist(ind1, ind2)
     minima = numpy.min(distances, axis=0)
     return numpy.average(minima)

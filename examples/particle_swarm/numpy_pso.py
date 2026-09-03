@@ -37,8 +37,15 @@ def update(part, best, phi1, phi2):
 
 def setup():
     creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-    creator.create("Particle", numpy.ndarray, fitness=creator.FitnessMax,
-                   speed=list, smin=None, smax=None, best=None)
+    creator.create(
+        "Particle",
+        numpy.ndarray,
+        fitness=creator.FitnessMax,
+        speed=list,
+        smin=None,
+        smax=None,
+        best=None,
+    )
 
     toolbox = base.Toolbox()
     toolbox.register("particle", generate, size=2, pmin=-6, pmax=6, smin=-3, smax=3)
@@ -60,8 +67,8 @@ def setup():
 
 def print_results(best_ind):
     if not best_ind.fitness.values <= (2,):
-        raise RuntimeError('Evolution failed to converge.')
-    print('\nEvolution converged correctly.')
+        raise RuntimeError("Evolution failed to converge.")
+    print("\nEvolution converged correctly.")
 
 
 def main():

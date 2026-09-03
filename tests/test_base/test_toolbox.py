@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.base.toolbox import Toolbox
@@ -15,7 +15,6 @@ from copy import deepcopy
 
 # ====================================================================================== #
 class TestToolbox:
-
     def test_clone_func(self):
         tb = Toolbox()
         assert isinstance(tb.clone, partial)
@@ -30,16 +29,16 @@ class TestToolbox:
     # -------------------------------------------------------------------------------------- #
     def test_registration(self):
         tb = Toolbox()
-        tb.register('__test__', str, 1)
-        assert hasattr(tb, '__test__')
-        tb.unregister('__test__')
-        assert not hasattr(tb, '__test__')
+        tb.register("__test__", str, 1)
+        assert hasattr(tb, "__test__")
+        tb.unregister("__test__")
+        assert not hasattr(tb, "__test__")
 
     # -------------------------------------------------------------------------------------- #
     def test_execution(self):
         tb = Toolbox()
-        tb.register('__test__', str, 1)
-        assert tb.__test__() == '1'
+        tb.register("__test__", str, 1)
+        assert tb.__test__() == "1"
 
     # -------------------------------------------------------------------------------------- #
     def test_decorator(self):
@@ -47,9 +46,10 @@ class TestToolbox:
             def wrapper(*args, **kwargs):
                 result = func(*args, **kwargs)
                 return result * 3
+
             return wrapper
 
         tb = Toolbox()
-        tb.register('__test__', str, 1)
-        tb.decorate('__test__', test_deco)
-        assert tb.__test__() == '111'
+        tb.register("__test__", str, 1)
+        tb.decorate("__test__", test_deco)
+        assert tb.__test__() == "111"

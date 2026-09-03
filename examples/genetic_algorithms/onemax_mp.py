@@ -17,7 +17,7 @@ def evaluate(individual):
 
 # Can't be in setup(), because subprocesses need these objects.
 creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-creator.create("Individual", array.array, typecode='b', fitness=creator.FitnessMax)
+creator.create("Individual", array.array, typecode="b", fitness=creator.FitnessMax)
 
 
 def setup():
@@ -42,8 +42,8 @@ def setup():
 
 def print_results(best_ind):
     if not all(gene == 1 for gene in best_ind):
-        raise RuntimeError('Evolution failed to converge.')
-    print('\nEvolution converged correctly.')
+        raise RuntimeError("Evolution failed to converge.")
+    print("\nEvolution converged correctly.")
 
 
 def main():
@@ -60,7 +60,7 @@ def main():
             mut_prob=0.2,
             hof=hof,
             stats=stats,
-            verbose=True  # prints stats
+            verbose=True,  # prints stats
         )
         tools.ea_simple(**args)
         print_results(hof[0])

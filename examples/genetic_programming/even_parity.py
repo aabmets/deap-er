@@ -11,7 +11,7 @@ random.seed(1234)  # disables randomization
 
 
 PARITY_FANIN_M = 6
-PARITY_SIZE_M = 2 ** PARITY_FANIN_M
+PARITY_SIZE_M = 2**PARITY_FANIN_M
 
 inputs: list = [None] * PARITY_SIZE_M
 outputs: list = [None] * PARITY_SIZE_M
@@ -37,7 +37,7 @@ def fill_inputs_outputs():
 def evaluate(individual, toolbox):
     func = toolbox.compile(expr=individual)
     result = sum(func(*in_) == out for in_, out in zip(inputs, outputs))
-    return result,  # The comma is essential here.
+    return (result,)  # The comma is essential here.
 
 
 def setup():
@@ -74,8 +74,8 @@ def setup():
 
 def print_results(best_ind):
     if not best_ind.fitness.values == (64,):
-        raise RuntimeError('Evolution failed to converge.')
-    print('\nEvolution converged correctly.')
+        raise RuntimeError("Evolution failed to converge.")
+    print("\nEvolution converged correctly.")
 
 
 def main():
@@ -91,7 +91,7 @@ def main():
         mut_prob=0.1,
         hof=hof,
         stats=stats,
-        verbose=True
+        verbose=True,
     )
     tools.ea_simple(**args)
     print_results(hof[0])

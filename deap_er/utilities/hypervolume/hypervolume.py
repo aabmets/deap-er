@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from typing import Optional
@@ -14,7 +14,7 @@ from .node import Node
 import numpy
 
 
-__all__ = ['hypervolume', 'HyperVolume']
+__all__ = ["hypervolume", "HyperVolume"]
 
 
 # ====================================================================================== #
@@ -46,6 +46,7 @@ class HyperVolume:
 
     :param ref_point: The reference point for the hypervolume calculation.
     """
+
     multi_list: MultiList
 
     # -------------------------------------------------------- #
@@ -63,11 +64,7 @@ class HyperVolume:
         :return: The hypervolume of the given point set.
         """
         self._pre_process(point_set)
-        return self._hv_recursive(
-            self.dims - 1,
-            len(point_set),
-            self.dims * [-1.0e308]
-        )
+        return self._hv_recursive(self.dims - 1, len(point_set), self.dims * [-1.0e308])
 
     # -------------------------------------------------------- #
     def _pre_process(self, point_set: numpy.ndarray) -> None:
@@ -138,9 +135,7 @@ class HyperVolume:
                 hvol += q.prev[dim_index].volume[dim_index]
             else:
                 q.area[0] = 1
-                q.area[1: dim_index + 1] = [
-                    q.area[i] * -q.cargo[i] for i in range(dim_index)
-                ]
+                q.area[1 : dim_index + 1] = [q.area[i] * -q.cargo[i] for i in range(dim_index)]
             inception()
             while p is not sentinel:
                 new_point = p.cargo[dim_index] - q.cargo[dim_index]

@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.utilities.sorting import *
@@ -14,12 +14,11 @@ from operator import attrgetter
 from itertools import chain
 
 
-__all__ = ['sel_nsga_2']
+__all__ = ["sel_nsga_2"]
 
 
 # ====================================================================================== #
-def sel_nsga_2(individuals: list, sel_count: int,
-               sorting: str = 'standard') -> list:
+def sel_nsga_2(individuals: list, sel_count: int, sorting: str = "standard") -> list:
     """
     Selects the next generation of individuals using the NSGA-II algorithm.
     Usually, the size of **individuals** should be larger than the **sel_count**
@@ -32,14 +31,13 @@ def sel_nsga_2(individuals: list, sel_count: int,
         sorting. Can be either 'log' or 'standard' string literal.
     :return: A list of selected individuals.
     """
-    if sorting == 'standard':
+    if sorting == "standard":
         pareto_fronts = sort_non_dominated(individuals, sel_count)
-    elif sorting == 'log':
+    elif sorting == "log":
         pareto_fronts = sort_log_non_dominated(individuals, sel_count)
     else:
         raise RuntimeError(
-            f'selNSGA2: The choice of non-dominated '
-            f'sorting method \'{sorting}\' is invalid.'
+            f"selNSGA2: The choice of non-dominated sorting method '{sorting}' is invalid."
         )
 
     for front in pareto_fronts:

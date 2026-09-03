@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from .overrides import *
@@ -13,7 +13,7 @@ from typing import Optional, Union
 import warnings
 
 
-__all__ = ['create']
+__all__ = ["create"]
 
 
 # ====================================================================================== #
@@ -33,23 +33,19 @@ def create(name: str, base: Union[type, object], **kwargs: Optional) -> None:
     """
     # warn about class definition overwrite
     if name in globals():
-        msg = f"You are creating a new class named \'{name}\', " \
-              f"which already exists. The old definition will " \
-              f"be overwritten by the new one."
-        warnings.warn(
-            message=msg,
-            category=RuntimeWarning
+        msg = (
+            f"You are creating a new class named '{name}', "
+            f"which already exists. The old definition will "
+            f"be overwritten by the new one."
         )
+        warnings.warn(message=msg, category=RuntimeWarning)
 
     # set base to class if base is an instance
-    if not hasattr(base, '__module__'):
+    if not hasattr(base, "__module__"):
         base = base.__class__
 
     # override numpy and array classes
-    base = dict(
-        array=_ArrayOverride,
-        numpy=_NumpyOverride
-    ).get(base.__module__, base)
+    base = dict(array=_ArrayOverride, numpy=_NumpyOverride).get(base.__module__, base)
 
     # separate kwargs by their type
     inst_attr, cls_attr = dict(), dict()

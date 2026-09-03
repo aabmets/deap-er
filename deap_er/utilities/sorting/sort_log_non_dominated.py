@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from collections import defaultdict
@@ -14,12 +14,11 @@ from operator import itemgetter
 import bisect
 
 
-__all__ = ['sort_log_non_dominated']
+__all__ = ["sort_log_non_dominated"]
 
 
 # ====================================================================================== #
-def sort_log_non_dominated(individuals: list, sel_count: int,
-                           ffo: bool = False) -> list:
+def sort_log_non_dominated(individuals: list, sel_count: int, ffo: bool = False) -> list:
     """
     Sorts **individuals** in pareto non-dominated fronts
     using the Generalized Reduced Run-Time Complexity
@@ -45,7 +44,7 @@ def sort_log_non_dominated(individuals: list, sel_count: int,
     fitness.sort(reverse=True)
     _sorting_helper_1(fitness, obj, front)
 
-    nb_fronts = max(front.values())+1
+    nb_fronts = max(front.values()) + 1
     pareto_fronts = [[] for _ in range(nb_fronts)]
     for fit in fitness:
         index = front[fit]
@@ -56,7 +55,7 @@ def sort_log_non_dominated(individuals: list, sel_count: int,
         for i, front in enumerate(pareto_fronts):
             count += len(front)
             if count >= sel_count:
-                return pareto_fronts[:i+1]
+                return pareto_fronts[: i + 1]
         return pareto_fronts
     else:
         return pareto_fronts[0]
@@ -110,7 +109,7 @@ def _sorting_helper_1(fitness: Sequence, obj: int, front: dict) -> None:
         return
     elif len(fitness) == 2:
         s1, s2 = fitness[0], fitness[1]
-        if _is_dominated(s2[:obj + 1], s1[:obj + 1]):
+        if _is_dominated(s2[: obj + 1], s1[: obj + 1]):
             front[s2] = max(front[s2], front[s1] + 1)
     elif obj == 1:
         _sweep_a(fitness, front)
@@ -145,7 +144,7 @@ def _sweep_a(fitness: Sequence, front: dict) -> None:
         idx = bisect.bisect_right(stairs, -fit[1])
         if 0 < idx <= len(stairs):
             f_stair = max(f_stairs[:idx], key=front.__getitem__)
-            front[fit] = max(front[fit], front[f_stair]+1)
+            front[fit] = max(front[fit], front[f_stair] + 1)
         for i, f_stair in enumerate(f_stairs[idx:], idx):
             if front[f_stair] == front[fit]:
                 del stairs[i]
@@ -163,8 +162,8 @@ def _sorting_helper_2(best: Sequence, worst: Sequence, obj: int, front: dict) ->
     elif len(best) == 1 or len(worst) == 1:
         for hi in worst:
             for li in best:
-                cond_1 = _is_dominated(hi[:obj + 1], li[:obj + 1])
-                cond_2 = hi[:obj + 1] == li[:obj + 1]
+                cond_1 = _is_dominated(hi[: obj + 1], li[: obj + 1])
+                cond_2 = hi[: obj + 1] == li[: obj + 1]
                 if cond_1 or cond_2:
                     front[hi] = max(front[hi], front[li] + 1)
     elif obj == 1:
@@ -221,4 +220,4 @@ def _sweep_b(best, worst, front):
         idx = bisect.bisect_right(stairs, -h[1])
         if 0 < idx <= len(stairs):
             f_stair = max(f_stairs[:idx], key=front.__getitem__)
-            front[h] = max(front[h], front[f_stair]+1)
+            front[h] = max(front[h], front[f_stair] + 1)

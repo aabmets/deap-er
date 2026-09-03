@@ -17,7 +17,7 @@ NGEN = 200
 
 def setup():
     creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-    creator.create("Individual", array.array, typecode='d', fitness=creator.FitnessMin)
+    creator.create("Individual", array.array, typecode="d", fitness=creator.FitnessMin)
 
     toolbox = base.Toolbox()
     toolbox.register("attr_float", random.uniform, -3, 3)
@@ -40,8 +40,8 @@ def setup():
 
 def print_results(best_ind):
     if not best_ind.fitness.values < (1e-3,):
-        raise RuntimeError('Evolution failed to converge.')
-    print('\nEvolution converged correctly.')
+        raise RuntimeError("Evolution failed to converge.")
+    print("\nEvolution converged correctly.")
 
 
 def main():

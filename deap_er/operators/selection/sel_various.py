@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from operator import attrgetter
@@ -13,8 +13,11 @@ import random
 
 
 __all__ = [
-    'sel_random', 'sel_best', 'sel_worst', 'sel_roulette',
-    'sel_stochastic_universal_sampling'
+    "sel_random",
+    "sel_best",
+    "sel_worst",
+    "sel_roulette",
+    "sel_stochastic_universal_sampling",
 ]
 
 
@@ -31,8 +34,7 @@ def sel_random(individuals: list, sel_count: int) -> list:
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_best(individuals: list, sel_count: int,
-             fit_attr: str = "fitness") -> list:
+def sel_best(individuals: list, sel_count: int, fit_attr: str = "fitness") -> list:
     """
     Selects the best **sel_count** individuals from the input **individuals**.
 
@@ -46,8 +48,7 @@ def sel_best(individuals: list, sel_count: int,
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_worst(individuals: list, sel_count: int,
-              fit_attr: str = "fitness") -> list:
+def sel_worst(individuals: list, sel_count: int, fit_attr: str = "fitness") -> list:
     """
     Selects the worst **sel_count** individuals among the input **individuals**.
 
@@ -61,8 +62,7 @@ def sel_worst(individuals: list, sel_count: int,
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_roulette(individuals: list, sel_count: int,
-                 fit_attr: str = "fitness") -> list:
+def sel_roulette(individuals: list, sel_count: int, fit_attr: str = "fitness") -> list:
     """
     Selects **sel_count** individuals from the input **individuals** using
     **sel_count** spins of a roulette. The selection is made by looking
@@ -91,8 +91,9 @@ def sel_roulette(individuals: list, sel_count: int,
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_stochastic_universal_sampling(individuals: list, sel_count: int,
-                                      fit_attr: str = "fitness") -> list:
+def sel_stochastic_universal_sampling(
+    individuals: list, sel_count: int, fit_attr: str = "fitness"
+) -> list:
     """
     Selects the **sel_count** individuals among the input **individuals**.
     The selection is made by using a single random value to sample all the

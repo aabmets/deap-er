@@ -1,18 +1,18 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 import random
 import math
 
 
-__all__ = ['sel_spea_2']
+__all__ = ["sel_spea_2"]
 
 
 # ====================================================================================== #
@@ -35,7 +35,7 @@ def sel_spea_2(individuals: list, sel_count: int) -> list:
     dominating_individuals = [list() for _ in range(big_n)]
 
     for i, ind_i in enumerate(individuals):
-        for j, ind_j in enumerate(individuals[i+1:], i+1):
+        for j, ind_j in enumerate(individuals[i + 1 :], i + 1):
             if ind_i.fitness.dominates(ind_j.fitness):
                 strength_fits[i] += 1
                 dominating_individuals[j].append(i)
@@ -65,7 +65,7 @@ def sel_spea_2(individuals: list, sel_count: int) -> list:
 
         next_indices = [(fits[i], i) for i in range(big_n) if i not in chosen]
         next_indices.sort()
-        chosen += [i for _, i in next_indices[:sel_count - len(chosen)]]
+        chosen += [i for _, i in next_indices[: sel_count - len(chosen)]]
 
     elif len(chosen) > sel_count:
         big_n = len(chosen)
@@ -86,7 +86,9 @@ def sel_spea_2(individuals: list, sel_count: int) -> list:
         for i in range(big_n):
             for j in range(1, big_n):
                 small_l = j
-                while small_l > 0 and distances[i][j] < distances[i][sorted_indices[i][small_l - 1]]:
+                while (
+                    small_l > 0 and distances[i][j] < distances[i][sorted_indices[i][small_l - 1]]
+                ):
                     sorted_indices[i][small_l] = sorted_indices[i][small_l - 1]
                     small_l -= 1
                 sorted_indices[i][small_l] = j

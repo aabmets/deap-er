@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from .lint_hints import LintHints
@@ -14,7 +14,7 @@ from functools import partial
 from copy import deepcopy
 
 
-__all__ = ['Toolbox']
+__all__ = ["Toolbox"]
 
 
 # ====================================================================================== #
@@ -23,14 +23,14 @@ class Toolbox(LintHints):
     A container for evolutionary operators. Toolboxes are essential
     components which facilitate the process of computational evolution.
     """
+
     # -------------------------------------------------------- #
     def __init__(self):
         self.register("clone", deepcopy)
         self.register("map", map)
 
     # -------------------------------------------------------- #
-    def register(self, alias: str, func: Callable,
-                 *args: Optional, **kwargs: Optional) -> None:
+    def register(self, alias: str, func: Callable, *args: Optional, **kwargs: Optional) -> None:
         """
         Registers a **func** in the toolbox under the name **alias**.
         Any **args** or **kwargs** will be automatically passed to the
@@ -50,7 +50,7 @@ class Toolbox(LintHints):
         p_func.__name__ = alias
         p_func.__doc__ = func.__doc__
 
-        if hasattr(func, '__dict__') and not isinstance(func, type):
+        if hasattr(func, "__dict__") and not isinstance(func, type):
             p_func.__dict__.update(func.__dict__.copy())
         setattr(self, alias, p_func)
 
@@ -65,8 +65,7 @@ class Toolbox(LintHints):
         delattr(self, alias)
 
     # -------------------------------------------------------- #
-    def decorate(self, alias: str,
-                 *decorators: Optional[Callable]) -> None:
+    def decorate(self, alias: str, *decorators: Optional[Callable]) -> None:
         """
         Decorates an operator **alias** with the provided **decorators**.
 

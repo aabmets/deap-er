@@ -22,13 +22,13 @@ def evaluate(individual):
         right_diagonal[r_idx] += 1
 
     sum_ = 0
-    for i in range(2*size-1):
+    for i in range(2 * size - 1):
         if left_diagonal[i] > 1:
             sum_ += left_diagonal[i] - 1
         if right_diagonal[i] > 1:
             sum_ += right_diagonal[i] - 1
 
-    return sum_,  # The comma is essential here.
+    return (sum_,)  # The comma is essential here.
 
 
 def setup():
@@ -55,9 +55,9 @@ def setup():
 
 def print_results(best_ind):
     if not best_ind.fitness.values == (0.0,):
-        raise RuntimeError('Evolution failed to converge.')
-    print(f'\nRow numbers for each queen on each column of the chessboard: \n{best_ind}')
-    print('\nEvolution converged correctly.')
+        raise RuntimeError("Evolution failed to converge.")
+    print(f"\nRow numbers for each queen on each column of the chessboard: \n{best_ind}")
+    print("\nEvolution converged correctly.")
 
 
 def main():
@@ -72,7 +72,7 @@ def main():
         mut_prob=0.3,
         hof=hof,
         stats=stats,
-        verbose=True  # prints stats
+        verbose=True,  # prints stats
     )
     tools.ea_simple(**args)
     print_results(hof[0])

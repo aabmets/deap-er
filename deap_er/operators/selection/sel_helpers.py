@@ -1,17 +1,17 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 import numpy
 
 
-__all__ = ['assign_crowding_dist', 'uniform_reference_points']
+__all__ = ["assign_crowding_dist", "uniform_reference_points"]
 
 
 # ====================================================================================== #
@@ -48,8 +48,9 @@ def assign_crowding_dist(individuals: list) -> None:
 
 
 # -------------------------------------------------------------------------------------- #
-def uniform_reference_points(objectives: int, ref_ppo: int = 4,
-                             scaling: float = None) -> numpy.ndarray:
+def uniform_reference_points(
+    objectives: int, ref_ppo: int = 4, scaling: float = None
+) -> numpy.ndarray:
     """
     Generates reference points uniformly on the hyperplane
     intersecting each axis at 1. The scaling factor is used
@@ -60,6 +61,7 @@ def uniform_reference_points(objectives: int, ref_ppo: int = 4,
     :param scaling: Scaling factor, optional.
     :return: Uniform reference points.
     """
+
     def _recursive(ref, ovs, left, total, depth) -> list:
         points = []
         if depth == ovs - 1:
@@ -74,7 +76,7 @@ def uniform_reference_points(objectives: int, ref_ppo: int = 4,
                 result = _recursive(rc, ovs, li, total, d1)
                 points.extend(result)
         return points
-    
+
     zeros = numpy.zeros(objectives)
     ref_points = _recursive(zeros, objectives, ref_ppo, ref_ppo, 0)
     ref_points = numpy.array(ref_points)

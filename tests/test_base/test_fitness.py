@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.base.fitness import Fitness
@@ -15,7 +15,6 @@ import pytest
 
 # ====================================================================================== #
 class TestFitness:
-
     def test_instantiation(self):
         with pytest.raises(TypeError):
             Fitness()
@@ -82,5 +81,5 @@ class TestFitness:
         ft2 = Fitness([3, 3, 3])
 
         assert hash(ft1) != hash(ft2)
-        assert ft1.__str__() == '(2.0, 2.0, 2.0)'
+        assert ft1.__str__() == "(2.0, 2.0, 2.0)"
         assert ft1 == deepcopy(ft1)

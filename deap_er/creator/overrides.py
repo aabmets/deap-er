@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from typing import Sequence
@@ -14,7 +14,7 @@ import array
 import numpy
 
 
-__all__ = ['_NumpyOverride', '_ArrayOverride']
+__all__ = ["_NumpyOverride", "_ArrayOverride"]
 
 
 # ====================================================================================== #
@@ -23,6 +23,7 @@ class _NumpyOverride(numpy.ndarray):
     Class override for the 'numpy.ndarray' class, because
     the 'numpy.ndarray' class is problematic for DEAP-er.
     """
+
     @staticmethod
     def __new__(cls, seq: Sequence) -> numpy.array:
         return numpy.array(list(seq)).view(cls)
@@ -46,6 +47,7 @@ class _ArrayOverride(array.array):
     Class override for the 'array.array' class, because
     the 'array.array' class is problematic for DEAP-er.
     """
+
     @staticmethod
     def __new__(cls, seq: Sequence) -> array.array:
         return super().__new__(cls, cls.typecode, seq)

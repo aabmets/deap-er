@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from .dtypes import *
@@ -15,13 +15,18 @@ from typing import Callable
 import random
 
 
-__all__ = ['mut_semantic', 'cx_semantic']
+__all__ = ["mut_semantic", "cx_semantic"]
 
 
 # ====================================================================================== #
-def mut_semantic(individual: list, prim_set: PrimitiveSetTyped,
-                 min_depth: int = 2, max_depth: int = 6, gen_func: Callable = None,
-                 mut_step: float = None) -> tuple[list]:
+def mut_semantic(
+    individual: list,
+    prim_set: PrimitiveSetTyped,
+    min_depth: int = 2,
+    max_depth: int = 6,
+    gen_func: Callable = None,
+    mut_step: float = None,
+) -> tuple[list]:
     """
     Perform a semantic mutation on the given individual.
 
@@ -33,7 +38,7 @@ def mut_semantic(individual: list, prim_set: PrimitiveSetTyped,
     :param max_depth: Maximum depth of the random tree.
     :return: The mutated individual.
     """
-    _check(prim_set, 'mutation')
+    _check(prim_set, "mutation")
 
     if gen_func is None:
         gen_func = gen_grow
@@ -44,8 +49,8 @@ def mut_semantic(individual: list, prim_set: PrimitiveSetTyped,
     tr1 = gen_func(prim_set, min_depth, max_depth)
     tr2 = gen_func(prim_set, min_depth, max_depth)
 
-    tr1.insert(0, prim_set.mapping['lf'])
-    tr2.insert(0, prim_set.mapping['lf'])
+    tr1.insert(0, prim_set.mapping["lf"])
+    tr2.insert(0, prim_set.mapping["lf"])
 
     new_ind = individual
     new_ind.insert(0, prim_set.mapping["add"])
@@ -58,13 +63,18 @@ def mut_semantic(individual: list, prim_set: PrimitiveSetTyped,
     new_ind.extend(tr1)
     new_ind.extend(tr2)
 
-    return new_ind,
+    return (new_ind,)
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_semantic(ind1: list, ind2: list,
-                prim_set: PrimitiveSetTyped, min_depth: int = 2,
-                max_depth: int = 6, gen_func: Callable = gen_grow) -> tuple[list, list]:
+def cx_semantic(
+    ind1: list,
+    ind2: list,
+    prim_set: PrimitiveSetTyped,
+    min_depth: int = 2,
+    max_depth: int = 6,
+    gen_func: Callable = gen_grow,
+) -> tuple[list, list]:
     """
     Perform a semantic crossover on the given individuals.
 
@@ -76,10 +86,10 @@ def cx_semantic(ind1: list, ind2: list,
     :param max_depth: Maximum depth of the random tree.
     :return: Two mated individuals.
     """
-    _check(prim_set, 'crossover')
+    _check(prim_set, "crossover")
 
     tr = gen_func(prim_set, min_depth, max_depth)
-    tr.insert(0, prim_set.mapping['lf'])
+    tr.insert(0, prim_set.mapping["lf"])
 
     def create_ind(ind, ind_ext):
         new_ind = ind
@@ -100,8 +110,6 @@ def cx_semantic(ind1: list, ind2: list,
 
 # -------------------------------------------------------------------------------------- #
 def _check(p_set: PrimitiveSetTyped, op: str) -> None:
-    for func in ['lf', 'mul', 'add', 'sub']:
+    for func in ["lf", "mul", "add", "sub"]:
         if func not in p_set.mapping:
-            raise TypeError(
-                f'A \'{func}\' function is required to perform semantic \'{op}\'.'
-            )
+            raise TypeError(f"A '{func}' function is required to perform semantic '{op}'.")

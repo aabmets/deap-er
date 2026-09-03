@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from __future__ import annotations
@@ -17,9 +17,12 @@ import re
 
 
 __all__ = [
-    'Terminal', 'Ephemeral',
-    'Primitive', 'PrimitiveTree',
-    'PrimitiveSet', 'PrimitiveSetTyped'
+    "Terminal",
+    "Ephemeral",
+    "Primitive",
+    "PrimitiveTree",
+    "PrimitiveSet",
+    "PrimitiveSetTyped",
 ]
 
 
@@ -35,7 +38,8 @@ class Terminal:
 
     :type terminal: :ref:`TerminalTypes <datatypes>`
     """
-    __slots__ = ('name', 'value', 'ret', 'conv_fct')
+
+    __slots__ = ("name", "value", "ret", "conv_fct")
 
     # -------------------------------------------------------- #
     def __init__(self, terminal: Any, symbolic: bool, ret_type: type):
@@ -56,8 +60,7 @@ class Terminal:
     # -------------------------------------------------------- #
     def __eq__(self, other):
         if type(self) is type(other):
-            return all(getattr(self, slot) == getattr(other, slot)
-                       for slot in self.__slots__)
+            return all(getattr(self, slot) == getattr(other, slot) for slot in self.__slots__)
         else:
             return NotImplemented
 
@@ -69,6 +72,7 @@ class Ephemeral(Terminal):
     the object is created. This is an abstract base class. When
     subclassing, a staticmethod named *'func'* must be defined.
     """
+
     # -------------------------------------------------------- #
     def __init__(self):
         Terminal.__init__(self, self.func(), symbolic=False, ret_type=self.ret)
@@ -85,12 +89,13 @@ class Primitive:
     """
     Class that encapsulates a primitive and when called with arguments it
     returns the Python code to call the primitive with the arguments.
-    
+
     :param name: The name of the primitive.
     :param args: The list of arguments of the primitive.
     :param ret_type: The return type of the primitive.
     """
-    __slots__ = ('name', 'arity', 'args', 'ret', 'seq')
+
+    __slots__ = ("name", "arity", "args", "ret", "seq")
 
     # -------------------------------------------------------- #
     def __init__(self, name: str, args: list, ret_type: type):
@@ -108,8 +113,7 @@ class Primitive:
     # -------------------------------------------------------- #
     def __eq__(self, other):
         if type(self) is type(other):
-            return all(getattr(self, slot) == getattr(other, slot)
-                       for slot in self.__slots__)
+            return all(getattr(self, slot) == getattr(other, slot) for slot in self.__slots__)
         else:
             return NotImplemented
 
@@ -125,9 +129,9 @@ class PrimitiveSetTyped:
     :param ret_type: The return type.
     :param prefix: The prefix of the primitive set.
     """
+
     # -------------------------------------------------------- #
-    def __init__(self, name: str, in_types: list,
-                 ret_type: type, prefix: str = "ARG") -> None:
+    def __init__(self, name: str, in_types: list, ret_type: type, prefix: str = "ARG") -> None:
         self.name = name
         self.ins = in_types
         self.ret = ret_type
@@ -178,8 +182,9 @@ class PrimitiveSetTyped:
                 mapping[type_].append(prim)
 
     # -------------------------------------------------------- #
-    def add_primitive(self, primitive: Callable, in_types: list,
-                      ret_type: type, name: str = None) -> None:
+    def add_primitive(
+        self, primitive: Callable, in_types: list, ret_type: type, name: str = None
+    ) -> None:
         """
         Adds a primitive to the set.
 
@@ -192,9 +197,9 @@ class PrimitiveSetTyped:
         """
         if name in self.context:
             raise ValueError(
-                f'Primitives are required to have a unique name. '
-                f'Consider using the argument \'name\' to '
-                f'rename your second \'{name}\' primitive.'
+                f"Primitives are required to have a unique name. "
+                f"Consider using the argument 'name' to "
+                f"rename your second '{name}' primitive."
             )
 
         if name is None:
@@ -206,8 +211,7 @@ class PrimitiveSetTyped:
         self.prims_count += 1
 
     # -------------------------------------------------------- #
-    def add_terminal(self, terminal: Callable, ret_type: type,
-                     name: str = None) -> None:
+    def add_terminal(self, terminal: Callable, ret_type: type, name: str = None) -> None:
         """
         Adds a terminal to the set.
 
@@ -219,9 +223,9 @@ class PrimitiveSetTyped:
         """
         if name in self.context:
             raise ValueError(
-                f'Terminals are required to have a unique name. '
-                f'Consider using the argument \'{name}\' to '
-                f'rename your second \'{name}\' terminal.'
+                f"Terminals are required to have a unique name. "
+                f"Consider using the argument '{name}' to "
+                f"rename your second '{name}' terminal."
             )
         symbolic = False
         if name is None and callable(terminal):
@@ -239,8 +243,7 @@ class PrimitiveSetTyped:
         self.terms_count += 1
 
     # -------------------------------------------------------- #
-    def add_ephemeral_constant(self, name: str, ephemeral: Callable,
-                               ret_type: type) -> None:
+    def add_ephemeral_constant(self, name: str, ephemeral: Callable, ret_type: type) -> None:
         """
         Adds an ephemeral constant to the set. An ephemeral constant
         is a function without arguments that returns a random value.
@@ -253,7 +256,7 @@ class PrimitiveSetTyped:
         """
         module_gp = globals()
         if name not in module_gp:
-            attrs = {'func': staticmethod(ephemeral), 'ret': ret_type}
+            attrs = {"func": staticmethod(ephemeral), "ret": ret_type}
             class_ = type(name, (Ephemeral,), attrs)
             module_gp[name] = class_
         else:
@@ -261,18 +264,17 @@ class PrimitiveSetTyped:
             if issubclass(class_, Ephemeral):
                 if class_.func is not ephemeral:
                     raise TypeError(
-                        'Ephemera with different functions should be '
-                        'named differently even between psets.'
+                        "Ephemera with different functions should be "
+                        "named differently even between psets."
                     )
                 elif class_.ret is not ret_type:
                     raise TypeError(
-                        'Ephemera with the same name and function should '
-                        'have the same type even between psets.'
+                        "Ephemera with the same name and function should "
+                        "have the same type even between psets."
                     )
             else:
                 raise TypeError(
-                    'Ephemera should be named differently '
-                    'than classes defined in the gp module.'
+                    "Ephemera should be named differently than classes defined in the gp module."
                 )
 
         self._add_prim(class_)
@@ -287,11 +289,7 @@ class PrimitiveSetTyped:
             the primitives with which the ADF can be built.
         :return: Nothing.
         """
-        prim = Primitive(
-            prim_set.name,
-            prim_set.ins,
-            prim_set.ret
-        )
+        prim = Primitive(prim_set.name, prim_set.ins, prim_set.ret)
         self._add_prim(prim)
         self.prims_count += 1
 
@@ -330,6 +328,7 @@ class PrimitiveSet(PrimitiveSetTyped):
     :param arity: The arity of the primitive set.
     :param prefix: The prefix of the primitive set.
     """
+
     # -------------------------------------------------------- #
     def __init__(self, name: str, arity: int, prefix: str = "ARG"):
         args = [object] * arity
@@ -338,7 +337,7 @@ class PrimitiveSet(PrimitiveSetTyped):
     # -------------------------------------------------------- #
     def add_primitive(self, primitive: Callable, arity: int, name: str = None, *_, **__) -> None:
         if not arity >= 1:
-            raise ValueError('arity should be >= 1')
+            raise ValueError("arity should be >= 1")
         args = [object] * arity
         super().add_primitive(primitive, args, object, name)
 
@@ -362,6 +361,7 @@ class PrimitiveTree(list):
 
     :param content: List of primitives and terminals to be added to the tree.
     """
+
     # -------------------------------------------------------- #
     def __init__(self, content: Iterable):
         super().__init__(content)
@@ -390,8 +390,7 @@ class PrimitiveTree(list):
                 )
         elif val.arity != self[key].arity:
             raise ValueError(
-                "PrimitiveTree node replacement with a node "
-                "of a different arity is not allowed."
+                "PrimitiveTree node replacement with a node of a different arity is not allowed."
             )
         list.__setitem__(self, key, val)
 
@@ -411,8 +410,7 @@ class PrimitiveTree(list):
 
     # -------------------------------------------------------- #
     @classmethod
-    def from_string(cls, string: str,
-                    prim_set: PrimitiveSetTyped) -> PrimitiveTree:
+    def from_string(cls, string: str, prim_set: PrimitiveSetTyped) -> PrimitiveTree:
         """
         Converts a string expression into a PrimitiveTree given a
         PrimitiveSet **p_set**. The primitive set needs to contain
@@ -426,7 +424,7 @@ class PrimitiveTree(list):
         expr = list()
         ret_types = deque()
         for token in tokens:
-            if token == '':
+            if token == "":
                 continue
             if len(ret_types) != 0:
                 ret_type = ret_types.popleft()
@@ -437,8 +435,8 @@ class PrimitiveTree(list):
                 primitive = prim_set.mapping[token]
                 if ret_type is not None and not issubclass(primitive.ret, ret_type):
                     raise TypeError(
-                        f'Primitive {primitive} return type {primitive.ret} '
-                        f'does not match the expected one: {ret_type}.'
+                        f"Primitive {primitive} return type {primitive.ret} "
+                        f"does not match the expected one: {ret_type}."
                     )
                 expr.append(primitive)
                 if isinstance(primitive, Primitive):
@@ -447,13 +445,13 @@ class PrimitiveTree(list):
                 try:
                     token = eval(token)
                 except NameError:
-                    raise TypeError(f'Unable to evaluate terminal: {token}.')
+                    raise TypeError(f"Unable to evaluate terminal: {token}.")
                 if ret_type is None:
                     ret_type = type(token)
                 if not issubclass(type(token), ret_type):
                     raise TypeError(
-                        f'Terminal {token} type {type(token)} does '
-                        f'not match the expected one: {ret_type}.'
+                        f"Terminal {token} type {type(token)} does "
+                        f"not match the expected one: {ret_type}."
                     )
                 prim = Terminal(token, False, ret_type)
                 expr.append(prim)

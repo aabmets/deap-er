@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from __future__ import annotations
@@ -16,19 +16,27 @@ import random
 
 
 __all__ = [
-    'cx_one_point', 'cx_messy_one_point',
-    'cx_two_point', 'cx_two_point_copy',
-    'cx_es_two_point', 'cx_es_two_point_copy',
-    'cx_partially_matched', 'cx_uniform_partially_matched',
-    'cx_blend', 'cx_es_blend',
-    'cx_simulated_binary', 'cx_simulated_binary_bounded',
-    'cx_uniform', 'cx_ordered'
+    "cx_one_point",
+    "cx_messy_one_point",
+    "cx_two_point",
+    "cx_two_point_copy",
+    "cx_es_two_point",
+    "cx_es_two_point_copy",
+    "cx_partially_matched",
+    "cx_uniform_partially_matched",
+    "cx_blend",
+    "cx_es_blend",
+    "cx_simulated_binary",
+    "cx_simulated_binary_bounded",
+    "cx_uniform",
+    "cx_ordered",
 ]
 
 
 # ====================================================================================== #
-def _slicer(ind1: Individual, ind2: Individual,
-            start: int, stop: int = None, copy: bool = False) -> Mates:
+def _slicer(
+    ind1: Individual, ind2: Individual, start: int, stop: int = None, copy: bool = False
+) -> Mates:
     if stop is None:
         s1 = slice(start, len(ind1))
         s2 = slice(start, len(ind2))
@@ -44,8 +52,9 @@ def _slicer(ind1: Individual, ind2: Individual,
 
 
 # -------------------------------------------------------------------------------------- #
-def _two_point(ind1: Individual, ind2: Individual,
-               copy: bool = False, strategy: bool = False) -> tuple:
+def _two_point(
+    ind1: Individual, ind2: Individual, copy: bool = False, strategy: bool = False
+) -> tuple:
     size = min(len(ind1), len(ind2))
     cxp1 = random.randint(1, size)
     cxp2 = random.randint(1, size - 1)
@@ -55,17 +64,12 @@ def _two_point(ind1: Individual, ind2: Individual,
         cxp1, cxp2 = cxp2, cxp1
     ind1, ind2 = _slicer(ind1, ind2, cxp1, cxp2, copy)
     if strategy:
-        _slicer(
-            ind1.strategy,
-            ind2.strategy,
-            cxp1, cxp2
-        )
+        _slicer(ind1.strategy, ind2.strategy, cxp1, cxp2)
     return ind1, ind2
 
 
 # -------------------------------------------------------------------------------------- #
-def _match(ind1: Individual, ind2: Individual,
-           p1: list, p2: list, i: int) -> None:
+def _match(ind1: Individual, ind2: Individual, p1: list, p2: list, i: int) -> None:
     temp1, temp2 = ind1[i], ind2[i]
     ind1[i], ind1[p1[temp2]] = temp2, temp1
     ind2[i], ind2[p2[temp1]] = temp1, temp2
@@ -228,8 +232,7 @@ def cx_partially_matched(ind1: Individual, ind2: Individual) -> Mates:
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_uniform_partially_matched(ind1: Individual, ind2: Individual,
-                                 cx_prob: float) -> Mates:
+def cx_uniform_partially_matched(ind1: Individual, ind2: Individual, cx_prob: float) -> Mates:
     """
     Executes a uniform partially matched crossover on
     the two individuals, who are modified in-place.
@@ -275,9 +278,9 @@ def cx_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
     :rtype: :ref:`Mates <datatypes>`
     """
     for i, (x1, x2) in enumerate(zip(ind1, ind2)):
-        gamma = (1. + 2. * alpha) * random.random() - alpha
-        ind1[i] = (1. - gamma) * x1 + gamma * x2
-        ind2[i] = gamma * x1 + (1. - gamma) * x2
+        gamma = (1.0 + 2.0 * alpha) * random.random() - alpha
+        ind1[i] = (1.0 - gamma) * x1 + gamma * x2
+        ind2[i] = gamma * x1 + (1.0 - gamma) * x2
 
     return ind1, ind2
 
@@ -302,14 +305,13 @@ def cx_es_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
     """
     zipper = zip(ind1, ind1.strategy, ind2, ind2.strategy)
     for i, (x1, s1, x2, s2) in enumerate(zipper):
+        gamma = (1.0 + 2.0 * alpha) * random.random() - alpha
+        ind1[i] = (1.0 - gamma) * x1 + gamma * x2
+        ind2[i] = gamma * x1 + (1.0 - gamma) * x2
 
-        gamma = (1. + 2. * alpha) * random.random() - alpha
-        ind1[i] = (1. - gamma) * x1 + gamma * x2
-        ind2[i] = gamma * x1 + (1. - gamma) * x2
-
-        gamma = (1. + 2. * alpha) * random.random() - alpha
-        ind1.strategy[i] = (1. - gamma) * s1 + gamma * s2
-        ind2.strategy[i] = gamma * s1 + (1. - gamma) * s2
+        gamma = (1.0 + 2.0 * alpha) * random.random() - alpha
+        ind1.strategy[i] = (1.0 - gamma) * s1 + gamma * s2
+        ind2.strategy[i] = gamma * s1 + (1.0 - gamma) * s2
 
     return ind1, ind2
 
@@ -336,11 +338,11 @@ def cx_simulated_binary(ind1: Individual, ind2: Individual, eta: float) -> Mates
         rand = random.random()
 
         if rand <= 0.5:
-            beta = 2. * rand
+            beta = 2.0 * rand
         else:
-            beta = 1. / (2. * (1. - rand))
+            beta = 1.0 / (2.0 * (1.0 - rand))
 
-        beta **= 1. / (eta + 1.)
+        beta **= 1.0 / (eta + 1.0)
         ind1[i] = 0.5 * (((1 + beta) * x1) + ((1 - beta) * x2))
         ind2[i] = 0.5 * (((1 - beta) * x1) + ((1 + beta) * x2))
 
@@ -348,8 +350,9 @@ def cx_simulated_binary(ind1: Individual, ind2: Individual, eta: float) -> Mates
 
 
 # -------------------------------------------------------------------------------------- #
-def cx_simulated_binary_bounded(ind1: Individual, ind2: Individual, eta: float,
-                                low: NumOrSeq, up: NumOrSeq) -> Mates:
+def cx_simulated_binary_bounded(
+    ind1: Individual, ind2: Individual, eta: float, low: NumOrSeq, up: NumOrSeq
+) -> Mates:
     """
     Executes a simulated binary bounded crossover on
     the two individuals, who are modified in-place.
@@ -370,13 +373,13 @@ def cx_simulated_binary_bounded(ind1: Individual, ind2: Individual, eta: float,
     :type up: :ref:`NumOrSeq <datatypes>`
     :rtype: :ref:`Mates <datatypes>`
     """
+
     def check_bounds(name: str, var: NumOrSeq) -> Sequence:
         if not isinstance(var, Sequence):
             var = repeat(var, size)
         elif isinstance(var, Sequence) and len(var) < size:
             raise ValueError(
-                f'{name} must be at least the size of the '
-                f'shorter individual: {len(var)} < {size}'
+                f"{name} must be at least the size of the shorter individual: {len(var)} < {size}"
             )
         return var
 
@@ -391,8 +394,8 @@ def cx_simulated_binary_bounded(ind1: Individual, ind2: Individual, eta: float,
         return c
 
     size = min(len(ind1), len(ind2))
-    low = check_bounds('low', low)
-    up = check_bounds('up', up)
+    low = check_bounds("low", low)
+    up = check_bounds("up", up)
 
     for i, xl, xu in zip(list(range(size)), low, up):
         if random.random() <= 0.5:

@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from .dtypes import *
@@ -17,10 +17,7 @@ import random
 import sys
 
 
-__all__ = [
-    'compile_tree', 'compile_adf_tree',
-    'build_tree_graph', 'static_limit'
-]
+__all__ = ["compile_tree", "compile_adf_tree", "build_tree_graph", "static_limit"]
 
 
 # ====================================================================================== #
@@ -46,8 +43,7 @@ def compile_tree(expr: GPExprTypes, prim_set: PrimitiveSetTyped) -> Any:
     except MemoryError:
         _, _, traceback = sys.exc_info()
         raise MemoryError(
-            "Recursion depth of 90 exceeded. "
-            "Use bloat control on your operators.\n"
+            "Recursion depth of 90 exceeded. Use bloat control on your operators.\n"
         ).with_traceback(traceback)
 
 
@@ -129,6 +125,7 @@ def static_limit(limiter: Callable, max_value: Union[int, float]) -> Callable:
     :param max_value: The maximum value allowed for the given measurement.
     :return: A decorator which can be applied to a GP operator in a Toolbox.
     """
+
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -138,5 +135,7 @@ def static_limit(limiter: Callable, max_value: Union[int, float]) -> Callable:
                 if keep_inds and limiter(ind) > max_value:
                     new_inds[i] = random.choice(keep_inds)
             return new_inds
+
         return wrapper
+
     return decorator

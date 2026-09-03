@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from typing import Callable, Union, Iterable
@@ -29,6 +29,7 @@ class Translate:
     :param vector: The translation vector values.
         Must have the same length as the individual.
     """
+
     vector = None
 
     # -------------------------------------------------------- #
@@ -41,6 +42,7 @@ class Translate:
         def wrapper(individual, *args, **kwargs):
             translated = [v - t for v, t in zip(individual, self.vector)]
             return func(translated, *args, **kwargs)
+
         wrapper.translate = self.translate
         return wrapper
 
@@ -69,6 +71,7 @@ class Rotate:
     :param matrix: The rotation matrix values. Must be a valid orthogonal
         N * N rotation matrix, where N is the length of the individual.
     """
+
     matrix = None
 
     # -------------------------------------------------------- #
@@ -81,6 +84,7 @@ class Rotate:
         def wrapper(individual, *args, **kwargs):
             rotated = numpy.dot(self.matrix, individual)
             return func(rotated, *args, **kwargs)
+
         wrapper.rotate = self.rotate
         return wrapper
 
@@ -109,6 +113,7 @@ class Scale:
     :param factor: The scale factor values.
         Must have the same length as the individual.
     """
+
     factor = None
 
     # -------------------------------------------------------- #
@@ -121,6 +126,7 @@ class Scale:
         def wrapper(individual, *args, **kwargs):
             scaled = [v * f for v, f in zip(individual, self.factor)]
             return func(scaled, *args, **kwargs)
+
         wrapper.scale = self.scale
         return wrapper
 
@@ -152,6 +158,7 @@ class Noise:
         can also be of type :obj:`None`, which prevents noise from being
         added to the corresponding value(s).
     """
+
     rand_funcs = None
 
     # -------------------------------------------------------- #
@@ -172,6 +179,7 @@ class Noise:
                 else:
                     noisy.append(r + f())
             return tuple(noisy)
+
         wrapper.noise = self.noise
         return wrapper
 
@@ -201,6 +209,7 @@ def bin2float(min_: float, max_: float, n_bits: int) -> Callable:
     :param n_bits: Number of bits used to represent the float.
     :return: Decorated function.
     """
+
     def wrapper(function):
         @wraps(function)
         def wrapped(individual, *args, **kwargs):
@@ -212,8 +221,10 @@ def bin2float(min_: float, max_: float, n_bits: int) -> Callable:
                 values = individual[start:stop]
                 mapper = map(str, values)
                 gene = int("".join(mapper), 2)
-                div = 2 ** n_bits - 1
+                div = 2**n_bits - 1
                 decoded[i] = min_ + ((gene / div) * (max_ - min_))
             return function(decoded, *args, **kwargs)
+
         return wrapped
+
     return wrapper

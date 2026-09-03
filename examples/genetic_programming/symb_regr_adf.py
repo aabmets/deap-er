@@ -24,9 +24,9 @@ def safe_div(left, right):
 
 def evaluate(individual, toolbox, points):
     func = toolbox.compile(expr=individual)
-    sq_errors = ((func(x) - x**4 - x**3 - x**2 - x)**2 for x in points)
+    sq_errors = ((func(x) - x**4 - x**3 - x**2 - x) ** 2 for x in points)
     result = math.fsum(sq_errors) / len(points)
-    return result,  # The comma is essential here.
+    return (result,)  # The comma is essential here.
 
 
 def add_primitives(prim_set):
@@ -58,7 +58,7 @@ def setup():
     pset.add_adf(adf_set_0)
     pset.add_adf(adf_set_1)
     pset.add_adf(adf_set_2)
-    pset.rename_arguments(ARG0='x')
+    pset.rename_arguments(ARG0="x")
 
     prim_sets = (pset, adf_set_0, adf_set_1, adf_set_2)
 
@@ -67,26 +67,28 @@ def setup():
     creator.create("Individual", list, fitness=creator.FitnessMin)
 
     toolbox = base.Toolbox()
-    toolbox.register('adf_expr_0', gp.gen_full, prim_set=adf_set_0, min_depth=1, max_depth=2)
-    toolbox.register('adf_expr_1', gp.gen_full, prim_set=adf_set_1, min_depth=1, max_depth=2)
-    toolbox.register('adf_expr_2', gp.gen_full, prim_set=adf_set_2, min_depth=1, max_depth=2)
-    toolbox.register('main_expr', gp.gen_half_and_half, prim_set=pset, min_depth=1, max_depth=2)
+    toolbox.register("adf_expr_0", gp.gen_full, prim_set=adf_set_0, min_depth=1, max_depth=2)
+    toolbox.register("adf_expr_1", gp.gen_full, prim_set=adf_set_1, min_depth=1, max_depth=2)
+    toolbox.register("adf_expr_2", gp.gen_full, prim_set=adf_set_2, min_depth=1, max_depth=2)
+    toolbox.register("main_expr", gp.gen_half_and_half, prim_set=pset, min_depth=1, max_depth=2)
 
-    toolbox.register('ADF0', tools.init_iterate, creator.Tree, toolbox.adf_expr_0)
-    toolbox.register('ADF1', tools.init_iterate, creator.Tree, toolbox.adf_expr_1)
-    toolbox.register('ADF2', tools.init_iterate, creator.Tree, toolbox.adf_expr_2)
-    toolbox.register('MAIN', tools.init_iterate, creator.Tree, toolbox.main_expr)
+    toolbox.register("ADF0", tools.init_iterate, creator.Tree, toolbox.adf_expr_0)
+    toolbox.register("ADF1", tools.init_iterate, creator.Tree, toolbox.adf_expr_1)
+    toolbox.register("ADF2", tools.init_iterate, creator.Tree, toolbox.adf_expr_2)
+    toolbox.register("MAIN", tools.init_iterate, creator.Tree, toolbox.main_expr)
 
     func_cycle = [toolbox.MAIN, toolbox.ADF0, toolbox.ADF1, toolbox.ADF2]
 
-    toolbox.register('individual', tools.init_cycle, creator.Individual, func_cycle)
-    toolbox.register('population', tools.init_repeat, list, toolbox.individual)
-    toolbox.register('compile', gp.compile_adf_tree, prim_sets=prim_sets)
-    toolbox.register('mate', gp.cx_one_point)
-    toolbox.register('expr', gp.gen_full, min_depth=1, max_depth=2)
-    toolbox.register('mutate', gp.mut_uniform, expr=toolbox.expr)
-    toolbox.register('select', tools.sel_tournament, contestants=3)
-    toolbox.register('evaluate', evaluate, toolbox=toolbox, points=[x / 10. for x in range(-10, 10)])
+    toolbox.register("individual", tools.init_cycle, creator.Individual, func_cycle)
+    toolbox.register("population", tools.init_repeat, list, toolbox.individual)
+    toolbox.register("compile", gp.compile_adf_tree, prim_sets=prim_sets)
+    toolbox.register("mate", gp.cx_one_point)
+    toolbox.register("expr", gp.gen_full, min_depth=1, max_depth=2)
+    toolbox.register("mutate", gp.mut_uniform, expr=toolbox.expr)
+    toolbox.register("select", tools.sel_tournament, contestants=3)
+    toolbox.register(
+        "evaluate", evaluate, toolbox=toolbox, points=[x / 10.0 for x in range(-10, 10)]
+    )
     toolbox.decorate("mate", gp.static_limit(limiter=operator.attrgetter("height"), max_value=17))
     toolbox.decorate("mutate", gp.static_limit(limiter=operator.attrgetter("height"), max_value=17))
 
@@ -104,8 +106,8 @@ def setup():
 
 def print_results(best_ind):
     if not best_ind.fitness.values < (0.5,):
-        raise RuntimeError('Evolution failed to converge.')
-    print('\nEvolution converged correctly.')
+        raise RuntimeError("Evolution failed to converge.")
+    print("\nEvolution converged correctly.")
 
 
 def main():

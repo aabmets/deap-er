@@ -1,18 +1,18 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from typing import Optional
 from itertools import product
 
 
-__all__ = ['SortingNetwork']
+__all__ = ["SortingNetwork"]
 
 
 # ====================================================================================== #
@@ -30,6 +30,7 @@ class SortingNetwork:
     :param connectors: A list of pairs of wires
         that are connected by a comparator, optional.
     """
+
     # -------------------------------------------------------- #
     def __init__(self, dimension: int, connectors: Optional[list] = None):
         self.dimension = dimension
@@ -163,19 +164,19 @@ class SortingNetwork:
         str_spaces = []
 
         for i in range(1, self.dimension):
-            str_wires.append(["-"]*7 * self.depth)
-            str_spaces.append([" "]*7 * self.depth)
+            str_wires.append(["-"] * 7 * self.depth)
+            str_spaces.append([" "] * 7 * self.depth)
             str_wires[i][0] = str(i)
             str_wires[i][1] = " o"
 
         for index, level in enumerate(self.data):
             for wire1, wire2 in level:
-                str_wires[wire1][(index+1)*6] = "x"
-                str_wires[wire2][(index+1)*6] = "x"
+                str_wires[wire1][(index + 1) * 6] = "x"
+                str_wires[wire2][(index + 1) * 6] = "x"
                 for i in range(wire1, wire2):
-                    str_spaces[i][(index+1)*6+1] = "|"
-                for i in range(wire1+1, wire2):
-                    str_wires[i][(index+1)*6] = "|"
+                    str_spaces[i][(index + 1) * 6 + 1] = "|"
+                for i in range(wire1 + 1, wire2):
+                    str_wires[i][(index + 1) * 6] = "|"
 
         network_draw = "".join(str_wires[0])
 

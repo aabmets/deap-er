@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from __future__ import annotations
@@ -14,7 +14,7 @@ from operator import mul, truediv
 from .dtypes import NumOrSeq
 
 
-__all__ = ['Fitness']
+__all__ = ["Fitness"]
 
 
 # ====================================================================================== #
@@ -29,6 +29,7 @@ class Fitness:
     :param values: The values of the fitness object, optional.
     :type values: :ref:`SeqOfNum <datatypes>`
     """
+
     # -------------------------------------------------------- #
     weights: tuple = tuple()
     """
@@ -47,12 +48,12 @@ class Fitness:
     unnecessary to manipulate this attribute directly, as it's mostly 
     used internally by the Fitness comparison operators.
     """
+
     # -------------------------------------------------------- #
     def __init__(self, values: NumOrSeq = None):
         if not self.weights:
             raise TypeError(
-                "Can't instantiate 'Fitness', when class "
-                "attribute 'weights' tuple is not set."
+                "Can't instantiate 'Fitness', when class attribute 'weights' tuple is not set."
             )
         if values:
             self.values = values
@@ -149,11 +150,7 @@ class Fitness:
         return str(self.values)
 
     def __repr__(self):
-        return '{0}.{1}({2})'.format(
-            self.__module__,
-            self.__class__.__name__,
-            str(self.values)
-        )
+        return "{0}.{1}({2})".format(self.__module__, self.__class__.__name__, str(self.values))
 
     # -------------------------------------------------------- #
     def __deepcopy__(self, memo):

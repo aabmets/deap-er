@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er import tools
@@ -47,7 +47,7 @@ def test_standard_cma():
     setup_func_single_obj()
 
     dimensions = 5
-    strategy = tools.Strategy(centroid=[0.0]*dimensions, sigma=1.0)
+    strategy = tools.Strategy(centroid=[0.0] * dimensions, sigma=1.0)
 
     toolbox = base.Toolbox()
     toolbox.register("evaluate", tools.bm_sphere)
@@ -55,7 +55,7 @@ def test_standard_cma():
     toolbox.register("update", strategy.update)
 
     pop, _ = tools.ea_generate_update(toolbox, generations=100)
-    best, = tools.sel_best(pop, sel_count=1)
+    (best,) = tools.sel_best(pop, sel_count=1)
 
     assert best.fitness.values < (1e-8,)
 
@@ -72,17 +72,27 @@ def test_nsga2():
     generations = 100
 
     toolbox = base.Toolbox()
-    toolbox.register("attr_float", random.uniform,
-                     bound_low, bound_up)
-    toolbox.register("individual", tools.init_repeat,
-                     creator.__dict__[INDCLSNAME], toolbox.attr_float, dimensions)
-    toolbox.register("population", tools.init_repeat,
-                     list, toolbox.individual)
+    toolbox.register("attr_float", random.uniform, bound_low, bound_up)
+    toolbox.register(
+        "individual",
+        tools.init_repeat,
+        creator.__dict__[INDCLSNAME],
+        toolbox.attr_float,
+        dimensions,
+    )
+    toolbox.register("population", tools.init_repeat, list, toolbox.individual)
 
-    toolbox.register("mate", tools.cx_simulated_binary_bounded,
-                     low=bound_low, up=bound_up, eta=20.0)
-    toolbox.register("mutate", tools.mut_polynomial_bounded,
-                     low=bound_low, up=bound_up, eta=20.0, mut_prob=1.0/dimensions)
+    toolbox.register(
+        "mate", tools.cx_simulated_binary_bounded, low=bound_low, up=bound_up, eta=20.0
+    )
+    toolbox.register(
+        "mutate",
+        tools.mut_polynomial_bounded,
+        low=bound_low,
+        up=bound_up,
+        eta=20.0,
+        mut_prob=1.0 / dimensions,
+    )
 
     toolbox.register("evaluate", tools.bm_zdt_1)
     toolbox.register("select", tools.sel_nsga_2)
@@ -126,7 +136,7 @@ def test_mo_cma_es():
     setup_func_multi_obj_numpy()
 
     def distance(feasible_ind, original_ind):
-        return sum((f - o)**2 for f, o in zip(feasible_ind, original_ind))
+        return sum((f - o) ** 2 for f, o in zip(feasible_ind, original_ind))
 
     def closest_feasible(individual):
         feasible_ind = numpy.array(individual)
@@ -149,7 +159,9 @@ def test_mo_cma_es():
 
     toolbox = base.Toolbox()
     toolbox.register("evaluate", tools.bm_zdt_1)
-    toolbox.decorate("evaluate", tools.ClosestValidPenalty(valid, closest_feasible, 1.0e+6, distance))
+    toolbox.decorate(
+        "evaluate", tools.ClosestValidPenalty(valid, closest_feasible, 1.0e6, distance)
+    )
 
     choices = numpy.random.uniform(bound_low, bound_up, (survivors, dimensions))
     population = [creator.__dict__[INDCLSNAME](x) for x in choices]
@@ -174,7 +186,7 @@ def test_mo_cma_es():
     num_valid = 0
     for ind in strategy.parents:
         dist = distance(closest_feasible(ind), ind)
-        if numpy.isclose(dist, 0.0, rtol=1.e-5, atol=1.e-5):
+        if numpy.isclose(dist, 0.0, rtol=1.0e-5, atol=1.0e-5):
             num_valid += 1
     assert num_valid >= len(strategy.parents)
 
@@ -195,19 +207,28 @@ def test_nsga3():
     ref_points = tools.uniform_reference_points(2, ref_ppo=12)
 
     toolbox = base.Toolbox()
-    toolbox.register("attr_float", random.uniform,
-                     bound_low, bound_up)
-    toolbox.register("individual", tools.init_repeat,
-                     creator.__dict__[INDCLSNAME], toolbox.attr_float, dimensions)
-    toolbox.register("population", tools.init_repeat,
-                     list, toolbox.individual)
+    toolbox.register("attr_float", random.uniform, bound_low, bound_up)
+    toolbox.register(
+        "individual",
+        tools.init_repeat,
+        creator.__dict__[INDCLSNAME],
+        toolbox.attr_float,
+        dimensions,
+    )
+    toolbox.register("population", tools.init_repeat, list, toolbox.individual)
 
-    toolbox.register("mate", tools.cx_simulated_binary_bounded,
-                     low=bound_low, up=bound_up, eta=20.0)
-    toolbox.register("mutate", tools.mut_polynomial_bounded,
-                     low=bound_low, up=bound_up, eta=20.0, mut_prob=1.0/dimensions)
-    toolbox.register("select", tools.sel_nsga_3,
-                     ref_points=ref_points)
+    toolbox.register(
+        "mate", tools.cx_simulated_binary_bounded, low=bound_low, up=bound_up, eta=20.0
+    )
+    toolbox.register(
+        "mutate",
+        tools.mut_polynomial_bounded,
+        low=bound_low,
+        up=bound_up,
+        eta=20.0,
+        mut_prob=1.0 / dimensions,
+    )
+    toolbox.register("select", tools.sel_nsga_3, ref_points=ref_points)
 
     toolbox.register("evaluate", tools.bm_zdt_1)
 

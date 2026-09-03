@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.base.dtypes import *
@@ -13,9 +13,14 @@ from math import exp, sin, cos
 
 
 __all__ = [
-    'bm_ripple', 'bm_sin_cos', 'bm_unwrapped_ball',
-    'bm_kotanchek', 'bm_salustowicz_1d', 'bm_salustowicz_2d',
-    'bm_rational_polynomial_1', 'bm_rational_polynomial_2'
+    "bm_ripple",
+    "bm_sin_cos",
+    "bm_unwrapped_ball",
+    "bm_kotanchek",
+    "bm_salustowicz_1d",
+    "bm_salustowicz_2d",
+    "bm_rational_polynomial_1",
+    "bm_rational_polynomial_2",
 ]
 
 
@@ -124,7 +129,7 @@ def bm_kotanchek(individual: Individual) -> float:
     """
     i = individual[0]
     j = individual[1]
-    numer = exp(-(i - 1) ** 2)
+    numer = exp(-((i - 1) ** 2))
     de_nom = 3.2 + (j - 2.5) ** 2
     return numer / de_nom
 
@@ -152,7 +157,7 @@ def bm_salustowicz_1d(individual: Individual) -> float:
                \\sin(x) (\\cos(x) \\sin^2(x) - 1)`
     """
     i = individual[0]
-    a = exp(-i) * i ** 3 * cos(i)
+    a = exp(-i) * i**3 * cos(i)
     b = sin(i) * (cos(i) * sin(i) ** 2 - 1)
     return a * b
 
@@ -181,7 +186,7 @@ def bm_salustowicz_2d(individual: Individual) -> float:
     """
     i = individual[0]
     j = individual[1]
-    a = exp(-i) * i ** 3 * cos(i) * sin(i)
+    a = exp(-i) * i**3 * cos(i) * sin(i)
     b = (cos(i) * sin(i) ** 2 - 1) * (j - 5)
     return a * b
 
@@ -212,7 +217,7 @@ def bm_rational_polynomial_1(individual: Individual) -> float:
     j = individual[1]
     k = individual[2]
     numer = 30 * (i - 1) * (k - 1)
-    de_nom = (j ** 2 * (i - 10))
+    de_nom = j**2 * (i - 10)
     return numer / de_nom
 
 
@@ -241,5 +246,5 @@ def bm_rational_polynomial_2(individual: Individual) -> float:
     i = individual[0]
     j = individual[1]
     numer = (i - 3) ** 4 + (j - 3) ** 3 - (j - 3)
-    de_nom = ((j - 2) ** 4 + 10)
+    de_nom = (j - 2) ** 4 + 10
     return numer / de_nom

@@ -1,22 +1,27 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from typing import Callable
 
 
-__all__ = ['mig_ring']
+__all__ = ["mig_ring"]
 
 
 # ====================================================================================== #
-def mig_ring(populations: list, mig_count: int, selection: Callable,
-             replacement: Callable = None, mig_indices: list = None) -> None:
+def mig_ring(
+    populations: list,
+    mig_count: int,
+    selection: Callable,
+    replacement: Callable = None,
+    mig_indices: list = None,
+) -> None:
     """
     Performs a ring migration between the **populations**. The migration
     first selects **mig_count** emigrants from each population using the

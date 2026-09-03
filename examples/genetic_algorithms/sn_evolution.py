@@ -77,9 +77,9 @@ def setup():
 
 
 def print_results(best_network):
-    print('\nBest sorting network schematic:')
+    print("\nBest sorting network schematic:")
     print(best_network.draw())
-    print('\nEvolution converged correctly.')
+    print("\nEvolution converged correctly.")
 
 
 def main():
@@ -124,7 +124,7 @@ def main():
         for ind, fit in zip(invalid_ind, fitness):
             ind.fitness.values = fit
 
-        population = toolbox.select(population+offspring, len(offspring))
+        population = toolbox.select(population + offspring, len(offspring))
 
         log_stats(generation)
 

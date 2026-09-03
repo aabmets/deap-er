@@ -1,18 +1,18 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from typing import Callable, Optional, Iterable
 from functools import partial
 
 
-__all__ = ['Statistics', 'MultiStatistics']
+__all__ = ["Statistics", "MultiStatistics"]
 
 
 # ====================================================================================== #
@@ -31,6 +31,7 @@ class Statistics:
     :param key: A function that takes an object and returns a
         value on which the statistics will be computed.
     """
+
     # -------------------------------------------------------- #
     def __init__(self, key: Optional[Callable] = None):
         self.key = key if key else lambda obj: obj
@@ -38,8 +39,7 @@ class Statistics:
         self.fields = list()
 
     # -------------------------------------------------------- #
-    def register(self, name: str, func: Callable,
-                 *args: Optional, **kwargs: Optional) -> None:
+    def register(self, name: str, func: Callable, *args: Optional, **kwargs: Optional) -> None:
         """
         Registers a new statistical function that will be applied
         to the sequence each time the *record* method is called.
@@ -77,14 +77,14 @@ class MultiStatistics(dict):
     Allows computation of statistics on multiple keys using a single
     call to the 'compile' method.
     """
+
     # -------------------------------------------------------- #
     @property
     def fields(self):
         return sorted(self.keys())
 
     # -------------------------------------------------------- #
-    def register(self, name: str, func: Callable,
-                 *args: Optional, **kwargs: Optional) -> None:
+    def register(self, name: str, func: Callable, *args: Optional, **kwargs: Optional) -> None:
         """
         Registers a new statistical function that will be applied
         to the sequence each time the *record* method is called.

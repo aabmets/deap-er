@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.base.dtypes import *
@@ -17,10 +17,22 @@ import numpy
 
 
 __all__ = [
-    'bm_rand', 'bm_plane', 'bm_sphere', 'bm_cigar', 'bm_rosenbrock',
-    'bm_h1', 'bm_ackley', 'bm_bohachevsky', 'bm_griewank', 'bm_schaffer',
-    'bm_schwefel', 'bm_himmelblau', 'bm_rastrigin', 'bm_rastrigin_scaled',
-    'bm_rastrigin_skewed', 'bm_shekel'
+    "bm_rand",
+    "bm_plane",
+    "bm_sphere",
+    "bm_cigar",
+    "bm_rosenbrock",
+    "bm_h1",
+    "bm_ackley",
+    "bm_bohachevsky",
+    "bm_griewank",
+    "bm_schaffer",
+    "bm_schwefel",
+    "bm_himmelblau",
+    "bm_rastrigin",
+    "bm_rastrigin_scaled",
+    "bm_rastrigin_skewed",
+    "bm_shekel",
 ]
 
 
@@ -49,7 +61,7 @@ def bm_rand(*_) -> tuple[float]:
             - :math:`f(\\mathbf{x}) = \\text{random}(0,1)`
     """
     result = random.random()
-    return result,
+    return (result,)
 
 
 # -------------------------------------------------------------------------------------- #
@@ -79,7 +91,7 @@ def bm_plane(individual: Individual) -> tuple[float]:
             - :math:`f(\\mathbf{x}) = x_0`
     """
     result = individual[0]
-    return result,
+    return (result,)
 
 
 # -------------------------------------------------------------------------------------- #
@@ -109,7 +121,7 @@ def bm_sphere(individual: Individual) -> tuple[float]:
             - :math:`f(\\mathbf{x}) = \\sum_{i=1}^Nx_i^2`
     """
     result = sum(gene * gene for gene in individual)
-    return result,
+    return (result,)
 
 
 # -------------------------------------------------------------------------------------- #
@@ -140,7 +152,7 @@ def bm_cigar(individual: Individual) -> tuple[float]:
     """
     _sum = sum(gene * gene for gene in individual[1:])
     result = individual[0] ** 2 + 1e6 * _sum
-    return result,
+    return (result,)
 
 
 # -------------------------------------------------------------------------------------- #
@@ -174,7 +186,7 @@ def bm_rosenbrock(individual: Individual) -> tuple[float]:
     for x, y in zip(individual[:-1], individual[1:]):
         results.append(100 * (x * x - y) ** 2 + (1 - x) ** 2)
     result = sum(results)
-    return result,
+    return (result,)
 
 
 # -------------------------------------------------------------------------------------- #
@@ -204,6 +216,7 @@ def bm_h1(individual: Individual) -> tuple[float]:
                \\sin(x_2 + \\frac{x_1}{8})^2}{\\sqrt{(x_1 - 8.6998)^2 + \
                (x_2 - 6.7665)^2} + 1}`
     """
+
     def compute_num():
         var_1 = sin(individual[0] - individual[1] / 8) ** 2
         var_2 = sin(individual[1] + individual[0] / 8) ** 2
@@ -215,7 +228,7 @@ def bm_h1(individual: Individual) -> tuple[float]:
         return (var_1 + var_2) ** 0.5 + 1
 
     result = compute_num() / compute_denum()
-    return result,
+    return (result,)
 
 
 # -------------------------------------------------------------------------------------- #
@@ -248,10 +261,10 @@ def bm_ackley(individual: Individual) -> tuple[float]:
                \\sum_{i=1}^N \\cos(2\\pi x_i) \\right)`
     """
     len_ind = len(individual)
-    exp_1 = exp(-0.2 * sqrt(1 / len_ind * sum(x ** 2 for x in individual)))
+    exp_1 = exp(-0.2 * sqrt(1 / len_ind * sum(x**2 for x in individual)))
     exp_2 = exp(1 / len_ind * sum(cos(2 * pi * x) for x in individual))
     result = 20 - 20 * exp_1 + e - exp_2
-    return result,
+    return (result,)
 
 
 # -------------------------------------------------------------------------------------- #
@@ -286,10 +299,10 @@ def bm_bohachevsky(individual: Individual) -> tuple[float]:
     for x, x1 in zip(individual[:-1], individual[1:]):
         c1 = cos(3 * pi * x)
         c2 = cos(4 * pi * x1)
-        res = x ** 2 + 2 * x1 ** 2 - 0.3 * c1 - 0.4 * c2 + 0.7
+        res = x**2 + 2 * x1**2 - 0.3 * c1 - 0.4 * c2 + 0.7
         results.append(res)
     result = sum(results)
-    return result,
+    return (result,)
 
 
 # -------------------------------------------------------------------------------------- #
@@ -320,10 +333,10 @@ def bm_griewank(individual: Individual) -> tuple[float]:
                \\,x_i^2 - \\prod_{i=1}^N\\cos\\left( \
                \\frac{x_i}{\\sqrt{i}}\\right) + 1`
     """
-    values = [cos(x/sqrt(i+1.0)) for i, x in enumerate(individual)]
+    values = [cos(x / sqrt(i + 1.0)) for i, x in enumerate(individual)]
     exp_sum = sum(x**2 for x in individual)
     result = 1 / 4000 * exp_sum - reduce(mul, values, 1) + 1
-    return result,
+    return (result,)
 
 
 # -------------------------------------------------------------------------------------- #
@@ -357,11 +370,11 @@ def bm_schaffer(individual: Individual) -> tuple[float]:
     """
     results = []
     for x, x1 in zip(individual[:-1], individual[1:]):
-        var_1 = (x ** 2 + x1 ** 2) ** 0.25
-        var_2 = sin(50 * (x ** 2 + x1 ** 2) ** 0.1) ** 2 + 1.0
+        var_1 = (x**2 + x1**2) ** 0.25
+        var_2 = sin(50 * (x**2 + x1**2) ** 0.1) ** 2 + 1.0
         results.append(var_1 * var_2)
     result = sum(results)
-    return result,
+    return (result,)
 
 
 # -------------------------------------------------------------------------------------- #
@@ -394,7 +407,7 @@ def bm_schwefel(individual: Individual) -> tuple[float]:
     len_ind = len(individual)
     values = sum(x * sin(sqrt(abs(x))) for x in individual)
     result = 418.9828872724339 * len_ind - values
-    return result,
+    return (result,)
 
 
 # -------------------------------------------------------------------------------------- #
@@ -429,7 +442,7 @@ def bm_himmelblau(individual: Individual) -> tuple[float]:
     var_1 = (individual[0] * individual[0] + individual[1] - 11) ** 2
     var_2 = (individual[0] + individual[1] * individual[1] - 7) ** 2
     result = var_1 + var_2
-    return result,
+    return (result,)
 
 
 # -------------------------------------------------------------------------------------- #
@@ -461,7 +474,7 @@ def bm_rastrigin(individual: Individual) -> tuple[float]:
     """
     values = [gene * gene - 10 * cos(2 * pi * gene) for gene in individual]
     result = 10 * len(individual) + sum(values)
-    return result,
+    return (result,)
 
 
 # -------------------------------------------------------------------------------------- #
@@ -500,7 +513,7 @@ def bm_rastrigin_scaled(individual: Individual) -> tuple[float]:
         var_2 = 10 * cos(2 * pi * 10 ** (i / (len_ind - 1)) * x)
         results.append(var_1 - var_2)
     result = 10 * len_ind + sum(results)
-    return result,
+    return (result,)
 
 
 # -------------------------------------------------------------------------------------- #
@@ -535,16 +548,15 @@ def bm_rastrigin_skewed(individual: Individual) -> tuple[float]:
     results = []
     len_ind = len(individual)
     for x in individual:
-        var_1 = (10*x if x > 0 else x)**2
-        var_2 = 10*cos(2*pi*(10*x if x > 0 else x))
+        var_1 = (10 * x if x > 0 else x) ** 2
+        var_2 = 10 * cos(2 * pi * (10 * x if x > 0 else x))
         results.append(var_1 - var_2)
     result = 10 * len_ind + sum(results)
-    return result,
+    return (result,)
 
 
 # -------------------------------------------------------------------------------------- #
-def bm_shekel(individual: Individual, matrix: numpy.ndarray,
-              vector: numpy.ndarray) -> tuple[float]:
+def bm_shekel(individual: Individual, matrix: numpy.ndarray, vector: numpy.ndarray) -> tuple[float]:
     """
     The Shekel multimodal function can have any number
     of maxima. The maxima count is given by the length
@@ -587,4 +599,4 @@ def bm_shekel(individual: Individual, matrix: numpy.ndarray,
         result = 1 / (vector[i] + sum(values))
         results.append(result)
     result = sum(results)
-    return result,
+    return (result,)

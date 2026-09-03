@@ -1,18 +1,18 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 import numpy as np
 import random
 
 
-__all__ = ['sel_lexicase', 'sel_epsilon_lexicase']
+__all__ = ["sel_lexicase", "sel_epsilon_lexicase"]
 
 
 # ====================================================================================== #
@@ -45,8 +45,7 @@ def sel_lexicase(individuals: list, sel_count: int) -> list:
 
 
 # -------------------------------------------------------------------------------------- #
-def sel_epsilon_lexicase(individuals: list, sel_count: int,
-                         epsilon: float = None) -> list:
+def sel_epsilon_lexicase(individuals: list, sel_count: int, epsilon: float = None) -> list:
     """
     Returns an individual that does the best on the fitness
     cases when considered one at a time in random order.

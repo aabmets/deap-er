@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.base.dtypes import *
@@ -15,7 +15,7 @@ from copy import deepcopy
 from operator import eq
 
 
-__all__ = ['HallOfFame', 'ParetoFront']
+__all__ = ["HallOfFame", "ParetoFront"]
 
 
 # ====================================================================================== #
@@ -23,6 +23,7 @@ class _BaseClass:
     """
     Private base class for the HallOfFame and ParetoFront classes.
     """
+
     # -------------------------------------------------------- #
     def __init__(self):
         self.keys = list()
@@ -40,7 +41,7 @@ class _BaseClass:
         :param individual: The individual to insert into the hall of fame.
         :return: Nothing.
         """
-        if hasattr(individual, 'fitness'):
+        if hasattr(individual, "fitness"):
             individual = deepcopy(individual)
             i = bisect_right(self.keys, individual.fitness)
             self.items.insert(len(self) - i, individual)
@@ -96,6 +97,7 @@ class HallOfFame(_BaseClass):
     :param maxsize: The maximum number of individuals to store in the hall of fame.
     :param similar: A function to compare two individuals, optional.
     """
+
     # -------------------------------------------------------- #
     def __init__(self, maxsize: int, similar: Optional[Callable] = eq):
         self.maxsize = maxsize
@@ -136,6 +138,7 @@ class ParetoFront(_BaseClass):
 
     :param similar: A function to compare two individuals, optional.
     """
+
     # -------------------------------------------------------- #
     def __init__(self, similar: Optional[Callable] = eq):
         self.similar = similar

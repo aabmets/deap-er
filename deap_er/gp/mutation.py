@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from .dtypes import *
@@ -15,15 +15,11 @@ from inspect import isclass
 import random
 
 
-__all__ = [
-    'mut_uniform', 'mut_node_replacement',
-    'mut_ephemeral', 'mut_insert', 'mut_shrink'
-]
+__all__ = ["mut_uniform", "mut_node_replacement", "mut_ephemeral", "mut_insert", "mut_shrink"]
 
 
 # ====================================================================================== #
-def mut_uniform(individual: GPIndividual, expr: Callable,
-                prim_set: PrimitiveSetTyped) -> GPMutant:
+def mut_uniform(individual: GPIndividual, expr: Callable, prim_set: PrimitiveSetTyped) -> GPMutant:
     """
     Mutates an individual by replacing a random subtree with
     an expression generated from the given **expr**.
@@ -40,12 +36,11 @@ def mut_uniform(individual: GPIndividual, expr: Callable,
     i_slice = individual.search_subtree(index)
     ret_type = individual[index].ret
     individual[i_slice] = expr(prim_set=prim_set, ret_type=ret_type)
-    return individual,
+    return (individual,)
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_node_replacement(individual: GPIndividual,
-                         prim_set: PrimitiveSetTyped) -> GPMutant:
+def mut_node_replacement(individual: GPIndividual, prim_set: PrimitiveSetTyped) -> GPMutant:
     """
     Mutates an individual by replacing a random primitive
     with a random primitive from the given **p_set**.
@@ -58,7 +53,7 @@ def mut_node_replacement(individual: GPIndividual,
     :rtype: :ref:`GPMutant <datatypes>`
     """
     if len(individual) < 2:
-        return individual,
+        return (individual,)
 
     index = random.randrange(1, len(individual))
     node = individual[index]
@@ -73,12 +68,11 @@ def mut_node_replacement(individual: GPIndividual,
         prims = [p for p in node_ret if p.args == node.args]
         individual[index] = random.choice(prims)
 
-    return individual,
+    return (individual,)
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_ephemeral(individual: GPIndividual,
-                  mode: str = 'all') -> GPMutant:
+def mut_ephemeral(individual: GPIndividual, mode: str = "all") -> GPMutant:
     """
     Mutates an individual by replacing either
     one random or all ephemeral constants.
@@ -91,7 +85,7 @@ def mut_ephemeral(individual: GPIndividual,
     :rtype: :ref:`GPMutant <datatypes>`
     """
     if mode not in ["one", "all"]:
-        raise ValueError('Mode must be one of \'one\' or \'all\'.')
+        raise ValueError("Mode must be one of 'one' or 'all'.")
 
     ephemera_idx = list()
     for index, node in enumerate(individual):
@@ -105,12 +99,11 @@ def mut_ephemeral(individual: GPIndividual,
         for i in ephemera_idx:
             individual[i] = type(individual[i])()
 
-    return individual,
+    return (individual,)
 
 
 # -------------------------------------------------------------------------------------- #
-def mut_insert(individual: GPIndividual,
-               prim_set: PrimitiveSetTyped) -> GPMutant:
+def mut_insert(individual: GPIndividual, prim_set: PrimitiveSetTyped) -> GPMutant:
     """
     Inserts a new branch at a random position in the tree.
 
@@ -132,7 +125,7 @@ def mut_insert(individual: GPIndividual,
             primitives.append(p)
 
     if len(primitives) == 0:
-        return individual,
+        return (individual,)
 
     new_node = choice(primitives)
     new_subtree = [None] * len(new_node.args)
@@ -150,11 +143,11 @@ def mut_insert(individual: GPIndividual,
                 term = term()
             new_subtree[i] = term
 
-    new_subtree[position:position + 1] = individual[slice_]
+    new_subtree[position : position + 1] = individual[slice_]
     new_subtree.insert(0, new_node)
     individual[slice_] = new_subtree
 
-    return individual,
+    return (individual,)
 
 
 # -------------------------------------------------------------------------------------- #
@@ -170,7 +163,7 @@ def mut_shrink(individual: GPIndividual) -> GPMutant:
     :rtype: :ref:`GPMutant <datatypes>`
     """
     if len(individual) < 3 or individual.height <= 1:
-        return individual,
+        return (individual,)
 
     i_prims = []
     for i, node in enumerate(individual[1:], 1):
@@ -194,4 +187,4 @@ def mut_shrink(individual: GPIndividual) -> GPMutant:
         i_slice = individual.search_subtree(index)
         individual[i_slice] = subtree
 
-    return individual,
+    return (individual,)

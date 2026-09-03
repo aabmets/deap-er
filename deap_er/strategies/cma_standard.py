@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from typing import Optional, Iterable, Callable
@@ -13,7 +13,7 @@ from math import sqrt, log
 import numpy
 
 
-__all__ = ['Strategy']
+__all__ = ["Strategy"]
 
 
 # ====================================================================================== #
@@ -56,6 +56,7 @@ class Strategy:
           * Learning rate for rank-mu update.
           * *Default:* :code:`2 * (mueff - 2 + 1 / mueff) / ((len(centroid) + 2) ** 2 + mueff)`
     """
+
     # -------------------------------------------------------- #
     def __init__(self, centroid: Iterable, sigma: float, **kwargs: Optional):
         self.update_count = 0
@@ -66,7 +67,7 @@ class Strategy:
         self.pc = numpy.zeros(self.dim)
         self.ps = numpy.zeros(self.dim)
 
-        temp = 1 - 1. / (4. * self.dim) + 1. / (21. * self.dim ** 2)
+        temp = 1 - 1.0 / (4.0 * self.dim) + 1.0 / (21.0 * self.dim**2)
         self.chiN = sqrt(self.dim) * temp
 
         self.lamb = None
@@ -117,26 +118,26 @@ class Strategy:
             raise RuntimeError("Unknown weights : %s" % r_weights)
 
         self.weights /= sum(self.weights)
-        self.mu_eff = 1. / sum(self.weights ** 2)
+        self.mu_eff = 1.0 / sum(self.weights**2)
 
-        default = 2. / ((self.dim + 1.3) ** 2 + self.mu_eff)
+        default = 2.0 / ((self.dim + 1.3) ** 2 + self.mu_eff)
         self.rank_one = kwargs.get("rank_one", default)
 
-        temp_1 = self.mu_eff - 2. + 1. / self.mu_eff
-        temp_2 = (self.dim + 2.) ** 2 + self.mu_eff
-        default = 2. * temp_1 / temp_2
+        temp_1 = self.mu_eff - 2.0 + 1.0 / self.mu_eff
+        temp_2 = (self.dim + 2.0) ** 2 + self.mu_eff
+        default = 2.0 * temp_1 / temp_2
         self.rank_mu = kwargs.get("rank_mu", default)
         self.rank_mu = min(1 - self.rank_one, self.rank_mu)
 
-        default = (self.mu_eff + 2.) / (self.dim + self.mu_eff + 3.)
+        default = (self.mu_eff + 2.0) / (self.dim + self.mu_eff + 3.0)
         self.ss_cum = kwargs.get("ss_cum", default)
 
-        temp_1 = sqrt((self.mu_eff - 1.) / (self.dim + 1.))
-        temp_2 = max(0., temp_1 - 1.)
-        default = 1. + 2. * temp_2 + self.ss_cum
+        temp_1 = sqrt((self.mu_eff - 1.0) / (self.dim + 1.0))
+        temp_2 = max(0.0, temp_1 - 1.0)
+        default = 1.0 + 2.0 * temp_2 + self.ss_cum
         self.ss_dmp = kwargs.get("ss_dmp", default)
 
-        default = 4. / (self.dim + 4.)
+        default = 4.0 / (self.dim + 4.0)
         self.cm_cum = kwargs.get("cm_cum", default)
 
         self.big_c = kwargs.get("cm_init", numpy.identity(self.dim))
@@ -171,29 +172,31 @@ class Strategy:
         population.sort(key=lambda ind: ind.fitness, reverse=True)
 
         old_centroid = self.centroid
-        self.centroid = numpy.dot(self.weights, population[0:self.mu])
+        self.centroid = numpy.dot(self.weights, population[0 : self.mu])
 
         c_diff = self.centroid - old_centroid
 
         temp_1 = sqrt(self.ss_cum * (2 - self.ss_cum) * self.mu_eff)
-        temp_2 = numpy.dot(self.big_b, (1. / self.diagD) * numpy.dot(self.big_b.T, c_diff))
+        temp_2 = numpy.dot(self.big_b, (1.0 / self.diagD) * numpy.dot(self.big_b.T, c_diff))
         self.ps = (1 - self.ss_cum) * self.ps + temp_1 / self.sigma * temp_2
 
-        temp_1 = sqrt(1. - (1. - self.ss_cum) ** (2. * (self.update_count + 1.)))
-        temp_2 = numpy.linalg.norm(self.ps) / temp_1 / self.chiN < (1.4 + 2. / (self.dim + 1.))
+        temp_1 = sqrt(1.0 - (1.0 - self.ss_cum) ** (2.0 * (self.update_count + 1.0)))
+        temp_2 = numpy.linalg.norm(self.ps) / temp_1 / self.chiN < (1.4 + 2.0 / (self.dim + 1.0))
         hsig = float(temp_2)
 
         temp_1 = sqrt(self.cm_cum * (2 - self.cm_cum) * self.mu_eff)
         self.pc = (1 - self.cm_cum) * self.pc + hsig * temp_1 / self.sigma * c_diff
 
-        ar_tmp = population[0:self.mu] - old_centroid
+        ar_tmp = population[0 : self.mu] - old_centroid
         temp_0 = (1 - hsig) * self.rank_one * self.cm_cum * (2 - self.cm_cum)
         temp_1 = 1 - self.rank_one - self.rank_mu + temp_0
         temp_2 = numpy.outer(self.pc, self.pc)
         temp_3 = numpy.dot((self.weights * ar_tmp.T), ar_tmp)
-        self.big_c = temp_1 * self.big_c + self.rank_one * temp_2 + self.rank_mu * temp_3 / self.sigma ** 2
+        self.big_c = (
+            temp_1 * self.big_c + self.rank_one * temp_2 + self.rank_mu * temp_3 / self.sigma**2
+        )
 
-        temp = (numpy.linalg.norm(self.ps) / self.chiN - 1.)
+        temp = numpy.linalg.norm(self.ps) / self.chiN - 1.0
         self.sigma *= numpy.exp(temp * self.ss_cum / self.ss_dmp)
 
         self.diagD, self.big_b = numpy.linalg.eigh(self.big_c)

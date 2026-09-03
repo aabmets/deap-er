@@ -1,23 +1,22 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.base import Toolbox
 import random
 
 
-__all__ = ['var_and', 'var_or']
+__all__ = ["var_and", "var_or"]
 
 
 # ====================================================================================== #
-def var_and(toolbox: Toolbox, population: list,
-            cx_prob: float, mut_prob: float) -> list:
+def var_and(toolbox: Toolbox, population: list, cx_prob: float, mut_prob: float) -> list:
     """
     A subcomponent for evolutionary algorithms, which mates AND
     mutates each individual in the given population according to the
@@ -46,15 +45,16 @@ def var_and(toolbox: Toolbox, population: list,
 
     for i in range(len(offspring)):
         if random.random() < mut_prob:
-            offspring[i], = toolbox.mutate(offspring[i])  # don't remove the comma!
+            (offspring[i],) = toolbox.mutate(offspring[i])  # don't remove the comma!
             del offspring[i].fitness.values
 
     return offspring
 
 
 # -------------------------------------------------------------------------------------- #
-def var_or(toolbox: Toolbox, population: list, offsprings: int,
-           cx_prob: float, mut_prob: float) -> list:
+def var_or(
+    toolbox: Toolbox, population: list, offsprings: int, cx_prob: float, mut_prob: float
+) -> list:
     """
     A subcomponent for evolutionary algorithms, which mates OR
     mutates each individual in the given population according to the
@@ -86,7 +86,7 @@ def var_or(toolbox: Toolbox, population: list, offsprings: int,
             offspring.append(ind1)
         elif op_choice < evolve_prob:
             ind = toolbox.clone(random.choice(population))
-            ind, = toolbox.mutate(ind)  # don't remove the comma!
+            (ind,) = toolbox.mutate(ind)  # don't remove the comma!
             del ind.fitness.values
             offspring.append(ind)
         else:

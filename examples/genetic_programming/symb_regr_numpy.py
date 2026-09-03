@@ -10,7 +10,7 @@ random.seed(1234)  # disables randomization
 
 
 def safe_div(left, right):
-    with numpy.errstate(divide='ignore', invalid='ignore'):
+    with numpy.errstate(divide="ignore", invalid="ignore"):
         x = numpy.divide(left, right)
         if isinstance(x, numpy.ndarray):
             x[numpy.isinf(x)] = 1
@@ -22,13 +22,13 @@ def safe_div(left, right):
 
 def evaluate(individual, toolbox, samples, values):
     func = toolbox.compile(expr=individual)
-    diff = numpy.sum((func(samples) - values)**2)
-    return diff,
+    diff = numpy.sum((func(samples) - values) ** 2)
+    return (diff,)
 
 
 def setup():
     samples = numpy.linspace(-1, 1, 10000)
-    values = samples ** 4 + samples ** 3 + samples ** 2 + samples
+    values = samples**4 + samples**3 + samples**2 + samples
 
     pset = gp.PrimitiveSet("MAIN", 1)
     pset.add_primitive(numpy.add, 2, name="vadd")
@@ -39,7 +39,7 @@ def setup():
     pset.add_primitive(numpy.cos, 1, name="vcos")
     pset.add_primitive(numpy.sin, 1, name="vsin")
     pset.add_ephemeral_constant("rand101", lambda: random.randint(-1, 1))
-    pset.rename_arguments(ARG0='x')
+    pset.rename_arguments(ARG0="x")
 
     creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
     creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
@@ -66,8 +66,8 @@ def setup():
 
 def print_results(best_ind):
     if not best_ind.fitness.values < (1.0e-3,):
-        raise RuntimeError('Evolution failed to converge.')
-    print('\nEvolution converged correctly.')
+        raise RuntimeError("Evolution failed to converge.")
+    print("\nEvolution converged correctly.")
 
 
 def main():
@@ -82,7 +82,7 @@ def main():
         mut_prob=0.1,
         hof=hof,
         stats=stats,
-        verbose=True  # prints stats
+        verbose=True,  # prints stats
     )
     tools.ea_simple(**args)
     print_results(hof[0])

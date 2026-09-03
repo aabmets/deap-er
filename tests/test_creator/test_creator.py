@@ -1,11 +1,11 @@
 #
 #   Apache License 2.0
-#   
+#
 #   Copyright (c) 2022, Mattias Aabmets
-#   
+#
 #   The contents of this file are subject to the terms and conditions defined in the License.
 #   You may not use, modify, or distribute this file except in compliance with the License.
-#   
+#
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.creator import overrides
@@ -28,7 +28,6 @@ def test_creator_overwrite_warning():
 
 # ====================================================================================== #
 class TestCreatorBasicFunctionality:
-
     # -------------------------------------------------------- #
     def test_creation(self):
         creator.create(CNAME, int)
@@ -39,15 +38,15 @@ class TestCreatorBasicFunctionality:
     # -------------------------------------------------------- #
     def test_class_attr(self):
         creator.create(CNAME, int, my_attr=int())
-        assert hasattr(creator.__dict__[CNAME], 'my_attr')
-        assert hasattr(creator.__dict__[CNAME](), 'my_attr')
+        assert hasattr(creator.__dict__[CNAME], "my_attr")
+        assert hasattr(creator.__dict__[CNAME](), "my_attr")
         creator.__dict__.pop(CNAME)
 
     # -------------------------------------------------------- #
     def test_instance_attr(self):
         creator.create(CNAME, int, my_attr=int)
-        assert not hasattr(creator.__dict__[CNAME], 'my_attr')
-        assert hasattr(creator.__dict__[CNAME](), 'my_attr')
+        assert not hasattr(creator.__dict__[CNAME], "my_attr")
+        assert hasattr(creator.__dict__[CNAME](), "my_attr")
         creator.__dict__.pop(CNAME)
 
     # -------------------------------------------------------- #
@@ -148,7 +147,7 @@ class TestCreatorBuiltinsArray:
 
     # -------------------------------------------------------- #
     def test_array_override(self):
-        creator.create(CNAME, array.array, typecode='i')
+        creator.create(CNAME, array.array, typecode="i")
         a = creator.__dict__[CNAME]([])
         b = overrides._ArrayOverride
         assert isinstance(a, b)
@@ -156,7 +155,7 @@ class TestCreatorBuiltinsArray:
 
     # -------------------------------------------------------- #
     def test_array_values(self):
-        creator.create(CNAME, array.array, typecode='i')
+        creator.create(CNAME, array.array, typecode="i")
         obj = creator.__dict__[CNAME](self.data)
         assert all(map(lambda x, y: x == y, obj, self.data))
         creator.__dict__.pop(CNAME)

@@ -33,8 +33,8 @@ def setup():
 
 def print_results(best_ind):
     if not all(gene == 1 for gene in best_ind):
-        raise RuntimeError('Evolution failed to converge.')
-    print('\nEvolution converged correctly.')
+        raise RuntimeError("Evolution failed to converge.")
+    print("\nEvolution converged correctly.")
 
 
 def main():
@@ -49,7 +49,7 @@ def main():
         mut_prob=0.2,
         hof=hof,
         stats=stats,
-        verbose=True  # prints stats
+        verbose=True,  # prints stats
     )
     tools.ea_simple(**args)
     print_results(hof[0])
