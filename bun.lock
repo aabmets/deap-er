@@ -1,0 +1,15 @@
+{
+  "lockfileVersion": 1,
+  "configVersion": 1,
+  "workspaces": {
+    "": {
+      "name": "deap-er-devtools",
+      "devDependencies": {
+        "allure-commandline": "^2.43.0",
+      },
+    },
+  },
+  "packages": {
+    "allure-commandline": ["allure-commandline@2.43.0", "", { "bin": { "allure": "bin/allure" } }, "sha512-nsqccDOgi80fi9WjvBapZjlFlugodVWudotNtWx6XKiSI7NuN6oTWEkXnkxQBzNg02Yf9lZLtCFlKvjAlcpu6Q=="],
+  }
+}
