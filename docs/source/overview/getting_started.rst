@@ -10,11 +10,11 @@ This library can be installed with:
 
     pip install deap-er
 
-or if you're using the `Poetry <https://python-poetry.org/docs/>`_ package manager:
+or if you're using the `uv <https://docs.astral.sh/uv/>`_ package manager:
 
 .. code-block:: text
 
-    poetry add deap-er
+    uv add deap-er
 
 
 .. raw:: html
