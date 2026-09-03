@@ -24,9 +24,8 @@ DEAP-ER is a complete rewrite of the original DEAP library for Python 3.10 and u
 
 ## Documentation
 
-See the [Documentation](http://deap-er.readthedocs.org/) for the complete guide to using this library.
-
+See the [documentation](https://aabmets.github.io/deap-er/) for the complete guide to using this library.
 
 ## Contributing
 
-Please read the CONTRIBUTING.md file before submitting pull requests.
+Fork the repository, add tests for new code, and open a pull request against `main`.

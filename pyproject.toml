@@ -42,10 +42,11 @@ dependencies = [
 
 [project.urls]
 Repository = "https://github.com/aabmets/deap-er"
-Documentation = "https://deap-er.readthedocs.io"
+Documentation = "https://aabmets.github.io/deap-er/"
 
 [dependency-groups]
 dev = [
+    "allure-pytest==2.16.0",
     "coverage==7.16.0",
     "pytest==9.1.1",
     "pytest-cov==7.1.0",
@@ -54,6 +55,8 @@ dev = [
     "pytest-timeout==2.4.0",
     "ruff==0.16.5",
     "ty==0.0.78",
+    "mkdocs-material>=9.7.7",
+    "mkdocstrings[python]>=1.0.6",
 ]
 
 [tool.uv.build-backend]
