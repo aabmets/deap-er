@@ -1,0 +1,22 @@
+# ty configuration file
+# https://github.com/astral-sh/ty
+
+[environment]
+python-version = "3.13"
+python-platform = "linux"
+
+[src]
+include = ["deap_er", "tests"]
+exclude = [
+    "**/__pycache__/**",
+    ".venv/**",
+    ".ruff_cache/**",
+    ".pytest_cache/**",
+    ".htmlcov/**",
+]
+
+[rules]
+all = "error"
+
+[terminal]
+error-on-warning = false

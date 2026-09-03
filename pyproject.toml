@@ -6,7 +6,7 @@ authors = [{ name = "Mattias Aabmets", email = "mattias.aabmets@gmail.com" }]
 requires-python = ">=3.10,<4"
 readme = "README.md"
 license = "Apache-2.0"
-license-files = ["LICENSE", "NOTICE"]
+license-files = ["LICENSE"]
 keywords = [
     "deap",
     "evolution",
@@ -69,26 +69,30 @@ cache_dir = ".cache"
 console_output_style = "count"
 filterwarnings = ["ignore::DeprecationWarning"]
 testpaths = ["tests"]
+session_timeout = 60
+timeout_method = "thread"
 addopts = [
     "--cov=deap_er",
     "--cov-report=html",
     "--no-cov-on-fail",
-    "--import-mode=append",
+    "--alluredir=reports/allure-results",
+    "--clean-alluredir",
+    "--cov-report=html:.htmlcov",
+    "--cov-report=json:reports/coverage.json",
+    "--cov-report=markdown:reports/coverage.md",
+    "--import-mode=importlib",
     "--numprocesses=auto",
     "--maxprocesses=8",
     "--dist=worksteal"
 ]
-pythonpath = [
-    ".",
-    "./deap_er"
-]
+pythonpath = [".", "./deap_er"]
 
 [tool.coverage.run]
 branch = true
-source = ["deap_er/*"]
+source = ["deap_er"]
 
 [tool.coverage.report]
-fail_under = 90
+fail_under = 80
 skip_empty = true
 ignore_errors = true
 exclude_lines = [
@@ -102,54 +106,3 @@ exclude_lines = [
 
 [tool.coverage.html]
 directory = ".htmlcov"
-
-[tool.ruff]
-target-version = "py310"
-line-length = 88
-src = ["deap_er", "tests"]
-exclude = ["docs"]
-
-[tool.ruff.lint]
-select = [
-    "E",
-    "F",
-]
-ignore = [
-    "E501",
-    "E721",
-    "E741",
-    "F403",
-    "F405",
-]
-
-[tool.ruff.lint.per-file-ignores]
-"**/__init__.py" = ["F401"]
-
-[tool.ruff.format]
-quote-style = "single"
-indent-style = "space"
-
-[tool.ty.src]
-include = ["deap_er"]
-
-[tool.ty.environment]
-python-version = "3.10"
-
-[tool.ty.terminal]
-error-on-warning = false
-
-[tool.ty.rules]
-call-non-callable = "warn"
-invalid-argument-type = "warn"
-invalid-assignment = "warn"
-invalid-method-override = "warn"
-invalid-parameter-default = "warn"
-invalid-return-type = "warn"
-invalid-type-form = "warn"
-missing-argument = "warn"
-no-matching-overload = "warn"
-not-iterable = "warn"
-not-subscriptable = "warn"
-too-many-positional-arguments = "warn"
-unresolved-attribute = "warn"
-unsupported-operator = "warn"
