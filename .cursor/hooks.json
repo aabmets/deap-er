@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "hooks": {
+    "preToolUse": [
+      {
+        "command": ".cursor/hooks/rtk-pretooluse.sh",
+        "matcher": "Shell"
+      }
+    ]
+  }
+}

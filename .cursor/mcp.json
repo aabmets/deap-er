@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "codebase-memory": {
+      "command": "/mnt/projects/private/deap-er/.bin/codebase-memory-mcp",
+      "cwd": "/mnt/projects/private/deap-er"
+    }
+  }
+}
