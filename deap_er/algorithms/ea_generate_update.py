@@ -16,7 +16,6 @@ from deap_er.base import Toolbox
 __all__ = ["ea_generate_update"]
 
 
-# ====================================================================================== #
 def ea_generate_update(
     toolbox: Toolbox, generations: int, hof: Hof = None, stats: Stats = None, verbose: bool = False
 ) -> AlgoResult:

@@ -18,7 +18,6 @@ import array
 CNAME = "CLASS_NAME"
 
 
-# ====================================================================================== #
 def test_creator_overwrite_warning():
     creator.create(CNAME, int)
     with pytest.warns(RuntimeWarning):
@@ -26,37 +25,31 @@ def test_creator_overwrite_warning():
     creator.__dict__.pop(CNAME)
 
 
-# ====================================================================================== #
 class TestCreatorBasicFunctionality:
-    # -------------------------------------------------------- #
     def test_creation(self):
         creator.create(CNAME, int)
         assert hasattr(creator, CNAME)
         assert issubclass(creator.__dict__[CNAME], int)
         creator.__dict__.pop(CNAME)
 
-    # -------------------------------------------------------- #
     def test_class_attr(self):
         creator.create(CNAME, int, my_attr=int())
         assert hasattr(creator.__dict__[CNAME], "my_attr")
         assert hasattr(creator.__dict__[CNAME](), "my_attr")
         creator.__dict__.pop(CNAME)
 
-    # -------------------------------------------------------- #
     def test_instance_attr(self):
         creator.create(CNAME, int, my_attr=int)
         assert not hasattr(creator.__dict__[CNAME], "my_attr")
         assert hasattr(creator.__dict__[CNAME](), "my_attr")
         creator.__dict__.pop(CNAME)
 
-    # -------------------------------------------------------- #
     def test_list_creation(self):
         creator.create(CNAME, list)
         obj = creator.__dict__[CNAME]([1, 2, 3, 4])
         assert obj == [1, 2, 3, 4]
         creator.__dict__.pop(CNAME)
 
-    # -------------------------------------------------------- #
     def test_list_attr(self):
         creator.create(CNAME, list, a=1)
         obj = creator.__dict__[CNAME]([1, 2, 3, 4])
@@ -64,11 +57,9 @@ class TestCreatorBasicFunctionality:
         creator.__dict__.pop(CNAME)
 
 
-# ====================================================================================== #
 class TestCreatorNumpy:
     data = [x for x in range(10)]
 
-    # -------------------------------------------------------- #
     def test_ndarray_class_override(self):
         creator.create(CNAME, numpy.ndarray)
         a = creator.__dict__[CNAME]([])
@@ -76,7 +67,6 @@ class TestCreatorNumpy:
         assert isinstance(a, b)
         creator.__dict__.pop(CNAME)
 
-    # -------------------------------------------------------- #
     def test_ndarray_instance_override(self):
         creator.create(CNAME, numpy.ndarray([]))
         a = creator.__dict__[CNAME]([])
@@ -84,14 +74,12 @@ class TestCreatorNumpy:
         assert isinstance(a, b)
         creator.__dict__.pop(CNAME)
 
-    # -------------------------------------------------------- #
     def test_ndarray_values(self):
         creator.create(CNAME, numpy.ndarray([]))
         obj = creator.__dict__[CNAME](self.data)
         assert all(map(lambda x, y: x == y, obj, self.data))
         creator.__dict__.pop(CNAME)
 
-    # -------------------------------------------------------- #
     def test_array_class_override(self):
         creator.create(CNAME, numpy.array)
         a = creator.__dict__[CNAME]([])
@@ -99,7 +87,6 @@ class TestCreatorNumpy:
         assert isinstance(a, b)
         creator.__dict__.pop(CNAME)
 
-    # -------------------------------------------------------- #
     def test_array_instance_override(self):
         creator.create(CNAME, numpy.array([]))
         a = creator.__dict__[CNAME]([])
@@ -107,14 +94,12 @@ class TestCreatorNumpy:
         assert isinstance(a, b)
         creator.__dict__.pop(CNAME)
 
-    # -------------------------------------------------------- #
     def test_array_values(self):
         creator.create(CNAME, numpy.array([]))
         obj = creator.__dict__[CNAME](self.data)
         assert all(map(lambda x, y: x == y, obj, self.data))
         creator.__dict__.pop(CNAME)
 
-    # -------------------------------------------------------- #
     def test_various_4(self):
         creator.create(CNAME, numpy.ndarray)
         a = creator.__dict__[CNAME]([1, 2, 3, 4])
@@ -127,7 +112,6 @@ class TestCreatorNumpy:
         assert all(b == tb)
         creator.__dict__.pop(CNAME)
 
-    # -------------------------------------------------------- #
     def test_various_5(self):
         creator.create(CNAME, numpy.ndarray)
         a = creator.__dict__[CNAME]([1, 2, 3, 4])
@@ -141,11 +125,9 @@ class TestCreatorNumpy:
         creator.__dict__.pop(CNAME)
 
 
-# ====================================================================================== #
 class TestCreatorBuiltinsArray:
     data = [x for x in range(10)]
 
-    # -------------------------------------------------------- #
     def test_array_override(self):
         creator.create(CNAME, array.array, typecode="i")
         a = creator.__dict__[CNAME]([])
@@ -153,7 +135,6 @@ class TestCreatorBuiltinsArray:
         assert isinstance(a, b)
         creator.__dict__.pop(CNAME)
 
-    # -------------------------------------------------------- #
     def test_array_values(self):
         creator.create(CNAME, array.array, typecode="i")
         obj = creator.__dict__[CNAME](self.data)

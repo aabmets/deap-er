@@ -17,7 +17,6 @@ from .variation import *
 __all__ = ["ea_mu_plus_lambda"]
 
 
-# ====================================================================================== #
 def ea_mu_plus_lambda(
     toolbox: Toolbox,
     population: list,

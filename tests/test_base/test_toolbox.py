@@ -13,20 +13,17 @@ from functools import partial
 from copy import deepcopy
 
 
-# ====================================================================================== #
 class TestToolbox:
     def test_clone_func(self):
         tb = Toolbox()
         assert isinstance(tb.clone, partial)
         assert tb.clone.func == deepcopy
 
-    # -------------------------------------------------------------------------------------- #
     def test_map_func(self):
         tb = Toolbox()
         assert isinstance(tb.clone, partial)
         assert tb.map.func == map
 
-    # -------------------------------------------------------------------------------------- #
     def test_registration(self):
         tb = Toolbox()
         tb.register("__test__", str, 1)
@@ -34,13 +31,11 @@ class TestToolbox:
         tb.unregister("__test__")
         assert not hasattr(tb, "__test__")
 
-    # -------------------------------------------------------------------------------------- #
     def test_execution(self):
         tb = Toolbox()
         tb.register("__test__", str, 1)
         assert tb.__test__() == "1"
 
-    # -------------------------------------------------------------------------------------- #
     def test_decorator(self):
         def test_deco(func):
             def wrapper(*args, **kwargs):

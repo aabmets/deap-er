@@ -17,7 +17,6 @@ from .variation import *
 __all__ = ["ea_simple"]
 
 
-# ====================================================================================== #
 def ea_simple(
     toolbox: Toolbox,
     population: list,

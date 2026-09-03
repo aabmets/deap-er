@@ -16,7 +16,6 @@ import warnings
 __all__ = ["create"]
 
 
-# ====================================================================================== #
 def create(name: str, base: Union[type, object], **kwargs: Optional) -> None:
     """
     Creates a new class named **name**, which inherits from the **base** class, and

@@ -18,7 +18,6 @@ import random
 __all__ = ["mut_semantic", "cx_semantic"]
 
 
-# ====================================================================================== #
 def mut_semantic(
     individual: list,
     prim_set: PrimitiveSetTyped,
@@ -66,7 +65,6 @@ def mut_semantic(
     return (new_ind,)
 
 
-# -------------------------------------------------------------------------------------- #
 def cx_semantic(
     ind1: list,
     ind2: list,
@@ -108,7 +106,6 @@ def cx_semantic(
     return new_ind1, new_ind2
 
 
-# -------------------------------------------------------------------------------------- #
 def _check(p_set: PrimitiveSetTyped, op: str) -> None:
     for func in ["lf", "mul", "add", "sub"]:
         if func not in p_set.mapping:

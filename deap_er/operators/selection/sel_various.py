@@ -21,7 +21,6 @@ __all__ = [
 ]
 
 
-# ====================================================================================== #
 def sel_random(individuals: list, sel_count: int) -> list:
     """
     Selects randomly **sel_count** individuals from the input **individuals**.
@@ -33,7 +32,6 @@ def sel_random(individuals: list, sel_count: int) -> list:
     return [random.choice(individuals) for _ in range(sel_count)]
 
 
-# -------------------------------------------------------------------------------------- #
 def sel_best(individuals: list, sel_count: int, fit_attr: str = "fitness") -> list:
     """
     Selects the best **sel_count** individuals from the input **individuals**.
@@ -47,7 +45,6 @@ def sel_best(individuals: list, sel_count: int, fit_attr: str = "fitness") -> li
     return sorted(individuals, key=key, reverse=True)[:sel_count]
 
 
-# -------------------------------------------------------------------------------------- #
 def sel_worst(individuals: list, sel_count: int, fit_attr: str = "fitness") -> list:
     """
     Selects the worst **sel_count** individuals among the input **individuals**.
@@ -61,7 +58,6 @@ def sel_worst(individuals: list, sel_count: int, fit_attr: str = "fitness") -> l
     return sorted(individuals, key=key)[:sel_count]
 
 
-# -------------------------------------------------------------------------------------- #
 def sel_roulette(individuals: list, sel_count: int, fit_attr: str = "fitness") -> list:
     """
     Selects **sel_count** individuals from the input **individuals** using
@@ -90,7 +86,6 @@ def sel_roulette(individuals: list, sel_count: int, fit_attr: str = "fitness") -
     return chosen
 
 
-# -------------------------------------------------------------------------------------- #
 def sel_stochastic_universal_sampling(
     individuals: list, sel_count: int, fit_attr: str = "fitness"
 ) -> list:

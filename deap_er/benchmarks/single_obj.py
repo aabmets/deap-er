@@ -36,7 +36,6 @@ __all__ = [
 ]
 
 
-# ====================================================================================== #
 def bm_rand(*_) -> tuple[float]:
     """
     Random test objective function. The unnamed **args** parameter is an input
@@ -64,7 +63,6 @@ def bm_rand(*_) -> tuple[float]:
     return (result,)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_plane(individual: Individual) -> tuple[float]:
     """
     Plane test objective function.
@@ -94,7 +92,6 @@ def bm_plane(individual: Individual) -> tuple[float]:
     return (result,)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_sphere(individual: Individual) -> tuple[float]:
     """
     Sphere test objective function.
@@ -124,7 +121,6 @@ def bm_sphere(individual: Individual) -> tuple[float]:
     return (result,)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_cigar(individual: Individual) -> tuple[float]:
     """
     Cigar test objective function.
@@ -155,7 +151,6 @@ def bm_cigar(individual: Individual) -> tuple[float]:
     return (result,)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_rosenbrock(individual: Individual) -> tuple[float]:
     """
     Rosenbrock test objective function.
@@ -189,7 +184,6 @@ def bm_rosenbrock(individual: Individual) -> tuple[float]:
     return (result,)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_h1(individual: Individual) -> tuple[float]:
     """
     Simple two-dimensional function containing several local maxima.
@@ -231,7 +225,6 @@ def bm_h1(individual: Individual) -> tuple[float]:
     return (result,)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_ackley(individual: Individual) -> tuple[float]:
     """
     Ackley test objective function.
@@ -267,7 +260,6 @@ def bm_ackley(individual: Individual) -> tuple[float]:
     return (result,)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_bohachevsky(individual: Individual) -> tuple[float]:
     """
     Bohachevsky test objective function.
@@ -305,7 +297,6 @@ def bm_bohachevsky(individual: Individual) -> tuple[float]:
     return (result,)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_griewank(individual: Individual) -> tuple[float]:
     """
     Griewank test objective function.
@@ -339,7 +330,6 @@ def bm_griewank(individual: Individual) -> tuple[float]:
     return (result,)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_schaffer(individual: Individual) -> tuple[float]:
     """
     Schaffer test objective function.
@@ -377,7 +367,6 @@ def bm_schaffer(individual: Individual) -> tuple[float]:
     return (result,)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_schwefel(individual: Individual) -> tuple[float]:
     """
     Schwefel test objective function.
@@ -410,7 +399,6 @@ def bm_schwefel(individual: Individual) -> tuple[float]:
     return (result,)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_himmelblau(individual: Individual) -> tuple[float]:
     """
     The Himmelblaus function has 4 defined
@@ -445,7 +433,6 @@ def bm_himmelblau(individual: Individual) -> tuple[float]:
     return (result,)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_rastrigin(individual: Individual) -> tuple[float]:
     """
     Rastrigin test objective function.
@@ -477,7 +464,6 @@ def bm_rastrigin(individual: Individual) -> tuple[float]:
     return (result,)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_rastrigin_scaled(individual: Individual) -> tuple[float]:
     """
     Scaled Rastrigin test objective function.
@@ -516,7 +502,6 @@ def bm_rastrigin_scaled(individual: Individual) -> tuple[float]:
     return (result,)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_rastrigin_skewed(individual: Individual) -> tuple[float]:
     """
     Skewed Rastrigin test objective function.
@@ -555,7 +540,6 @@ def bm_rastrigin_skewed(individual: Individual) -> tuple[float]:
     return (result,)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_shekel(individual: Individual, matrix: numpy.ndarray, vector: numpy.ndarray) -> tuple[float]:
     """
     The Shekel multimodal function can have any number

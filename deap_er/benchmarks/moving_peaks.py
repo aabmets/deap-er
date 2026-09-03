@@ -19,7 +19,6 @@ import math
 __all__ = ["MovingPeaks", "MPConfigs", "MPFuncs"]
 
 
-# ====================================================================================== #
 class MovingPeaks:
     """
     | The Moving Peaks Benchmark is a fitness function changing over time.
@@ -67,7 +66,6 @@ class MovingPeaks:
         n_peaks = sc.get("npeaks")
         pfunc = sc.get("pfunc")
 
-        # ------------------------------------ #
         self.min_peaks, self.max_peaks = None, None
         if hasattr(n_peaks, "__getitem__"):
             self.min_peaks, n_peaks, self.max_peaks = n_peaks
@@ -82,18 +80,15 @@ class MovingPeaks:
             self.peaks_function = list(itertools.repeat(pfunc, n_peaks))
             self.pfunc_pool = (pfunc,)
 
-        # ------------------------------------ #
         self.last_change_vector = [
             [random.random() - 0.5 for _ in range(dimensions)] for _ in range(n_peaks)
         ]
-        # ------------------------------------ #
         self.min_coord = sc.get("min_coord")
         self.max_coord = sc.get("max_coord")
         self.peaks_position = [
             [random.uniform(self.min_coord, self.max_coord) for _ in range(dimensions)]
             for _ in range(n_peaks)
         ]
-        # ------------------------------------ #
         uniform_height = sc.get("uniform_height")
         self.min_height = sc.get("min_height")
         self.max_height = sc.get("max_height")
@@ -106,7 +101,6 @@ class MovingPeaks:
 
             self.peaks_height = [rand_height() for _ in range(n_peaks)]
 
-        # ------------------------------------ #
         uniform_width = sc.get("uniform_width")
         self.min_width = sc.get("min_width")
         self.max_width = sc.get("max_width")
@@ -119,7 +113,6 @@ class MovingPeaks:
 
             self.peaks_width = [rand_width() for _ in range(n_peaks)]
 
-        # ------------------------------------ #
         self.basis_function = sc.get("bfunc")
         self.move_severity = sc.get("move_severity")
         self.height_severity = sc.get("height_severity")
@@ -131,7 +124,6 @@ class MovingPeaks:
         self._offline_error = 0
         self.nevals = 0
 
-    # -------------------------------------------------------- #
     def __call__(self, individual: Individual, count: bool = True) -> tuple[float]:
         """
         Evaluate the given **individual** in the context of the current configuration.
@@ -167,7 +159,6 @@ class MovingPeaks:
 
         return (fitness,)
 
-    # -------------------------------------------------------- #
     @property
     def global_maximum(self) -> tuple:
         """
@@ -181,7 +172,6 @@ class MovingPeaks:
             potential_max.append(value)
         return max(potential_max)
 
-    # -------------------------------------------------------- #
     @property
     def sorted_maxima(self) -> list:
         """
@@ -197,7 +187,6 @@ class MovingPeaks:
                 maximums.append(value)
         return sorted(maximums, reverse=True)
 
-    # -------------------------------------------------------- #
     @property
     def offline_error(self) -> float:
         """
@@ -205,7 +194,6 @@ class MovingPeaks:
         """
         return self._offline_error / self.nevals
 
-    # -------------------------------------------------------- #
     @property
     def current_error(self) -> Optional[float]:
         """
@@ -213,7 +201,6 @@ class MovingPeaks:
         """
         return self._error
 
-    # -------------------------------------------------------- #
     def change_peaks(self):
         """
         Changes the position, the height, the width and the number of peaks.
@@ -306,7 +293,6 @@ class MovingPeaks:
             change_shape(self.peaks_width, self.min_width, self.max_width, self.width_severity)
 
 
-# ====================================================================================== #
 class MPFuncs:
     """
     | This class contains the peak functions for the Moving Peaks problem.
@@ -329,7 +315,6 @@ class MPFuncs:
             value += (x - p) ** 2
         return height / (1 + width * value)
 
-    # -------------------------------------------------------- #
     @staticmethod
     def pf2(individual: Individual, positions: Iterable, height: float, width: float) -> float:
         """
@@ -346,7 +331,6 @@ class MPFuncs:
             value += (x - p) ** 2
         return height - width * math.sqrt(value)
 
-    # -------------------------------------------------------- #
     @staticmethod
     def pf3(individual: Individual, positions: Iterable, height: float, *_) -> float:
         """
@@ -363,7 +347,6 @@ class MPFuncs:
         return height * value
 
 
-# ====================================================================================== #
 class MPConfigs:
     """
     | This class contains the configuration presets for the Moving Peaks problem.
@@ -395,7 +378,6 @@ class MPConfigs:
         =================== ===================== ===================== =====================
     """
 
-    # -------------------------------------------------------- #
     DEFAULT = MappingProxyType(
         {
             "pfunc": MPFuncs.pf1,
@@ -418,7 +400,6 @@ class MPConfigs:
         }
     )
 
-    # -------------------------------------------------------- #
     ALT1 = MappingProxyType(
         {
             "pfunc": MPFuncs.pf2,
@@ -441,7 +422,6 @@ class MPConfigs:
         }
     )
 
-    # -------------------------------------------------------- #
     ALT2 = MappingProxyType(
         {
             "pfunc": MPFuncs.pf2,

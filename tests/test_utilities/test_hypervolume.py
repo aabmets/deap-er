@@ -13,7 +13,6 @@ from deap_er.utilities.hypervolume.node import Node
 import numpy
 
 
-# ====================================================================================== #
 class TestHyperVolume:
     def test_1(self):
         front = [(a, a) for a in numpy.arange(1, 0, -0.01)]
@@ -23,7 +22,6 @@ class TestHyperVolume:
         result = hv.compute(front)
         assert result == 3.9601000000000033
 
-    # -------------------------------------------------------------------------------------- #
     def test_2(self):
         front = [(a, a) for a in numpy.arange(2, 0, -0.2)]
         front = numpy.array(front)
@@ -32,7 +30,6 @@ class TestHyperVolume:
         result = hv.compute(front)
         assert result == 7.839999999999998
 
-    # -------------------------------------------------------------------------------------- #
     def test_3(self):
         front = [(a, a, a) for a in numpy.arange(3, 0, -0.03)]
         front = numpy.array(front)
@@ -41,7 +38,6 @@ class TestHyperVolume:
         result = hv.compute(front)
         assert result == 117.7934729999985
 
-    # -------------------------------------------------------------------------------------- #
     def test_4(self):
         front = [(a, a, a) for a in numpy.arange(4, 0, -0.4)]
         front = numpy.array(front)
@@ -50,7 +46,6 @@ class TestHyperVolume:
         result = hv.compute(front)
         assert result == 92.73599999999996
 
-    # -------------------------------------------------------------------------------------- #
     def test_5(self):
         front = [(a, a, a, a) for a in numpy.arange(5, 0, -0.567)]
         front = numpy.array(front)
@@ -59,7 +54,6 @@ class TestHyperVolume:
         result = hv.compute(front)
         assert result == 303.0190427996165
 
-    # -------------------------------------------------------------------------------------- #
     def test_6(self):
         front = [(a, a, a, a) for a in numpy.arange(10, 0, -0.5)]
         front = numpy.array(front)
@@ -68,7 +62,6 @@ class TestHyperVolume:
         result = hv.compute(front)
         assert result == 0.5
 
-    # -------------------------------------------------------------------------------------- #
     def test_7(self):
         front = numpy.array([])
         ref = numpy.array([])
@@ -77,7 +70,6 @@ class TestHyperVolume:
         assert result == 0.0
 
 
-# ====================================================================================== #
 class TestNode:
     def test_1(self):
         n1 = Node(1)
@@ -85,7 +77,6 @@ class TestNode:
         assert not n1 == n2
         assert not n1 != n2
 
-    # -------------------------------------------------------------------------------------- #
     def test_2(self):
         n1 = Node(1, (1, 2, 3))
         n2 = Node(1, (1, 2, 3))
@@ -93,7 +84,6 @@ class TestNode:
         assert n1 >= n2
         assert n1 <= n2
 
-    # -------------------------------------------------------------------------------------- #
     def test_3(self):
         n1 = Node(1, (1, 2, 3))
         n2 = Node(1, (2, 3, 4))
@@ -101,19 +91,16 @@ class TestNode:
         assert n1 < n2
         assert n2 > n1
 
-    # -------------------------------------------------------------------------------------- #
     def test_4(self):
         n1 = Node(1, (1, 2, 3))
         n2 = Node(1, (9, 2, 3))
         assert n1 <= n2
         assert n2 >= n1
 
-    # -------------------------------------------------------------------------------------- #
     def test_5(self):
         n = Node(1, (1, 2, 3, 4, 5))
         assert str(n) == "(1, 2, 3, 4, 5)"
 
-    # -------------------------------------------------------------------------------------- #
     def test_6(self):
         data = (1, 2, 3)
         n = Node(1, data)

@@ -17,7 +17,6 @@ from .variation import *
 __all__ = ["ea_mu_comma_lambda"]
 
 
-# ====================================================================================== #
 def ea_mu_comma_lambda(
     toolbox: Toolbox,
     population: list,

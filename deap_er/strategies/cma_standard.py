@@ -16,7 +16,6 @@ import numpy
 __all__ = ["Strategy"]
 
 
-# ====================================================================================== #
 class Strategy:
     """
     The standard Covariance Matrix Adaptation evolution strategy.
@@ -57,7 +56,6 @@ class Strategy:
           * *Default:* :code:`2 * (mueff - 2 + 1 / mueff) / ((len(centroid) + 2) ** 2 + mueff)`
     """
 
-    # -------------------------------------------------------- #
     def __init__(self, centroid: Iterable, sigma: float, **kwargs: Optional):
         self.update_count = 0
         self.centroid = numpy.array(centroid)
@@ -87,7 +85,6 @@ class Strategy:
 
         self.compute_params(**kwargs)
 
-    # -------------------------------------------------------- #
     def compute_params(self, **kwargs: Optional) -> None:
         """
         Computes the parameters of the strategy based on the *lambda*
@@ -148,7 +145,6 @@ class Strategy:
         self.big_bd = self.big_b * self.diagD
         self.cond = self.diagD[indx[-1]] / self.diagD[indx[0]]
 
-    # -------------------------------------------------------- #
     def generate(self, ind_init: Callable) -> list:
         """
         Generates a population of *lambda* individuals of
@@ -161,7 +157,6 @@ class Strategy:
         arz = self.centroid + self.sigma * numpy.dot(arz, self.big_bd.T)
         return list(map(ind_init, arz))
 
-    # -------------------------------------------------------- #
     def update(self, population: list) -> None:
         """
         Updates the current CMA strategy from the **population**.

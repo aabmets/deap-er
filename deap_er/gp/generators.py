@@ -18,7 +18,6 @@ import sys
 __all__ = ["generate", "gen_full", "gen_grow", "gen_half_and_half"]
 
 
-# ====================================================================================== #
 def generate(
     prim_set: PrimitiveSetTyped,
     min_depth: int,
@@ -74,7 +73,6 @@ def generate(
     return expr
 
 
-# -------------------------------------------------------------------------------------- #
 def gen_full(
     prim_set: PrimitiveSetTyped, min_depth: int, max_depth: int, ret_type: Optional[Any] = None
 ) -> list:
@@ -96,7 +94,6 @@ def gen_full(
     return generate(prim_set, min_depth, max_depth, condition, ret_type)
 
 
-# -------------------------------------------------------------------------------------- #
 def gen_grow(
     prim_set: PrimitiveSetTyped, min_depth: int, max_depth: int, ret_type: Optional[Any] = None
 ) -> list:
@@ -119,7 +116,6 @@ def gen_grow(
     return generate(prim_set, min_depth, max_depth, condition, ret_type)
 
 
-# -------------------------------------------------------------------------------------- #
 def gen_half_and_half(
     prim_set: PrimitiveSetTyped, min_depth: int, max_depth: int, ret_type: Optional[Any] = None
 ) -> list:

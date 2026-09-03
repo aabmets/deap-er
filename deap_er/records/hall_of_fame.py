@@ -18,18 +18,15 @@ from operator import eq
 __all__ = ["HallOfFame", "ParetoFront"]
 
 
-# ====================================================================================== #
 class _BaseClass:
     """
     Private base class for the HallOfFame and ParetoFront classes.
     """
 
-    # -------------------------------------------------------- #
     def __init__(self):
         self.keys = list()
         self.items = list()
 
-    # -------------------------------------------------------- #
     def insert(self, individual: Individual) -> None:
         """
         Inserts a new individual into the hall of fame. The individual is
@@ -47,7 +44,6 @@ class _BaseClass:
             self.items.insert(len(self) - i, individual)
             self.keys.insert(i, individual.fitness)
 
-    # -------------------------------------------------------- #
     def remove(self, index: int) -> None:
         """
         Removes the individual at the specified index from the hall of fame.
@@ -58,7 +54,6 @@ class _BaseClass:
         del self.keys[len(self) - (index % len(self) + 1)]
         del self.items[index]
 
-    # -------------------------------------------------------- #
     def clear(self) -> None:
         """
         Clears the hall of fame.
@@ -68,7 +63,6 @@ class _BaseClass:
         del self.items[:]
         del self.keys[:]
 
-    # -------------------------------------------------------- #
     def __len__(self):
         return len(self.items)
 
@@ -85,7 +79,6 @@ class _BaseClass:
         return str(self.items)
 
 
-# ====================================================================================== #
 class HallOfFame(_BaseClass):
     """
     The hall of fame contains the best individual that ever lived in the
@@ -98,13 +91,11 @@ class HallOfFame(_BaseClass):
     :param similar: A function to compare two individuals, optional.
     """
 
-    # -------------------------------------------------------- #
     def __init__(self, maxsize: int, similar: Optional[Callable] = eq):
         self.maxsize = maxsize
         self.similar = similar
         super().__init__()
 
-    # -------------------------------------------------------- #
     def update(self, population: list) -> None:
         """
         Updates the hall of fame with the **population** by replacing the
@@ -129,7 +120,6 @@ class HallOfFame(_BaseClass):
                     self.insert(ind)
 
 
-# ====================================================================================== #
 class ParetoFront(_BaseClass):
     """
     The Pareto front hall of fame contains all the non-dominated individuals
@@ -139,12 +129,10 @@ class ParetoFront(_BaseClass):
     :param similar: A function to compare two individuals, optional.
     """
 
-    # -------------------------------------------------------- #
     def __init__(self, similar: Optional[Callable] = eq):
         self.similar = similar
         super().__init__()
 
-    # -------------------------------------------------------- #
     def update(self, population: list) -> None:
         """
         Updates the Pareto front hall of fame with the **population** by adding

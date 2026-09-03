@@ -16,19 +16,16 @@ from copy import deepcopy
 __all__ = ["History"]
 
 
-# ====================================================================================== #
 class History:
     """
     Maintains a history of the individuals produced in the evolution.
     """
 
-    # -------------------------------------------------------- #
     def __init__(self):
         self.genealogy_index = int()
         self.genealogy_history = dict()
         self.genealogy_tree = dict()
 
-    # -------------------------------------------------------- #
     @property
     def decorator(self) -> Callable:
         """
@@ -45,7 +42,6 @@ class History:
 
         return wrapper
 
-    # -------------------------------------------------------- #
     def update(self, individuals: list) -> None:
         """
         Update the genealogy history with the given **individuals**.
@@ -66,7 +62,6 @@ class History:
             self.genealogy_history[self.genealogy_index] = deepcopy(ind)
             self.genealogy_tree[self.genealogy_index] = parent_indices
 
-    # -------------------------------------------------------- #
     def get_genealogy(self, individual: Individual, max_depth: float = float("inf")) -> dict:
         """
         Get the genealogy of the given **individual**. The individual must have the

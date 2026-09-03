@@ -35,7 +35,6 @@ __all__ = [
 ]
 
 
-# ====================================================================================== #
 def bm_kursawe(individual: Individual) -> tuple[float, float]:
     """
     Kursawe multi-objective function.
@@ -60,7 +59,6 @@ def bm_kursawe(individual: Individual) -> tuple[float, float]:
     return f1, f2
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_schaffer_mo(individual: Individual) -> tuple[float, float]:
     """
     Schaffer's multi-objective function on a one-attribute **individual**.
@@ -81,7 +79,6 @@ def bm_schaffer_mo(individual: Individual) -> tuple[float, float]:
     return f1, f2
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_fonseca(individual: Individual) -> tuple[float, float]:
     """
     Fonseca and Fleming's multiobjective function.
@@ -102,7 +99,6 @@ def bm_fonseca(individual: Individual) -> tuple[float, float]:
     return f1, f2
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_poloni(individual: Individual) -> tuple[float, float]:
     """
     Poloni's multiobjective function on a two-attribute **individual**.
@@ -133,7 +129,6 @@ def bm_poloni(individual: Individual) -> tuple[float, float]:
     return f1, f2
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_dent(individual: Individual, dent_size: float = 0.85) -> tuple[float, float]:
     """
     | Two-objective problem with a "dent". The **individual** must have
@@ -175,7 +170,6 @@ def bm_dent(individual: Individual, dent_size: float = 0.85) -> tuple[float, flo
     return f1, f2
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_zdt_1(individual: Individual) -> tuple[float, float]:
     """
     ZDT1 multi-objective function.
@@ -199,7 +193,6 @@ def bm_zdt_1(individual: Individual) -> tuple[float, float]:
     return f1, f2
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_zdt_2(individual: Individual) -> tuple[float, float]:
     """
     ZDT2 multi-objective function.
@@ -223,7 +216,6 @@ def bm_zdt_2(individual: Individual) -> tuple[float, float]:
     return f1, f2
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_zdt_3(individual: Individual) -> tuple[float, float]:
     """
     ZDT3 multi-objective function.
@@ -248,7 +240,6 @@ def bm_zdt_3(individual: Individual) -> tuple[float, float]:
     return f1, f2
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_zdt_4(individual: Individual) -> tuple[float, float]:
     """
     ZDT4 multi-objective function.
@@ -274,7 +265,6 @@ def bm_zdt_4(individual: Individual) -> tuple[float, float]:
     return f1, f2
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_zdt_6(individual: Individual) -> tuple[float, float]:
     """
     ZDT6 multi-objective function.
@@ -299,7 +289,6 @@ def bm_zdt_6(individual: Individual) -> tuple[float, float]:
     return f1, f2
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_dtlz_1(individual: Individual, count: int) -> list:
     """
     | DTLZ1 multi-objective function. Returns a list of size **count**.
@@ -346,7 +335,6 @@ def bm_dtlz_1(individual: Individual, count: int) -> list:
     return fit
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_dtlz_2(individual: Individual, count: int) -> list:
     """
     | DTLZ2 multi-objective function. Returns a list of size **count**.
@@ -379,7 +367,6 @@ def bm_dtlz_2(individual: Individual, count: int) -> list:
     return _dtlz_helper_1(individual, count, gval)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_dtlz_3(individual: Individual, count: int) -> list:
     """
     | DTLZ3 multi-objective function. Returns a list of size **count**.
@@ -418,7 +405,6 @@ def bm_dtlz_3(individual: Individual, count: int) -> list:
     return _dtlz_helper_1(individual, count, gval)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_dtlz_4(individual: Individual, count: int, alpha: float) -> list:
     """
     | DTLZ4 multi-objective function. Returns a list of size **count**.
@@ -453,7 +439,6 @@ def bm_dtlz_4(individual: Individual, count: int, alpha: float) -> list:
     return _dtlz_helper_1(individual, count, gval, alpha)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_dtlz_5(individual: Individual, count: int) -> list:
     """
     | DTLZ5 multi-objective function. Returns a list of size **count**.
@@ -481,7 +466,6 @@ def bm_dtlz_5(individual: Individual, count: int) -> list:
     return _dtlz_helper_2(individual, count, gval)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_dtlz_6(individual: Individual, count: int) -> list:
     """
     | DTLZ6 multi-objective function. Returns a list of size **count**.
@@ -509,7 +493,6 @@ def bm_dtlz_6(individual: Individual, count: int) -> list:
     return _dtlz_helper_2(individual, count, gval)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_dtlz_7(individual: Individual, count: int) -> list:
     """
     | DTLZ7 multi-objective function. Returns a list of size **count**.
@@ -547,7 +530,6 @@ def bm_dtlz_7(individual: Individual, count: int) -> list:
     return fit
 
 
-# -------------------------------------------------------------------------------------- #
 def _dtlz_helper_1(individual, count, gval, alpha=1.0) -> list:
     def fn(m):
         vals_ = [cos(0.5 * xi**alpha * pi) for xi in xc[:m]]
@@ -563,7 +545,6 @@ def _dtlz_helper_1(individual, count, gval, alpha=1.0) -> list:
     return fit
 
 
-# -------------------------------------------------------------------------------------- #
 def _dtlz_helper_2(individual, count, gval) -> list:
     def theta(x):
         return pi / (4.0 * (1 + gval)) * (1 + 2 * gval * x)

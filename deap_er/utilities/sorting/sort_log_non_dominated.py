@@ -17,7 +17,6 @@ import bisect
 __all__ = ["sort_log_non_dominated"]
 
 
-# ====================================================================================== #
 def sort_log_non_dominated(individuals: list, sel_count: int, ffo: bool = False) -> list:
     """
     Sorts **individuals** in pareto non-dominated fronts
@@ -61,7 +60,6 @@ def sort_log_non_dominated(individuals: list, sel_count: int, ffo: bool = False)
         return pareto_fronts[0]
 
 
-# -------------------------------------------------------------------------------------- #
 def _is_dominated(wvalues1: Sequence, wvalues2: Sequence) -> bool:
     not_equal = False
     for self_wvalue, other_wvalue in zip(wvalues1, wvalues2):
@@ -72,7 +70,6 @@ def _is_dominated(wvalues1: Sequence, wvalues2: Sequence) -> bool:
     return not_equal
 
 
-# -------------------------------------------------------------------------------------- #
 def _median(seq: Sequence, key: Callable = None) -> float:
     key = key if key else lambda x: x
     sorted_seq = sorted(seq, key=key)
@@ -85,7 +82,6 @@ def _median(seq: Sequence, key: Callable = None) -> float:
         return (temp1 + temp2) / 2.0
 
 
-# -------------------------------------------------------------------------------------- #
 def _splitter(seq: Sequence, obj: int, median: float) -> tuple:
     seq_1, seq_2, seq_3, seq_4 = [], [], [], []
 
@@ -103,7 +99,6 @@ def _splitter(seq: Sequence, obj: int, median: float) -> tuple:
     return seq_1, seq_2, seq_3, seq_4
 
 
-# -------------------------------------------------------------------------------------- #
 def _sorting_helper_1(fitness: Sequence, obj: int, front: dict) -> None:
     if len(fitness) < 2:
         return
@@ -122,7 +117,6 @@ def _sorting_helper_1(fitness: Sequence, obj: int, front: dict) -> None:
         _sorting_helper_1(worst, obj, front)
 
 
-# -------------------------------------------------------------------------------------- #
 def _split_a(fitness: Sequence, obj: int):
     median_ = _median(fitness, itemgetter(obj))
     best_a, worst_a, best_b, worst_b = _splitter(fitness, obj, median_)
@@ -136,7 +130,6 @@ def _split_a(fitness: Sequence, obj: int):
         return best_b, worst_b
 
 
-# -------------------------------------------------------------------------------------- #
 def _sweep_a(fitness: Sequence, front: dict) -> None:
     stairs = [-fitness[0][1]]
     f_stairs = [fitness[0]]
@@ -154,7 +147,6 @@ def _sweep_a(fitness: Sequence, front: dict) -> None:
         f_stairs.insert(idx, fit)
 
 
-# -------------------------------------------------------------------------------------- #
 def _sorting_helper_2(best: Sequence, worst: Sequence, obj: int, front: dict) -> None:
     key = itemgetter(obj)
     if len(worst) == 0 or len(best) == 0:
@@ -177,7 +169,6 @@ def _sorting_helper_2(best: Sequence, worst: Sequence, obj: int, front: dict) ->
         _sorting_helper_2(best2, worst2, obj, front)
 
 
-# -------------------------------------------------------------------------------------- #
 def _split_b(best: Sequence, worst: Sequence, obj: int):
     if len(best) > len(worst):
         median_ = _median(best)
@@ -196,7 +187,6 @@ def _split_b(best: Sequence, worst: Sequence, obj: int):
         return best1_b, best2_b, worst1_b, worst2_b
 
 
-# -------------------------------------------------------------------------------------- #
 def _sweep_b(best, worst, front):
     stairs, f_stairs = [], []
     iter_best = iter(best)

@@ -15,7 +15,6 @@ import random
 __all__ = ["sel_lexicase", "sel_epsilon_lexicase"]
 
 
-# ====================================================================================== #
 def sel_lexicase(individuals: list, sel_count: int) -> list:
     """
     Returns an individual that does the best on the fitness
@@ -44,7 +43,6 @@ def sel_lexicase(individuals: list, sel_count: int) -> list:
     return selected
 
 
-# -------------------------------------------------------------------------------------- #
 def sel_epsilon_lexicase(individuals: list, sel_count: int, epsilon: float = None) -> list:
     """
     Returns an individual that does the best on the fitness

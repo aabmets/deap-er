@@ -33,7 +33,6 @@ __all__ = [
 ]
 
 
-# ====================================================================================== #
 def _slicer(
     ind1: Individual, ind2: Individual, start: int, stop: int = None, copy: bool = False
 ) -> Mates:
@@ -51,7 +50,6 @@ def _slicer(
     return ind1, ind2
 
 
-# -------------------------------------------------------------------------------------- #
 def _two_point(
     ind1: Individual, ind2: Individual, copy: bool = False, strategy: bool = False
 ) -> tuple:
@@ -68,7 +66,6 @@ def _two_point(
     return ind1, ind2
 
 
-# -------------------------------------------------------------------------------------- #
 def _match(ind1: Individual, ind2: Individual, p1: list, p2: list, i: int) -> None:
     temp1, temp2 = ind1[i], ind2[i]
     ind1[i], ind1[p1[temp2]] = temp2, temp1
@@ -77,7 +74,6 @@ def _match(ind1: Individual, ind2: Individual, p1: list, p2: list, i: int) -> No
     p2[temp1], p2[temp2] = p2[temp2], p2[temp1]
 
 
-# -------------------------------------------------------------------------------------- #
 def cx_one_point(ind1: Individual, ind2: Individual) -> Mates:
     """
     Executes a one-point crossover on the two
@@ -97,7 +93,6 @@ def cx_one_point(ind1: Individual, ind2: Individual) -> Mates:
     return ind1, ind2
 
 
-# -------------------------------------------------------------------------------------- #
 def cx_messy_one_point(ind1: Individual, ind2: Individual) -> Mates:
     """
     Executes a messy one-point crossover on the two
@@ -117,7 +112,6 @@ def cx_messy_one_point(ind1: Individual, ind2: Individual) -> Mates:
     return ind1, ind2
 
 
-# -------------------------------------------------------------------------------------- #
 def cx_two_point(ind1: Individual, ind2: Individual) -> Mates:
     """
     Executes a two-point crossover on the two
@@ -135,7 +129,6 @@ def cx_two_point(ind1: Individual, ind2: Individual) -> Mates:
     return ind1, ind2
 
 
-# -------------------------------------------------------------------------------------- #
 def cx_two_point_copy(ind1: Individual, ind2: Individual) -> Mates:
     """
     Executes a two-point crossover on the copies of the two
@@ -156,7 +149,6 @@ def cx_two_point_copy(ind1: Individual, ind2: Individual) -> Mates:
     return ind1, ind2
 
 
-# -------------------------------------------------------------------------------------- #
 def cx_es_two_point(ind1: Individual, ind2: Individual) -> Mates:
     """
     Executes a two-point crossover on the two
@@ -175,7 +167,6 @@ def cx_es_two_point(ind1: Individual, ind2: Individual) -> Mates:
     return ind1, ind2
 
 
-# -------------------------------------------------------------------------------------- #
 def cx_es_two_point_copy(ind1: Individual, ind2: Individual) -> Mates:
     """
     Executes a two-point crossover on the copies of the two individuals
@@ -196,7 +187,6 @@ def cx_es_two_point_copy(ind1: Individual, ind2: Individual) -> Mates:
     return ind1, ind2
 
 
-# -------------------------------------------------------------------------------------- #
 def cx_partially_matched(ind1: Individual, ind2: Individual) -> Mates:
     """
     Executes a partially matched crossover on the
@@ -231,7 +221,6 @@ def cx_partially_matched(ind1: Individual, ind2: Individual) -> Mates:
     return ind1, ind2
 
 
-# -------------------------------------------------------------------------------------- #
 def cx_uniform_partially_matched(ind1: Individual, ind2: Individual, cx_prob: float) -> Mates:
     """
     Executes a uniform partially matched crossover on
@@ -260,7 +249,6 @@ def cx_uniform_partially_matched(ind1: Individual, ind2: Individual, cx_prob: fl
     return ind1, ind2
 
 
-# -------------------------------------------------------------------------------------- #
 def cx_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
     """
     Executes a blend crossover on the two
@@ -285,7 +273,6 @@ def cx_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
     return ind1, ind2
 
 
-# -------------------------------------------------------------------------------------- #
 def cx_es_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
     """
     Executes a blend crossover on the two
@@ -316,7 +303,6 @@ def cx_es_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
     return ind1, ind2
 
 
-# -------------------------------------------------------------------------------------- #
 def cx_simulated_binary(ind1: Individual, ind2: Individual, eta: float) -> Mates:
     """
     Executes a simulated binary crossover on the
@@ -349,7 +335,6 @@ def cx_simulated_binary(ind1: Individual, ind2: Individual, eta: float) -> Mates
     return ind1, ind2
 
 
-# -------------------------------------------------------------------------------------- #
 def cx_simulated_binary_bounded(
     ind1: Individual, ind2: Individual, eta: float, low: NumOrSeq, up: NumOrSeq
 ) -> Mates:
@@ -420,7 +405,6 @@ def cx_simulated_binary_bounded(
     return ind1, ind2
 
 
-# -------------------------------------------------------------------------------------- #
 def cx_uniform(ind1: Individual, ind2: Individual, cx_prob: float) -> Mates:
     """
     Executes a uniform crossover on the two
@@ -442,7 +426,6 @@ def cx_uniform(ind1: Individual, ind2: Individual, cx_prob: float) -> Mates:
     return ind1, ind2
 
 
-# -------------------------------------------------------------------------------------- #
 def cx_ordered(ind1: Individual, ind2: Individual) -> Mates:
     """
     Executes an ordered crossover on the two

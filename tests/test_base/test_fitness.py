@@ -13,7 +13,6 @@ from copy import deepcopy
 import pytest
 
 
-# ====================================================================================== #
 class TestFitness:
     def test_instantiation(self):
         with pytest.raises(TypeError):
@@ -21,13 +20,11 @@ class TestFitness:
         Fitness.weights = [1, 2, 3]
         Fitness()
 
-    # -------------------------------------------------------------------------------------- #
     def test_values_bad_length(self):
         Fitness.weights = [1, 2, 3]
         with pytest.raises(TypeError):
             Fitness([1, 2, 3, 4])
 
-    # -------------------------------------------------------------------------------------- #
     def test_values_access(self):
         Fitness.weights = [1, 2, 3]
 
@@ -44,7 +41,6 @@ class TestFitness:
         assert ft.is_valid() is False
         assert ft.wvalues == tuple()
 
-    # -------------------------------------------------------------------------------------- #
     def test_domination(self):
         Fitness.weights = [1, 1, 1]
         ft1 = Fitness([2, 2, 2])
@@ -60,7 +56,6 @@ class TestFitness:
         assert not ft3.dominates(ft1)
         assert not ft3.dominates(ft2)
 
-    # -------------------------------------------------------------------------------------- #
     def test_comparison(self):
         Fitness.weights = [1, 1, 1]
         ft1 = Fitness([2, 2, 2])
@@ -74,7 +69,6 @@ class TestFitness:
         assert ft1 == ft1
         assert ft1 != ft3
 
-    # -------------------------------------------------------------------------------------- #
     def test_helper_methods(self):
         Fitness.weights = [1, 1, 1]
         ft1 = Fitness([2, 2, 2])

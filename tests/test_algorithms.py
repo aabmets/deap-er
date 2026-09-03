@@ -21,7 +21,6 @@ INDCLSNAME = "IND_TYPE"
 HV_THRESHOLD = 116.0  # 120.777 is the optimal value
 
 
-# ====================================================================================== #
 def setup_func_single_obj():
     creator.create(FITCLSNAME, base.Fitness, weights=(-1.0,))
     creator.create(INDCLSNAME, list, fitness=creator.__dict__[FITCLSNAME])
@@ -42,7 +41,6 @@ def teardown_func():
     del creator.__dict__[INDCLSNAME]
 
 
-# ====================================================================================== #
 def test_standard_cma():
     setup_func_single_obj()
 
@@ -62,7 +60,6 @@ def test_standard_cma():
     teardown_func()
 
 
-# -------------------------------------------------------------------------------------- #
 def test_nsga2():
     setup_func_multi_obj()
 
@@ -131,7 +128,6 @@ def test_nsga2():
     teardown_func()
 
 
-# -------------------------------------------------------------------------------------- #
 def test_mo_cma_es():
     setup_func_multi_obj_numpy()
 
@@ -195,7 +191,6 @@ def test_mo_cma_es():
     teardown_func()
 
 
-# -------------------------------------------------------------------------------------- #
 def test_nsga3():
     setup_func_multi_obj()
 

@@ -14,7 +14,6 @@ from typing import Callable
 __all__ = ["mig_ring"]
 
 
-# ====================================================================================== #
 def mig_ring(
     populations: list,
     mig_count: int,

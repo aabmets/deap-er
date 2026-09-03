@@ -18,7 +18,6 @@ import copy
 __all__ = ["StrategyOnePlusLambda"]
 
 
-# ====================================================================================== #
 class StrategyOnePlusLambda:
     """
     The one-plus-lambda Covariance Matrix Adaptation evolution strategy.
@@ -55,7 +54,6 @@ class StrategyOnePlusLambda:
           * *Default:* :code:`2.0 / (len(population) ** 2 + 6.0)`
     """
 
-    # -------------------------------------------------------- #
     def __init__(self, parent: Individual, sigma: float, **kwargs: Optional):
         if not hasattr(parent, "fitness"):
             raise TypeError("The parent must have a fitness attribute.")
@@ -79,7 +77,6 @@ class StrategyOnePlusLambda:
 
         self.compute_params(**kwargs)
 
-    # -------------------------------------------------------- #
     def compute_params(self, **kwargs: Optional) -> None:
         """
         Computes the parameters of the strategy based on the *lambda*
@@ -110,7 +107,6 @@ class StrategyOnePlusLambda:
 
         self.psucc = self.tgt_sr
 
-    # -------------------------------------------------------- #
     def generate(self, ind_init: Callable) -> list:
         """
         Generates a population of *lambda* individuals of
@@ -123,7 +119,6 @@ class StrategyOnePlusLambda:
         arz = self.parent + self.sigma * numpy.dot(arz, self.big_a.T)
         return list(map(ind_init, arz))
 
-    # -------------------------------------------------------- #
     def update(self, population: list) -> None:
         """
         Updates the current CMA strategy from the **population**.

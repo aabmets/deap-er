@@ -14,7 +14,6 @@ from collections import defaultdict
 __all__ = ["sort_non_dominated"]
 
 
-# ====================================================================================== #
 def sort_non_dominated(individuals: list, sel_count: int, ffo: bool = False) -> list:
     """
     Sorts the first 'sel_count' of 'individuals' into

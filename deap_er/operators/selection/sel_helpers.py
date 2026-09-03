@@ -14,7 +14,6 @@ import numpy
 __all__ = ["assign_crowding_dist", "uniform_reference_points"]
 
 
-# ====================================================================================== #
 def assign_crowding_dist(individuals: list) -> None:
     """
     Assigns a crowding distance to each individual's fitness.
@@ -47,7 +46,6 @@ def assign_crowding_dist(individuals: list) -> None:
         individuals[i].fitness.crowding_dist = dist
 
 
-# -------------------------------------------------------------------------------------- #
 def uniform_reference_points(
     objectives: int, ref_ppo: int = 4, scaling: float = None
 ) -> numpy.ndarray:

@@ -12,7 +12,6 @@ from typing import Callable
 from functools import partial
 
 
-# ====================================================================================== #
 class LintHints:
     __test__: Callable
 

@@ -13,7 +13,6 @@ from operator import itemgetter
 import numpy
 
 
-# ====================================================================================== #
 class TestStatistics:
     def test_statistics(self):
         s = Statistics()

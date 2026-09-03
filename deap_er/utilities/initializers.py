@@ -14,7 +14,6 @@ from collections.abc import Callable, Iterable
 __all__ = ["init_repeat", "init_iterate", "init_cycle"]
 
 
-# ====================================================================================== #
 def init_repeat(container: Callable, func: Callable, size: int) -> Iterable:
     """
     Calls the **func** argument **count** times and puts the results
@@ -31,7 +30,6 @@ def init_repeat(container: Callable, func: Callable, size: int) -> Iterable:
     return container(func() for _ in range(size))
 
 
-# -------------------------------------------------------------------------------------- #
 def init_iterate(container: Callable, generator: Callable) -> Iterable:
     """
     Calls the **generator** function and puts the results into an instance
@@ -47,7 +45,6 @@ def init_iterate(container: Callable, generator: Callable) -> Iterable:
     return container(generator())
 
 
-# -------------------------------------------------------------------------------------- #
 def init_cycle(container: Callable, funcs: Iterable, size: int = 1) -> Iterable:
     """
     Calls each function in the **funcs** iterable **count** times and stores

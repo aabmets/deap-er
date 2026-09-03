@@ -18,7 +18,6 @@ import random
 __all__ = ["cx_one_point", "cx_one_point_leaf_biased"]
 
 
-# ====================================================================================== #
 def cx_one_point(ind1: GPIndividual, ind2: GPIndividual) -> GPMates:
     """
     Randomly selects a crossover point in each individual and exchanges
@@ -60,7 +59,6 @@ def cx_one_point(ind1: GPIndividual, ind2: GPIndividual) -> GPMates:
     return ind1, ind2
 
 
-# -------------------------------------------------------------------------------------- #
 def cx_one_point_leaf_biased(ind1: GPIndividual, ind2: GPIndividual, term_prob: float) -> GPMates:
     """
     Randomly selects a crossover point in each individual and exchanges

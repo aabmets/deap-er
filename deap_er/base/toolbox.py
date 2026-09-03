@@ -17,19 +17,16 @@ from copy import deepcopy
 __all__ = ["Toolbox"]
 
 
-# ====================================================================================== #
 class Toolbox(LintHints):
     """
     A container for evolutionary operators. Toolboxes are essential
     components which facilitate the process of computational evolution.
     """
 
-    # -------------------------------------------------------- #
     def __init__(self):
         self.register("clone", deepcopy)
         self.register("map", map)
 
-    # -------------------------------------------------------- #
     def register(self, alias: str, func: Callable, *args: Optional, **kwargs: Optional) -> None:
         """
         Registers a **func** in the toolbox under the name **alias**.
@@ -54,7 +51,6 @@ class Toolbox(LintHints):
             p_func.__dict__.update(func.__dict__.copy())
         setattr(self, alias, p_func)
 
-    # -------------------------------------------------------- #
     def unregister(self, alias: str) -> None:
         """
         Removes an operator with the name **alias** from the toolbox.
@@ -64,7 +60,6 @@ class Toolbox(LintHints):
         """
         delattr(self, alias)
 
-    # -------------------------------------------------------- #
     def decorate(self, alias: str, *decorators: Optional[Callable]) -> None:
         """
         Decorates an operator **alias** with the provided **decorators**.

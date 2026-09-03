@@ -17,7 +17,6 @@ from itertools import chain
 __all__ = ["sel_nsga_2"]
 
 
-# ====================================================================================== #
 def sel_nsga_2(individuals: list, sel_count: int, sorting: str = "standard") -> list:
     """
     Selects the next generation of individuals using the NSGA-II algorithm.

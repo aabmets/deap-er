@@ -17,7 +17,6 @@ import random
 __all__ = ["sel_tournament", "sel_double_tournament", "sel_tournament_dcd"]
 
 
-# ====================================================================================== #
 def sel_tournament(
     individuals: list, rounds: int, contestants: int, fit_attr: str = "fitness"
 ) -> list:
@@ -38,7 +37,6 @@ def sel_tournament(
     return chosen
 
 
-# -------------------------------------------------------------------------------------- #
 def sel_double_tournament(
     individuals: list,
     rounds: int,
@@ -91,7 +89,6 @@ def sel_double_tournament(
         return _fit_tourney(t_size)
 
 
-# -------------------------------------------------------------------------------------- #
 def sel_tournament_dcd(individuals: list, sel_count: int) -> list:
     """
     Tournament selection based on the dominance between two individuals,

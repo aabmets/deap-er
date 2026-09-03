@@ -17,7 +17,6 @@ import numpy
 __all__ = ["hypervolume", "HyperVolume"]
 
 
-# ====================================================================================== #
 def hypervolume(population: list, ref_point: Optional[list] = None) -> float:
     """
     Returns the hypervolume of a **population**.
@@ -39,7 +38,6 @@ def hypervolume(population: list, ref_point: Optional[list] = None) -> float:
     return hv.compute(wvals)
 
 
-# ====================================================================================== #
 class HyperVolume:
     """
     Creates a new HyperVolume object with the **ref_point**.
@@ -49,12 +47,10 @@ class HyperVolume:
 
     multi_list: MultiList
 
-    # -------------------------------------------------------- #
     def __init__(self, ref_point: numpy.ndarray) -> None:
         self.ref_point = ref_point
         self.dims = len(ref_point)
 
-    # -------------------------------------------------------- #
     def compute(self, point_set: numpy.ndarray) -> float:
         """
         Computes the hypervolume that is dominated by the non-dominated
@@ -66,7 +62,6 @@ class HyperVolume:
         self._pre_process(point_set)
         return self._hv_recursive(self.dims - 1, len(point_set), self.dims * [-1.0e308])
 
-    # -------------------------------------------------------- #
     def _pre_process(self, point_set: numpy.ndarray) -> None:
         if any(self.ref_point):
             point_set -= self.ref_point
@@ -79,7 +74,6 @@ class HyperVolume:
             node_list.extend(nodes, i)
         self.multi_list = node_list
 
-    # -------------------------------------------------------- #
     def _hv_recursive(self, dim_index: int, length: int, bounds: list) -> float:
         sentinel = self.multi_list.sentinel
         reinsert = self.multi_list.reinsert

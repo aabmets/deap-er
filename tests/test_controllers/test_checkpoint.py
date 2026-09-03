@@ -14,7 +14,6 @@ import time
 import os
 
 
-# ====================================================================================== #
 class TestCheckpoint:
     work_dir = Path(os.getcwd()).resolve().joinpath("qwerty")
 
@@ -24,14 +23,12 @@ class TestCheckpoint:
         assert cpt.file_path.suffix == ".dcpf"
         assert cpt.file_path.parent == _dir
 
-    # -------------------------------------------------------- #
     def test_dir_path(self):
         _dir = self.work_dir
         cpt = env.Checkpoint(file_name="asdfg.cpt", autoload=False)
         assert cpt.file_path.name == "asdfg.cpt"
         assert cpt.file_path.parent == _dir.with_name("deap-er")
 
-    # -------------------------------------------------------- #
     def test_saving(self, tmp_path):
         cpt1 = env.Checkpoint(file_name="asdfg.cpt", dir_path=tmp_path, autoload=False)
         cpt1.my_dict = {"key": "value"}
@@ -46,7 +43,6 @@ class TestCheckpoint:
         cpt2.load()
         assert getattr(cpt2, "my_dict") == {"key": "value"}
 
-    # -------------------------------------------------------- #
     def test_range_1(self, tmp_path):
         cpt1 = env.Checkpoint(file_name="asdfg.cpt", dir_path=tmp_path, autoload=False)
         assert cpt1.last_op == "none"
@@ -60,7 +56,6 @@ class TestCheckpoint:
             assert 5 < i < 11
         assert cpt2.last_op == "save_success"
 
-    # -------------------------------------------------------- #
     def test_range_2(self, tmp_path):
         cpt = env.Checkpoint(file_name="asdfg.cpt", dir_path=tmp_path, autoload=False)
         cpt.save_freq = 0.1

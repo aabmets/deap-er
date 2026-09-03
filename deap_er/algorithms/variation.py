@@ -15,7 +15,6 @@ import random
 __all__ = ["var_and", "var_or"]
 
 
-# ====================================================================================== #
 def var_and(toolbox: Toolbox, population: list, cx_prob: float, mut_prob: float) -> list:
     """
     A subcomponent for evolutionary algorithms, which mates AND
@@ -51,7 +50,6 @@ def var_and(toolbox: Toolbox, population: list, cx_prob: float, mut_prob: float)
     return offspring
 
 
-# -------------------------------------------------------------------------------------- #
 def var_or(
     toolbox: Toolbox, population: list, offsprings: int, cx_prob: float, mut_prob: float
 ) -> list:

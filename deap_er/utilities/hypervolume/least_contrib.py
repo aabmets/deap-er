@@ -16,14 +16,12 @@ import numpy
 __all__ = ["least_contrib"]
 
 
-# ====================================================================================== #
 def _compute_hv(data: tuple) -> float:
     point_set, ref_point = data[0], data[1]
     hv = HyperVolume(ref_point)
     return hv.compute(point_set)
 
 
-# -------------------------------------------------------------------------------------- #
 def least_contrib(
     population: list, ref_point: Optional[list] = None, map_func: Optional[Callable] = map
 ) -> Union[int, numpy.ndarray]:

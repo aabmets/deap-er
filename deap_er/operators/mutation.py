@@ -25,7 +25,6 @@ __all__ = [
 ]
 
 
-# ====================================================================================== #
 def _pre_process(name: str, var: NumOrSeq, size: int) -> Sequence:
     if not isinstance(var, Sequence):
         var = repeat(var, size)
@@ -36,7 +35,6 @@ def _pre_process(name: str, var: NumOrSeq, size: int) -> Sequence:
     return var
 
 
-# -------------------------------------------------------------------------------------- #
 def mut_gaussian(individual: Individual, mu: NumOrSeq, sigma: NumOrSeq, mut_prob: float) -> Mutant:
     """
     Applies a gaussian mutation of mean **mu** and standard
@@ -65,7 +63,6 @@ def mut_gaussian(individual: Individual, mu: NumOrSeq, sigma: NumOrSeq, mut_prob
     return (individual,)
 
 
-# -------------------------------------------------------------------------------------- #
 def mut_polynomial_bounded(
     individual: Individual, eta: float, low: NumOrSeq, up: NumOrSeq, mut_prob: float
 ) -> Mutant:
@@ -117,7 +114,6 @@ def mut_polynomial_bounded(
     return (individual,)
 
 
-# -------------------------------------------------------------------------------------- #
 def mut_shuffle_indexes(individual: Individual, mut_prob: float) -> Mutant:
     """
     Shuffles the attributes of the input individual.
@@ -140,7 +136,6 @@ def mut_shuffle_indexes(individual: Individual, mut_prob: float) -> Mutant:
     return (individual,)
 
 
-# -------------------------------------------------------------------------------------- #
 def mut_flip_bit(individual: Individual, mut_prob: float) -> Mutant:
     """
     Flips the values of random attributes of the input individual.
@@ -159,7 +154,6 @@ def mut_flip_bit(individual: Individual, mut_prob: float) -> Mutant:
     return (individual,)
 
 
-# -------------------------------------------------------------------------------------- #
 def mut_uniform_int(individual: Individual, low: int, up: int, mut_prob: float) -> Mutant:
     """
     | Mutates an individual by replacing attribute values with integers
@@ -186,7 +180,6 @@ def mut_uniform_int(individual: Individual, low: int, up: int, mut_prob: float) 
     return (individual,)
 
 
-# -------------------------------------------------------------------------------------- #
 def mut_es_log_normal(individual: Individual, learn_rate: float, mut_prob: float) -> Mutant:
     """
     Mutates an evolution strategy according to its *strategy* attribute.

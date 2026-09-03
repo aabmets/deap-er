@@ -17,7 +17,6 @@ from functools import wraps
 __all__ = ["DeltaPenalty", "ClosestValidPenalty"]
 
 
-# ====================================================================================== #
 class DeltaPenalty:
     """
     This decorator returns penalized fitness for invalid individuals and
@@ -37,7 +36,6 @@ class DeltaPenalty:
     :type delta: :ref:`NumOrSeq <datatypes>`
     """
 
-    # -------------------------------------------------------- #
     def __init__(self, feasibility: Callable, delta: NumOrSeq, distance: Callable = None):
         self.fea_func = feasibility
         if not isinstance(delta, Sequence):
@@ -46,7 +44,6 @@ class DeltaPenalty:
             self.delta = delta
         self.dist_fct = distance
 
-    # -------------------------------------------------------- #
     def __call__(self, func):
         @wraps(func)
         def wrapper(individual, *args, **kwargs):
@@ -66,7 +63,6 @@ class DeltaPenalty:
         return wrapper
 
 
-# ====================================================================================== #
 class ClosestValidPenalty:
     """
     This decorator returns penalized fitness for invalid individuals and
@@ -86,7 +82,6 @@ class ClosestValidPenalty:
     :return: A decorator for the fitness function.
     """
 
-    # -------------------------------------------------------- #
     def __init__(
         self, validity: Callable, feasible: Callable, alpha: float, distance: Callable = None
     ):
@@ -95,7 +90,6 @@ class ClosestValidPenalty:
         self.alpha = alpha
         self.dist_fct = distance
 
-    # -------------------------------------------------------- #
     def __call__(self, func):
         @wraps(func)
         def wrapper(individual, *args, **kwargs):

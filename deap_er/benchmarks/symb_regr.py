@@ -24,7 +24,6 @@ __all__ = [
 ]
 
 
-# ====================================================================================== #
 def bm_ripple(individual: Individual) -> float:
     """
     Ripple benchmark function.
@@ -53,7 +52,6 @@ def bm_ripple(individual: Individual) -> float:
     return a + b
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_sin_cos(individual: Individual) -> float:
     """
     Sine cosine benchmark function.
@@ -79,7 +77,6 @@ def bm_sin_cos(individual: Individual) -> float:
     return 6 * sin(i) * cos(j)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_unwrapped_ball(individual: Individual) -> float:
     """
     Unwrapped ball benchmark function.
@@ -105,7 +102,6 @@ def bm_unwrapped_ball(individual: Individual) -> float:
     return 10 / (5 + s)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_kotanchek(individual: Individual) -> float:
     """
     Kotanchek benchmark function.
@@ -134,7 +130,6 @@ def bm_kotanchek(individual: Individual) -> float:
     return numer / de_nom
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_salustowicz_1d(individual: Individual) -> float:
     """
     Salustowicz benchmark function.
@@ -162,7 +157,6 @@ def bm_salustowicz_1d(individual: Individual) -> float:
     return a * b
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_salustowicz_2d(individual: Individual) -> float:
     """
     Salustowicz benchmark function.
@@ -191,7 +185,6 @@ def bm_salustowicz_2d(individual: Individual) -> float:
     return a * b
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_rational_polynomial_1(individual: Individual) -> float:
     """
     Rational polynomial ball benchmark function.
@@ -221,7 +214,6 @@ def bm_rational_polynomial_1(individual: Individual) -> float:
     return numer / de_nom
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_rational_polynomial_2(individual: Individual) -> float:
     """
     Rational polynomial benchmark function.

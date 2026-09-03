@@ -26,7 +26,6 @@ __all__ = [
 ]
 
 
-# ====================================================================================== #
 class Terminal:
     """
     Class that encapsulates a terminal primitive in an expression.
@@ -41,23 +40,19 @@ class Terminal:
 
     __slots__ = ("name", "value", "ret", "conv_fct")
 
-    # -------------------------------------------------------- #
     def __init__(self, terminal: Any, symbolic: bool, ret_type: type):
         self.ret = ret_type
         self.value = terminal
         self.name = str(terminal)
         self.conv_fct = str if symbolic else repr
 
-    # -------------------------------------------------------- #
     @property
     def arity(self):
         return 0
 
-    # -------------------------------------------------------- #
     def format(self):
         return self.conv_fct(self.value)
 
-    # -------------------------------------------------------- #
     def __eq__(self, other):
         if type(self) is type(other):
             return all(getattr(self, slot) == getattr(other, slot) for slot in self.__slots__)
@@ -65,7 +60,6 @@ class Terminal:
             return NotImplemented
 
 
-# ====================================================================================== #
 class Ephemeral(Terminal):
     """
     Class that encapsulates a terminal which value is set when
@@ -73,18 +67,15 @@ class Ephemeral(Terminal):
     subclassing, a staticmethod named *'func'* must be defined.
     """
 
-    # -------------------------------------------------------- #
     def __init__(self):
         Terminal.__init__(self, self.func(), symbolic=False, ret_type=self.ret)
 
-    # -------------------------------------------------------- #
     @staticmethod
     @abc.abstractmethod
     def func():
         raise NotImplementedError
 
 
-# ====================================================================================== #
 class Primitive:
     """
     Class that encapsulates a primitive and when called with arguments it
@@ -97,7 +88,6 @@ class Primitive:
 
     __slots__ = ("name", "arity", "args", "ret", "seq")
 
-    # -------------------------------------------------------- #
     def __init__(self, name: str, args: list, ret_type: type):
         self.name = name
         self.arity = len(args)
@@ -106,11 +96,9 @@ class Primitive:
         args = ", ".join(map("{{{0}}}".format, list(range(self.arity))))
         self.seq = "{name}({args})".format(name=self.name, args=args)
 
-    # -------------------------------------------------------- #
     def format(self, *args):
         return self.seq.format(*args)
 
-    # -------------------------------------------------------- #
     def __eq__(self, other):
         if type(self) is type(other):
             return all(getattr(self, slot) == getattr(other, slot) for slot in self.__slots__)
@@ -118,7 +106,6 @@ class Primitive:
             return NotImplemented
 
 
-# ====================================================================================== #
 class PrimitiveSetTyped:
     """
     Class that contains the primitives which can be
@@ -130,7 +117,6 @@ class PrimitiveSetTyped:
     :param prefix: The prefix of the primitive set.
     """
 
-    # -------------------------------------------------------- #
     def __init__(self, name: str, in_types: list, ret_type: type, prefix: str = "ARG") -> None:
         self.name = name
         self.ins = in_types
@@ -151,7 +137,6 @@ class PrimitiveSetTyped:
             self._add_prim(term)
             self.terms_count += 1
 
-    # -------------------------------------------------------- #
     @staticmethod
     def _add_type(mapping: dict, ret_type: Any) -> None:
         if ret_type not in mapping:
@@ -163,7 +148,6 @@ class PrimitiveSetTyped:
                             new_list.append(item)
             mapping[ret_type] = new_list
 
-    # -------------------------------------------------------- #
     def _add_prim(self, prim: Union[Primitive, Terminal, Type[Ephemeral]]) -> None:
         self._add_type(self.primitives, prim.ret)
         self._add_type(self.terminals, prim.ret)
@@ -181,7 +165,6 @@ class PrimitiveSetTyped:
             if issubclass(prim.ret, type_):
                 mapping[type_].append(prim)
 
-    # -------------------------------------------------------- #
     def add_primitive(
         self, primitive: Callable, in_types: list, ret_type: type, name: str = None
     ) -> None:
@@ -210,7 +193,6 @@ class PrimitiveSetTyped:
         self.context[prim.name] = primitive
         self.prims_count += 1
 
-    # -------------------------------------------------------- #
     def add_terminal(self, terminal: Callable, ret_type: type, name: str = None) -> None:
         """
         Adds a terminal to the set.
@@ -242,7 +224,6 @@ class PrimitiveSetTyped:
         self._add_prim(prim)
         self.terms_count += 1
 
-    # -------------------------------------------------------- #
     def add_ephemeral_constant(self, name: str, ephemeral: Callable, ret_type: type) -> None:
         """
         Adds an ephemeral constant to the set. An ephemeral constant
@@ -280,7 +261,6 @@ class PrimitiveSetTyped:
         self._add_prim(class_)
         self.terms_count += 1
 
-    # -------------------------------------------------------- #
     def add_adf(self, prim_set: PrimitiveSetTyped) -> None:
         """
         Adds an Automatically Defined Function (ADF) to the set.
@@ -293,7 +273,6 @@ class PrimitiveSetTyped:
         self._add_prim(prim)
         self.prims_count += 1
 
-    # -------------------------------------------------------- #
     def rename_arguments(self, **kwargs) -> None:
         """
         Renames the arguments in self with new names from *kwargs*.
@@ -309,7 +288,6 @@ class PrimitiveSetTyped:
                 self.mapping[new_name].value = new_name
                 del self.mapping[old_name]
 
-    # -------------------------------------------------------- #
     @property
     def terminal_ratio(self):
         """
@@ -319,7 +297,6 @@ class PrimitiveSetTyped:
         return self.terms_count / float(self.terms_count + self.prims_count)
 
 
-# ====================================================================================== #
 class PrimitiveSet(PrimitiveSetTyped):
     """
     Subclass of 'PrimitiveSetTyped' without the type definition.
@@ -329,28 +306,23 @@ class PrimitiveSet(PrimitiveSetTyped):
     :param prefix: The prefix of the primitive set.
     """
 
-    # -------------------------------------------------------- #
     def __init__(self, name: str, arity: int, prefix: str = "ARG"):
         args = [object] * arity
         super().__init__(name, args, object, prefix)
 
-    # -------------------------------------------------------- #
     def add_primitive(self, primitive: Callable, arity: int, name: str = None, *_, **__) -> None:
         if not arity >= 1:
             raise ValueError("arity should be >= 1")
         args = [object] * arity
         super().add_primitive(primitive, args, object, name)
 
-    # -------------------------------------------------------- #
     def add_terminal(self, terminal: Any, name: str = None, *_, **__) -> None:
         super().add_terminal(terminal, object, name)
 
-    # -------------------------------------------------------- #
     def add_ephemeral_constant(self, name: str, ephemeral: Callable, *_, **__) -> None:
         super().add_ephemeral_constant(name, ephemeral, object)
 
 
-# ====================================================================================== #
 class PrimitiveTree(list):
     """
     Tree specifically formatted for the optimization of genetic programming
@@ -362,17 +334,14 @@ class PrimitiveTree(list):
     :param content: List of primitives and terminals to be added to the tree.
     """
 
-    # -------------------------------------------------------- #
     def __init__(self, content: Iterable):
         super().__init__(content)
 
-    # -------------------------------------------------------- #
     def __deepcopy__(self, memo: dict):
         new = self.__class__(self)
         new.__dict__.update(copy.deepcopy(self.__dict__, memo))
         return new
 
-    # -------------------------------------------------------- #
     def __setitem__(self, key, val):
         if isinstance(key, slice):
             if key.start >= len(self):
@@ -394,7 +363,6 @@ class PrimitiveTree(list):
             )
         list.__setitem__(self, key, val)
 
-    # -------------------------------------------------------- #
     def __str__(self):
         string = str()
         stack = list()
@@ -408,7 +376,6 @@ class PrimitiveTree(list):
                 stack[-1][1].append(string)
         return string
 
-    # -------------------------------------------------------- #
     @classmethod
     def from_string(cls, string: str, prim_set: PrimitiveSetTyped) -> PrimitiveTree:
         """
@@ -457,7 +424,6 @@ class PrimitiveTree(list):
                 expr.append(prim)
         return cls(expr)
 
-    # -------------------------------------------------------- #
     def search_subtree(self, begin: int) -> slice:
         """
         Returns a slice object that corresponds to the
@@ -475,7 +441,6 @@ class PrimitiveTree(list):
             end += 1
         return slice(begin, end)
 
-    # -------------------------------------------------------- #
     @property
     def height(self):
         """
@@ -489,7 +454,6 @@ class PrimitiveTree(list):
             stack.extend([depth + 1] * elem.arity)
         return max_depth
 
-    # -------------------------------------------------------- #
     @property
     def root(self):
         """

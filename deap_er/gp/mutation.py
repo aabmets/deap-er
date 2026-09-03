@@ -18,7 +18,6 @@ import random
 __all__ = ["mut_uniform", "mut_node_replacement", "mut_ephemeral", "mut_insert", "mut_shrink"]
 
 
-# ====================================================================================== #
 def mut_uniform(individual: GPIndividual, expr: Callable, prim_set: PrimitiveSetTyped) -> GPMutant:
     """
     Mutates an individual by replacing a random subtree with
@@ -39,7 +38,6 @@ def mut_uniform(individual: GPIndividual, expr: Callable, prim_set: PrimitiveSet
     return (individual,)
 
 
-# -------------------------------------------------------------------------------------- #
 def mut_node_replacement(individual: GPIndividual, prim_set: PrimitiveSetTyped) -> GPMutant:
     """
     Mutates an individual by replacing a random primitive
@@ -71,7 +69,6 @@ def mut_node_replacement(individual: GPIndividual, prim_set: PrimitiveSetTyped) 
     return (individual,)
 
 
-# -------------------------------------------------------------------------------------- #
 def mut_ephemeral(individual: GPIndividual, mode: str = "all") -> GPMutant:
     """
     Mutates an individual by replacing either
@@ -102,7 +99,6 @@ def mut_ephemeral(individual: GPIndividual, mode: str = "all") -> GPMutant:
     return (individual,)
 
 
-# -------------------------------------------------------------------------------------- #
 def mut_insert(individual: GPIndividual, prim_set: PrimitiveSetTyped) -> GPMutant:
     """
     Inserts a new branch at a random position in the tree.
@@ -150,7 +146,6 @@ def mut_insert(individual: GPIndividual, prim_set: PrimitiveSetTyped) -> GPMutan
     return (individual,)
 
 
-# -------------------------------------------------------------------------------------- #
 def mut_shrink(individual: GPIndividual) -> GPMutant:
     """
     Shrinks a tree by removing a random branch, replacing

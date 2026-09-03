@@ -15,7 +15,6 @@ from functools import partial
 __all__ = ["Statistics", "MultiStatistics"]
 
 
-# ====================================================================================== #
 class Statistics:
     """
     Object that compiles statistics on a list of arbitrary objects.
@@ -32,13 +31,11 @@ class Statistics:
         value on which the statistics will be computed.
     """
 
-    # -------------------------------------------------------- #
     def __init__(self, key: Optional[Callable] = None):
         self.key = key if key else lambda obj: obj
         self.functions = dict()
         self.fields = list()
 
-    # -------------------------------------------------------- #
     def register(self, name: str, func: Callable, *args: Optional, **kwargs: Optional) -> None:
         """
         Registers a new statistical function that will be applied
@@ -55,7 +52,6 @@ class Statistics:
         self.functions[name] = partial(func, *args, **kwargs)
         self.fields.append(name)
 
-    # -------------------------------------------------------- #
     def compile(self, data: Iterable) -> dict:
         """
         Compiles the statistics on the given data.
@@ -70,7 +66,6 @@ class Statistics:
         return entry
 
 
-# ====================================================================================== #
 class MultiStatistics(dict):
     """
     Object that compiles statistics on a list of arbitrary objects.
@@ -78,12 +73,10 @@ class MultiStatistics(dict):
     call to the 'compile' method.
     """
 
-    # -------------------------------------------------------- #
     @property
     def fields(self):
         return sorted(self.keys())
 
-    # -------------------------------------------------------- #
     def register(self, name: str, func: Callable, *args: Optional, **kwargs: Optional) -> None:
         """
         Registers a new statistical function that will be applied
@@ -100,7 +93,6 @@ class MultiStatistics(dict):
         for stats in self.values():
             stats.register(name, func, *args, **kwargs)
 
-    # -------------------------------------------------------- #
     def compile(self, data: Iterable) -> dict:
         """
         Compiles the statistics on the given data.

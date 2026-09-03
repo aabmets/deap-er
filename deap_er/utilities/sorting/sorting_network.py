@@ -15,7 +15,6 @@ from itertools import product
 __all__ = ["SortingNetwork"]
 
 
-# ====================================================================================== #
 class SortingNetwork:
     """
     A sorting network is an abstract mathematical model of a network of wires
@@ -31,7 +30,6 @@ class SortingNetwork:
         that are connected by a comparator, optional.
     """
 
-    # -------------------------------------------------------- #
     def __init__(self, dimension: int, connectors: Optional[list] = None):
         self.dimension = dimension
         self.data = list()
@@ -40,7 +38,6 @@ class SortingNetwork:
                 self.add_connector(wire1, wire2)
         super().__init__()
 
-    # -------------------------------------------------------- #
     def __iter__(self):
         return iter(self.data)
 
@@ -59,19 +56,16 @@ class SortingNetwork:
     def __len__(self):
         return len(self.data)
 
-    # -------------------------------------------------------- #
     @property
     def depth(self) -> int:
         """Returns the depth of the network."""
         return len(self.data) if self.data else 0
 
-    # -------------------------------------------------------- #
     @property
     def length(self) -> int:
         """Returns the length of the network."""
         return sum(len(level) for level in self.data)
 
-    # -------------------------------------------------------- #
     @staticmethod
     def check_conflict(level: list, wire1: int, wire2: int) -> bool:
         """
@@ -88,7 +82,6 @@ class SortingNetwork:
                 return True
         return False
 
-    # -------------------------------------------------------- #
     def add_connector(self, wire1: int, wire2: int) -> None:
         """
         Adds a connector to the network.
@@ -115,7 +108,6 @@ class SortingNetwork:
         else:
             self.data[index].append(cnx)
 
-    # -------------------------------------------------------- #
     def sort(self, values: list) -> None:
         """
         Sorts the given values using the network.
@@ -128,7 +120,6 @@ class SortingNetwork:
                 if values[wire1] > values[wire2]:
                     values[wire1], values[wire2] = values[wire2], values[wire1]
 
-    # -------------------------------------------------------- #
     def evaluate(self, cases: Optional[list] = None) -> int:
         """
         Evaluates the network's performance on the given cases.
@@ -151,7 +142,6 @@ class SortingNetwork:
             errors += int(sequence != ordered[idx])
         return errors
 
-    # -------------------------------------------------------- #
     def draw(self) -> str:
         """
         Creates a visual representation of the network.

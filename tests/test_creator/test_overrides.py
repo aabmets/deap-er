@@ -15,7 +15,6 @@ import array
 import numpy
 
 
-# ====================================================================================== #
 class TestNumpyOverrideClass:
     def test_numpy_override_instantiation(self):
         data = [x for x in range(0, 10)]
@@ -23,7 +22,6 @@ class TestNumpyOverrideClass:
         assert isinstance(obj, ovr._NumpyOverride)
         assert issubclass(ovr._NumpyOverride, numpy.ndarray)
 
-    # -------------------------------------------------------- #
     def test_numpy_override_deepcopy(self):
         data = [x for x in range(0, 10)]
         obj = ovr._NumpyOverride(data)
@@ -32,7 +30,6 @@ class TestNumpyOverrideClass:
         assert all(obj == copy)
         assert obj.__dict__ == copy.__dict__
 
-    # -------------------------------------------------------- #
     def test_numpy_override_pickling(self):
         data = [x for x in range(0, 10)]
         obj = ovr._NumpyOverride(data)
@@ -41,7 +38,6 @@ class TestNumpyOverrideClass:
         assert all(obj == copy)
         assert obj.__dict__ == copy.__dict__
 
-    # -------------------------------------------------------- #
     def test_array_override_reduction(self):
         data = [x for x in range(0, 10)]
         obj = ovr._NumpyOverride(data)
@@ -51,7 +47,6 @@ class TestNumpyOverrideClass:
         assert isinstance(state, dict)
 
 
-# ====================================================================================== #
 class TestArrayOverrideClass:
     ovr._ArrayOverride.typecode = "i"
 
@@ -61,7 +56,6 @@ class TestArrayOverrideClass:
         assert isinstance(obj, ovr._ArrayOverride)
         assert issubclass(ovr._ArrayOverride, array.array)
 
-    # -------------------------------------------------------- #
     def test_array_override_deepcopy(self):
         data = [x for x in range(0, 10)]
         obj = ovr._ArrayOverride(data)
@@ -70,7 +64,6 @@ class TestArrayOverrideClass:
         assert obj == copy
         assert obj.__dict__ == copy.__dict__
 
-    # -------------------------------------------------------- #
     def test_array_override_pickling(self):
         data = [x for x in range(0, 10)]
         obj = ovr._ArrayOverride(data)
@@ -79,7 +72,6 @@ class TestArrayOverrideClass:
         assert obj == copy
         assert obj.__dict__ == copy.__dict__
 
-    # -------------------------------------------------------- #
     def test_array_override_reduction(self):
         data = [x for x in range(0, 10)]
         obj = ovr._ArrayOverride(data)

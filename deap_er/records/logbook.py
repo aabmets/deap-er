@@ -15,14 +15,12 @@ from itertools import chain
 __all__ = ["Logbook"]
 
 
-# ====================================================================================== #
 class Logbook(list):
     """
     Contains evolution records as a chronological list of dictionaries.
     Data can be retrieved using the *select* method with the appropriate names.
     """
 
-    # -------------------------------------------------------- #
     def __init__(self):
         self.chapters = defaultdict(Logbook)
         self.buff_index: int = 0
@@ -31,7 +29,6 @@ class Logbook(list):
         self.header: list = list()
         super().__init__()
 
-    # -------------------------------------------------------- #
     @property
     def stream(self) -> str:
         """
@@ -40,7 +37,6 @@ class Logbook(list):
         start_index, self.buff_index = self.buff_index, len(self)
         return self.__str__(start_index)
 
-    # -------------------------------------------------------- #
     def record(self, **data) -> None:
         """
         Adds a new entry to the logbook as a list of dictionaries.
@@ -57,7 +53,6 @@ class Logbook(list):
                 del data[key]
         self.append(data)
 
-    # -------------------------------------------------------- #
     def select(self, *names) -> list:
         """
         Returns a list of values for the given names.
@@ -69,7 +64,6 @@ class Logbook(list):
             return [entry.get(names[0], None) for entry in self]
         return [[entry.get(name, None) for entry in self] for name in names]
 
-    # -------------------------------------------------------- #
     def pop(self, index: int = 0) -> dict:
         """
         Retrieves and deletes element at **index**. The header and
@@ -82,7 +76,6 @@ class Logbook(list):
             self.buff_index -= 1
         return super(self.__class__, self).pop(index)
 
-    # -------------------------------------------------------- #
     def __delitem__(self, key) -> None:
         if isinstance(key, slice):
             for (i,) in range(*key.indices(len(self))):
@@ -94,7 +87,6 @@ class Logbook(list):
             for chapter in self.chapters.values():
                 chapter.pop(key)
 
-    # -------------------------------------------------------- #
     def __txt__(self, start_index: int) -> list:
         columns = self.header
         if not len(self):
@@ -151,7 +143,6 @@ class Logbook(list):
         str_list = [template.format(*line) for line in str_matrix]
         return str_list
 
-    # -------------------------------------------------------- #
     def __str__(self, start_index: int = 0) -> str:
         text = self.__txt__(start_index)
         return "\n".join(text)

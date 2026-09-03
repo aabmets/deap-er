@@ -14,7 +14,6 @@ from math import hypot, sqrt
 import numpy
 
 
-# ====================================================================================== #
 def nsga_diversity(population: list, first: Individual, last: Individual) -> float:
     """
     Given a Pareto front **population** and the two extreme points **first** and
@@ -54,7 +53,6 @@ def nsga_diversity(population: list, first: Individual, last: Individual) -> flo
     return delta
 
 
-# -------------------------------------------------------------------------------------- #
 def nsga_convergence(population: list, optimal: list) -> float:
     """
     Given a Pareto **front** and the **optimal** Pareto front, this function
@@ -78,7 +76,6 @@ def nsga_convergence(population: list, optimal: list) -> float:
     return sum(distances) / len(distances)
 
 
-# -------------------------------------------------------------------------------------- #
 def inv_gen_dist(ind1: Individual, ind2: Individual) -> tuple[Any, Optional[Any]]:
     """
     Computes the Inverted Generational Distance (IGD) between the two individuals.

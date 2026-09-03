@@ -15,7 +15,6 @@ from deap_er.base.dtypes import *
 __all__ = ["bm_royal_road_1", "bm_royal_road_2", "bm_chuang_f1", "bm_chuang_f2", "bm_chuang_f3"]
 
 
-# ====================================================================================== #
 def bm_royal_road_1(individual: Individual, order: int) -> tuple[int]:
     """
     | Royal Road Function R1 as presented by Melanie Mitchell
@@ -39,7 +38,6 @@ def bm_royal_road_1(individual: Individual, order: int) -> tuple[int]:
     return (total,)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_royal_road_2(individual: Individual, order: int) -> tuple[int]:
     """
     | Royal Road Function R2 as presented by Melanie Mitchell
@@ -58,7 +56,6 @@ def bm_royal_road_2(individual: Individual, order: int) -> tuple[int]:
     return (total,)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_chuang_f1(individual: Individual) -> tuple[int]:
     """
     | Binary deceptive function by Chung-Yao Chuang and Wen-Lian Hsu from
@@ -81,7 +78,6 @@ def bm_chuang_f1(individual: Individual) -> tuple[int]:
     return (total,)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_chuang_f2(individual: Individual) -> tuple[int]:
     """
     | Binary deceptive function by Chung-Yao Chuang and Wen-Lian Hsu from
@@ -110,7 +106,6 @@ def bm_chuang_f2(individual: Individual) -> tuple[int]:
     return (total,)
 
 
-# -------------------------------------------------------------------------------------- #
 def bm_chuang_f3(individual: Individual) -> tuple[int]:
     """
     | Binary deceptive function by Chung-Yao Chuang and Wen-Lian Hsu from
@@ -134,14 +129,12 @@ def bm_chuang_f3(individual: Individual) -> tuple[int]:
     return (total,)
 
 
-# -------------------------------------------------------------------------------------- #
 def _trap(individual: Individual) -> int:
     u = sum(individual)
     k = len(individual)
     return k if u == k else k - 1 - u
 
 
-# -------------------------------------------------------------------------------------- #
 def _inv_trap(individual: Individual) -> int:
     u = sum(individual)
     k = len(individual)

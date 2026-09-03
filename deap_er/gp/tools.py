@@ -20,7 +20,6 @@ import sys
 __all__ = ["compile_tree", "compile_adf_tree", "build_tree_graph", "static_limit"]
 
 
-# ====================================================================================== #
 def compile_tree(expr: GPExprTypes, prim_set: PrimitiveSetTyped) -> Any:
     """
     Evaluates the expression on the given primitive set.
@@ -47,7 +46,6 @@ def compile_tree(expr: GPExprTypes, prim_set: PrimitiveSetTyped) -> Any:
         ).with_traceback(traceback)
 
 
-# -------------------------------------------------------------------------------------- #
 def compile_adf_tree(expr: GPExprTypes, prim_sets: GPTypedSets) -> Any:
     """
     Compiles the expression represented by a list of trees.
@@ -78,7 +76,6 @@ def compile_adf_tree(expr: GPExprTypes, prim_sets: GPTypedSets) -> Any:
     return func
 
 
-# -------------------------------------------------------------------------------------- #
 def build_tree_graph(expr: GPExprTypes) -> GPGraph:
     """
     Builds a graph representation of the given expression. The graph
@@ -113,7 +110,6 @@ def build_tree_graph(expr: GPExprTypes) -> GPGraph:
     return nodes, edges, labels
 
 
-# -------------------------------------------------------------------------------------- #
 def static_limit(limiter: Callable, max_value: Union[int, float]) -> Callable:
     """
     Provides a decorator to limit the production of offspring.

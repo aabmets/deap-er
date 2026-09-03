@@ -17,7 +17,6 @@ from .dtypes import NumOrSeq
 __all__ = ["Fitness"]
 
 
-# ====================================================================================== #
 class Fitness:
     """
     A fitness object measures the quality of a solution. The class
@@ -30,7 +29,6 @@ class Fitness:
     :type values: :ref:`SeqOfNum <datatypes>`
     """
 
-    # -------------------------------------------------------- #
     weights: tuple = tuple()
     """
     The weights are used to compare the fitness of different individuals. 
@@ -40,7 +38,6 @@ class Fitness:
     corresponds to the minimization and a positive weight to the maximization 
     of the associated objective.
     """
-    # -------------------------------------------------------- #
     wvalues: tuple = tuple()
     """
     Contains the weighted values of the fitness. These are obtained by
@@ -49,7 +46,6 @@ class Fitness:
     used internally by the Fitness comparison operators.
     """
 
-    # -------------------------------------------------------- #
     def __init__(self, values: NumOrSeq = None):
         if not self.weights:
             raise TypeError(
@@ -58,7 +54,6 @@ class Fitness:
         if values:
             self.values = values
 
-    # -------------------------------------------------------- #
     @property
     def values(self) -> Iterable[float]:
         """
@@ -88,7 +83,6 @@ class Fitness:
     def values(self) -> None:
         self.wvalues = tuple()
 
-    # -------------------------------------------------------- #
     def dominates(self, other: Fitness, slc: slice = None) -> bool:
         """
         Returns true if each objective of *'self'* is not worse than
@@ -107,7 +101,6 @@ class Fitness:
             return False
         return True
 
-    # -------------------------------------------------------- #
     def is_valid(self) -> bool:
         """
         A Fitness instance is valid when the Fitness *'weights'* class
@@ -120,7 +113,6 @@ class Fitness:
         b = len(self.wvalues)
         return a == b and a > 0
 
-    # -------------------------------------------------------- #
     def __gt__(self, other: Fitness) -> bool:
         return self.wvalues > other.wvalues
 
@@ -139,7 +131,6 @@ class Fitness:
     def __ne__(self, other: Fitness) -> bool:
         return self.wvalues != other.wvalues
 
-    # -------------------------------------------------------- #
     def __len__(self):
         return len(self.wvalues)
 
@@ -152,7 +143,6 @@ class Fitness:
     def __repr__(self):
         return "{0}.{1}({2})".format(self.__module__, self.__class__.__name__, str(self.values))
 
-    # -------------------------------------------------------- #
     def __deepcopy__(self, memo):
         copy = self.__class__()
         copy.wvalues = self.wvalues

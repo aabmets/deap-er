@@ -15,7 +15,6 @@ import math
 __all__ = ["sel_spea_2"]
 
 
-# ====================================================================================== #
 def sel_spea_2(individuals: list, sel_count: int) -> list:
     """
     Selects the next generation of individuals using the SPEA-II algorithm.
@@ -126,7 +125,6 @@ def sel_spea_2(individuals: list, sel_count: int) -> list:
     return [individuals[i] for i in chosen]
 
 
-# -------------------------------------------------------------------------------------- #
 def _partition(array: list, begin: int, end: int) -> int:
     x = array[begin]
     i = begin - 1
@@ -144,14 +142,12 @@ def _partition(array: list, begin: int, end: int) -> int:
             return j
 
 
-# -------------------------------------------------------------------------------------- #
 def _randomized_partition(array: list, begin: int, end: int) -> int:
     i = random.randint(begin, end)
     array[begin], array[i] = array[i], array[begin]
     return _partition(array, begin, end)
 
 
-# -------------------------------------------------------------------------------------- #
 def _randomized_select(array: list, begin: int, end: int, i: float) -> int:
     if begin == end:
         return array[begin]

@@ -21,7 +21,6 @@ import os
 __all__ = ["Checkpoint"]
 
 
-# ====================================================================================== #
 class Checkpoint:
     """
     This class can be used to save and load evolution progress to and from files.
@@ -44,7 +43,6 @@ class Checkpoint:
         By default, errors are not propagated and False is returned instead.
     """
 
-    # -------------------------------------------------------- #
     _dir_ = "deap-er"  # Checkpoint Directory
     _ext_ = ".dcpf"  # [D]eaper [C]heck [P]oint [F]ile
     _omit_ = ["_last_op_"]
@@ -55,7 +53,6 @@ class Checkpoint:
     _save_freq_: float = 60.0
     _last_op_: str = "none"
 
-    # -------------------------------------------------------- #
     def __init__(
         self,
         file_name: Optional[str] = None,
@@ -75,7 +72,6 @@ class Checkpoint:
         if autoload is True:
             self.load()
 
-    # -------------------------------------------------------- #
     def load(self) -> bool:
         """
         Loads objects from the checkpoint file and sets them as attributes of ``self``.
@@ -97,7 +93,6 @@ class Checkpoint:
         self._last_op_ = "load_success"
         return True
 
-    # -------------------------------------------------------- #
     def save(self) -> bool:
         """
         Saves the attributes of ``self`` into the checkpoint file.
@@ -126,7 +121,6 @@ class Checkpoint:
         self._last_op_ = "save_success"
         return True
 
-    # -------------------------------------------------------- #
     def range(self, generations: int) -> range:
         """
         A special generator method that behaves almost like the builtin :code:`range()`
@@ -162,7 +156,6 @@ class Checkpoint:
                     self.save()
             self.save()
 
-    # -------------------------------------------------------- #
     @property
     def save_freq(self) -> float:
         """
@@ -180,7 +173,6 @@ class Checkpoint:
     def save_freq(self, value: Union[int, float]) -> None:
         self._save_freq_ = float(value)
 
-    # -------------------------------------------------------- #
     @property
     def last_op(self) -> str:
         """
@@ -195,7 +187,6 @@ class Checkpoint:
         """
         return self._last_op_
 
-    # -------------------------------------------------------- #
     def is_loaded(self) -> bool:
         """
         Shorthand for ``checkpoint.last_op == 'load_success'``.
@@ -204,7 +195,6 @@ class Checkpoint:
         """
         return self._last_op_ == "load_success"
 
-    # -------------------------------------------------------- #
     def is_saved(self) -> bool:
         """
         Shorthand for ``checkpoint.last_op == 'save_success'``.

@@ -17,7 +17,6 @@ import numpy
 __all__ = ["Translate", "Rotate", "Scale", "Noise", "bin2float"]
 
 
-# ====================================================================================== #
 class Translate:
     """
     A decorator for evaluation functions. When the decorated function is called, the
@@ -32,11 +31,9 @@ class Translate:
 
     vector = None
 
-    # -------------------------------------------------------- #
     def __init__(self, vector: list):
         self.translate(vector)
 
-    # -------------------------------------------------------- #
     def __call__(self, func: Callable) -> Callable:
         @wraps(func)
         def wrapper(individual, *args, **kwargs):
@@ -46,7 +43,6 @@ class Translate:
         wrapper.translate = self.translate
         return wrapper
 
-    # -------------------------------------------------------- #
     def translate(self, vector: list) -> None:
         """
         Updates the translation **vector** values.
@@ -59,7 +55,6 @@ class Translate:
         self.vector = vector
 
 
-# -------------------------------------------------------------------------------------- #
 class Rotate:
     """
     A decorator for evaluation functions. When the decorated function is called, the
@@ -74,11 +69,9 @@ class Rotate:
 
     matrix = None
 
-    # -------------------------------------------------------- #
     def __init__(self, matrix):
         self.rotate(matrix)
 
-    # -------------------------------------------------------- #
     def __call__(self, func):
         @wraps(func)
         def wrapper(individual, *args, **kwargs):
@@ -88,7 +81,6 @@ class Rotate:
         wrapper.rotate = self.rotate
         return wrapper
 
-    # -------------------------------------------------------- #
     def rotate(self, matrix):
         """
         Updates the rotation **matrix** values.
@@ -101,7 +93,6 @@ class Rotate:
         self.matrix = numpy.linalg.inv(matrix)
 
 
-# -------------------------------------------------------------------------------------- #
 class Scale:
     """
     A decorator for evaluation functions. When the decorated function is called, the
@@ -116,11 +107,9 @@ class Scale:
 
     factor = None
 
-    # -------------------------------------------------------- #
     def __init__(self, factor):
         self.scale(factor)
 
-    # -------------------------------------------------------- #
     def __call__(self, func):
         @wraps(func)
         def wrapper(individual, *args, **kwargs):
@@ -130,7 +119,6 @@ class Scale:
         wrapper.scale = self.scale
         return wrapper
 
-    # -------------------------------------------------------- #
     def scale(self, factor: list) -> None:
         """
         Updates the scale **factor** values.
@@ -143,7 +131,6 @@ class Scale:
         self.factor = tuple(1.0 / f for f in factor)
 
 
-# -------------------------------------------------------------------------------------- #
 class Noise:
     """
     A decorator for evaluation functions. When the decorated function is called,
@@ -161,11 +148,9 @@ class Noise:
 
     rand_funcs = None
 
-    # -------------------------------------------------------- #
     def __init__(self, funcs):
         self.noise(funcs)
 
-    # -------------------------------------------------------- #
     def __call__(self, func):
         @wraps(func)
         def wrapper(individual, *args, **kwargs):
@@ -183,7 +168,6 @@ class Noise:
         wrapper.noise = self.noise
         return wrapper
 
-    # -------------------------------------------------------- #
     def noise(self, funcs: Union[Callable, list[Callable]]) -> None:
         """
         Updates the noise generator **funcs**.
@@ -196,7 +180,6 @@ class Noise:
             self.rand_funcs = repeat(funcs)
 
 
-# -------------------------------------------------------------------------------------- #
 def bin2float(min_: float, max_: float, n_bits: int) -> Callable:
     """
     Returns a decorator, which converts a binary array into

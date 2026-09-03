@@ -17,7 +17,6 @@ import numpy
 __all__ = ["_NumpyOverride", "_ArrayOverride"]
 
 
-# ====================================================================================== #
 class _NumpyOverride(numpy.ndarray):
     """
     Class override for the 'numpy.ndarray' class, because
@@ -41,7 +40,6 @@ class _NumpyOverride(numpy.ndarray):
         return self.__class__, (list(self),), self.__dict__
 
 
-# ====================================================================================== #
 class _ArrayOverride(array.array):
     """
     Class override for the 'array.array' class, because

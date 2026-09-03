@@ -17,7 +17,6 @@ import numpy
 __all__ = ["sel_nsga_3", "SelNSGA3WithMemory"]
 
 
-# ====================================================================================== #
 class SelNSGA3WithMemory:
     """
     The NSGA-III selection operator with memory for best, worst and extreme
@@ -28,7 +27,6 @@ class SelNSGA3WithMemory:
         sorting. Can be either 'log' or 'standard' string literal.
     """
 
-    # -------------------------------------------------------- #
     def __init__(self, ref_points: ndarray, sorting: str = "log"):
         self.ref_points = ref_points
         self.sorting = sorting
@@ -36,7 +34,6 @@ class SelNSGA3WithMemory:
         self.worst_point = numpy.full((1, ref_points.shape[1]), -numpy.inf)
         self.extreme_points = None
 
-    # -------------------------------------------------------- #
     def __call__(self, individuals: list, sel_count: int) -> list:
         """
         This method is called by the Toolbox to select
@@ -59,7 +56,6 @@ class SelNSGA3WithMemory:
         return chosen
 
 
-# ====================================================================================== #
 def sel_nsga_3(
     individuals: list,
     sel_count: int,
@@ -131,7 +127,6 @@ def sel_nsga_3(
     return chosen
 
 
-# -------------------------------------------------------------------------------------- #
 def _find_extreme_points(
     fitness: ndarray, best_point: ndarray, extreme_points: ndarray = None
 ) -> ndarray:
@@ -148,7 +143,6 @@ def _find_extreme_points(
     return fitness[min_asf_idx, :]
 
 
-# -------------------------------------------------------------------------------------- #
 def _find_intercepts(
     extreme_points: ndarray, best_point: ndarray, current_worst: ndarray, front_worst: ndarray
 ) -> ndarray:
@@ -175,7 +169,6 @@ def _find_intercepts(
     return intercepts
 
 
-# -------------------------------------------------------------------------------------- #
 def _associate_to_niche(
     fitness: ndarray, reference_points: ndarray, best_point: ndarray, intercepts: ndarray
 ) -> tuple:
@@ -195,7 +188,6 @@ def _associate_to_niche(
     return niches, distances
 
 
-# -------------------------------------------------------------------------------------- #
 def _select_from_niche(
     individuals: list, count: int, niches: ndarray, distances: ndarray, niche_counts: ndarray
 ) -> list:
