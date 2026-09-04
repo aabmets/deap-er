@@ -4,8 +4,6 @@
 [![GitHub License](https://img.shields.io/github/license/aabmets/deap-er)](https://github.com/aabmets/deap-er/blob/main/LICENSE)
 [![codecov](https://codecov.io/gh/aabmets/deap-er/branch/main/graph/badge.svg?token=hEELibzJvq)](https://codecov.io/gh/aabmets/deap-er)
 [![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/aabmets/deap-er/pytest-codecov.yml?label=tests)](https://github.com/aabmets/deap-er/actions/workflows/pytest-codecov.yml)
-[![PyPI - Downloads](https://img.shields.io/pypi/dm/deap-er)](https://pypistats.org/packages/deap-er)
-
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=aabmets_deap-er&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=aabmets_deap-er)
 [![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=aabmets_deap-er&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=aabmets_deap-er)
