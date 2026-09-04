@@ -10,9 +10,10 @@
 #
 import math
 import random
-from collections.abc import Sequence
 
 from deap_er.base.dtypes import *
+
+from ._bounds import _broadcast_param
 
 __all__ = [
     "mut_gaussian",
@@ -22,29 +23,6 @@ __all__ = [
     "mut_uniform_int",
     "mut_es_log_normal",
 ]
-
-
-def _pre_process(name: str, var: NumOrSeq, size: int) -> Sequence[int] | Sequence[float]:
-    """Broadcast a scalar parameter or validate a per-gene sequence.
-
-    Args:
-        name: Argument name used in the error message.
-        var: A single value or a sequence of per-gene values.
-        size: Required number of values (the individual length).
-
-    Returns:
-        A sequence of at least ``size`` values.
-
-    Raises:
-        ValueError: If ``var`` is a sequence shorter than ``size``.
-    """
-    if isinstance(var, int | float):
-        return [var] * size
-    if len(var) < size:
-        raise ValueError(
-            f"Argument '{name}' must be at least the size of the individual: {len(var)} < {size}"
-        )
-    return var
 
 
 def mut_gaussian(individual: Individual, mu: NumOrSeq, sigma: NumOrSeq, mut_prob: float) -> Mutant:
@@ -67,8 +45,8 @@ def mut_gaussian(individual: Individual, mu: NumOrSeq, sigma: NumOrSeq, mut_prob
             the individual.
     """
     size = len(individual)
-    mu = _pre_process("mu", mu, size)
-    sigma = _pre_process("sigma", sigma, size)
+    mu = _broadcast_param("mu", mu, size)
+    sigma = _broadcast_param("sigma", sigma, size)
 
     idx = list(range(size))
     for i, m, s in zip(idx, mu, sigma, strict=False):
@@ -103,8 +81,8 @@ def mut_polynomial_bounded(
             the individual.
     """
     size = len(individual)
-    low = _pre_process("low", low, size)
-    up = _pre_process("up", up, size)
+    low = _broadcast_param("low", low, size)
+    up = _broadcast_param("up", up, size)
 
     idx = list(range(size))
     for i, xl, xu in zip(idx, low, up, strict=False):
@@ -192,8 +170,8 @@ def mut_uniform_int(individual: Individual, low: int, up: int, mut_prob: float) 
             the individual.
     """
     size = len(individual)
-    lows = _pre_process("low", low, size)
-    ups = _pre_process("up", up, size)
+    lows = _broadcast_param("low", low, size)
+    ups = _broadcast_param("up", up, size)
 
     idx = list(range(size))
     for i, xl, xu in zip(idx, lows, ups, strict=False):

@@ -11,9 +11,10 @@
 from __future__ import annotations
 
 import random
-from collections.abc import Sequence
 
 from deap_er.base.dtypes import *
+
+from ._bounds import _broadcast_param
 
 __all__ = [
     "cx_one_point",
@@ -383,28 +384,6 @@ def cx_simulated_binary_bounded(
             individual.
     """
 
-    def check_bounds(name: str, var: NumOrSeq) -> Sequence[int] | Sequence[float]:
-        """Broadcast a scalar bound or validate a per-gene sequence.
-
-        Args:
-            name: Argument name used in the error message.
-            var: A single bound or a sequence of per-gene bounds.
-
-        Returns:
-            A sequence of bounds, one per gene of the shorter individual.
-
-        Raises:
-            ValueError: If ``var`` is a sequence shorter than the
-                shorter individual.
-        """
-        if isinstance(var, int | float):
-            return [var] * size
-        if len(var) < size:
-            raise ValueError(
-                f"{name} must be at least the size of the shorter individual: {len(var)} < {size}"
-            )
-        return var
-
     def calc_c(diff: float) -> float:
         """Map a gap to the bound into one bounded SBX child value.
 
@@ -424,8 +403,8 @@ def cx_simulated_binary_bounded(
         return float(c)
 
     size = min(len(ind1), len(ind2))
-    low = check_bounds("low", low)
-    up = check_bounds("up", up)
+    low = _broadcast_param("low", low, size, "the shorter individual")
+    up = _broadcast_param("up", up, size, "the shorter individual")
 
     for i, xl, xu in zip(list(range(size)), low, up, strict=False):
         if random.random() <= 0.5 and abs(ind1[i] - ind2[i]) > 1e-14:

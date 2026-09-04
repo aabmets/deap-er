@@ -35,6 +35,20 @@ __all__ = [
 ]
 
 
+def _zdt_g(individual: Individual) -> float:
+    r"""Return the ZDT1, ZDT2, and ZDT3 distance term.
+
+    ZDT4 and ZDT6 define their own distance terms and do not use this.
+
+    Args:
+        individual: Individual to evaluate.
+
+    Returns:
+        The value of :math:`g(\mathbf{x})` for the individual.
+    """
+    return float(1.0 + 9.0 * sum(individual[1:]) / (len(individual) - 1))
+
+
 def bm_kursawe(individual: Individual) -> tuple[float, float]:
     r"""Kursawe multi-objective function.
 
@@ -210,7 +224,7 @@ def bm_zdt_1(individual: Individual) -> tuple[float, float]:
 
        Returns :math:`f_{1}(\mathbf{x})` and :math:`f_{2}(\mathbf{x})`.
     """
-    g = 1.0 + 9.0 * sum(individual[1:]) / (len(individual) - 1)
+    g = _zdt_g(individual)
     f1 = individual[0]
     f2 = g * (1 - sqrt(f1 / g))
     return float(f1), float(f2)
@@ -236,7 +250,7 @@ def bm_zdt_2(individual: Individual) -> tuple[float, float]:
 
        Returns :math:`f_{1}(\mathbf{x})` and :math:`f_{2}(\mathbf{x})`.
     """
-    g = 1.0 + 9.0 * sum(individual[1:]) / (len(individual) - 1)
+    g = _zdt_g(individual)
     f1 = individual[0]
     f2 = g * (1 - (f1 / g) ** 2)
     return float(f1), float(f2)
@@ -262,7 +276,7 @@ def bm_zdt_3(individual: Individual) -> tuple[float, float]:
 
        Returns :math:`f_{1}(\mathbf{x})` and :math:`f_{2}(\mathbf{x})`.
     """
-    g = 1.0 + 9.0 * sum(individual[1:]) / (len(individual) - 1)
+    g = _zdt_g(individual)
     f1 = individual[0]
     f2 = g * (1 - sqrt(f1 / g) - f1 / g * sin(10 * pi * f1))
     return float(f1), float(f2)
