@@ -8,12 +8,15 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from deap_er.base.dtypes import Individual
 from collections import defaultdict
 
 __all__ = ["sort_non_dominated"]
 
 
-def sort_non_dominated(individuals: list, sel_count: int, ffo: bool = False) -> list:
+def sort_non_dominated(
+    individuals: list[Individual], sel_count: int, ffo: bool = False
+) -> list[list[Individual]]:
     """Sort individuals into non-dominated Pareto fronts.
 
     Uses the Fast Non-dominated Sorting Approach. Only the first

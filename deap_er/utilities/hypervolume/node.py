@@ -10,7 +10,8 @@
 #
 from __future__ import annotations
 
-from typing import Callable
+from collections.abc import Callable
+from typing import Any
 from operator import gt, ge, le, lt, eq, ne
 
 
@@ -25,7 +26,7 @@ class Node:
         cargo: Point coordinates stored on the node. Optional.
     """
 
-    def __init__(self, dimensions: int, cargo: tuple = None):
+    def __init__(self, dimensions: int, cargo: tuple[Any, ...] | None = None) -> None:
         """See the class docstring."""
         self.cargo = cargo
         self.next = [None] * dimensions
@@ -34,7 +35,7 @@ class Node:
         self.area = [0.0] * dimensions
         self.volume = [0.0] * dimensions
 
-    def compare(self, other: Node, op: Callable) -> bool:
+    def compare(self, other: Node, op: Callable[..., Any]) -> bool:
         """Return whether ``op`` holds for every cargo coordinate pair.
 
         Returns False if either node has no cargo.

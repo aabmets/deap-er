@@ -9,11 +9,12 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from collections.abc import Callable, Iterable
+from typing import Any
 
 __all__ = ["init_repeat", "init_iterate", "init_cycle"]
 
 
-def init_repeat(container: Callable, func: Callable, size: int) -> Iterable:
+def init_repeat(container: Callable[..., Any], func: Callable[..., Any], size: int) -> Any:
     """Call ``func`` ``size`` times and store the results in ``container``.
 
     Use with a Toolbox to register a generator of filled containers,
@@ -30,7 +31,7 @@ def init_repeat(container: Callable, func: Callable, size: int) -> Iterable:
     return container(func() for _ in range(size))
 
 
-def init_iterate(container: Callable, generator: Callable) -> Iterable:
+def init_iterate(container: Callable[..., Any], generator: Callable[..., Any]) -> Any:
     """Call ``generator`` and store its results in ``container``.
 
     ``generator`` must return an iterable. Use with a Toolbox to
@@ -48,7 +49,9 @@ def init_iterate(container: Callable, generator: Callable) -> Iterable:
     return container(generator())
 
 
-def init_cycle(container: Callable, funcs: Iterable, size: int = 1) -> Iterable:
+def init_cycle(
+    container: Callable[..., Any], funcs: Iterable[Callable[..., Any]], size: int = 1
+) -> Any:
     """Call each function in ``funcs`` ``size`` times and store all results.
 
     Use with a Toolbox to register a generator of filled containers,

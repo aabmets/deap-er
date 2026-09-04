@@ -10,6 +10,7 @@
 #
 from deap_er.base.dtypes import *
 from collections.abc import Sequence, Callable
+from typing import Any
 from itertools import repeat
 from functools import wraps
 
@@ -31,7 +32,12 @@ class DeltaPenalty:
             individual and a valid point.
     """
 
-    def __init__(self, feasibility: Callable, delta: NumOrSeq, distance: Callable = None):
+    def __init__(
+        self,
+        feasibility: Callable[..., Any],
+        delta: NumOrSeq,
+        distance: Callable[..., Any] | None = None,
+    ) -> None:
         """See the class docstring."""
         self.fea_func = feasibility
         if not isinstance(delta, Sequence):
@@ -40,7 +46,7 @@ class DeltaPenalty:
             self.delta = delta
         self.dist_fct = distance
 
-    def __call__(self, func):
+    def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
         """Wrap a fitness function with the delta penalty.
 
         Args:
@@ -52,7 +58,7 @@ class DeltaPenalty:
         """
 
         @wraps(func)
-        def wrapper(individual, *args, **kwargs):
+        def wrapper(individual: Individual, *args: Any, **kwargs: Any) -> tuple[Any, ...]:
             if self.fea_func(individual):
                 return func(individual, *args, **kwargs)
 
@@ -88,15 +94,19 @@ class ClosestValidPenalty:
     """
 
     def __init__(
-        self, validity: Callable, feasible: Callable, alpha: float, distance: Callable = None
-    ):
+        self,
+        validity: Callable[..., Any],
+        feasible: Callable[..., Any],
+        alpha: float,
+        distance: Callable[..., Any] | None = None,
+    ) -> None:
         """See the class docstring."""
         self.fea_func = validity
         self.fbl_fct = feasible
         self.alpha = alpha
         self.dist_fct = distance
 
-    def __call__(self, func):
+    def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
         """Wrap a fitness function with the closest-valid penalty.
 
         Args:
@@ -108,7 +118,7 @@ class ClosestValidPenalty:
         """
 
         @wraps(func)
-        def wrapper(individual, *args, **kwargs):
+        def wrapper(individual: Individual, *args: Any, **kwargs: Any) -> tuple[Any, ...]:
             if self.fea_func(individual):
                 return func(individual, *args, **kwargs)
 

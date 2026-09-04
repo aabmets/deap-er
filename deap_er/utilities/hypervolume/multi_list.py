@@ -45,7 +45,7 @@ class MultiList:
             _repr += string + "\n"
         return _repr
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Return the number of dimensions."""
         return self.dimensions
 

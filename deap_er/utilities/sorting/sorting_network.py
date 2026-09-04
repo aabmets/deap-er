@@ -8,7 +8,8 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from typing import Optional
+from collections.abc import Iterator, Iterable
+from typing import Any
 from itertools import product
 
 __all__ = ["SortingNetwork"]
@@ -27,7 +28,7 @@ class SortingNetwork:
             comparator.
     """
 
-    def __init__(self, dimension: int, connectors: Optional[list] = None):
+    def __init__(self, dimension: int, connectors: list[tuple[int, int]] | None = None) -> None:
         """See the class docstring."""
         self.dimension = dimension
         self.data = list()
@@ -36,27 +37,27 @@ class SortingNetwork:
                 self.add_connector(wire1, wire2)
         super().__init__()
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[list[tuple[int, int]]]:
         """Iterate over comparator levels."""
         return iter(self.data)
 
-    def __contains__(self, item):
+    def __contains__(self, item: object) -> bool:
         """Return whether ``item`` is a stored level."""
         return item in self.data
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: int) -> list[tuple[int, int]]:
         """Return the comparator level at ``key``."""
         return self.data[key]
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: int, value: list[tuple[int, int]]) -> None:
         """Replace the comparator level at ``key``."""
         self.data[key] = value
 
-    def __delitem__(self, key):
+    def __delitem__(self, key: int) -> None:
         """Delete the comparator level at ``key``."""
         del self.data[key]
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Return the number of comparator levels."""
         return len(self.data)
 
@@ -71,7 +72,7 @@ class SortingNetwork:
         return sum(len(level) for level in self.data)
 
     @staticmethod
-    def check_conflict(level: list, wire1: int, wire2: int) -> bool:
+    def check_conflict(level: list[tuple[int, int]], wire1: int, wire2: int) -> bool:
         """Return whether the wires conflict on the given level.
 
         Args:
@@ -114,7 +115,7 @@ class SortingNetwork:
         else:
             self.data[index].append(cnx)
 
-    def sort(self, values: list) -> None:
+    def sort(self, values: list[Any]) -> None:
         """Sort ``values`` in place using this network.
 
         Args:
@@ -126,7 +127,7 @@ class SortingNetwork:
                 if values[wire1] > values[wire2]:
                     values[wire1], values[wire2] = values[wire2], values[wire1]
 
-    def evaluate(self, cases: Optional[list] = None) -> int:
+    def evaluate(self, cases: Iterable[Iterable[Any]] | None = None) -> int:
         """Count how many ``cases`` the network fails to sort.
 
         When ``cases`` is omitted, every binary sequence of length

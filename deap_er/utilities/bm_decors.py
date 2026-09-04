@@ -8,7 +8,8 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from typing import Callable, Union, Iterable
+from typing import Any
+from collections.abc import Callable, Iterable
 from itertools import repeat
 from functools import wraps
 import numpy
@@ -29,11 +30,11 @@ class Translate:
 
     vector = None
 
-    def __init__(self, vector: list):
+    def __init__(self, vector: list[float]) -> None:
         """See the class docstring."""
         self.translate(vector)
 
-    def __call__(self, func: Callable) -> Callable:
+    def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
         """Wrap an evaluation function with the translation.
 
         Args:
@@ -45,14 +46,14 @@ class Translate:
         """
 
         @wraps(func)
-        def wrapper(individual, *args, **kwargs):
+        def wrapper(individual: Any, *args: Any, **kwargs: Any) -> Any:
             translated = [v - t for v, t in zip(individual, self.vector)]
             return func(translated, *args, **kwargs)
 
         wrapper.translate = self.translate
         return wrapper
 
-    def translate(self, vector: list) -> None:
+    def translate(self, vector: list[float]) -> None:
         """Update the translation vector.
 
         After decorating the evaluation function, this method is
@@ -77,11 +78,11 @@ class Rotate:
 
     matrix = None
 
-    def __init__(self, matrix):
+    def __init__(self, matrix: numpy.ndarray) -> None:
         """See the class docstring."""
         self.rotate(matrix)
 
-    def __call__(self, func):
+    def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
         """Wrap an evaluation function with the rotation.
 
         Args:
@@ -93,14 +94,14 @@ class Rotate:
         """
 
         @wraps(func)
-        def wrapper(individual, *args, **kwargs):
+        def wrapper(individual: Any, *args: Any, **kwargs: Any) -> Any:
             rotated = numpy.dot(self.matrix, individual)
             return func(rotated, *args, **kwargs)
 
         wrapper.rotate = self.rotate
         return wrapper
 
-    def rotate(self, matrix):
+    def rotate(self, matrix: numpy.ndarray) -> None:
         """Update the rotation matrix.
 
         After decorating the evaluation function, this method is
@@ -125,11 +126,11 @@ class Scale:
 
     factor = None
 
-    def __init__(self, factor):
+    def __init__(self, factor: list[float]) -> None:
         """See the class docstring."""
         self.scale(factor)
 
-    def __call__(self, func):
+    def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
         """Wrap an evaluation function with the scaling.
 
         Args:
@@ -141,14 +142,14 @@ class Scale:
         """
 
         @wraps(func)
-        def wrapper(individual, *args, **kwargs):
+        def wrapper(individual: Any, *args: Any, **kwargs: Any) -> Any:
             scaled = [v * f for v, f in zip(individual, self.factor)]
             return func(scaled, *args, **kwargs)
 
         wrapper.scale = self.scale
         return wrapper
 
-    def scale(self, factor: list) -> None:
+    def scale(self, factor: list[float]) -> None:
         """Update the scale factors.
 
         After decorating the evaluation function, this method is
@@ -175,11 +176,11 @@ class Noise:
 
     rand_funcs = None
 
-    def __init__(self, funcs):
+    def __init__(self, funcs: Callable[..., Any] | list[Callable[..., Any] | None]) -> None:
         """See the class docstring."""
         self.noise(funcs)
 
-    def __call__(self, func):
+    def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
         """Wrap an evaluation function with noise on its result.
 
         Args:
@@ -191,7 +192,7 @@ class Noise:
         """
 
         @wraps(func)
-        def wrapper(individual, *args, **kwargs):
+        def wrapper(individual: Any, *args: Any, **kwargs: Any) -> tuple[Any, ...]:
             result = func(individual, *args, **kwargs)
             if not isinstance(result, Iterable):
                 result = (result,)
@@ -206,7 +207,7 @@ class Noise:
         wrapper.noise = self.noise
         return wrapper
 
-    def noise(self, funcs: Union[Callable, list[Callable]]) -> None:
+    def noise(self, funcs: Callable[..., Any] | list[Callable[..., Any] | None]) -> None:
         """Update the noise generators.
 
         After decorating the evaluation function, this method is
@@ -219,7 +220,7 @@ class Noise:
             self.rand_funcs = repeat(funcs)
 
 
-def bin2float(min_: float, max_: float, n_bits: int) -> Callable:
+def bin2float(min_: float, max_: float, n_bits: int) -> Callable[..., Any]:
     """Return a decorator that decodes a binary individual to floats.
 
     Each float uses ``n_bits`` bits and is mapped into
@@ -235,9 +236,9 @@ def bin2float(min_: float, max_: float, n_bits: int) -> Callable:
         A decorator for an evaluation function.
     """
 
-    def wrapper(function):
+    def wrapper(function: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(function)
-        def wrapped(individual, *args, **kwargs):
+        def wrapped(individual: Any, *args: Any, **kwargs: Any) -> Any:
             nelem = len(individual) // n_bits
             decoded = [0] * nelem
             for i in range(nelem):

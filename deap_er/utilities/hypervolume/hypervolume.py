@@ -8,7 +8,7 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from typing import Optional
+from deap_er.base.dtypes import Individual
 from .multi_list import MultiList
 from .node import Node
 import numpy
@@ -16,7 +16,7 @@ import numpy
 __all__ = ["hypervolume", "HyperVolume"]
 
 
-def hypervolume(population: list, ref_point: Optional[list] = None) -> float:
+def hypervolume(population: list[Individual], ref_point: list[float] | None = None) -> float:
     """Return the hypervolume of a population.
 
     Minimization is implicitly assumed.
@@ -87,7 +87,7 @@ class HyperVolume:
             node_list.extend(nodes, i)
         self.multi_list = node_list
 
-    def _hv_recursive(self, dim_index: int, length: int, bounds: list) -> float:
+    def _hv_recursive(self, dim_index: int, length: int, bounds: list[float]) -> float:
         """Compute the hypervolume of the indexed points in one dimension.
 
         Args:
@@ -103,7 +103,7 @@ class HyperVolume:
         reinsert = self.multi_list.reinsert
         remove = self.multi_list.remove
 
-        def inception():
+        def inception() -> None:
             q.volume[dim_index] = hvol
             if q.ignore >= dim_index:
                 q.area[dim_index] = q.prev[dim_index].area[dim_index]
@@ -112,7 +112,7 @@ class HyperVolume:
                 if q.area[dim_index] <= q.prev[dim_index].area[dim_index]:
                     q.ignore = dim_index
 
-        def in_bounds():
+        def in_bounds() -> bool:
             a = q.prev[dim_index].cargo[dim_index] >= bounds[dim_index]
             b = q.cargo[dim_index] > bounds[dim_index]
             return True if a or b else False

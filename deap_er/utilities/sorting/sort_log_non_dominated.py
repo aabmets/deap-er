@@ -8,15 +8,19 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from deap_er.base.dtypes import Individual
 from collections import defaultdict
-from typing import Callable, Sequence
+from collections.abc import Callable, Sequence
+from typing import Any
 from operator import itemgetter
 import bisect
 
 __all__ = ["sort_log_non_dominated"]
 
 
-def sort_log_non_dominated(individuals: list, sel_count: int, ffo: bool = False) -> list:
+def sort_log_non_dominated(
+    individuals: list[Individual], sel_count: int, ffo: bool = False
+) -> list[list[Individual]] | list[Individual]:
     """Sort individuals into non-dominated Pareto fronts.
 
     Uses the Generalized Reduced Run-Time Complexity Non-Dominated
@@ -63,7 +67,7 @@ def sort_log_non_dominated(individuals: list, sel_count: int, ffo: bool = False)
         return pareto_fronts[0]
 
 
-def _is_dominated(wvalues1: Sequence, wvalues2: Sequence) -> bool:
+def _is_dominated(wvalues1: Sequence[Any], wvalues2: Sequence[Any]) -> bool:
     """Return whether ``wvalues1`` is strictly Pareto-dominated by ``wvalues2``.
 
     Both sequences are weighted objective values. Higher is better.
@@ -85,7 +89,7 @@ def _is_dominated(wvalues1: Sequence, wvalues2: Sequence) -> bool:
     return not_equal
 
 
-def _median(seq: Sequence, key: Callable = None) -> float:
+def _median(seq: Sequence[Any], key: Callable[..., Any] | None = None) -> Any:
     """Return the median of ``seq``, optionally after applying ``key``.
 
     For an even-length sequence the two central values are averaged.
@@ -108,7 +112,9 @@ def _median(seq: Sequence, key: Callable = None) -> float:
         return (temp1 + temp2) / 2.0
 
 
-def _splitter(seq: Sequence, obj: int, median: float) -> tuple:
+def _splitter(
+    seq: Sequence[Any], obj: int, median: float
+) -> tuple[list[Any], list[Any], list[Any], list[Any]]:
     """Partition fitness vectors around ``median`` on objective ``obj``.
 
     Args:
@@ -136,7 +142,7 @@ def _splitter(seq: Sequence, obj: int, median: float) -> tuple:
     return seq_1, seq_2, seq_3, seq_4
 
 
-def _sorting_helper_1(fitness: Sequence, obj: int, front: dict) -> None:
+def _sorting_helper_1(fitness: Sequence[Any], obj: int, front: dict[Any, int]) -> None:
     """Assign non-dominated front ranks on the first ``obj + 1`` objectives.
 
     Mutates ``front`` in place.
@@ -163,7 +169,7 @@ def _sorting_helper_1(fitness: Sequence, obj: int, front: dict) -> None:
         _sorting_helper_1(worst, obj, front)
 
 
-def _split_a(fitness: Sequence, obj: int):
+def _split_a(fitness: Sequence[Any], obj: int) -> tuple[list[Any], list[Any]]:
     """Split ``fitness`` into a better half and a worse half on objective ``obj``.
 
     Chooses the more balanced of two median-split conventions.
@@ -187,7 +193,7 @@ def _split_a(fitness: Sequence, obj: int):
         return best_b, worst_b
 
 
-def _sweep_a(fitness: Sequence, front: dict) -> None:
+def _sweep_a(fitness: Sequence[Any], front: dict[Any, int]) -> None:
     """Update front ranks of a two-objective, already-sorted fitness list.
 
     Args:
@@ -210,7 +216,9 @@ def _sweep_a(fitness: Sequence, front: dict) -> None:
         f_stairs.insert(idx, fit)
 
 
-def _sorting_helper_2(best: Sequence, worst: Sequence, obj: int, front: dict) -> None:
+def _sorting_helper_2(
+    best: Sequence[Any], worst: Sequence[Any], obj: int, front: dict[Any, int]
+) -> None:
     """Raise front ranks in ``worst`` using domination from ``best``.
 
     Considers the first ``obj + 1`` objectives. Mutates ``front`` in
@@ -243,7 +251,9 @@ def _sorting_helper_2(best: Sequence, worst: Sequence, obj: int, front: dict) ->
         _sorting_helper_2(best2, worst2, obj, front)
 
 
-def _split_b(best: Sequence, worst: Sequence, obj: int):
+def _split_b(
+    best: Sequence[Any], worst: Sequence[Any], obj: int
+) -> tuple[list[Any], list[Any], list[Any], list[Any]]:
     """Split ``best`` and ``worst`` around a shared median on objective ``obj``.
 
     Chooses the more balanced of two split conventions.
@@ -274,7 +284,7 @@ def _split_b(best: Sequence, worst: Sequence, obj: int):
         return best1_b, best2_b, worst1_b, worst2_b
 
 
-def _sweep_b(best, worst, front):
+def _sweep_b(best: Sequence[Any], worst: Sequence[Any], front: dict[Any, int]) -> None:
     """Update front ranks of ``worst`` from a two-objective sweep over ``best``.
 
     Args:

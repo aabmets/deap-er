@@ -8,14 +8,16 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from deap_er.base.dtypes import Individual
 from .hypervolume import HyperVolume
-from typing import Callable, Optional, Union
+from collections.abc import Callable
+from typing import Any
 import numpy
 
 __all__ = ["least_contrib"]
 
 
-def _compute_hv(data: tuple) -> float:
+def _compute_hv(data: tuple[numpy.ndarray, numpy.ndarray]) -> float:
     """Compute the hypervolume of one point set against a reference point.
 
     Args:
@@ -30,8 +32,10 @@ def _compute_hv(data: tuple) -> float:
 
 
 def least_contrib(
-    population: list, ref_point: Optional[list] = None, map_func: Optional[Callable] = map
-) -> Union[int, numpy.ndarray]:
+    population: list[Individual],
+    ref_point: list[float] | None = None,
+    map_func: Callable[..., Any] | None = map,
+) -> int | numpy.ndarray:
     """Return the index of the individual with the least hypervolume contribution.
 
     Minimization is implicitly assumed.

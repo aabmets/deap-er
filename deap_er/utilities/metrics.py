@@ -9,12 +9,12 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.base.dtypes import *
-from typing import Optional, Any
+from typing import Any
 from math import hypot, sqrt
 import numpy
 
 
-def nsga_diversity(population: list, first: Individual, last: Individual) -> float:
+def nsga_diversity(population: list[Individual], first: Individual, last: Individual) -> float:
     """Return the NSGA-II diversity metric of a Pareto front.
 
     ``population`` is the front to score. ``first`` and ``last`` are
@@ -36,7 +36,7 @@ def nsga_diversity(population: list, first: Individual, last: Individual) -> flo
         population[-1].fitness.values[0] - last[0], population[-1].fitness.values[1] - last[1]
     )
 
-    def fn(f_, s_):
+    def fn(f_: Individual, s_: Individual) -> float:
         return hypot(
             f_.fitness.values[0] - s_.fitness.values[0], f_.fitness.values[1] - s_.fitness.values[1]
         )
@@ -53,7 +53,7 @@ def nsga_diversity(population: list, first: Individual, last: Individual) -> flo
     return delta
 
 
-def nsga_convergence(population: list, optimal: list) -> float:
+def nsga_convergence(population: list[Individual], optimal: list[Individual]) -> float:
     """Return the NSGA-II convergence metric of a Pareto front.
 
     ``population`` is the front to score and ``optimal`` is the true
@@ -80,7 +80,7 @@ def nsga_convergence(population: list, optimal: list) -> float:
     return sum(distances) / len(distances)
 
 
-def inv_gen_dist(ind1: Individual, ind2: Individual) -> tuple[Any, Optional[Any]]:
+def inv_gen_dist(ind1: Individual, ind2: Individual) -> Any:
     """Compute the inverted generational distance between two point sets.
 
     IGD measures how well one approximation covers another in
