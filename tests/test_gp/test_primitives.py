@@ -46,3 +46,39 @@ def test_from_string_rejects_non_literal():
     pset = _add_pset()
     with pytest.raises(TypeError, match="Unable to evaluate terminal"):
         PrimitiveTree.from_string("add(ARG0, foo)", pset)
+
+
+def test_add_primitive_rejects_duplicate_inferred_name():
+    pset = _add_pset()
+    with pytest.raises(ValueError, match="unique name"):
+        pset.add_primitive(operator.add, 2)
+
+
+def test_add_primitive_rejects_duplicate_explicit_name():
+    pset = _add_pset()
+    with pytest.raises(ValueError, match="unique name"):
+        pset.add_primitive(operator.mul, 2, name="add")
+
+
+def test_add_primitive_allows_renamed_duplicate():
+    pset = _add_pset()
+    pset.add_primitive(operator.add, 2, name="add2")
+
+    assert "add2" in pset.context
+    assert pset.prims_count == 2
+
+
+def test_add_terminal_rejects_duplicate_name():
+    pset = _add_pset()
+    pset.add_terminal(1.0, name="one")
+    with pytest.raises(ValueError, match="unique name"):
+        pset.add_terminal(2.0, name="one")
+
+
+def test_add_terminal_allows_unnamed_values():
+    pset = _add_pset()
+    before = pset.terms_count  # the ARG0 terminal is registered by the constructor
+    pset.add_terminal(1.0)
+    pset.add_terminal(2.0)
+
+    assert pset.terms_count == before + 2

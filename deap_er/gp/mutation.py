@@ -167,7 +167,7 @@ def mut_shrink(individual: GPIndividual) -> GPMutant:
         index, prim = random.choice(i_prims)
         choices = list()
         for i, type_ in enumerate(prim.args):
-            if type_ != prim.ret:
+            if type_ == prim.ret:
                 choices.append(i)
         arg_idx = random.choice(choices)
         r_index = index + 1

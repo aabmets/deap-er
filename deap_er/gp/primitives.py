@@ -233,18 +233,18 @@ class PrimitiveSetTyped:
         Raises:
             ValueError: If ``name`` is already registered in the set.
         """
+        if name is None:
+            raw_name = getattr(primitive, "__name__", None)
+            if not isinstance(raw_name, str):
+                raise TypeError("Primitive must have a name or a '__name__' attribute.")
+            name = raw_name
+
         if name in self.context:
             raise ValueError(
                 f"Primitives are required to have a unique name. "
                 f"Consider using the argument 'name' to "
                 f"rename your second '{name}' primitive."
             )
-
-        if name is None:
-            raw_name = getattr(primitive, "__name__", None)
-            if not isinstance(raw_name, str):
-                raise TypeError("Primitive must have a name or a '__name__' attribute.")
-            name = raw_name
         prim = Primitive(name, in_types, ret_type)
 
         self._add_prim(prim)
@@ -263,16 +263,17 @@ class PrimitiveSetTyped:
         Raises:
             ValueError: If ``name`` is already registered in the set.
         """
-        if name in self.context:
-            raise ValueError(
-                f"Terminals are required to have a unique name. "
-                f"Consider using the argument '{name}' to "
-                f"rename your second '{name}' terminal."
-            )
         symbolic = False
         if name is None and callable(terminal):
             raw_name = getattr(terminal, "__name__", None)
             name = raw_name if isinstance(raw_name, str) else None
+
+        if name is not None and name in self.context:
+            raise ValueError(
+                f"Terminals are required to have a unique name. "
+                f"Consider using the argument 'name' to "
+                f"rename your second '{name}' terminal."
+            )
 
         if name is not None:
             self.context[name] = terminal
