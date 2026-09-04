@@ -9,13 +9,16 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.base import Toolbox
+from deap_er.base.dtypes import Individual
 import random
 
 
 __all__ = ["var_and", "var_or"]
 
 
-def var_and(toolbox: Toolbox, population: list, cx_prob: float, mut_prob: float) -> list:
+def var_and(
+    toolbox: Toolbox, population: list[Individual], cx_prob: float, mut_prob: float
+) -> list[Individual]:
     """Clone a population, then apply crossover and mutation independently.
 
     Each of ``cx_prob`` and ``mut_prob`` must be in ``[0, 1]``. The
@@ -57,8 +60,12 @@ def var_and(toolbox: Toolbox, population: list, cx_prob: float, mut_prob: float)
 
 
 def var_or(
-    toolbox: Toolbox, population: list, offsprings: int, cx_prob: float, mut_prob: float
-) -> list:
+    toolbox: Toolbox,
+    population: list[Individual],
+    offsprings: int,
+    cx_prob: float,
+    mut_prob: float,
+) -> list[Individual]:
     """Build offspring by applying crossover *or* mutation *or* copy.
 
     The sum of ``cx_prob`` and ``mut_prob`` must be in ``[0, 1]``. The

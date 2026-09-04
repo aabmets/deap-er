@@ -9,7 +9,8 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from .lint_hints import LintHints
-from typing import Callable, Optional
+from typing import Any
+from collections.abc import Callable
 from functools import partial
 from copy import deepcopy
 
@@ -25,12 +26,12 @@ class Toolbox(LintHints):
     without hard-coding implementations.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Register the default ``clone`` and ``map`` operators."""
         self.register("clone", deepcopy)
         self.register("map", map)
 
-    def register(self, alias: str, func: Callable, *args: Optional, **kwargs: Optional) -> None:
+    def register(self, alias: str, func: Callable[..., Any], *args: Any, **kwargs: Any) -> None:
         """Bind ``func`` to ``alias`` on this toolbox.
 
         Extra positional and keyword arguments are bound into the
@@ -43,7 +44,7 @@ class Toolbox(LintHints):
             *args: Positional arguments bound into ``func``.
             **kwargs: Keyword arguments bound into ``func``.
         """
-        p_func = partial(func, *args, **kwargs)
+        p_func: Any = partial(func, *args, **kwargs)
         p_func.__name__ = alias
         p_func.__doc__ = func.__doc__
 
@@ -59,7 +60,7 @@ class Toolbox(LintHints):
         """
         delattr(self, alias)
 
-    def decorate(self, alias: str, *decorators: Optional[Callable]) -> None:
+    def decorate(self, alias: str, *decorators: Callable[..., Any]) -> None:
         """Wrap the operator ``alias`` with one or more decorators.
 
         Args:

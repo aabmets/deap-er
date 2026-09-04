@@ -8,7 +8,7 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from typing import Optional, Union
+from typing import Any
 from pathlib import Path
 import numpy as np
 import random
@@ -47,19 +47,19 @@ class Checkpoint:
     _omit_ = ["_last_op_"]
 
     _rand_state_: object = None
-    _numpy_state_: dict = None
+    _numpy_state_: dict[str, Any] | None = None
     _range_counter_: int = 0
     _save_freq_: float = 60.0
     _last_op_: str = "none"
 
     def __init__(
         self,
-        file_name: Optional[str] = None,
-        dir_path: Optional[Path] = None,
-        autoload: Optional[bool] = True,
-        make_dir: Optional[bool] = True,
-        raise_errors: Optional[bool] = False,
-    ):
+        file_name: str | None = None,
+        dir_path: Path | None = None,
+        autoload: bool = True,
+        make_dir: bool = True,
+        raise_errors: bool = False,
+    ) -> None:
         """See the class docstring for argument meanings."""
         if file_name is None:
             file_name = str(uuid.uuid4()) + self._ext_
@@ -176,7 +176,7 @@ class Checkpoint:
         return self._save_freq_
 
     @save_freq.setter
-    def save_freq(self, value: Union[int, float]) -> None:
+    def save_freq(self, value: int | float) -> None:
         """Set the automatic-save period in seconds.
 
         Args:

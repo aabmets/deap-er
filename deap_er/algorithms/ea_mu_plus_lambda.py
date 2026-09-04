@@ -19,14 +19,14 @@ __all__ = ["ea_mu_plus_lambda"]
 
 def ea_mu_plus_lambda(
     toolbox: Toolbox,
-    population: list,
+    population: list[Individual],
     generations: int,
     offsprings: int,
     survivors: int,
     cx_prob: float,
     mut_prob: float,
-    hof: Hof = None,
-    stats: Stats = None,
+    hof: Hof | None = None,
+    stats: Stats | None = None,
     verbose: bool = False,
 ) -> AlgoResult:
     """Evolve a population with mu-plus-lambda selection.

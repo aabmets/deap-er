@@ -19,12 +19,12 @@ __all__ = ["ea_simple"]
 
 def ea_simple(
     toolbox: Toolbox,
-    population: list,
+    population: list[Individual],
     generations: int,
     cx_prob: float,
     mut_prob: float,
-    hof: Hof = None,
-    stats: Stats = None,
+    hof: Hof | None = None,
+    stats: Stats | None = None,
     verbose: bool = False,
 ) -> AlgoResult:
     """Evolve a population with crossover and mutation on every generation.

@@ -11,6 +11,7 @@
 from __future__ import annotations
 from collections.abc import Iterable
 from operator import mul, truediv
+from typing import Any
 from .dtypes import NumOrSeq
 
 
@@ -34,10 +35,10 @@ class Fitness:
             maximize.
     """
 
-    weights: tuple = tuple()
-    wvalues: tuple = tuple()
+    weights: tuple[float, ...] = tuple()
+    wvalues: tuple[float, ...] = tuple()
 
-    def __init__(self, values: NumOrSeq = None):
+    def __init__(self, values: NumOrSeq | None = None) -> None:
         """See the class docstring."""
         if not self.weights:
             raise TypeError(
@@ -47,7 +48,7 @@ class Fitness:
             self.values = values
 
     @property
-    def values(self) -> Iterable[float]:
+    def values(self) -> tuple[float, ...]:
         """Objective values of the individual.
 
         The setter accepts a number or a sequence of numbers. A single
@@ -79,7 +80,7 @@ class Fitness:
     def values(self) -> None:
         self.wvalues = tuple()
 
-    def dominates(self, other: Fitness, slc: slice = None) -> bool:
+    def dominates(self, other: Fitness, slc: slice | None = None) -> bool:
         """Return whether this fitness Pareto-dominates ``other``.
 
         Each compared objective of ``self`` must be at least as good as
@@ -137,23 +138,23 @@ class Fitness:
         """Return whether the two fitnesses compare unequal."""
         return self.wvalues != other.wvalues
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Return the number of stored weighted values."""
         return len(self.wvalues)
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         """Hash the weighted values."""
         return hash(self.wvalues)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Return the unweighted values as a string."""
         return str(self.values)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         """Return a reconstructable representation."""
         return "{0}.{1}({2})".format(self.__module__, self.__class__.__name__, str(self.values))
 
-    def __deepcopy__(self, memo):
+    def __deepcopy__(self, memo: dict[int, Any]) -> Fitness:
         """Return a new Fitness with the same weighted values."""
         copy = self.__class__()
         copy.wvalues = self.wvalues

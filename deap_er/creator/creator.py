@@ -9,14 +9,14 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from .overrides import *
-from typing import Optional, Union
+from typing import Any
 import warnings
 
 
 __all__ = ["create"]
 
 
-def create(name: str, base: Union[type, object], **kwargs: Optional) -> None:
+def create(name: str, base: type | object, **kwargs: Any) -> None:
     """Create a class named ``name`` and register it on the ``creator`` module.
 
     The new class inherits from ``base``. Each keyword argument becomes
@@ -60,7 +60,7 @@ def create(name: str, base: Union[type, object], **kwargs: Optional) -> None:
     new_class = type(name, tuple([base]), cls_attr)
 
     # define the replacement init func
-    def new_init_func(self, *args_, **kwargs_):
+    def new_init_func(self, *args_: Any, **kwargs_: Any) -> None:
         for attr_name, attr_obj in inst_attr.items():
             setattr(self, attr_name, attr_obj())
         if base.__init__ is not object.__init__:

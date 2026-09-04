@@ -17,7 +17,11 @@ __all__ = ["ea_generate_update"]
 
 
 def ea_generate_update(
-    toolbox: Toolbox, generations: int, hof: Hof = None, stats: Stats = None, verbose: bool = False
+    toolbox: Toolbox,
+    generations: int,
+    hof: Hof | None = None,
+    stats: Stats | None = None,
+    verbose: bool = False,
 ) -> AlgoResult:
     """Evolve a strategy that generates and updates a population.
 
