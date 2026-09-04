@@ -8,11 +8,12 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.creator import overrides as ovr
-from copy import deepcopy
-import pickle
 import array
+import pickle
+from copy import deepcopy
+
 import numpy
+from deap_er.creator import overrides as ovr
 
 
 class TestNumpyOverrideClass:

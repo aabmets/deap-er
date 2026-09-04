@@ -8,10 +8,11 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er import env
-from pathlib import Path
-import time
 import os
+import time
+from pathlib import Path
+
+from deap_er import env
 
 
 class TestCheckpoint:
@@ -41,7 +42,7 @@ class TestCheckpoint:
 
         assert not hasattr(cpt2, "my_dict")
         cpt2.load()
-        assert getattr(cpt2, "my_dict") == {"key": "value"}
+        assert cpt2.my_dict == {"key": "value"}
 
     def test_range_1(self, tmp_path):
         cpt1 = env.Checkpoint(file_name="asdfg.cpt", dir_path=tmp_path, autoload=False)

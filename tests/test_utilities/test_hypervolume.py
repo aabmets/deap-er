@@ -8,9 +8,9 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+import numpy
 from deap_er.utilities.hypervolume import HyperVolume
 from deap_er.utilities.hypervolume.node import Node
-import numpy
 
 
 class TestHyperVolume:
@@ -74,8 +74,8 @@ class TestNode:
     def test_1(self):
         n1 = Node(1)
         n2 = Node(1)
-        assert not n1 == n2
-        assert not n1 != n2
+        assert n1 != n2
+        assert n1 == n2
 
     def test_2(self):
         n1 = Node(1, (1, 2, 3))

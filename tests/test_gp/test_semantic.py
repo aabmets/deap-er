@@ -8,11 +8,12 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.gp.primitives import PrimitiveSet
-from deap_er.gp.generators import gen_grow
-from deap_er.gp import cx_semantic, mut_semantic
-import operator
 import math
+import operator
+
+from deap_er.gp import cx_semantic, mut_semantic
+from deap_er.gp.generators import gen_grow
+from deap_er.gp.primitives import PrimitiveSet
 
 
 def lf(x):

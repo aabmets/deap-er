@@ -8,12 +8,11 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.creator import overrides
-from deap_er.creator import creator
-import pytest
-import numpy
 import array
 
+import numpy
+import pytest
+from deap_er.creator import creator, overrides
 
 CNAME = "CLASS_NAME"
 
@@ -33,7 +32,7 @@ class TestCreatorBasicFunctionality:
         creator.__dict__.pop(CNAME)
 
     def test_class_attr(self):
-        creator.create(CNAME, int, my_attr=int())
+        creator.create(CNAME, int, my_attr=0)
         assert hasattr(creator.__dict__[CNAME], "my_attr")
         assert hasattr(creator.__dict__[CNAME](), "my_attr")
         creator.__dict__.pop(CNAME)

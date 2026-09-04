@@ -15,7 +15,7 @@ def test_func_a() -> str:
     return "gene"
 
 
-def test_func_b() -> list:
+def test_func_b() -> list[int]:
     return [i for i in range(3)]
 
 

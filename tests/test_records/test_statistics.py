@@ -8,9 +8,10 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.records import Statistics, MultiStatistics
 from operator import itemgetter
+
 import numpy
+from deap_er.records import MultiStatistics, Statistics
 
 
 class TestStatistics:

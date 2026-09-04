@@ -8,9 +8,10 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.base.fitness import Fitness
 from copy import deepcopy
+
 import pytest
+from deap_er.base.fitness import Fitness
 
 
 class TestFitness:

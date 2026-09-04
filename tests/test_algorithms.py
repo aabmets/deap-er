@@ -8,12 +8,10 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er import tools
-from deap_er import creator
-from deap_er import base
 import random
-import numpy
 
+import numpy
+from deap_er import base, creator, tools
 
 FITCLSNAME = "FIT_TYPE"
 INDCLSNAME = "IND_TYPE"
@@ -96,15 +94,15 @@ def test_nsga2():
 
     pop = toolbox.population(size=survivors)
     fitness = toolbox.map(toolbox.evaluate, pop)
-    for ind, fit in zip(pop, fitness):
+    for ind, fit in zip(pop, fitness, strict=False):
         ind.fitness.values = fit
 
     pop = toolbox.select(pop, len(pop))
-    for gen in range(1, generations):
+    for _gen in range(1, generations):
         offspring = tools.sel_tournament_dcd(pop, len(pop))
         offspring = [toolbox.clone(ind) for ind in offspring]
 
-        for ind1, ind2 in zip(offspring[::2], offspring[1::2]):
+        for ind1, ind2 in zip(offspring[::2], offspring[1::2], strict=False):
             if random.random() <= 0.9:
                 toolbox.mate(ind1, ind2)
 
@@ -114,7 +112,7 @@ def test_nsga2():
 
         invalid_ind = [ind for ind in offspring if not ind.fitness.is_valid()]
         fitness = toolbox.map(toolbox.evaluate, invalid_ind)
-        for ind, fit in zip(invalid_ind, fitness):
+        for ind, fit in zip(invalid_ind, fitness, strict=False):
             ind.fitness.values = fit
 
         pop = toolbox.select(pop + offspring, survivors)
@@ -132,7 +130,7 @@ def test_mo_cma_es():
     setup_func_multi_obj_numpy()
 
     def distance(feasible_ind, original_ind):
-        return sum((f - o) ** 2 for f, o in zip(feasible_ind, original_ind))
+        return sum((f - o) ** 2 for f, o in zip(feasible_ind, original_ind, strict=False))
 
     def closest_feasible(individual):
         feasible_ind = numpy.array(individual)
@@ -141,9 +139,7 @@ def test_mo_cma_es():
         return feasible_ind
 
     def valid(individual):
-        if any(individual < bound_low) or any(individual > bound_up):
-            return False
-        return True
+        return not (any(individual < bound_low) or any(individual > bound_up))
 
     dimensions = 5
     bound_low, bound_up = 0.0, 1.0
@@ -170,11 +166,11 @@ def test_mo_cma_es():
     toolbox.register("generate", strategy.generate, creator.__dict__[INDCLSNAME])
     toolbox.register("update", strategy.update)
 
-    for gen in range(generations):
+    for _gen in range(generations):
         population = toolbox.generate()
 
         fitness = toolbox.map(toolbox.evaluate, population)
-        for ind, fit in zip(population, fitness):
+        for ind, fit in zip(population, fitness, strict=False):
             ind.fitness.values = fit
 
         toolbox.update(population)
@@ -229,7 +225,7 @@ def test_nsga3():
 
     pop = toolbox.population(size=survivors)
     fitness = toolbox.map(toolbox.evaluate, pop)
-    for ind, fit in zip(pop, fitness):
+    for ind, fit in zip(pop, fitness, strict=False):
         ind.fitness.values = fit
 
     pop = toolbox.select(pop, len(pop))
@@ -239,7 +235,7 @@ def test_nsga3():
         invalid_ind = [ind for ind in offspring if not ind.fitness.is_valid()]
 
         fitness = toolbox.map(toolbox.evaluate, invalid_ind)
-        for ind, fit in zip(invalid_ind, fitness):
+        for ind, fit in zip(invalid_ind, fitness, strict=False):
             ind.fitness.values = fit
 
         pop = toolbox.select(pop + offspring, survivors)

@@ -8,9 +8,10 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.base.toolbox import Toolbox
-from functools import partial
 from copy import deepcopy
+from functools import partial
+
+from deap_er.base.toolbox import Toolbox
 
 
 class TestToolbox:
@@ -22,7 +23,7 @@ class TestToolbox:
     def test_map_func(self):
         tb = Toolbox()
         assert isinstance(tb.clone, partial)
-        assert tb.map.func == map
+        assert tb.map.func is map
 
     def test_registration(self):
         tb = Toolbox()
