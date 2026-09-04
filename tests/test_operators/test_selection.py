@@ -118,6 +118,50 @@ def test_epsilon_lexicase_recomputes_epsilon_for_each_selection(multi_obj):
     assert batched == one_at_a_time
 
 
+SPEA2_VALUES = [
+    (1.0, 9.0),
+    (2.0, 8.0),
+    (3.0, 7.0),
+    (4.0, 6.0),
+    (5.0, 5.0),
+    (1.0, 1.0),
+    (2.0, 2.0),
+    (0.5, 0.5),
+    (9.0, 1.0),
+    (8.0, 2.0),
+]
+
+
+def _spea2_population(multi_obj):
+    return [_make(multi_obj, [i], value) for i, value in enumerate(SPEA2_VALUES)]
+
+
+@pytest.mark.parametrize(
+    ("sel_count", "expected"),
+    [
+        (3, [0, 4, 8]),
+        (5, [0, 1, 4, 8, 9]),
+        (10, [0, 1, 2, 3, 4, 8, 9, 6, 5, 7]),
+    ],
+)
+def test_spea2_selection_is_stable(multi_obj, sel_count, expected):
+    # Characterization: sel_count below the first front size takes the archive
+    # truncation path, above it takes the density path, which consumes RNG.
+    population = _spea2_population(multi_obj)
+
+    random.seed(2024)
+    chosen = tools.sel_spea_2(population, sel_count)
+
+    assert [ind[0] for ind in chosen] == expected
+
+
+def test_spea2_returns_requested_count(multi_obj):
+    population = _spea2_population(multi_obj)
+
+    random.seed(11)
+    assert len(tools.sel_spea_2(population, 4)) == 4
+
+
 def test_nsga3_with_memory_updates_reference_points(multi_obj):
     ref_points = tools.uniform_reference_points(2, 4)
     select = tools.SelNSGA3WithMemory(ref_points)

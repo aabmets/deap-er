@@ -51,3 +51,43 @@ def test_delitem_single_index():
     del logbook[1]
 
     assert [entry["gen"] for entry in logbook] == [0, 2, 3, 4]
+
+
+def test_str_of_empty_logbook():
+    assert str(Logbook()) == "The Logbook is empty."
+
+
+def test_str_without_header_sorts_columns():
+    # Characterization of __txt__: columns fall back to sorted keys, and every
+    # column is padded to the widest cell it holds.
+    logbook = Logbook()
+    for gen in range(3):
+        logbook.record(gen=gen, nevals=10 * gen, avg=1.5 * gen)
+
+    assert str(logbook) == (
+        "avg\tgen\tnevals\n0  \t0  \t0     \n1.5\t1  \t10    \n3  \t2  \t20    "
+    )
+
+
+def test_str_with_chapters_builds_a_banner_header():
+    # Characterization of __txt__: chapter names are centred over their columns
+    # above a dashed rule, and the leading gen column is blank on those rows.
+    logbook = Logbook()
+    logbook.header = ["gen", "fitness", "size"]
+    logbook.chapters["fitness"].header = ["min", "max"]
+    logbook.chapters["size"].header = ["avg"]
+    for gen in range(3):
+        logbook.record(
+            gen=gen,
+            fitness={"min": gen * 1.0, "max": gen * 2.0},
+            size={"avg": gen + 0.5},
+        )
+
+    assert str(logbook) == (
+        "   \t  fitness  \tsize\n"
+        "   \t-----------\t--- \n"
+        "gen\tmin\tmax\tavg \n"
+        "0  \t0  \t0  \t0.5 \n"
+        "1  \t1  \t2  \t1.5 \n"
+        "2  \t2  \t4  \t2.5 "
+    )

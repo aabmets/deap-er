@@ -10,6 +10,7 @@
 #
 import random
 
+import pytest
 from deap_er.benchmarks.moving_peaks import MovingPeaks
 
 
@@ -53,3 +54,39 @@ def test_change_peaks_respects_peak_count_bounds():
         assert len(landscape.peaks_position) == len(landscape.peaks_function)
         assert len(landscape.peaks_height) == len(landscape.peaks_function)
         assert len(landscape.peaks_width) == len(landscape.peaks_function)
+
+
+def test_change_peaks_is_stable_with_a_fluctuating_count():
+    # Characterization: pins the interleaving of the peak-count change and the
+    # per-peak position, height, and width updates.
+    random.seed(77)
+    landscape = MovingPeaks(dimensions=2, npeaks=[2, 3, 5], change_severity=1.0)
+
+    landscape.change_peaks()
+
+    assert len(landscape.peaks_function) == 2
+    flat_positions = [coord for position in landscape.peaks_position for coord in position]
+    assert flat_positions == pytest.approx(
+        [15.234792408525824, 62.33901224723937, 49.658985446975244, 84.19668008266241]
+    )
+    assert landscape.peaks_height == pytest.approx([56.942552763348274, 44.840135030472624])
+    assert landscape.peaks_width == pytest.approx([0.09985828374029866, 0.09755426652252269])
+
+
+def test_change_peaks_is_stable_with_a_fixed_count():
+    random.seed(5)
+    landscape = MovingPeaks(dimensions=2)
+
+    landscape.change_peaks()
+
+    assert len(landscape.peaks_function) == 5
+    assert landscape.peaks_height == pytest.approx(
+        [
+            51.11696123992914,
+            64.17678979838504,
+            64.11815130548122,
+            39.782571152097994,
+            43.35067780087705,
+        ]
+    )
+    assert landscape.peaks_position[0] == pytest.approx([90.70539297560782, 10.532337620054733])
