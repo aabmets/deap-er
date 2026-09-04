@@ -108,6 +108,6 @@ def var_or(
             del ind.fitness.values
             offspring.append(ind)
         else:
-            offspring.append(random.choice(population))
+            offspring.append(toolbox.clone(random.choice(population)))
 
     return offspring
