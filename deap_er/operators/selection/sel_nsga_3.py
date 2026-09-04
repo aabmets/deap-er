@@ -8,12 +8,13 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.utilities.sorting import *
-from deap_er.base.dtypes import Individual
 from itertools import chain
-from numpy import ndarray
-import numpy
 
+import numpy
+from numpy import ndarray
+
+from deap_er.base.dtypes import Individual
+from deap_er.utilities.sorting import *
 
 __all__ = ["sel_nsga_3", "SelNSGA3WithMemory"]
 

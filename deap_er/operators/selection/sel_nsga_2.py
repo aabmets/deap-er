@@ -8,12 +8,13 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.utilities.sorting import *
-from deap_er.base.dtypes import Individual
-from .sel_helpers import assign_crowding_dist
-from operator import attrgetter
 from itertools import chain
+from operator import attrgetter
 
+from deap_er.base.dtypes import Individual
+from deap_er.utilities.sorting import *
+
+from .sel_helpers import assign_crowding_dist
 
 __all__ = ["sel_nsga_2"]
 

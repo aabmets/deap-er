@@ -8,10 +8,11 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.base.dtypes import Individual
-import numpy as np
 import random
 
+import numpy as np
+
+from deap_er.base.dtypes import Individual
 
 __all__ = ["sel_lexicase", "sel_epsilon_lexicase"]
 
@@ -30,7 +31,7 @@ def sel_lexicase(individuals: list[Individual], sel_count: int) -> list[Individu
         The selected individuals.
     """
     selected = []
-    for i in range(sel_count):
+    for _i in range(sel_count):
         fit_weights = individuals[0].fitness.weights
         candidates = individuals
         cases = list(range(len(individuals[0].fitness.values)))
@@ -68,7 +69,7 @@ def sel_epsilon_lexicase(
         The selected individuals.
     """
     selected = []
-    for i in range(sel_count):
+    for _i in range(sel_count):
         fit_weights = individuals[0].fitness.weights
         cases = list(range(len(individuals[0].fitness.values)))
         random.shuffle(cases)
@@ -76,8 +77,8 @@ def sel_epsilon_lexicase(
         while len(cases) > 0 and len(candidates) > 1:
             errors = [x.fitness.values[cases[0]] for x in candidates]
             if not epsilon:
-                median = np.median(errors)
-                epsilon = np.median([abs(x - median) for x in errors])
+                median = float(np.median(errors))
+                epsilon = float(np.median([abs(x - median) for x in errors]))
             if fit_weights[cases[0]] > 0:
                 best_val = max(errors)
                 min_val = best_val - epsilon

@@ -8,9 +8,9 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.base.dtypes import Individual
 import numpy
 
+from deap_er.base.dtypes import Individual
 
 __all__ = ["assign_crowding_dist", "uniform_reference_points"]
 
@@ -38,7 +38,7 @@ def assign_crowding_dist(individuals: list[Individual]) -> None:
         if crowd[-1][0][i] == crowd[0][0][i]:
             continue
         norm = n_obj * float(crowd[-1][0][i] - crowd[0][0][i])
-        for prev, cur, next_ in zip(crowd[:-2], crowd[1:-1], crowd[2:]):
+        for prev, cur, next_ in zip(crowd[:-2], crowd[1:-1], crowd[2:], strict=False):
             distances[cur[1]] += (next_[0][i] - prev[0][i]) / norm
 
     for i, dist in enumerate(distances):

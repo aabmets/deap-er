@@ -8,7 +8,7 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from .selection import *
 from .crossover import *
-from .mutation import *
 from .migration import *
+from .mutation import *
+from .selection import *

@@ -8,12 +8,11 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.base.dtypes import *
-from collections.abc import Sequence
-from itertools import repeat
-import random
 import math
+import random
+from collections.abc import Sequence
 
+from deap_er.base.dtypes import *
 
 __all__ = [
     "mut_gaussian",
@@ -39,9 +38,9 @@ def _pre_process(name: str, var: NumOrSeq, size: int) -> Sequence[int] | Sequenc
     Raises:
         ValueError: If ``var`` is a sequence shorter than ``size``.
     """
-    if not isinstance(var, Sequence):
-        var = repeat(var, size)
-    elif isinstance(var, Sequence) and len(var) < size:
+    if isinstance(var, int | float):
+        return [var] * size
+    if len(var) < size:
         raise ValueError(
             f"Argument '{name}' must be at least the size of the individual: {len(var)} < {size}"
         )
@@ -72,7 +71,7 @@ def mut_gaussian(individual: Individual, mu: NumOrSeq, sigma: NumOrSeq, mut_prob
     sigma = _pre_process("sigma", sigma, size)
 
     idx = list(range(size))
-    for i, m, s in zip(idx, mu, sigma):
+    for i, m, s in zip(idx, mu, sigma, strict=False):
         if random.random() < mut_prob:
             individual[i] += random.gauss(m, s)
 
@@ -108,7 +107,7 @@ def mut_polynomial_bounded(
     up = _pre_process("up", up, size)
 
     idx = list(range(size))
-    for i, xl, xu in zip(idx, low, up):
+    for i, xl, xu in zip(idx, low, up, strict=False):
         if random.random() <= mut_prob:
             x = individual[i]
             delta_1 = (x - xl) / (xu - xl)
@@ -193,13 +192,13 @@ def mut_uniform_int(individual: Individual, low: int, up: int, mut_prob: float) 
             the individual.
     """
     size = len(individual)
-    low = _pre_process("low", low, size)
-    up = _pre_process("up", up, size)
+    lows = _pre_process("low", low, size)
+    ups = _pre_process("up", up, size)
 
     idx = list(range(size))
-    for i, xl, xu in zip(idx, low, up):
+    for i, xl, xu in zip(idx, lows, ups, strict=False):
         if random.random() < mut_prob:
-            individual[i] = random.randint(xl, xu)
+            individual[i] = random.randint(int(xl), int(xu))
 
     return (individual,)
 
@@ -226,9 +225,8 @@ def mut_es_log_normal(individual: Individual, learn_rate: float, mut_prob: float
     t0_n = t0 * n
 
     for indx in range(size):
-        if random.random() < mut_prob:
-            if hasattr(individual, "strategy"):
-                individual.strategy[indx] *= math.exp(t0_n + t * random.gauss(0, 1))
-                individual[indx] += individual.strategy[indx] * random.gauss(0, 1)
+        if random.random() < mut_prob and hasattr(individual, "strategy"):
+            individual.strategy[indx] *= math.exp(t0_n + t * random.gauss(0, 1))
+            individual[indx] += individual.strategy[indx] * random.gauss(0, 1)
 
     return (individual,)

@@ -8,10 +8,10 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.base.dtypes import Individual
-from operator import attrgetter
 import random
+from operator import attrgetter
 
+from deap_er.base.dtypes import Individual
 
 __all__ = [
     "sel_random",

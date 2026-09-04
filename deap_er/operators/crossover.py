@@ -9,11 +9,11 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from __future__ import annotations
-from deap_er.base.dtypes import *
-from collections.abc import Sequence
-from itertools import repeat
-import random
 
+import random
+from collections.abc import Sequence
+
+from deap_er.base.dtypes import *
 
 __all__ = [
     "cx_one_point",
@@ -296,7 +296,7 @@ def cx_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
     Returns:
         The two individuals after crossover.
     """
-    for i, (x1, x2) in enumerate(zip(ind1, ind2)):
+    for i, (x1, x2) in enumerate(zip(ind1, ind2, strict=False)):
         gamma = (1.0 + 2.0 * alpha) * random.random() - alpha
         ind1[i] = (1.0 - gamma) * x1 + gamma * x2
         ind2[i] = gamma * x1 + (1.0 - gamma) * x2
@@ -319,7 +319,7 @@ def cx_es_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
     Returns:
         The two individuals after crossover.
     """
-    zipper = zip(ind1, ind1.strategy, ind2, ind2.strategy)
+    zipper = zip(ind1, ind1.strategy, ind2, ind2.strategy, strict=False)
     for i, (x1, s1, x2, s2) in enumerate(zipper):
         gamma = (1.0 + 2.0 * alpha) * random.random() - alpha
         ind1[i] = (1.0 - gamma) * x1 + gamma * x2
@@ -347,13 +347,10 @@ def cx_simulated_binary(ind1: Individual, ind2: Individual, eta: float) -> Mates
     Returns:
         The two individuals after crossover.
     """
-    for i, (x1, x2) in enumerate(zip(ind1, ind2)):
+    for i, (x1, x2) in enumerate(zip(ind1, ind2, strict=False)):
         rand = random.random()
 
-        if rand <= 0.5:
-            beta = 2.0 * rand
-        else:
-            beta = 1.0 / (2.0 * (1.0 - rand))
+        beta = 2.0 * rand if rand <= 0.5 else 1.0 / (2.0 * (1.0 - rand))
 
         beta **= 1.0 / (eta + 1.0)
         ind1[i] = 0.5 * (((1 + beta) * x1) + ((1 - beta) * x2))
@@ -400,9 +397,9 @@ def cx_simulated_binary_bounded(
             ValueError: If ``var`` is a sequence shorter than the
                 shorter individual.
         """
-        if not isinstance(var, Sequence):
-            var = repeat(var, size)
-        elif isinstance(var, Sequence) and len(var) < size:
+        if isinstance(var, int | float):
+            return [var] * size
+        if len(var) < size:
             raise ValueError(
                 f"{name} must be at least the size of the shorter individual: {len(var)} < {size}"
             )
@@ -424,31 +421,30 @@ def cx_simulated_binary_bounded(
         else:
             beta_q = (1.0 / (2.0 - rand * alpha)) ** (1.0 / (eta + 1))
         c = 0.5 * (x1 + x2 - beta_q * (x2 - x1))
-        return c
+        return float(c)
 
     size = min(len(ind1), len(ind2))
     low = check_bounds("low", low)
     up = check_bounds("up", up)
 
-    for i, xl, xu in zip(list(range(size)), low, up):
-        if random.random() <= 0.5:
-            if abs(ind1[i] - ind2[i]) > 1e-14:
-                x1 = min(ind1[i], ind2[i])
-                x2 = max(ind1[i], ind2[i])
-                rand = random.random()
+    for i, xl, xu in zip(list(range(size)), low, up, strict=False):
+        if random.random() <= 0.5 and abs(ind1[i] - ind2[i]) > 1e-14:
+            x1 = min(ind1[i], ind2[i])
+            x2 = max(ind1[i], ind2[i])
+            rand = random.random()
 
-                c1 = calc_c(x1 - xl)
-                c1 = min(max(c1, xl), xu)
+            c1 = calc_c(x1 - xl)
+            c1 = min(max(c1, xl), xu)
 
-                c2 = calc_c(xu - x2)
-                c2 = min(max(c2, xl), xu)
+            c2 = calc_c(xu - x2)
+            c2 = min(max(c2, xl), xu)
 
-                if random.random() <= 0.5:
-                    ind1[i] = c2
-                    ind2[i] = c1
-                else:
-                    ind1[i] = c1
-                    ind2[i] = c2
+            if random.random() <= 0.5:
+                ind1[i] = c2
+                ind2[i] = c1
+            else:
+                ind1[i] = c1
+                ind2[i] = c2
 
     return ind1, ind2
 

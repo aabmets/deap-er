@@ -8,14 +8,15 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.base.dtypes import Individual
-from collections.abc import Callable
-from typing import Any
-from .sel_various import sel_random
-from operator import attrgetter
-from functools import partial
 import random
+from collections.abc import Callable
+from functools import partial
+from operator import attrgetter
+from typing import Any
 
+from deap_er.base.dtypes import Individual
+
+from .sel_various import sel_random
 
 __all__ = ["sel_tournament", "sel_double_tournament", "sel_tournament_dcd"]
 
@@ -82,7 +83,7 @@ def sel_double_tournament(
             Winners of the size contests.
         """
         chosen = []
-        for i in range(rounds):
+        for _i in range(rounds):
             prob = parsimony_size / 2.0
             ind1, ind2 = select(individuals, sel_count=2)
             if len(ind1) > len(ind2):
@@ -102,7 +103,7 @@ def sel_double_tournament(
             Winners of the fitness contests.
         """
         chosen = []
-        for i in range(rounds):
+        for _i in range(rounds):
             aspirants = select(individuals, sel_count=fitness_size)
             chosen.append(max(aspirants, key=attrgetter(fit_attr)))
         return chosen
