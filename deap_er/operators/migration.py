@@ -52,8 +52,7 @@ def mig_ring(
         if replacement is None:
             immigrants[from_deme] = emigrants[from_deme]
         else:
-            emigrants = replacement(populations[from_deme], mig_count)
-            immigrants[from_deme].extend(emigrants)
+            immigrants[from_deme].extend(replacement(populations[from_deme], mig_count))
 
     for from_deme, to_deme in enumerate(mig_indices):
         for i, immigrant in enumerate(immigrants[to_deme]):
