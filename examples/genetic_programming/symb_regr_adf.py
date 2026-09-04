@@ -106,6 +106,29 @@ def print_results(best_ind):
     print("\nEvolution converged correctly.")
 
 
+def _mate_trees(toolbox, offspring):
+    for ind1, ind2 in zip(offspring[::2], offspring[1::2], strict=False):
+        for tree1, tree2 in zip(ind1, ind2, strict=False):
+            if tools.rng.random() < CX_PROB:
+                toolbox.mate(tree1, tree2)
+                del ind1.fitness.values
+                del ind2.fitness.values
+
+
+def _mutate_trees(toolbox, offspring, psets):
+    for ind in offspring:
+        for tree, pset in zip(ind, psets, strict=False):
+            if tools.rng.random() < MUT_PROB:
+                toolbox.mutate(individual=tree, prim_set=pset)
+                del ind.fitness.values
+
+
+def _evaluate_invalid(toolbox, offspring):
+    invalids = [ind for ind in offspring if not ind.fitness.is_valid()]
+    for ind in invalids:
+        ind.fitness.values = toolbox.evaluate(ind)
+
+
 def main():
     toolbox, stats, logbook, psets = setup()
     hof = tools.HallOfFame(1)
@@ -125,25 +148,10 @@ def main():
     for generations in range(1, GENS):
         offspring = toolbox.select(pop, len(pop))
         offspring = [toolbox.clone(ind) for ind in offspring]
-
-        for ind1, ind2 in zip(offspring[::2], offspring[1::2], strict=False):
-            for tree1, tree2 in zip(ind1, ind2, strict=False):
-                if tools.rng.random() < CX_PROB:
-                    toolbox.mate(tree1, tree2)
-                    del ind1.fitness.values
-                    del ind2.fitness.values
-
-        for ind in offspring:
-            for tree, pset in zip(ind, psets, strict=False):
-                if tools.rng.random() < MUT_PROB:
-                    toolbox.mutate(individual=tree, prim_set=pset)
-                    del ind.fitness.values
-
-        invalids = [ind for ind in offspring if not ind.fitness.is_valid()]
-        for ind in invalids:
-            ind.fitness.values = toolbox.evaluate(ind)
+        _mate_trees(toolbox, offspring)
+        _mutate_trees(toolbox, offspring, psets)
+        _evaluate_invalid(toolbox, offspring)
         pop = offspring
-
         log_stats(generations)
 
     print_results(hof[0])

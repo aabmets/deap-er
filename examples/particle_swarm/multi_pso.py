@@ -138,10 +138,71 @@ def print_results(avg_err):
     print("\nEvolution converged correctly.")
 
 
+def _roaming_worst(population, rex_cl):
+    worst_swarm_idx = None
+    worst_swarm = None
+    not_converged = 0
+    for i, swarm in enumerate(population):
+        for p1, p2 in itertools.combinations(swarm, 2):
+            d = math.sqrt(sum((x1 - x2) ** 2.0 for x1, x2 in zip(p1, p2, strict=False)))
+            if d > 2 * rex_cl:
+                not_converged += 1
+                if not worst_swarm or swarm.bestfit < worst_swarm.bestfit:
+                    worst_swarm_idx = i
+                    worst_swarm = swarm
+                break
+    return not_converged, worst_swarm_idx
+
+
+def _resize_swarms(toolbox, population, not_converged, worst_swarm_idx):
+    if not_converged == 0:
+        population.append(toolbox.swarm(size=NPARTICLES))
+    elif not_converged > NEXCESS:
+        population.pop(worst_swarm_idx)
+
+
+def _step_swarms(toolbox, population, update_fitness):
+    for swarm in population:
+        if swarm.best and toolbox.evaluate(swarm.best) != swarm.bestfit.values:
+            swarm[:] = toolbox.convert(swarm, rcloud=RCLOUD, centre=swarm.best)
+            swarm.best = None
+            del swarm.bestfit.values
+        for part in swarm:
+            if swarm.best and part.best:
+                toolbox.update(part, swarm.best)
+            update_fitness(swarm, part)
+
+
+def _reinit_overlapping(toolbox, population, rex_cl, update_fitness):
+    reinit_swarms = set()
+    for s1, s2 in itertools.combinations(range(len(population)), 2):
+        if not (
+            population[s1].best
+            and population[s2].best
+            and not (s1 in reinit_swarms or s2 in reinit_swarms)
+        ):
+            continue
+        dist = math.sqrt(
+            sum(
+                (x1 - x2) ** 2.0
+                for x1, x2 in zip(population[s1].best, population[s2].best, strict=False)
+            )
+        )
+        if dist < rex_cl:
+            if population[s1].bestfit <= population[s2].bestfit:
+                reinit_swarms.add(s1)
+            else:
+                reinit_swarms.add(s2)
+    for s in reinit_swarms:
+        population[s] = toolbox.swarm(size=NPARTICLES)
+        for part in population[s]:
+            update_fitness(population[s], part)
+
+
 def main():
     toolbox, stats, logbook = setup()
 
-    def update_fitness(group):
+    def update_fitness(group, part):
         part.fitness.values = toolbox.evaluate(part)
         if not part.best or part.fitness > part.bestfit:
             part.best = toolbox.clone(part[:])
@@ -163,90 +224,21 @@ def main():
         logbook.record(**args, **record)
         print(logbook.stream)
 
-    # Generate the initial population.
     population = [toolbox.swarm(size=NPARTICLES) for _ in range(NSWARMS)]
-
-    # Evaluate the initial population.
     for swarm in population:
-        for _part in swarm:
-            update_fitness(swarm)
+        for part in swarm:
+            update_fitness(swarm, part)
 
     log_stats()
 
     generation = 1
-
-    # Define the main evolution loop.
     while not stop_condition(logbook):
-        # Reset convergence variables.
         rex_cl = (BOUNDS[1] - BOUNDS[0]) / (2 * len(population) ** (1.0 / NDIM))
-        worst_swarm_idx = None
-        worst_swarm = None
-        not_converged = 0
-
-        # Compute the diameters of the swarms and search for the
-        # worst swarm according to its best global position.
-        for i, swarm in enumerate(population):
-            for p1, p2 in itertools.combinations(swarm, 2):
-                d = math.sqrt(sum((x1 - x2) ** 2.0 for x1, x2 in zip(p1, p2, strict=False)))
-                if d > 2 * rex_cl:
-                    not_converged += 1
-                    if not worst_swarm or swarm.bestfit < worst_swarm.bestfit:
-                        worst_swarm_idx = i
-                        worst_swarm = swarm
-                    break
-
-        # If all swarms have converged, add a swarm.
-        if not_converged == 0:
-            population.append(toolbox.swarm(size=NPARTICLES))
-
-        # If too many swarms are roaming, remove the worst swarm.
-        elif not_converged > NEXCESS:
-            population.pop(worst_swarm_idx)
-
-        # Update and evaluate the swarm.
-        for swarm in population:
-            # Check for change.
-            if swarm.best and toolbox.evaluate(swarm.best) != swarm.bestfit.values:
-                # Convert particles to quantum particles.
-                swarm[:] = toolbox.convert(swarm, rcloud=RCLOUD, centre=swarm.best)
-                swarm.best = None
-                del swarm.bestfit.values
-
-            # Not necessary to update if it's a new swarm
-            # or a swarm just converted to quantum.
-            for part in swarm:
-                if swarm.best and part.best:
-                    toolbox.update(part, swarm.best)
-                update_fitness(swarm)
-
+        not_converged, worst_swarm_idx = _roaming_worst(population, rex_cl)
+        _resize_swarms(toolbox, population, not_converged, worst_swarm_idx)
+        _step_swarms(toolbox, population, update_fitness)
         log_stats(generation)
-
-        # Apply exclusion to swarms which have the best
-        # position and are not set to reinitialize.
-        reinit_swarms = set()
-        for s1, s2 in itertools.combinations(range(len(population)), 2):
-            if (
-                population[s1].best
-                and population[s2].best
-                and not (s1 in reinit_swarms or s2 in reinit_swarms)
-            ):
-                dist = 0
-                for x1, x2 in zip(population[s1].best, population[s2].best, strict=False):
-                    dist += (x1 - x2) ** 2.0
-                dist = math.sqrt(dist)
-                if dist < rex_cl:
-                    if population[s1].bestfit <= population[s2].bestfit:
-                        reinit_swarms.add(s1)
-                    else:
-                        reinit_swarms.add(s2)
-
-        # Reinitialize and evaluate swarms.
-        for s in reinit_swarms:
-            population[s] = toolbox.swarm(size=NPARTICLES)
-            for _part in population[s]:
-                update_fitness(population[s])
-
-        # Update iteration counter.
+        _reinit_overlapping(toolbox, population, rex_cl, update_fitness)
         generation += 1
 
 

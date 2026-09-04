@@ -424,6 +424,58 @@ class PrimitiveSet(PrimitiveSetTyped):
         super().add_ephemeral_constant(name, ephemeral, object)
 
 
+def _primitive_from_token(
+    token: str, prim_set: PrimitiveSetTyped, ret_type: type | None
+) -> Primitive | Terminal:
+    """Resolve a token that is registered on ``prim_set``.
+
+    Args:
+        token: Primitive or terminal name.
+        prim_set: Primitive set used to resolve names.
+        ret_type: Expected return type, or None at the root.
+
+    Returns:
+        The registered primitive or terminal.
+
+    Raises:
+        TypeError: If the return type does not match ``ret_type``.
+    """
+    primitive = cast(Primitive | Terminal, prim_set.mapping[token])
+    if ret_type is not None and not issubclass(primitive.ret, ret_type):
+        raise TypeError(
+            f"Primitive {primitive} return type {primitive.ret} "
+            f"does not match the expected one: {ret_type}."
+        )
+    return primitive
+
+
+def _terminal_from_token(token: str, ret_type: type | None) -> Terminal:
+    """Parse an unregistered token as a Python literal terminal.
+
+    Args:
+        token: Literal text from the expression.
+        ret_type: Expected type, or None to take the literal's type.
+
+    Returns:
+        A terminal wrapping the evaluated literal.
+
+    Raises:
+        TypeError: If the token is not a Python literal, or if its
+            type does not match ``ret_type``.
+    """
+    try:
+        value = ast.literal_eval(token)
+    except (ValueError, SyntaxError) as err:
+        raise TypeError(f"Unable to evaluate terminal: {token}.") from err
+    if ret_type is None:
+        ret_type = type(value)
+    if not issubclass(type(value), ret_type):
+        raise TypeError(
+            f"Terminal {value} type {type(value)} does not match the expected one: {ret_type}."
+        )
+    return Terminal(value, False, ret_type)
+
+
 class PrimitiveTree(list[Any]):
     """Prefix-ordered tree of primitives and terminals.
 
@@ -523,32 +575,14 @@ class PrimitiveTree(list[Any]):
         for token in tokens:
             if token == "":
                 continue
-            ret_type = ret_types.popleft() if len(ret_types) != 0 else None
-
+            ret_type = ret_types.popleft() if ret_types else None
             if token in prim_set.mapping:
-                primitive = prim_set.mapping[token]
-                if ret_type is not None and not issubclass(primitive.ret, ret_type):
-                    raise TypeError(
-                        f"Primitive {primitive} return type {primitive.ret} "
-                        f"does not match the expected one: {ret_type}."
-                    )
+                primitive = _primitive_from_token(token, prim_set, ret_type)
                 expr.append(primitive)
                 if isinstance(primitive, Primitive):
                     ret_types.extendleft(reversed(primitive.args))
-            else:
-                try:
-                    token = ast.literal_eval(token)
-                except (ValueError, SyntaxError) as err:
-                    raise TypeError(f"Unable to evaluate terminal: {token}.") from err
-                if ret_type is None:
-                    ret_type = type(token)
-                if not issubclass(type(token), ret_type):
-                    raise TypeError(
-                        f"Terminal {token} type {type(token)} does "
-                        f"not match the expected one: {ret_type}."
-                    )
-                prim = Terminal(token, False, ret_type)
-                expr.append(prim)
+                continue
+            expr.append(_terminal_from_token(token, ret_type))
         return cls(expr)
 
     def search_subtree(self, begin: int) -> slice:

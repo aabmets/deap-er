@@ -78,6 +78,34 @@ def print_results(best_network):
     print("\nEvolution converged correctly.")
 
 
+def _mate_offspring(toolbox, offspring):
+    for ind1, ind2 in zip(offspring[::2], offspring[1::2], strict=False):
+        if tools.rng.random() < CX_PROB:
+            toolbox.mate(ind1, ind2)
+            del ind1.fitness.values
+            del ind2.fitness.values
+
+
+def _mutate_offspring(toolbox, offspring):
+    for ind in offspring:
+        if tools.rng.random() < MUT_PROB:
+            toolbox.mutate(ind)
+            del ind.fitness.values
+        if tools.rng.random() < ADD_PROB:
+            toolbox.addwire(ind)
+            del ind.fitness.values
+        if tools.rng.random() < DEL_PROB:
+            toolbox.delwire(ind)
+            del ind.fitness.values
+
+
+def _evaluate_invalid(toolbox, offspring):
+    invalid_ind = [ind for ind in offspring if not ind.fitness.is_valid()]
+    fitness = toolbox.map(toolbox.evaluate, invalid_ind)
+    for ind, fit in zip(invalid_ind, fitness, strict=False):
+        ind.fitness.values = fit
+
+
 def main():
     toolbox, stats, logbook = setup()
     population = toolbox.population(size=300)
@@ -97,31 +125,10 @@ def main():
 
     for generation in range(1, NGEN):
         offspring = [toolbox.clone(ind) for ind in population]
-
-        for ind1, ind2 in zip(offspring[::2], offspring[1::2], strict=False):
-            if tools.rng.random() < CX_PROB:
-                toolbox.mate(ind1, ind2)
-                del ind1.fitness.values
-                del ind2.fitness.values
-
-        for ind in offspring:
-            if tools.rng.random() < MUT_PROB:
-                toolbox.mutate(ind)
-                del ind.fitness.values
-            if tools.rng.random() < ADD_PROB:
-                toolbox.addwire(ind)
-                del ind.fitness.values
-            if tools.rng.random() < DEL_PROB:
-                toolbox.delwire(ind)
-                del ind.fitness.values
-
-        invalid_ind = [ind for ind in offspring if not ind.fitness.is_valid()]
-        fitness = toolbox.map(toolbox.evaluate, invalid_ind)
-        for ind, fit in zip(invalid_ind, fitness, strict=False):
-            ind.fitness.values = fit
-
+        _mate_offspring(toolbox, offspring)
+        _mutate_offspring(toolbox, offspring)
+        _evaluate_invalid(toolbox, offspring)
         population = toolbox.select(population + offspring, len(offspring))
-
         log_stats(generation)
 
     best_network = tools.SortingNetwork(INPUTS, hof[0])
