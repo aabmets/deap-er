@@ -55,8 +55,8 @@ convention = "google"
 "examples/**" = ["D"]
 "deap_er/benchmarks/**" = ["E501"]
 "deap_er/tools.py" = ["D"]
-"deap_er/dtypes.py" = ["D"]
-"**/*dtypes.py" = ["D"]
+"deap_er/typedefs.py" = ["D"]
+"**/*typedefs.py" = ["D"]
 
 [format]
 quote-style = "double"

@@ -15,7 +15,7 @@ from operator import eq, lt
 
 from deap_er.rng import rng
 
-from .dtypes import GPIndividual, GPMates
+from .typedefs import GPIndividual, GPMates
 
 __all__ = ["cx_one_point", "cx_one_point_leaf_biased"]
 

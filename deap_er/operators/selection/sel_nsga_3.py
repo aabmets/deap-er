@@ -13,7 +13,7 @@ from itertools import chain
 import numpy
 from numpy import ndarray
 
-from deap_er.base.dtypes import Individual
+from deap_er.base.typedefs import Individual
 from deap_er.rng import rng
 from deap_er.utilities.sorting import sort_non_dominated
 

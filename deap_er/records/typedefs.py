@@ -10,7 +10,7 @@
 #
 from typing import Any
 
-from deap_er.base.dtypes import Individual
+from deap_er.base.typedefs import Individual
 
 from .hall_of_fame import HallOfFame, ParetoFront
 from .logbook import Logbook

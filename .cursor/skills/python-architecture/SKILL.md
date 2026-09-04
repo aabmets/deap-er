@@ -24,7 +24,7 @@ deap_er/           # installable package
   benchmarks/      # test problems
   gp/              # genetic programming
   persistence/     # Checkpoint (imported as deap_er.env)
-  dtypes.py        # shared aliases
+  typedefs.py      # shared aliases
   tools.py         # re-exports algorithms, operators, strategies, records, utilities, benchmarks
 tests/             # pytest suite
 examples/          # runnable scripts; also included into docs via snippets
@@ -34,7 +34,7 @@ docs/              # MkDocs source — see skill mkdocs-docs
 Public import surface:
 
 ```python
-from deap_er import base, creator, tools, gp, env, dtypes
+from deap_er import base, creator, tools, gp, env, typedefs
 ```
 
 `env` is `deap_er.persistence`. Do not invent a second persistence namespace.
@@ -49,7 +49,7 @@ Match the existing package. Do not add `utils/`, `config/`, `models/`, `services
 - Function modules declare `__all__`.
 - Operators and algorithms are **module-level functions** (`cx_one_point`, `sel_nsga_2`, `ea_simple`), not classes or services.
 - `_`-prefixed helpers in the same module are normal (`_slicer` in `operators/crossover.py`).
-- `from deap_er.base.dtypes import *` is the usual typing import inside the package.
+- `from deap_er.base.typedefs import *` is the usual typing import inside the package.
 
 Do not "clean up" star imports, flatten operators into classes, or forbid module-level `_` names.
 

@@ -12,7 +12,7 @@ from collections.abc import Callable
 
 import numpy as np
 
-from deap_er.base.dtypes import Individual
+from deap_er.base.typedefs import Individual
 from deap_er.rng import rng
 
 __all__ = ["sel_lexicase", "sel_epsilon_lexicase"]

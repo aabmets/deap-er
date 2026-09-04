@@ -10,7 +10,7 @@
 #
 from operator import attrgetter
 
-from deap_er.base.dtypes import Individual
+from deap_er.base.typedefs import Individual
 from deap_er.rng import rng
 
 __all__ = [

@@ -8,7 +8,7 @@ This document contains **always-on** mandates for AI agents. Procedural playbook
 
 *   **KISS (Keep It Simple, Stupid):** Prioritize simple logic. Avoid premature optimization or convoluted architectures. If two solutions exist, choose the simpler one.
 *   **DRY (Don't Repeat Yourself):** Abstract shared logic into reusable utilities. Do not prematurely abstract superficially similar code.
-*   **The Forest and the Trees:** Maintain awareness of the public API and package layout when working on isolated features. Consider callers in `tests/` and `examples/`, and whether a change belongs on the documented surface (`base`, `creator`, `tools`, `gp`, `env`, `dtypes`).
+*   **The Forest and the Trees:** Maintain awareness of the public API and package layout when working on isolated features. Consider callers in `tests/` and `examples/`, and whether a change belongs on the documented surface (`base`, `creator`, `tools`, `gp`, `env`, `typedefs`).
 *   **Library Developer Mindset:** Design interfaces to be intuitive, flexible, and robust against misuse. This *is* a library — prefer stable, toolbox-friendly functions over framework ceremony.
 
 ### Scope Discipline (Strict — No Scope Creep)
@@ -52,7 +52,7 @@ Full layout: read the [`python-architecture` skill](.cursor/skills/python-archit
 
 ### Type Safety
 
-Follow the typing already used in the file you are editing (`deap_er.base.dtypes` and local aliases). Do not introduce Pydantic models or a parallel typed settings layer.
+Follow the typing already used in the file you are editing (`deap_er.base.typedefs` and local aliases). Do not introduce Pydantic models or a parallel typed settings layer.
 
 ### Dependency Management
 

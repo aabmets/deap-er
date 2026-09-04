@@ -10,7 +10,7 @@
 #
 import numpy
 
-from deap_er.base.dtypes import Individual
+from deap_er.base.typedefs import Individual
 
 __all__ = ["assign_crowding_dist", "uniform_reference_points"]
 

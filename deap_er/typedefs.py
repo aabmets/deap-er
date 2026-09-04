@@ -8,9 +8,9 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from .base.dtypes import Individual, Mates, Mutant, NumOrSeq
-from .gp.dtypes import GPExprTypes, GPGraph, GPIndividual, GPMates, GPMutant, GPTypedSets
-from .records.dtypes import AlgoResult, Hof, Stats
+from .base.typedefs import Individual, Mates, Mutant, NumOrSeq
+from .gp.typedefs import GPExprTypes, GPGraph, GPIndividual, GPMates, GPMutant, GPTypedSets
+from .records.typedefs import AlgoResult, Hof, Stats
 
 __all__ = [
     "Individual",

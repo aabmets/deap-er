@@ -9,7 +9,7 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.base import Toolbox
-from deap_er.records.dtypes import AlgoResult, Hof, Individual, Stats
+from deap_er.records.typedefs import AlgoResult, Hof, Individual, Stats
 
 from ._loop import _evaluate_invalid, _new_logbook, _record_generation
 from .variation import var_and

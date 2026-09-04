@@ -15,7 +15,7 @@ from typing import Any
 import numpy
 
 from deap_er import utilities as utils
-from deap_er.base.dtypes import Individual
+from deap_er.base.typedefs import Individual
 from deap_er.rng import rng
 
 from ._common import _step_size_multiplier

@@ -11,7 +11,7 @@
 import moocore
 import numpy
 
-from deap_er.base.dtypes import Individual
+from deap_er.base.typedefs import Individual
 
 from .hypervolume import _minimized_points
 

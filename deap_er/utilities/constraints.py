@@ -13,7 +13,7 @@ from functools import wraps
 from itertools import repeat
 from typing import Any
 
-from deap_er.base.dtypes import Individual, NumOrSeq
+from deap_er.base.typedefs import Individual, NumOrSeq
 
 __all__ = ["DeltaPenalty", "ClosestValidPenalty"]
 

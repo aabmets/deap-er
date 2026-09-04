@@ -14,7 +14,7 @@ from typing import Any
 
 import numpy
 
-from deap_er.base.dtypes import Individual
+from deap_er.base.typedefs import Individual
 
 from ._common import _sample_offspring
 

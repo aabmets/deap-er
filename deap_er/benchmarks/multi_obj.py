@@ -12,7 +12,7 @@ from functools import reduce
 from math import cos, exp, pi, sin, sqrt
 from operator import mul
 
-from deap_er.base.dtypes import Individual
+from deap_er.base.typedefs import Individual
 
 __all__ = [
     "bm_kursawe",

@@ -13,7 +13,7 @@ from typing import Any
 
 import numpy
 
-from deap_er.base.dtypes import Individual
+from deap_er.base.typedefs import Individual
 
 __all__ = ["nsga_diversity", "nsga_convergence", "inv_gen_dist"]
 

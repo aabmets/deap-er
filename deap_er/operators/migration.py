@@ -11,7 +11,7 @@
 from collections.abc import Callable
 from typing import Any
 
-from deap_er.base.dtypes import Individual
+from deap_er.base.typedefs import Individual
 
 __all__ = ["mig_ring"]
 

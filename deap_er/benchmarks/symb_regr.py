@@ -10,7 +10,7 @@
 #
 from math import cos, exp, sin
 
-from deap_er.base.dtypes import Individual
+from deap_er.base.typedefs import Individual
 
 __all__ = [
     "bm_ripple",

@@ -29,10 +29,10 @@ The functionality of this library is divided into the following namespaces:
     - benchmarks
 - **gp** — Components for genetic programming.
 - **env** — The *Checkpoint* class for state persistence.
-- **dtypes** — Datatype aliases used by this library.
+- **typedefs** — Datatype aliases used by this library.
 
 These namespaces can be imported with:
 
 ```python
-from deap_er import base, creator, tools, gp, env, dtypes
+from deap_er import base, creator, tools, gp, env, typedefs
 ```

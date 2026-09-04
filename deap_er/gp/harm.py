@@ -14,10 +14,10 @@ from typing import Any
 
 from deap_er.base import Toolbox
 from deap_er.records import Logbook
-from deap_er.records.dtypes import AlgoResult, Hof, Stats
+from deap_er.records.typedefs import AlgoResult, Hof, Stats
 from deap_er.rng import rng
 
-from .dtypes import GPIndividual
+from .typedefs import GPIndividual
 
 __all__ = ["harm"]
 

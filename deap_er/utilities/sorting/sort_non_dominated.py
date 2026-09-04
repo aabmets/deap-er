@@ -13,7 +13,7 @@ from collections import defaultdict
 import moocore
 import numpy
 
-from deap_er.base.dtypes import Individual
+from deap_er.base.typedefs import Individual
 
 __all__ = ["sort_non_dominated"]
 

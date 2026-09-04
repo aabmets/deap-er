@@ -9,7 +9,7 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.base import Toolbox
-from deap_er.base.dtypes import Individual
+from deap_er.base.typedefs import Individual
 from deap_er.rng import rng
 
 __all__ = ["var_and", "var_or"]

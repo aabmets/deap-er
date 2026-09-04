@@ -11,7 +11,7 @@
 from itertools import chain
 from operator import attrgetter
 
-from deap_er.base.dtypes import Individual
+from deap_er.base.typedefs import Individual
 from deap_er.utilities.sorting import sort_non_dominated
 
 from .sel_helpers import assign_crowding_dist
