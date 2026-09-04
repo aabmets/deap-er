@@ -17,6 +17,8 @@ import numpy
 
 from deap_er.base.dtypes import *
 
+from ._common import _sample_offspring
+
 __all__ = ["StrategyOnePlusLambda"]
 
 
@@ -121,9 +123,7 @@ class StrategyOnePlusLambda:
         Returns:
             Newly sampled individuals.
         """
-        arz = numpy.random.standard_normal((self.lamb, self.dim))
-        arz = self.parent + self.sigma * numpy.dot(arz, self.big_a.T)
-        return list(map(ind_init, arz))
+        return _sample_offspring(self.parent, self.sigma, self.big_a, self.lamb, self.dim, ind_init)
 
     def update(self, population: list[Individual]) -> None:
         """Update parent, step-size, and covariance from ``population``.
@@ -155,6 +155,8 @@ class StrategyOnePlusLambda:
                     temp_2 = temp_1 + self.th_cum * (2 - self.th_cum) * self.big_c
                     self.big_c = (1 - self.cm_learn_rate) * self.big_c + self.cm_learn_rate * temp_2
 
+            # Kept inline rather than shared with the multi-objective strategy:
+            # the two groupings of this expression differ in the last ulp.
             temp_1 = self.psucc - self.tgt_sr
             self.sigma *= exp(1.0 / self.ss_dmp * temp_1 / (1.0 - self.tgt_sr))
             self.big_a = numpy.linalg.cholesky(self.big_c)

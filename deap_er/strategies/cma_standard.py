@@ -16,6 +16,8 @@ import numpy
 
 from deap_er.base.dtypes import Individual
 
+from ._common import _sample_offspring
+
 __all__ = ["Strategy"]
 
 
@@ -165,9 +167,9 @@ class Strategy:
         Returns:
             Newly sampled individuals.
         """
-        arz = numpy.random.standard_normal((self.lamb, self.dim))
-        arz = self.centroid + self.sigma * numpy.dot(arz, self.big_bd.T)
-        return list(map(ind_init, arz))
+        return _sample_offspring(
+            self.centroid, self.sigma, self.big_bd, self.lamb, self.dim, ind_init
+        )
 
     def update(self, population: list[Individual]) -> None:
         """Update centroid, step-size, and covariance from ``population``.

@@ -9,13 +9,15 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from collections.abc import Callable
-from math import exp, sqrt
+from math import sqrt
 from typing import Any
 
 import numpy
 
 from deap_er import utilities as utils
 from deap_er.base.dtypes import Individual
+
+from ._common import _step_size_multiplier
 
 __all__ = ["StrategyMultiObjective"]
 
@@ -63,7 +65,34 @@ class StrategyMultiObjective:
         self.dim = len(self.parents[0])
         pop_size = len(population)
 
-        self.mu = kwargs.get("survivors", pop_size)
+        self.mu: int
+        self.lamb: int
+        self.ss_dmp: float
+        self.tgt_sr: float
+        self.ss_learn_rate: float
+        self.th_cum: float
+        self.cm_learn_rate: float
+        self.thresh_sr: float
+
+        self.compute_params(**kwargs)
+
+        self.sigmas = [sigma] * pop_size
+        self.big_a = [numpy.identity(self.dim) for _ in range(pop_size)]
+        self.inv_cholesky = [numpy.identity(self.dim) for _ in range(pop_size)]
+        self.pc = [numpy.zeros(self.dim) for _ in range(pop_size)]
+        self.psucc = [self.tgt_sr] * pop_size
+
+    def compute_params(self, **kwargs: Any) -> None:
+        """Recompute strategy parameters from ``kwargs``.
+
+        Called from the constructor. Call again if ``offsprings`` or
+        ``survivors`` changes during evolution.
+
+        Args:
+            **kwargs: Optional strategy parameters. See the class
+                docstring.
+        """
+        self.mu = kwargs.get("survivors", len(self.parents))
         self.lamb = kwargs.get("offsprings", 1)
         self.ss_dmp = kwargs.get("ss_dmp", 1.0 + self.dim / 2.0)
         self.tgt_sr = kwargs.get("tgt_sr", 1.0 / (5.0 + 0.5))
@@ -71,12 +100,6 @@ class StrategyMultiObjective:
         self.th_cum = kwargs.get("th_cum", 2.0 / (self.dim + 2.0))
         self.cm_learn_rate = kwargs.get("cm_learn_rate", 2.0 / (self.dim**2 + 6.0))
         self.thresh_sr = kwargs.get("thresh_sr", 0.44)
-
-        self.sigmas = [sigma] * pop_size
-        self.big_a = [numpy.identity(self.dim) for _ in range(pop_size)]
-        self.inv_cholesky = [numpy.identity(self.dim) for _ in range(pop_size)]
-        self.pc = [numpy.zeros(self.dim) for _ in range(pop_size)]
-        self.psucc = [self.tgt_sr] * pop_size
 
     def _select(self, candidates: list[Individual]) -> tuple[list[Individual], list[Individual]]:
         """Split candidates into ``survivors`` chosen and the remainder.
@@ -173,29 +196,33 @@ class StrategyMultiObjective:
         cp, cc, c_cov = self.ss_learn_rate, self.th_cum, self.cm_learn_rate
         d, pt_arg, p_thresh = self.ss_dmp, self.tgt_sr, self.thresh_sr
 
-        bag = [list() for _ in range(6)]
+        last_steps: list[Any] = []
+        sigmas: list[Any] = []
+        inv_cholesky: list[Any] = []
+        big_a: list[Any] = []
+        pc: list[Any] = []
+        psucc: list[Any] = []
+        bags = (last_steps, sigmas, inv_cholesky, big_a, pc, psucc)
+
         for ind in chosen:
             if ind.ps_[0] == "o":
                 idx = ind.ps_[1]
-                bag[0].append(self.sigmas[idx])
-                bag[1].append(self.sigmas[idx])
-                bag[2].append(self.inv_cholesky[idx].copy())
-                bag[3].append(self.big_a[idx].copy())
-                bag[4].append(self.pc[idx].copy())
-                bag[5].append(self.psucc[idx])
+                last_steps.append(self.sigmas[idx])
+                sigmas.append(self.sigmas[idx])
+                inv_cholesky.append(self.inv_cholesky[idx].copy())
+                big_a.append(self.big_a[idx].copy())
+                pc.append(self.pc[idx].copy())
+                psucc.append(self.psucc[idx])
             else:
-                for b in bag:
-                    b.append(None)
-
-        last_steps, sigmas, inv_cholesky = bag[0], bag[1], bag[2]
-        big_a, pc, psucc = bag[3], bag[4], bag[5]
+                for bag in bags:
+                    bag.append(None)
 
         for i, ind in enumerate(chosen):
             t, p_idx = ind.ps_
 
             if t == "o":
                 psucc[i] = (1.0 - cp) * psucc[i] + cp
-                sigmas[i] = sigmas[i] * exp((psucc[i] - pt_arg) / (d * (1.0 - pt_arg)))
+                sigmas[i] = sigmas[i] * _step_size_multiplier(psucc[i], pt_arg, d)
 
                 if psucc[i] < p_thresh:
                     xp = numpy.array(ind)
@@ -212,7 +239,7 @@ class StrategyMultiObjective:
                     )
 
                 self.psucc[p_idx] = (1.0 - cp) * self.psucc[p_idx] + cp
-                exp_ = exp((self.psucc[p_idx] - pt_arg) / (d * (1.0 - pt_arg)))
+                exp_ = _step_size_multiplier(self.psucc[p_idx], pt_arg, d)
                 self.sigmas[p_idx] = self.sigmas[p_idx] * exp_
 
         for ind in not_chosen:
@@ -220,7 +247,7 @@ class StrategyMultiObjective:
 
             if t == "o":
                 self.psucc[p_idx] = (1.0 - cp) * self.psucc[p_idx]
-                exp_ = exp((self.psucc[p_idx] - pt_arg) / (d * (1.0 - pt_arg)))
+                exp_ = _step_size_multiplier(self.psucc[p_idx], pt_arg, d)
                 self.sigmas[p_idx] = self.sigmas[p_idx] * exp_
 
         sources = {
@@ -232,13 +259,13 @@ class StrategyMultiObjective:
         }
         for name, var in sources.items():
             attr = getattr(self, name)
-            bag = list()
+            merged = list()
             for i, ind in enumerate(chosen):
                 if ind.ps_[0] == "o":
-                    bag.append(var[i])
+                    merged.append(var[i])
                 else:
-                    bag.append(attr[ind.ps_[1]])
-            setattr(self, name, bag)
+                    merged.append(attr[ind.ps_[1]])
+            setattr(self, name, merged)
 
         self.parents = chosen
 
