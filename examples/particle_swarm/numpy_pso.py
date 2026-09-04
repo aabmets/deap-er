@@ -1,10 +1,8 @@
-from deap_er import creator
-from deap_er import tools
-from deap_er import base
-import random
-import numpy
 import math
+import random
 
+import numpy
+from deap_er import base, creator, tools
 
 random.seed(1234)  # disables randomization
 

@@ -1,11 +1,8 @@
-from deap_er import creator
-from deap_er import tools
-from deap_er import base
-from deap_er import gp
 import operator
 import random
-import numpy
 
+import numpy
+from deap_er import base, creator, gp, tools
 
 random.seed(1234)  # disables randomization
 
@@ -36,7 +33,7 @@ def fill_inputs_outputs():
 
 def evaluate(individual, toolbox):
     func = toolbox.compile(expr=individual)
-    result = sum(func(*in_) == out for in_, out in zip(inputs, outputs))
+    result = sum(func(*in_) == out for in_, out in zip(inputs, outputs, strict=False))
     return (result,)  # The comma is essential here.
 
 

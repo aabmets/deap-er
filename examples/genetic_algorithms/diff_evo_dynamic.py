@@ -1,12 +1,10 @@
-from deap_er import creator
-from deap_er import tools
-from deap_er import base
-import itertools
-import random
 import array
-import numpy
+import itertools
 import math
+import random
 
+import numpy
+from deap_er import base, creator, tools
 
 # Disable randomization to guarantee reproducibility
 random.seed(1234)
@@ -120,7 +118,7 @@ def regular_diff_evo(toolbox, subpop, xbest, new_pop) -> None:
         x1, x2, x3, x4 = toolbox.select(subpop)
         offspring = toolbox.clone(individual)
         index = random.randrange(NDIMS)
-        for i, value in enumerate(individual):
+        for i, _value in enumerate(individual):
             if i == index or random.random() < CR:
                 offspring[i] = xbest[i] + F * (x1[i] + x2[i] - x3[i] - x4[i])
         offspring.fitness.values = toolbox.evaluate(offspring)
@@ -146,9 +144,9 @@ def main():
     populations = [toolbox.population(size=TOTAL_POP_SIZE) for _ in range(NPOPS)]
 
     # Evaluate the initial populations.
-    for idx, subpop in enumerate(populations):
+    for subpop in populations:
         fitness = toolbox.map(toolbox.evaluate, subpop)
-        for ind, fit in zip(subpop, fitness):
+        for ind, fit in zip(subpop, fitness, strict=False):
             ind.fitness.values = fit
 
     logger.log(0, populations)
@@ -167,7 +165,7 @@ def main():
         chain = itertools.chain(*populations)
         invalid_ind = [ind for ind in chain if not ind.fitness.is_valid()]
         fitness = toolbox.map(toolbox.evaluate, invalid_ind)
-        for ind, fit in zip(invalid_ind, fitness):
+        for ind, fit in zip(invalid_ind, fitness, strict=False):
             ind.fitness.values = fit
 
         logger.log(generation, populations)

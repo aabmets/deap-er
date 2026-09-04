@@ -1,8 +1,5 @@
-from deap_er import creator
-from deap_er import tools
-from deap_er import base
 import numpy
-
+from deap_er import base, creator, tools
 
 numpy.random.seed(1234)  # disables randomization
 
@@ -16,9 +13,7 @@ NGEN = 500
 
 
 def validity(individual):
-    if any(individual < MIN_BOUND) or any(individual > MAX_BOUND):
-        return False
-    return True
+    return not (any(individual < MIN_BOUND) or any(individual > MAX_BOUND))
 
 
 def feasible(individual):
@@ -29,7 +24,7 @@ def feasible(individual):
 
 
 def distance(feasible_ind, original_ind):
-    return sum((f - o) ** 2 for f, o in zip(feasible_ind, original_ind))
+    return sum((f - o) ** 2 for f, o in zip(feasible_ind, original_ind, strict=False))
 
 
 def setup():
@@ -77,7 +72,7 @@ def main():
         population = toolbox.generate()
         fitness = toolbox.map(toolbox.evaluate, population)
 
-        for ind, fit in zip(population, fitness):
+        for ind, fit in zip(population, fitness, strict=False):
             ind.fitness.values = fit
             fitness_history.append(fit)
 

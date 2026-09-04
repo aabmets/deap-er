@@ -1,12 +1,9 @@
-from deap_er import creator
-from deap_er import tools
-from deap_er import base
-from deap_er import gp
+import math
 import operator
 import random
-import numpy
-import math
 
+import numpy
+from deap_er import base, creator, gp, tools
 
 random.seed(1234)  # disables randomization
 
@@ -130,15 +127,15 @@ def main():
         offspring = toolbox.select(pop, len(pop))
         offspring = [toolbox.clone(ind) for ind in offspring]
 
-        for ind1, ind2 in zip(offspring[::2], offspring[1::2]):
-            for tree1, tree2 in zip(ind1, ind2):
+        for ind1, ind2 in zip(offspring[::2], offspring[1::2], strict=False):
+            for tree1, tree2 in zip(ind1, ind2, strict=False):
                 if random.random() < CX_PROB:
                     toolbox.mate(tree1, tree2)
                     del ind1.fitness.values
                     del ind2.fitness.values
 
         for ind in offspring:
-            for tree, pset in zip(ind, psets):
+            for tree, pset in zip(ind, psets, strict=False):
                 if random.random() < MUT_PROB:
                     toolbox.mutate(individual=tree, prim_set=pset)
                     del ind.fitness.values

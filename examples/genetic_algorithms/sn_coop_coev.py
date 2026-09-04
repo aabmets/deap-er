@@ -1,9 +1,7 @@
-from deap_er import creator
-from deap_er import tools
-from deap_er import base
 import random
-import numpy
 
+import numpy
+from deap_er import base, creator, tools
 
 random.seed(1234)  # disables randomization
 
@@ -32,7 +30,7 @@ def eval_network(host, parasite, dimension):
 
 def mut_network(individual, dimension, mutpb, addpb, delpb, indpb):
     if random.random() < mutpb:
-        for index, elem in enumerate(individual):
+        for index, _elem in enumerate(individual):
             if random.random() < indpb:
                 individual[index] = gen_wire(dimension)
     if random.random() < addpb:
@@ -118,7 +116,7 @@ def main():
 
     def evaluate_fitness():
         fits = h_toolbox.map(h_toolbox.evaluate, hosts, parasites)
-        for host, parasite, fit in zip(hosts, parasites, fits):
+        for host, parasite, fit in zip(hosts, parasites, fits, strict=False):
             host.fitness.values = parasite.fitness.values = fit
 
     def log_stats(ngen=0):

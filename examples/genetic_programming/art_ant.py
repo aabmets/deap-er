@@ -1,12 +1,9 @@
-from deap_er import creator
-from deap_er import tools
-from deap_er import base
-from deap_er import gp
-from functools import partial
-import random
-import numpy
 import copy
+import random
+from functools import partial
 
+import numpy
+from deap_er import base, creator, gp, tools
 
 random.seed(1234)  # disables randomization
 

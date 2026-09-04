@@ -1,8 +1,6 @@
-from deap_er import creator
-from deap_er import tools
-from deap_er import base
 import random
 
+from deap_er import base, creator, tools
 
 random.seed(1234)  # disables randomization
 
@@ -38,7 +36,7 @@ def main():
     population = toolbox.population(size=300)
 
     fitness = map(toolbox.evaluate, population)
-    for ind, fit in zip(population, fitness):
+    for ind, fit in zip(population, fitness, strict=False):
         ind.fitness.values = fit
     fits = [ind.fitness.values[0] for ind in population]
 
@@ -47,7 +45,7 @@ def main():
         offspring = toolbox.select(population, len(population))
         offspring = list(map(toolbox.clone, offspring))
 
-        for child1, child2 in zip(offspring[::2], offspring[1::2]):
+        for child1, child2 in zip(offspring[::2], offspring[1::2], strict=False):
             if random.random() < CX_PROB:
                 toolbox.mate(child1, child2)
                 del child1.fitness.values
@@ -60,7 +58,7 @@ def main():
 
         invalid_ind = [ind for ind in offspring if not ind.fitness.is_valid()]
         fitness = map(toolbox.evaluate, invalid_ind)
-        for ind, fit in zip(invalid_ind, fitness):
+        for ind, fit in zip(invalid_ind, fitness, strict=False):
             ind.fitness.values = fit
         population[:] = offspring
         fits = [ind.fitness.values[0] for ind in population]

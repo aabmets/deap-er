@@ -1,10 +1,8 @@
-from deap_er import creator
-from deap_er import tools
-from deap_er import base
-import random
 import array
-import numpy
+import random
 
+import numpy
+from deap_er import base, creator, tools
 
 random.seed(1234)  # disables randomization
 
@@ -55,7 +53,7 @@ def main():
         print(logbook.stream)
 
     fitness = toolbox.map(toolbox.evaluate, pop)
-    for ind, fit in zip(pop, fitness):
+    for ind, fit in zip(pop, fitness, strict=False):
         ind.fitness.values = fit
 
     log_stats()
@@ -65,7 +63,7 @@ def main():
             a, b, c = toolbox.select(pop)
             y = toolbox.clone(agent)
             index = random.randrange(NDIM)
-            for i, value in enumerate(agent):
+            for i, _value in enumerate(agent):
                 if i == index or random.random() < CR:
                     y[i] = a[i] + F * (b[i] - c[i])
             y.fitness.values = toolbox.evaluate(y)

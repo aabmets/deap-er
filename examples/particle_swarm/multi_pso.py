@@ -1,12 +1,10 @@
-from deap_er import creator
-from deap_er import tools
-from deap_er import base
 import itertools
+import math
 import operator
 import random
-import numpy
-import math
 
+import numpy
+from deap_er import base, creator, tools
 
 # Disable randomization to guarantee reproducibility
 random.seed(1234)
@@ -60,16 +58,18 @@ def convert_swarm(swarm, rcloud, centre, dist):
         if dist == "gaussian":
             u = abs(random.gauss(0, 1.0 / 3.0))
             part[:] = [
-                (rcloud * x * u ** (1.0 / dim) / dist_) + c for x, c in zip(position, centre)
+                (rcloud * x * u ** (1.0 / dim) / dist_) + c
+                for x, c in zip(position, centre, strict=False)
             ]
         elif dist == "uvd":
             u = random.random()
             part[:] = [
-                (rcloud * x * u ** (1.0 / dim) / dist_) + c for x, c in zip(position, centre)
+                (rcloud * x * u ** (1.0 / dim) / dist_) + c
+                for x, c in zip(position, centre, strict=False)
             ]
         elif dist == "nuvd":
             u = abs(random.gauss(0, 1.0 / 3.0))
-            part[:] = [(rcloud * x * u / dist_) + c for x, c in zip(position, centre)]
+            part[:] = [(rcloud * x * u / dist_) + c for x, c in zip(position, centre, strict=False)]
 
         del part.fitness.values
         del part.bestfit.values
@@ -169,7 +169,7 @@ def main():
 
     # Evaluate the initial population.
     for swarm in population:
-        for part in swarm:
+        for _part in swarm:
             update_fitness(swarm)
 
     log_stats()
@@ -188,7 +188,7 @@ def main():
         # worst swarm according to its best global position.
         for i, swarm in enumerate(population):
             for p1, p2 in itertools.combinations(swarm, 2):
-                d = math.sqrt(sum((x1 - x2) ** 2.0 for x1, x2 in zip(p1, p2)))
+                d = math.sqrt(sum((x1 - x2) ** 2.0 for x1, x2 in zip(p1, p2, strict=False)))
                 if d > 2 * rex_cl:
                     not_converged += 1
                     if not worst_swarm or swarm.bestfit < worst_swarm.bestfit:
@@ -232,7 +232,7 @@ def main():
                 and not (s1 in reinit_swarms or s2 in reinit_swarms)
             ):
                 dist = 0
-                for x1, x2 in zip(population[s1].best, population[s2].best):
+                for x1, x2 in zip(population[s1].best, population[s2].best, strict=False):
                     dist += (x1 - x2) ** 2.0
                 dist = math.sqrt(dist)
                 if dist < rex_cl:
@@ -244,7 +244,7 @@ def main():
         # Reinitialize and evaluate swarms.
         for s in reinit_swarms:
             population[s] = toolbox.swarm(size=NPARTICLES)
-            for part in population[s]:
+            for _part in population[s]:
                 update_fitness(population[s])
 
         # Update iteration counter.

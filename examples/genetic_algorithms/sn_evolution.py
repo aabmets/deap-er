@@ -1,9 +1,7 @@
-from deap_er import creator
-from deap_er import tools
-from deap_er import base
 import random
-import numpy
 
+import numpy
+from deap_er import base, creator, tools
 
 random.seed(1234)  # disables randomization
 
@@ -33,7 +31,7 @@ def gen_network(dimension, min_size, max_size):
 
 
 def mut_wire(individual, dimension, mut_prob):
-    for index, elem in enumerate(individual):
+    for index, _elem in enumerate(individual):
         if random.random() < mut_prob:
             individual[index] = gen_wire(dimension)
 
@@ -94,7 +92,7 @@ def main():
         print(logbook.stream)
 
     fitness = toolbox.map(toolbox.evaluate, population)
-    for ind, fit in zip(population, fitness):
+    for ind, fit in zip(population, fitness, strict=False):
         ind.fitness.values = fit
 
     log_stats()
@@ -102,7 +100,7 @@ def main():
     for generation in range(1, NGEN):
         offspring = [toolbox.clone(ind) for ind in population]
 
-        for ind1, ind2 in zip(offspring[::2], offspring[1::2]):
+        for ind1, ind2 in zip(offspring[::2], offspring[1::2], strict=False):
             if random.random() < CX_PROB:
                 toolbox.mate(ind1, ind2)
                 del ind1.fitness.values
@@ -121,7 +119,7 @@ def main():
 
         invalid_ind = [ind for ind in offspring if not ind.fitness.is_valid()]
         fitness = toolbox.map(toolbox.evaluate, invalid_ind)
-        for ind, fit in zip(invalid_ind, fitness):
+        for ind, fit in zip(invalid_ind, fitness, strict=False):
             ind.fitness.values = fit
 
         population = toolbox.select(population + offspring, len(offspring))
