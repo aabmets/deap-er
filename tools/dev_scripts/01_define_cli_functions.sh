@@ -59,6 +59,16 @@ pycov() {
     fi
 }
 
+rtfm() {
+    local docs_path="$(pwd)/site/index.html"
+    if [[ -f "$docs_path" ]]; then
+        cmd.exe /c start "" "$(wslpath -w "$docs_path")" 2>/dev/null
+    else
+        >&2 echo "ERROR: Documentation site not found at '${docs_path}'."
+        return 1
+    fi
+}
+
 allure() {
     local allure_bin="${PROJECT_DIR}/node_modules/.bin/allure"
 
