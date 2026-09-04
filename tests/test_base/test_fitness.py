@@ -58,6 +58,31 @@ class TestFitness:
         assert not ft3.dominates(ft1)
         assert not ft3.dominates(ft2)
 
+        assert not ft1.dominates(ft1)
+        assert not ft1.dominates(Fitness([2, 2, 2]))
+
+    def test_domination_respects_objective_slice(self, monkeypatch):
+        monkeypatch.setattr(Fitness, "weights", [1, 1, 1])
+        better_first = Fitness([3, 1, 1])
+        better_rest = Fitness([2, 9, 9])
+
+        assert not better_first.dominates(better_rest)
+        assert not better_rest.dominates(better_first)
+        assert better_first.dominates(better_rest, slc=slice(0, 1))
+        assert better_rest.dominates(better_first, slc=slice(1, None))
+
+    def test_domination_uses_weighted_values(self, monkeypatch):
+        # Maximize the first objective, minimize the second. Raw values make
+        # the second look worse for `low_second`; wvalues reverse that.
+        monkeypatch.setattr(Fitness, "weights", [1, -1])
+        low_second = Fitness([2, 5])
+        high_second = Fitness([1, 10])
+
+        assert low_second.wvalues == (2.0, -5.0)
+        assert high_second.wvalues == (1.0, -10.0)
+        assert low_second.dominates(high_second)
+        assert not high_second.dominates(low_second)
+
     def test_comparison(self, monkeypatch):
         monkeypatch.setattr(Fitness, "weights", [1, 1, 1])
         ft1 = Fitness([2, 2, 2])

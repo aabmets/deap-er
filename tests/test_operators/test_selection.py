@@ -11,6 +11,7 @@
 import numpy
 import pytest
 from deap_er import base, creator, tools
+from deap_er.operators.selection.sel_nsga_3 import _associate_to_niche
 
 SO_FIT = "SEL_SO_FIT"
 SO_IND = "SEL_SO_IND"
@@ -160,6 +161,32 @@ def test_spea2_returns_requested_count(multi_obj):
     assert len(tools.sel_spea_2(population, 4)) == 4
 
 
+@pytest.mark.parametrize(
+    ("sel_count", "expected"),
+    [
+        (2, [7, 8]),
+        (5, [7, 8, 5, 9, 4]),
+    ],
+)
+def test_spea2_mixed_sign_weights_change_the_archive(sel_count, expected):
+    # Dominance uses wvalues, so maximizing the first objective and
+    # minimizing the second is not the same front as (1, 1) weights.
+    # Distances stay in objective-value space.
+    creator.create("SEL_MS_FIT", base.Fitness, weights=(1.0, -1.0))
+    creator.create("SEL_MS_IND", list, fitness=creator.__dict__["SEL_MS_FIT"])
+    try:
+        population = [
+            _make(creator.__dict__["SEL_MS_IND"], [i], value)
+            for i, value in enumerate(SPEA2_VALUES)
+        ]
+        tools.seed(2024)
+        chosen = tools.sel_spea_2(population, sel_count)
+        assert [ind[0] for ind in chosen] == expected
+    finally:
+        del creator.__dict__["SEL_MS_FIT"]
+        del creator.__dict__["SEL_MS_IND"]
+
+
 def test_roulette_returns_requested_count(single_obj):
     population = [_make(single_obj, [i], (float(i + 1),)) for i in range(6)]
 
@@ -185,3 +212,31 @@ def test_nsga3_with_memory_updates_reference_points(multi_obj):
     assert numpy.all(numpy.isfinite(select.best_point))
     assert numpy.all(numpy.isfinite(select.worst_point))
     assert select.extreme_points is not None
+
+
+def test_nsga3_associates_points_to_the_nearest_niche():
+    fitness = numpy.array(
+        [
+            [0.0, 1.0],
+            [0.5, 0.5],
+            [1.0, 0.0],
+            [0.2, 0.8],
+            [0.8, 0.2],
+        ],
+        dtype=float,
+    )
+    ref_points = numpy.array(
+        [
+            [1.0, 0.0],
+            [0.5, 0.5],
+            [0.0, 1.0],
+        ],
+        dtype=float,
+    )
+    best_point = numpy.zeros(2, dtype=float)
+    intercepts = numpy.ones(2, dtype=float)
+
+    niches, distances = _associate_to_niche(fitness, ref_points, best_point, intercepts)
+
+    assert niches.tolist() == [2, 1, 0, 2, 0]
+    assert distances == pytest.approx([0.0, 0.0, 0.0, 0.2, 0.2], abs=1e-15)

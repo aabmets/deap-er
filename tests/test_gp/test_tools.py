@@ -25,6 +25,21 @@ def test_compile_tree_without_arguments():
     assert compile_tree(tree, pset) == 5
 
 
+def test_compile_tree_sees_in_place_node_replacement():
+    # A cache keyed only by id(tree) would keep the add() callable after
+    # the root is replaced. Recompilation must read the current nodes.
+    pset = PrimitiveSet("main", 1)
+    pset.add_primitive(operator.add, 2)
+    pset.add_primitive(operator.mul, 2)
+    tree = PrimitiveTree.from_string("add(ARG0, 2)", pset)
+
+    assert compile_tree(tree, pset)(3) == 5
+
+    tree[0] = pset.mapping["mul"]
+
+    assert compile_tree(tree, pset)(3) == 6
+
+
 def test_compile_adf_tree_wires_automatically_defined_functions():
     adf = PrimitiveSet("ADF0", 2)
     adf.add_primitive(operator.add, 2)

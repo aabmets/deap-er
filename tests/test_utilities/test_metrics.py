@@ -58,5 +58,6 @@ def test_nsga_convergence_and_inverted_generational_distance():
         igd = tools.inv_gen_dist(optimal, approx)
     finally:
         _teardown()
-    assert conv > 0.0
+    # Each front point is sqrt(0.02) from its nearest true-front vertex.
+    assert conv == pytest.approx(0.1414213562373095, rel=1e-6)
     assert igd == pytest.approx(0.1414213562373095, rel=1e-6)
