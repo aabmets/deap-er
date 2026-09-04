@@ -10,7 +10,8 @@
 #
 from .dtypes import *
 from .primitives import *
-from typing import Any, Callable, Union
+from typing import Any
+from collections.abc import Callable
 from functools import wraps
 from copy import deepcopy
 import random
@@ -104,7 +105,7 @@ def build_tree_graph(expr: GPExprTypes) -> GPGraph:
     return nodes, edges, labels
 
 
-def static_limit(limiter: Callable, max_value: Union[int, float]) -> Callable:
+def static_limit(limiter: Callable[..., Any], max_value: int | float) -> Callable[..., Any]:
     """Return a decorator that rejects oversized GP offspring.
 
     May wrap crossover or mutation. An offspring whose measurement
@@ -118,9 +119,9 @@ def static_limit(limiter: Callable, max_value: Union[int, float]) -> Callable:
         A decorator for a GP operator registered on a Toolbox.
     """
 
-    def decorator(func):
+    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> list[Any]:
             keep_inds = [deepcopy(ind) for ind in args]
             new_inds = list(func(*args, **kwargs))
             for i, ind in enumerate(new_inds):

@@ -9,7 +9,8 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from .primitives import PrimitiveSetTyped
-from typing import Callable, Optional, Any
+from typing import Any
+from collections.abc import Callable
 from inspect import isclass
 import random
 import sys
@@ -22,9 +23,9 @@ def generate(
     prim_set: PrimitiveSetTyped,
     min_depth: int,
     max_depth: int,
-    condition: Callable,
-    ret_type: Optional[Any] = None,
-) -> list:
+    condition: Callable[..., bool],
+    ret_type: Any | None = None,
+) -> list[Any]:
     """Grow a tree as a depth-first list of primitives and terminals.
 
     Each branch grows until ``condition`` is true. The list can be
@@ -80,8 +81,8 @@ def generate(
 
 
 def gen_full(
-    prim_set: PrimitiveSetTyped, min_depth: int, max_depth: int, ret_type: Optional[Any] = None
-) -> list:
+    prim_set: PrimitiveSetTyped, min_depth: int, max_depth: int, ret_type: Any | None = None
+) -> list[Any]:
     """Generate a full tree whose leaves share one depth.
 
     The common leaf depth is drawn between ``min_depth`` and
@@ -98,15 +99,15 @@ def gen_full(
         A full tree as a list of primitives and terminals.
     """
 
-    def condition(height, depth):
+    def condition(height: int, depth: int) -> bool:
         return height == depth
 
     return generate(prim_set, min_depth, max_depth, condition, ret_type)
 
 
 def gen_grow(
-    prim_set: PrimitiveSetTyped, min_depth: int, max_depth: int, ret_type: Optional[Any] = None
-) -> list:
+    prim_set: PrimitiveSetTyped, min_depth: int, max_depth: int, ret_type: Any | None = None
+) -> list[Any]:
     """Generate a grown tree whose leaves may have different depths.
 
     Each leaf depth lies between ``min_depth`` and ``max_depth``.
@@ -122,7 +123,7 @@ def gen_grow(
         A grown tree as a list of primitives and terminals.
     """
 
-    def condition(height, depth):
+    def condition(height: int, depth: int) -> bool:
         cond = random.random() < prim_set.terminal_ratio
         return depth == height or (depth >= min_depth and cond)
 
@@ -130,8 +131,8 @@ def gen_grow(
 
 
 def gen_half_and_half(
-    prim_set: PrimitiveSetTyped, min_depth: int, max_depth: int, ret_type: Optional[Any] = None
-) -> list:
+    prim_set: PrimitiveSetTyped, min_depth: int, max_depth: int, ret_type: Any | None = None
+) -> list[Any]:
     """Generate a tree with either ``gen_grow`` or ``gen_full``.
 
     Args:

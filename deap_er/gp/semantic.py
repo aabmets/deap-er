@@ -11,7 +11,8 @@
 from .dtypes import *
 from .primitives import *
 from .generators import gen_grow
-from typing import Callable
+from collections.abc import Callable
+from typing import Any
 import random
 
 
@@ -19,13 +20,13 @@ __all__ = ["mut_semantic", "cx_semantic"]
 
 
 def mut_semantic(
-    individual: list,
+    individual: list[Any],
     prim_set: PrimitiveSetTyped,
     min_depth: int = 2,
     max_depth: int = 6,
-    gen_func: Callable = None,
-    mut_step: float = None,
-) -> tuple[list]:
+    gen_func: Callable[..., Any] | None = None,
+    mut_step: float | None = None,
+) -> tuple[list[Any]]:
     """Mutate an individual by a semantic mutation.
 
     Args:
@@ -69,13 +70,13 @@ def mut_semantic(
 
 
 def cx_semantic(
-    ind1: list,
-    ind2: list,
+    ind1: list[Any],
+    ind2: list[Any],
     prim_set: PrimitiveSetTyped,
     min_depth: int = 2,
     max_depth: int = 6,
-    gen_func: Callable = gen_grow,
-) -> tuple[list, list]:
+    gen_func: Callable[..., Any] = gen_grow,
+) -> tuple[list[Any], list[Any]]:
     """Mate two individuals by a semantic crossover.
 
     Args:
@@ -94,7 +95,7 @@ def cx_semantic(
     tr = gen_func(prim_set, min_depth, max_depth)
     tr.insert(0, prim_set.mapping["lf"])
 
-    def create_ind(ind, ind_ext):
+    def create_ind(ind: list[Any], ind_ext: list[Any]) -> list[Any]:
         new_ind = ind
         new_ind.insert(0, prim_set.mapping["mul"])
         new_ind.insert(0, prim_set.mapping["add"])

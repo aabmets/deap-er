@@ -10,7 +10,8 @@
 #
 from __future__ import annotations
 from collections import defaultdict, deque
-from typing import Union, Type, Callable, Iterable, Any
+from typing import Any
+from collections.abc import Callable, Iterable
 import copy
 import abc
 import re
@@ -40,7 +41,7 @@ class Terminal:
 
     __slots__ = ("name", "value", "ret", "conv_fct")
 
-    def __init__(self, terminal: Any, symbolic: bool, ret_type: type):
+    def __init__(self, terminal: Any, symbolic: bool, ret_type: type) -> None:
         """Store ``terminal`` as a named leaf of ``ret_type``."""
         self.ret = ret_type
         self.value = terminal
@@ -48,18 +49,18 @@ class Terminal:
         self.conv_fct = str if symbolic else repr
 
     @property
-    def arity(self):
+    def arity(self) -> int:
         """Number of arguments this terminal takes.
 
         Always 0.
         """
         return 0
 
-    def format(self):
+    def format(self) -> str:
         """Return the string form of the terminal value."""
         return self.conv_fct(self.value)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         """Return whether ``other`` is a terminal with the same slots."""
         if type(self) is type(other):
             return all(getattr(self, slot) == getattr(other, slot) for slot in self.__slots__)
@@ -74,13 +75,13 @@ class Ephemeral(Terminal):
     ``func``.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Sample ``func`` and initialize as a non-symbolic terminal."""
         Terminal.__init__(self, self.func(), symbolic=False, ret_type=self.ret)
 
     @staticmethod
     @abc.abstractmethod
-    def func():
+    def func() -> Any:
         """Produce a new ephemeral value.
 
         Subclasses must override this static method.
@@ -104,7 +105,7 @@ class Primitive:
 
     __slots__ = ("name", "arity", "args", "ret", "seq")
 
-    def __init__(self, name: str, args: list, ret_type: type):
+    def __init__(self, name: str, args: list[type], ret_type: type) -> None:
         """Store the primitive name, argument types, and return type."""
         self.name = name
         self.arity = len(args)
@@ -113,7 +114,7 @@ class Primitive:
         args = ", ".join(map("{{{0}}}".format, list(range(self.arity))))
         self.seq = "{name}({args})".format(name=self.name, args=args)
 
-    def format(self, *args):
+    def format(self, *args: str) -> str:
         """Format this primitive as a Python call.
 
         Args:
@@ -124,7 +125,7 @@ class Primitive:
         """
         return self.seq.format(*args)
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         """Return whether ``other`` is a primitive with the same slots."""
         if type(self) is type(other):
             return all(getattr(self, slot) == getattr(other, slot) for slot in self.__slots__)
@@ -142,7 +143,9 @@ class PrimitiveSetTyped:
         prefix: Prefix used to name input arguments.
     """
 
-    def __init__(self, name: str, in_types: list, ret_type: type, prefix: str = "ARG") -> None:
+    def __init__(
+        self, name: str, in_types: list[type], ret_type: type, prefix: str = "ARG"
+    ) -> None:
         """Create an empty typed set and register one terminal per input."""
         self.name = name
         self.ins = in_types
@@ -164,7 +167,7 @@ class PrimitiveSetTyped:
             self.terms_count += 1
 
     @staticmethod
-    def _add_type(mapping: dict, ret_type: Any) -> None:
+    def _add_type(mapping: dict[Any, list[Any]], ret_type: Any) -> None:
         """Ensure ``mapping`` has a list for ``ret_type``.
 
         If the type is new, the list is filled with items already stored
@@ -183,7 +186,7 @@ class PrimitiveSetTyped:
                             new_list.append(item)
             mapping[ret_type] = new_list
 
-    def _add_prim(self, prim: Union[Primitive, Terminal, Type[Ephemeral]]) -> None:
+    def _add_prim(self, prim: Primitive | Terminal | type[Ephemeral]) -> None:
         """Register ``prim`` in this set under its return type.
 
         Args:
@@ -206,7 +209,11 @@ class PrimitiveSetTyped:
                 mapping[type_].append(prim)
 
     def add_primitive(
-        self, primitive: Callable, in_types: list, ret_type: type, name: str = None
+        self,
+        primitive: Callable[..., Any],
+        in_types: list[type],
+        ret_type: type,
+        name: str | None = None,
     ) -> None:
         """Add a primitive to the set.
 
@@ -234,7 +241,7 @@ class PrimitiveSetTyped:
         self.context[prim.name] = primitive
         self.prims_count += 1
 
-    def add_terminal(self, terminal: Callable, ret_type: type, name: str = None) -> None:
+    def add_terminal(self, terminal: Any, ret_type: type, name: str | None = None) -> None:
         """Add a terminal to the set.
 
         Args:
@@ -267,7 +274,9 @@ class PrimitiveSetTyped:
         self._add_prim(prim)
         self.terms_count += 1
 
-    def add_ephemeral_constant(self, name: str, ephemeral: Callable, ret_type: type) -> None:
+    def add_ephemeral_constant(
+        self, name: str, ephemeral: Callable[..., Any], ret_type: type
+    ) -> None:
         """Add an ephemeral constant to the set.
 
         An ephemeral is a zero-arity function that returns a random
@@ -319,7 +328,7 @@ class PrimitiveSetTyped:
         self._add_prim(prim)
         self.prims_count += 1
 
-    def rename_arguments(self, **kwargs) -> None:
+    def rename_arguments(self, **kwargs: str) -> None:
         """Rename input arguments using the given mapping.
 
         Args:
@@ -335,7 +344,7 @@ class PrimitiveSetTyped:
                 del self.mapping[old_name]
 
     @property
-    def terminal_ratio(self):
+    def terminal_ratio(self) -> float:
         """Ratio of terminals to all primitives in the set."""
         return self.terms_count / float(self.terms_count + self.prims_count)
 
@@ -352,12 +361,14 @@ class PrimitiveSet(PrimitiveSetTyped):
         prefix: Prefix used to name input arguments.
     """
 
-    def __init__(self, name: str, arity: int, prefix: str = "ARG"):
+    def __init__(self, name: str, arity: int, prefix: str = "ARG") -> None:
         """Create an untyped set with ``arity`` inputs."""
         args = [object] * arity
         super().__init__(name, args, object, prefix)
 
-    def add_primitive(self, primitive: Callable, arity: int, name: str = None, *_, **__) -> None:
+    def add_primitive(
+        self, primitive: Callable[..., Any], arity: int, name: str | None = None, *_: Any, **__: Any
+    ) -> None:
         """Add an untyped primitive of the given arity.
 
         Args:
@@ -374,7 +385,7 @@ class PrimitiveSet(PrimitiveSetTyped):
         args = [object] * arity
         super().add_primitive(primitive, args, object, name)
 
-    def add_terminal(self, terminal: Any, name: str = None, *_, **__) -> None:
+    def add_terminal(self, terminal: Any, name: str | None = None, *_: Any, **__: Any) -> None:
         """Add an untyped terminal to the set.
 
         Args:
@@ -384,7 +395,9 @@ class PrimitiveSet(PrimitiveSetTyped):
         """
         super().add_terminal(terminal, object, name)
 
-    def add_ephemeral_constant(self, name: str, ephemeral: Callable, *_, **__) -> None:
+    def add_ephemeral_constant(
+        self, name: str, ephemeral: Callable[..., Any], *_: Any, **__: Any
+    ) -> None:
         """Add an untyped ephemeral constant to the set.
 
         Args:
@@ -404,11 +417,11 @@ class PrimitiveTree(list):
         content: Primitives and terminals that form the tree.
     """
 
-    def __init__(self, content: Iterable):
+    def __init__(self, content: Iterable[Any]) -> None:
         """Initialize the tree from ``content``."""
         super().__init__(content)
 
-    def __deepcopy__(self, memo: dict):
+    def __deepcopy__(self, memo: dict[int, Any]) -> PrimitiveTree:
         """Return a deep copy of this tree.
 
         Args:
@@ -421,7 +434,7 @@ class PrimitiveTree(list):
         new.__dict__.update(copy.deepcopy(self.__dict__, memo))
         return new
 
-    def __setitem__(self, key, val):
+    def __setitem__(self, key: int | slice, val: Any) -> None:
         """Replace a node or subtree, preserving tree arity.
 
         Args:
@@ -452,7 +465,7 @@ class PrimitiveTree(list):
             )
         list.__setitem__(self, key, val)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Return the tree as a Python expression string."""
         string = str()
         stack = list()
@@ -539,7 +552,7 @@ class PrimitiveTree(list):
         return slice(begin, end)
 
     @property
-    def height(self):
+    def height(self) -> int:
         """Height of the tree, which is the depth of the deepest node."""
         stack = [0]
         max_depth = 0
@@ -550,6 +563,6 @@ class PrimitiveTree(list):
         return max_depth
 
     @property
-    def root(self):
+    def root(self) -> Any:
         """Root node of the tree (the first element)."""
         return self[0]

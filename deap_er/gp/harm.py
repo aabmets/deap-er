@@ -11,7 +11,8 @@
 from deap_er.records.dtypes import *
 from deap_er.records import Logbook
 from deap_er.base import Toolbox
-from typing import Callable
+from collections.abc import Callable
+from .dtypes import GPIndividual
 import random
 import math
 
@@ -21,7 +22,7 @@ __all__ = ["harm"]
 
 def harm(
     toolbox: Toolbox,
-    population: list,
+    population: list[GPIndividual],
     generations: int,
     cx_prob: float,
     mut_prob: float,
@@ -31,8 +32,8 @@ def harm(
     rho: float = 0.9,
     nb_model: int = -1,
     min_cutoff: int = 20,
-    hof: Hof = None,
-    stats: Stats = None,
+    hof: Hof | None = None,
+    stats: Stats | None = None,
     verbose: bool = False,
 ) -> AlgoResult:
     """Evolve a GP population with HARM bloat control.
@@ -79,8 +80,10 @@ def harm(
         return random.random() <= prob
 
     def _harm_gen_pop(
-        n: int, pick_from: list = None, accept_func: Callable = lambda s: True
-    ) -> tuple:
+        n: int,
+        pick_from: list[GPIndividual] | None = None,
+        accept_func: Callable[..., bool] = lambda s: True,
+    ) -> tuple[list[GPIndividual], list[int]]:
 
         if pick_from is None:
             pick_from = list()

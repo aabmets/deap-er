@@ -10,7 +10,8 @@
 #
 from .dtypes import *
 from .primitives import *
-from typing import Callable
+from collections.abc import Callable
+from typing import Any
 from inspect import isclass
 import random
 
@@ -18,7 +19,9 @@ import random
 __all__ = ["mut_uniform", "mut_node_replacement", "mut_ephemeral", "mut_insert", "mut_shrink"]
 
 
-def mut_uniform(individual: GPIndividual, expr: Callable, prim_set: PrimitiveSetTyped) -> GPMutant:
+def mut_uniform(
+    individual: GPIndividual, expr: Callable[..., Any], prim_set: PrimitiveSetTyped
+) -> GPMutant:
     """Replace a random subtree with an expression from ``expr``.
 
     Args:
