@@ -8,12 +8,13 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from collections.abc import Callable, Iterable
+from math import log, sqrt
 from typing import Any
-from collections.abc import Iterable, Callable
-from deap_er.base.dtypes import Individual
-from math import sqrt, log
+
 import numpy
 
+from deap_er.base.dtypes import Individual
 
 __all__ = ["Strategy"]
 
@@ -72,20 +73,20 @@ class Strategy:
         temp = 1 - 1.0 / (4.0 * self.dim) + 1.0 / (21.0 * self.dim**2)
         self.chiN = sqrt(self.dim) * temp
 
-        self.lamb = None
-        self.mu = None
-        self.weights = None
-        self.mu_eff = None
-        self.rank_one = None
-        self.rank_mu = None
-        self.ss_cum = None
-        self.ss_dmp = None
-        self.cm_cum = None
-        self.big_c = None
-        self.diagD = None
-        self.big_b = None
-        self.big_bd = None
-        self.cond = None
+        self.lamb: int
+        self.mu: int
+        self.weights: numpy.ndarray
+        self.mu_eff: float
+        self.rank_one: float
+        self.rank_mu: float
+        self.ss_cum: float
+        self.ss_dmp: float
+        self.cm_cum: float
+        self.big_c: numpy.ndarray
+        self.diagD: numpy.ndarray
+        self.big_b: numpy.ndarray
+        self.big_bd: numpy.ndarray
+        self.cond: float
 
         self.compute_params(**kwargs)
 
@@ -104,10 +105,10 @@ class Strategy:
                 ``linear``, or ``equal``.
         """
         default = int(4 + 3 * log(self.dim))
-        self.lamb = kwargs.get("offsprings", default)
+        self.lamb = int(kwargs.get("offsprings", default))
 
         default = int(self.lamb / 2)
-        self.mu = kwargs.get("survivors", default)
+        self.mu = int(kwargs.get("survivors", default))
 
         default = "superlinear"
         r_weights = kwargs.get("weights", default)
@@ -120,30 +121,31 @@ class Strategy:
         elif r_weights == "equal":
             self.weights = numpy.ones(self.mu)
         else:
-            raise RuntimeError("Unknown weights : %s" % r_weights)
+            raise RuntimeError(f"Unknown weights : {r_weights}")
 
+        self.weights = numpy.asarray(self.weights, dtype=float)
         self.weights /= sum(self.weights)
         self.mu_eff = 1.0 / sum(self.weights**2)
 
         default = 2.0 / ((self.dim + 1.3) ** 2 + self.mu_eff)
-        self.rank_one = kwargs.get("rank_one", default)
+        self.rank_one = float(kwargs.get("rank_one", default))
 
         temp_1 = self.mu_eff - 2.0 + 1.0 / self.mu_eff
         temp_2 = (self.dim + 2.0) ** 2 + self.mu_eff
         default = 2.0 * temp_1 / temp_2
-        self.rank_mu = kwargs.get("rank_mu", default)
+        self.rank_mu = float(kwargs.get("rank_mu", default))
         self.rank_mu = min(1 - self.rank_one, self.rank_mu)
 
         default = (self.mu_eff + 2.0) / (self.dim + self.mu_eff + 3.0)
-        self.ss_cum = kwargs.get("ss_cum", default)
+        self.ss_cum = float(kwargs.get("ss_cum", default))
 
         temp_1 = sqrt((self.mu_eff - 1.0) / (self.dim + 1.0))
         temp_2 = max(0.0, temp_1 - 1.0)
         default = 1.0 + 2.0 * temp_2 + self.ss_cum
-        self.ss_dmp = kwargs.get("ss_dmp", default)
+        self.ss_dmp = float(kwargs.get("ss_dmp", default))
 
         default = 4.0 / (self.dim + 4.0)
-        self.cm_cum = kwargs.get("cm_cum", default)
+        self.cm_cum = float(kwargs.get("cm_cum", default))
 
         self.big_c = kwargs.get("cm_init", numpy.identity(self.dim))
         self.diagD, self.big_b = numpy.linalg.eigh(self.big_c)
@@ -179,7 +181,7 @@ class Strategy:
         population.sort(key=lambda ind: ind.fitness, reverse=True)
 
         old_centroid = self.centroid
-        self.centroid = numpy.dot(self.weights, population[0 : self.mu])
+        self.centroid = numpy.dot(self.weights, numpy.asarray(population[0 : self.mu]))
 
         c_diff = self.centroid - old_centroid
 

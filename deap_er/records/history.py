@@ -8,11 +8,11 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.base.dtypes import *
 from collections.abc import Callable
-from typing import Any
 from copy import deepcopy
+from typing import Any
 
+from deap_er.base.dtypes import *
 
 __all__ = ["History"]
 
@@ -26,7 +26,7 @@ class History:
 
     def __init__(self) -> None:
         """Create an empty genealogy."""
-        self.genealogy_index = int()
+        self.genealogy_index = 0
         self.genealogy_history = dict()
         self.genealogy_tree = dict()
 

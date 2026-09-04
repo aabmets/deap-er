@@ -8,13 +8,14 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.base.dtypes import *
-from typing import Any
-from collections.abc import Callable
-from math import sqrt, exp
-import numpy
 import copy
+from collections.abc import Callable
+from math import exp, sqrt
+from typing import Any
 
+import numpy
+
+from deap_er.base.dtypes import *
 
 __all__ = ["StrategyOnePlusLambda"]
 
@@ -69,14 +70,14 @@ class StrategyOnePlusLambda:
         self.big_a = numpy.identity(self.dim)
         self.pc = numpy.zeros(self.dim)
 
-        self.lamb = None
-        self.thresh_sr = None
-        self.ss_dmp = None
-        self.tgt_sr = None
-        self.ss_learn_rate = None
-        self.th_cum = None
-        self.cm_learn_rate = None
-        self.psucc = None
+        self.lamb: int
+        self.thresh_sr: float
+        self.ss_dmp: float
+        self.tgt_sr: float
+        self.ss_learn_rate: float
+        self.th_cum: float
+        self.cm_learn_rate: float
+        self.psucc: float
 
         self.compute_params(**kwargs)
 
@@ -90,23 +91,23 @@ class StrategyOnePlusLambda:
             **kwargs: Optional strategy parameters. See the class
                 docstring.
         """
-        self.lamb = kwargs.get("offsprings", 1)
-        self.thresh_sr = kwargs.get("thresh_sr", 0.44)
+        self.lamb = int(kwargs.get("offsprings", 1))
+        self.thresh_sr = float(kwargs.get("thresh_sr", 0.44))
 
         default = 1.0 + self.dim / (2.0 * self.lamb)
-        self.ss_dmp = kwargs.get("ss_dmp", default)
+        self.ss_dmp = float(kwargs.get("ss_dmp", default))
 
         default = 1.0 / (5 + sqrt(self.lamb) / 2.0)
-        self.tgt_sr = kwargs.get("tgt_sr", default)
+        self.tgt_sr = float(kwargs.get("tgt_sr", default))
 
         default = self.tgt_sr * self.lamb / (2 + self.tgt_sr * self.lamb)
-        self.ss_learn_rate = kwargs.get("ss_learn_rate", default)
+        self.ss_learn_rate = float(kwargs.get("ss_learn_rate", default))
 
         default = 2.0 / (self.dim + 2.0)
-        self.th_cum = kwargs.get("th_cum", default)
+        self.th_cum = float(kwargs.get("th_cum", default))
 
         default = 2.0 / (self.dim**2 + 6.0)
-        self.cm_learn_rate = kwargs.get("cm_learn_rate", default)
+        self.cm_learn_rate = float(kwargs.get("cm_learn_rate", default))
 
         self.psucc = self.tgt_sr
 

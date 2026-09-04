@@ -8,13 +8,14 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er import utilities as utils
-from deap_er.base.dtypes import Individual
-from typing import Any
 from collections.abc import Callable
-from math import sqrt, exp
+from math import exp, sqrt
+from typing import Any
+
 import numpy
 
+from deap_er import utilities as utils
+from deap_er.base.dtypes import Individual
 
 __all__ = ["StrategyMultiObjective"]
 
@@ -73,7 +74,7 @@ class StrategyMultiObjective:
         self.th_cum = kwargs.get("th_cum", 2.0 / (self.dim + 2.0))
         self.cm_learn_rate = kwargs.get("cm_learn_rate", 2.0 / (self.dim**2 + 6.0))
         self.thresh_sr = kwargs.get("thresh_sr", 0.44)
-        self.mp_pool = kwargs.get("mp_pool", None)
+        self.mp_pool = kwargs.get("mp_pool")
 
         self.sigmas = [sigma] * pop_size
         self.big_a = [numpy.identity(self.dim) for _ in range(pop_size)]
@@ -99,30 +100,29 @@ class StrategyMultiObjective:
 
         pareto_fronts = utils.sort_log_non_dominated(candidates, len(candidates))
 
-        chosen = list()
-        mid_front = None
-        not_chosen = list()
+        chosen: list[Individual] = []
+        mid_front: list[Individual] = []
+        not_chosen: list[Individual] = []
 
         full = False
         for front in pareto_fronts:
             if len(chosen) + len(front) <= self.mu and not full:
                 chosen += front
-            elif mid_front is None and len(chosen) < self.mu:
+            elif not mid_front and len(chosen) < self.mu:
                 mid_front = front
                 full = True
             else:
                 not_chosen += front
 
         k = self.mu - len(chosen)
-        if k > 0:
-            ref = [ind.fitness.wvalues for ind in candidates]
-            ref = numpy.array(ref) * -1
-            ref = numpy.max(ref, axis=0) + 1
+        if k > 0 and mid_front:
+            ref = (
+                numpy.max(numpy.array([ind.fitness.wvalues for ind in candidates]) * -1, axis=0) + 1
+            )
 
             mapper = map
-            if self.mp_pool and hasattr(self.mp_pool, "map"):
-                if callable(self.mp_pool.map):
-                    mapper = self.mp_pool.map
+            if self.mp_pool and hasattr(self.mp_pool, "map") and callable(self.mp_pool.map):
+                mapper = self.mp_pool.map
 
             for _ in range(len(mid_front) - k):
                 idx = utils.least_contrib(mid_front, ref, mapper)

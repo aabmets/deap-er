@@ -8,13 +8,13 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.base.dtypes import *
-from collections.abc import Callable, Iterator
-from typing import Any
 from bisect import bisect_right
+from collections.abc import Callable, Iterator, Sequence
 from copy import deepcopy
 from operator import eq
+from typing import Any, override
 
+from deap_er.base.dtypes import *
 
 __all__ = ["HallOfFame", "ParetoFront"]
 
@@ -58,7 +58,7 @@ class _BaseClass:
         """Return the number of stored individuals."""
         return len(self.items)
 
-    def __getitem__(self, i: int | slice) -> Individual | list[Individual]:
+    def __getitem__(self, i: int) -> Individual:
         """Return the individual at position ``i``."""
         return self.items[i]
 
@@ -70,6 +70,7 @@ class _BaseClass:
         """Iterate over individuals from worst to best."""
         return reversed(self.items)
 
+    @override
     def __str__(self) -> str:
         """Return the stored individuals as a string."""
         return str(self.items)
@@ -93,7 +94,7 @@ class HallOfFame(_BaseClass):
         self.similar = similar
         super().__init__()
 
-    def update(self, population: list[Individual]) -> None:
+    def update(self, population: Sequence[Any]) -> None:
         """Update the archive from ``population``.
 
         Better individuals replace the worst members. The archive stays
@@ -132,7 +133,7 @@ class ParetoFront(_BaseClass):
         self.similar = similar
         super().__init__()
 
-    def update(self, population: list[Individual]) -> None:
+    def update(self, population: Sequence[Any]) -> None:
         """Add non-dominated individuals from ``population``.
 
         Members dominated by a new individual are removed. Similar

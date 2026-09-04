@@ -10,13 +10,12 @@
 #
 from collections import defaultdict
 from itertools import chain
-from typing import Any
-
+from typing import Any, SupportsIndex, override
 
 __all__ = ["Logbook"]
 
 
-class Logbook(list):
+class Logbook(list[dict[str, Any]]):
     """Chronological evolution records as a list of dictionaries.
 
     Retrieve columns with ``select``. Nested dictionaries passed to
@@ -37,7 +36,7 @@ class Logbook(list):
     def stream(self) -> str:
         """Formatted text of entries recorded since the last stream read."""
         start_index, self.buff_index = self.buff_index, len(self)
-        return self.__str__(start_index)
+        return "\n".join(self.__txt__(start_index))
 
     def record(self, **data: Any) -> None:
         """Append one chronological entry.
@@ -74,7 +73,8 @@ class Logbook(list):
             return [entry.get(names[0], None) for entry in self]
         return [[entry.get(name, None) for entry in self] for name in names]
 
-    def pop(self, index: int = 0) -> dict[str, Any]:
+    @override
+    def pop(self, index: SupportsIndex = 0) -> dict[str, Any]:
         """Remove and return the entry at ``index``.
 
         The stream cursor is moved back when the removed entry has
@@ -86,14 +86,16 @@ class Logbook(list):
         Returns:
             The removed entry.
         """
-        if index < self.buff_index:
+        idx = int(index)
+        if idx < self.buff_index:
             self.buff_index -= 1
-        return super(self.__class__, self).pop(index)
+        return super().pop(idx)
 
-    def __delitem__(self, key: int | slice) -> None:
+    @override
+    def __delitem__(self, key: SupportsIndex | slice, /) -> None:
         """Delete an entry and the same index from every chapter."""
         if isinstance(key, slice):
-            for (i,) in range(*key.indices(len(self))):
+            for i in range(*key.indices(len(self))):
                 self.pop(i)
                 for chapter in self.chapters.values():
                     chapter.pop(i)
@@ -163,18 +165,11 @@ class Logbook(list):
                     header[-1].append(name)
             str_matrix = chain(header, str_matrix)
 
-        template = "\t".join("{%i:<%i}" % (i, l) for i, l in enumerate(self.columns_len))
+        template = "\t".join(f"{{{i}:<{length}}}" for i, length in enumerate(self.columns_len))
         str_list = [template.format(*line) for line in str_matrix]
         return str_list
 
-    def __str__(self, start_index: int = 0) -> str:
-        """Return the logbook as an aligned text table.
-
-        Args:
-            start_index: First entry to include.
-
-        Returns:
-            Newline-joined formatted rows.
-        """
-        text = self.__txt__(start_index)
-        return "\n".join(text)
+    @override
+    def __str__(self) -> str:
+        """Return the logbook as an aligned text table."""
+        return "\n".join(self.__txt__(0))

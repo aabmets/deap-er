@@ -8,10 +8,9 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from typing import Any
 from collections.abc import Callable, Iterable
 from functools import partial
-
+from typing import Any
 
 __all__ = ["Statistics", "MultiStatistics"]
 
@@ -65,7 +64,7 @@ class Statistics:
         return entry
 
 
-class MultiStatistics(dict):
+class MultiStatistics(dict[str, Any]):
     """Compile several named ``Statistics`` objects in one call.
 
     Construct with keyword arguments that map a chapter name to a

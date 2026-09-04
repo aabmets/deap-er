@@ -8,15 +8,16 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from typing import Any
-from pathlib import Path
-import numpy as np
+import os
 import random
 import time
 import uuid
-import dill
-import os
+from collections.abc import Iterator
+from pathlib import Path
+from typing import Any, override
 
+import dill
+import numpy as np
 
 __all__ = ["Checkpoint"]
 
@@ -46,8 +47,18 @@ class Checkpoint:
     _ext_ = ".dcpf"  # [D]eaper [C]heck [P]oint [F]ile
     _omit_ = ["_last_op_"]
 
-    _rand_state_: object = None
-    _numpy_state_: dict[str, Any] | None = None
+    _rand_state_: Any = None
+    _numpy_state_: Any = None
+
+    def __getattr__(self, name: str) -> Any:
+        """Allow dynamically assigned checkpoint attributes."""
+        raise AttributeError(name)
+
+    @override
+    def __setattr__(self, name: str, value: Any) -> None:
+        """Set a checkpoint attribute, including user-defined names."""
+        object.__setattr__(self, name, value)
+
     _range_counter_: int = 0
     _save_freq_: float = 60.0
     _last_op_: str = "none"
@@ -87,7 +98,7 @@ class Checkpoint:
                 self.__dict__ = dill.load(f)
             random.setstate(self._rand_state_)
             np.random.set_state(self._numpy_state_)
-        except (IOError, dill.PickleError) as ex:
+        except (OSError, dill.PickleError) as ex:
             if self.raise_errors:
                 raise ex
             self._last_op_ = "load_error"
@@ -118,7 +129,7 @@ class Checkpoint:
                 for key in self._omit_:
                     _dict_.pop(key, None)
                 dill.dump(_dict_, f)
-        except (IOError, dill.PickleError) as ex:
+        except (OSError, dill.PickleError) as ex:
             if self.raise_errors:
                 raise ex
             self._last_op_ = "save_error"
@@ -126,7 +137,7 @@ class Checkpoint:
         self._last_op_ = "save_success"
         return True
 
-    def range(self, generations: int) -> range:
+    def range(self, generations: int) -> Iterator[int]:
         """Yield generation indices, saving periodically when enabled.
 
         Continues from the last stored counter. When ``save_freq`` is
