@@ -9,9 +9,10 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import operator
+from typing import Any
 
 import pytest
-from deap_er.gp.primitives import PrimitiveSet, PrimitiveTree
+from deap_er.gp.primitives import PrimitiveSet, PrimitiveSetTyped, PrimitiveTree
 from deap_er.gp.tools import compile_tree
 
 
@@ -82,3 +83,70 @@ def test_add_terminal_allows_unnamed_values():
     pset.add_terminal(2.0)
 
     assert pset.terms_count == before + 2
+
+
+def _zero() -> int:
+    return 0
+
+
+def test_untyped_set_rejects_zero_arity_and_adds_ephemeral():
+    pset = PrimitiveSet("main", 1)
+    with pytest.raises(ValueError, match="arity should be"):
+        pset.add_primitive(operator.add, 0)
+    pset.add_ephemeral_constant("COV_EPH_PRIM", _zero)
+    pset.add_ephemeral_constant("COV_EPH_PRIM", _zero)
+    assert pset.terms_count >= 2
+    with pytest.raises(TypeError, match="named differently even between psets"):
+        pset.add_ephemeral_constant("COV_EPH_PRIM", lambda: 1)
+    with pytest.raises(TypeError, match="gp module"):
+        pset.add_ephemeral_constant("Terminal", _zero)
+
+
+def test_rename_arguments_and_adf():
+    adf = PrimitiveSet("ADF0", 1)
+    adf.add_primitive(operator.add, 2)
+    pset = PrimitiveSet("MAIN", 1)
+    pset.add_adf(adf)
+    pset.rename_arguments(ARG0="x")
+    assert pset.arguments == ["x"]
+    assert "ADF0" in pset.mapping
+
+
+def test_primitive_and_terminal_equality():
+    pset = _add_pset()
+    first = pset.mapping["add"]
+    second = PrimitiveSet("other", 1)
+    second.add_primitive(operator.add, 2)
+    assert first == second.mapping["add"]
+    assert first != object()
+    term = pset.mapping["ARG0"]
+    assert term == term
+    assert term != object()
+
+
+def test_setitem_rejects_arity_changes():
+    pset = _add_pset()
+    tree = PrimitiveTree.from_string("add(ARG0, 2)", pset)
+    with pytest.raises(ValueError, match="different arity"):
+        tree[0] = tree[-1]
+    with pytest.raises(IndexError, match="slice larger"):
+        tree[10:] = tree
+    with pytest.raises(ValueError, match="subtree with an arity"):
+        tree[0:] = [tree[-1], tree[-1]]
+
+
+def test_from_string_rejects_type_mismatches():
+    pset = PrimitiveSetTyped("main", [float], float)
+    pset.add_primitive(operator.add, [float, float], float)
+    pset.add_primitive(operator.neg, [int], int, name="neg")
+    with pytest.raises(TypeError, match="does not match"):
+        PrimitiveTree.from_string("add(ARG0, True)", pset)
+    with pytest.raises(TypeError, match="return type"):
+        PrimitiveTree.from_string("add(neg(1), ARG0)", pset)
+
+
+def test_add_primitive_requires_a_name():
+    pset = PrimitiveSetTyped("main", [float], float)
+    nameless: Any = object()
+    with pytest.raises(TypeError, match="__name__"):
+        pset.add_primitive(nameless, [float], float)

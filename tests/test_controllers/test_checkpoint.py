@@ -11,6 +11,7 @@
 import os
 from pathlib import Path
 
+import pytest
 from deap_er import env
 
 
@@ -63,3 +64,28 @@ class TestCheckpoint:
         for i in cpt.range(10):
             if i == 5:
                 assert cpt.last_op == "save_success"
+
+    def test_load_and_save_errors_without_raising(self, tmp_path):
+        missing = env.Checkpoint(
+            file_name="missing.dcpf", dir_path=tmp_path, autoload=False, raise_errors=False
+        )
+        assert missing.load() is False
+        assert missing.last_op == "load_error"
+        assert missing.is_loaded() is False
+
+        blocked = tmp_path / "blocked.dcpf"
+        blocked.mkdir()
+        writer = env.Checkpoint(
+            file_name="blocked.dcpf", dir_path=tmp_path, autoload=False, raise_errors=False
+        )
+        assert writer.save() is False
+        assert writer.last_op == "save_error"
+        assert writer.is_saved() is False
+
+    def test_range_disabled_and_rejects_negative(self, tmp_path):
+        cpt = env.Checkpoint(file_name="nosave.dcpf", dir_path=tmp_path, autoload=False)
+        cpt.save_freq = -1
+        assert list(cpt.range(3)) == [1, 2, 3]
+        assert cpt.last_op == "none"
+        with pytest.raises(ValueError, match="negative"):
+            list(cpt.range(-1))

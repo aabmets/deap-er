@@ -162,6 +162,16 @@ def test_spea2_returns_requested_count(multi_obj):
     assert len(tools.sel_spea_2(population, 4)) == 4
 
 
+def test_roulette_returns_requested_count(single_obj):
+    population = [_make(single_obj, [i], (float(i + 1),)) for i in range(6)]
+
+    random.seed(12)
+    chosen = tools.sel_roulette(population, 5)
+
+    assert len(chosen) == 5
+    assert all(ind in population for ind in chosen)
+
+
 def test_nsga3_with_memory_updates_reference_points(multi_obj):
     ref_points = tools.uniform_reference_points(2, 4)
     select = tools.SelNSGA3WithMemory(ref_points)

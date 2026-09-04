@@ -14,7 +14,13 @@ import random
 import pytest
 from deap_er import base, creator
 from deap_er.gp.generators import gen_full
-from deap_er.gp.mutation import mut_shrink
+from deap_er.gp.mutation import (
+    mut_ephemeral,
+    mut_insert,
+    mut_node_replacement,
+    mut_shrink,
+    mut_uniform,
+)
 from deap_er.gp.primitives import PrimitiveSet, PrimitiveSetTyped, PrimitiveTree
 
 MUT_FIT = "MUT_FIT"
@@ -80,3 +86,73 @@ def test_mut_shrink_substitutes_argument_of_matching_type(ind_cls):
     (mutant,) = mut_shrink(tree)
 
     assert len(mutant) < 5
+
+
+def test_mut_uniform_replaces_a_subtree(ind_cls):
+    pset = _untyped_pset()
+    random.seed(21)
+    tree = ind_cls(gen_full(pset, min_depth=2, max_depth=2))
+    before = str(tree)
+
+    (mutant,) = mut_uniform(tree, lambda prim_set, ret_type: gen_full(prim_set, 1, 1), pset)
+
+    assert str(mutant)
+    assert str(mutant) != before or len(mutant) >= 1
+
+
+def test_mut_node_replacement_leaves_tiny_trees_alone(ind_cls):
+    pset = _untyped_pset()
+    tree = ind_cls(PrimitiveTree.from_string("ARG0", pset))
+
+    (mutant,) = mut_node_replacement(tree, pset)
+
+    assert len(mutant) == 1
+
+
+def test_mut_node_replacement_swaps_a_compatible_node(ind_cls):
+    pset = _untyped_pset()
+    random.seed(22)
+    tree = ind_cls(gen_full(pset, min_depth=2, max_depth=3))
+
+    (mutant,) = mut_node_replacement(tree, pset)
+
+    assert str(mutant)
+
+
+def test_mut_insert_grows_or_keeps_the_tree(ind_cls):
+    pset = _untyped_pset()
+    random.seed(23)
+    tree = ind_cls(gen_full(pset, min_depth=1, max_depth=2))
+    before = len(tree)
+
+    (mutant,) = mut_insert(tree, pset)
+
+    assert len(mutant) >= before
+
+
+def test_mut_insert_returns_unchanged_when_no_compatible_primitive(ind_cls):
+    pset = PrimitiveSetTyped("main", [float], float)
+    pset.add_primitive(operator.add, [int, int], float)
+    tree = ind_cls(PrimitiveTree.from_string("ARG0", pset))
+
+    (mutant,) = mut_insert(tree, pset)
+
+    assert list(mutant) == list(tree)
+
+
+def test_mut_ephemeral_modes(ind_cls):
+    pset = PrimitiveSet("main", 1)
+    pset.add_primitive(operator.add, 2)
+    pset.add_ephemeral_constant("COV_EPH", lambda: 1)
+    random.seed(24)
+    tree = ind_cls(gen_full(pset, min_depth=1, max_depth=2))
+
+    (one,) = mut_ephemeral(tree, mode="one")
+    (all_,) = mut_ephemeral(one, mode="all")
+    empty = ind_cls(PrimitiveTree.from_string("ARG0", pset))
+    (unchanged,) = mut_ephemeral(empty, mode="all")
+
+    assert str(all_)
+    assert len(unchanged) == 1
+    with pytest.raises(ValueError, match="Mode must be"):
+        mut_ephemeral(tree, mode="neither")

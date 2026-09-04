@@ -54,3 +54,40 @@ def test_update_keeps_only_the_best(ind_cls):
     hof.update(_population(ind_cls))
 
     assert [ind[0] for ind in hof] == [4, 3]
+
+
+def test_hall_of_fame_clear_reversed_and_str(ind_cls):
+    hof = tools.HallOfFame(maxsize=3)
+    hof.update(_population(ind_cls))
+
+    assert list(reversed(hof))[-1] is hof[0]
+    assert str(hof)
+    hof.clear()
+    assert len(hof) == 0
+
+
+def test_pareto_front_keeps_non_dominated_and_drops_twins():
+    creator.create("PF_FIT", base.Fitness, weights=(-1.0, -1.0))
+    creator.create("PF_IND", list, fitness=creator.__dict__["PF_FIT"])
+    try:
+        front = tools.ParetoFront()
+
+        def _ind(genes, values):
+            individual = creator.__dict__["PF_IND"](genes)
+            individual.fitness.values = values
+            return individual
+
+        first = _ind([0], (1.0, 4.0))
+        second = _ind([1], (4.0, 1.0))
+        dominated = _ind([2], (5.0, 5.0))
+        twin = _ind([0], (1.0, 4.0))
+        better = _ind([3], (0.5, 0.5))
+
+        front.update([first, second, dominated, twin])
+        assert len(front) == 2
+        front.update([better])
+        assert len(front) == 1
+        assert front[0].fitness.values == (0.5, 0.5)
+    finally:
+        del creator.__dict__["PF_FIT"]
+        del creator.__dict__["PF_IND"]
