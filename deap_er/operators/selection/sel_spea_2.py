@@ -29,9 +29,48 @@ def sel_spea_2(individuals: list[Individual], sel_count: int) -> list[Individual
     Returns:
         The selected individuals.
     """
-    big_l = len(individuals[0].fitness.values)
+    fits = _raw_fitness(individuals)
+
+    chosen = [i for i in range(len(individuals)) if fits[i] < 1]
+    if len(chosen) < sel_count:
+        chosen = _fill_from_density(individuals, chosen, fits, sel_count)
+    elif len(chosen) > sel_count:
+        chosen = _truncate_archive(individuals, chosen, sel_count)
+
+    return [individuals[i] for i in chosen]
+
+
+def _sq_distance(ind_i: Individual, ind_j: Individual, big_l: int) -> float:
+    """Return the squared objective-space distance between two individuals.
+
+    Args:
+        ind_i: First individual.
+        ind_j: Second individual.
+        big_l: Number of objectives to compare.
+
+    Returns:
+        The squared distance between the two fitness vectors.
+    """
+    dist = 0.0
+    for small_l in range(big_l):
+        val = ind_i.fitness.values[small_l] - ind_j.fitness.values[small_l]
+        dist += val * val
+    return float(dist)
+
+
+def _raw_fitness(individuals: list[Individual]) -> list[float]:
+    """Return the SPEA-II raw fitness of every individual.
+
+    An individual's raw fitness is the sum of the strengths of the
+    individuals that dominate it, so non-dominated members score zero.
+
+    Args:
+        individuals: Individuals to rank.
+
+    Returns:
+        One raw fitness value per individual, in input order.
+    """
     big_n = len(individuals)
-    big_k = math.sqrt(big_n)
     strength_fits = [0.0] * big_n
     fits = [0.0] * big_n
     dominating_individuals = [list() for _ in range(big_n)]
@@ -49,83 +88,127 @@ def sel_spea_2(individuals: list[Individual], sel_count: int) -> list[Individual
         for j in dominating_individuals[i]:
             fits[i] += strength_fits[j]
 
-    chosen = [i for i in range(big_n) if fits[i] < 1]
-    if len(chosen) < sel_count:
+    return fits
+
+
+def _fill_from_density(
+    individuals: list[Individual], chosen: list[int], fits: list[float], sel_count: int
+) -> list[int]:
+    """Top up an undersized archive with the least crowded individuals.
+
+    Adds a density term to every raw fitness, then takes the best of
+    the individuals that are not already chosen.
+
+    Args:
+        individuals: Individuals to select from.
+        chosen: Indices of the non-dominated individuals.
+        fits: Raw fitness values, modified in place with the density.
+        sel_count: Number of individuals to select in total.
+
+    Returns:
+        The chosen indices, extended to ``sel_count`` entries.
+    """
+    big_l = len(individuals[0].fitness.values)
+    big_n = len(individuals)
+    big_k = math.sqrt(big_n)
+
+    for i in range(big_n):
+        distances = [0.0] * big_n
+        for j in range(i + 1, big_n):
+            distances[j] = _sq_distance(individuals[i], individuals[j], big_l)
+        kth_dist = _randomized_select(distances, 0, big_n - 1, big_k)
+        fits[i] += 1.0 / (kth_dist + 2.0)
+
+    next_indices = [(fits[i], i) for i in range(big_n) if i not in chosen]
+    next_indices.sort()
+    return chosen + [i for _, i in next_indices[: sel_count - len(chosen)]]
+
+
+def _truncate_archive(
+    individuals: list[Individual], chosen: list[int], sel_count: int
+) -> list[int]:
+    """Shrink an oversized archive to ``sel_count`` entries.
+
+    Repeatedly drops the individual with the closest neighbour, using
+    the next-nearest neighbours to break ties.
+
+    Args:
+        individuals: Individuals to select from.
+        chosen: Indices of the non-dominated individuals.
+        sel_count: Number of individuals to keep.
+
+    Returns:
+        The chosen indices, reduced to ``sel_count`` entries.
+    """
+    big_l = len(individuals[0].fitness.values)
+    big_n = len(chosen)
+
+    distances = [[0.0] * big_n for _ in range(big_n)]
+    sorted_indices = [[0] * big_n for _ in range(big_n)]
+    for i in range(big_n):
+        for j in range(i + 1, big_n):
+            dist = _sq_distance(individuals[chosen[i]], individuals[chosen[j]], big_l)
+            distances[i][j] = dist
+            distances[j][i] = dist
+        distances[i][i] = -1
+
+    for i in range(big_n):
+        for j in range(1, big_n):
+            small_l = j
+            while small_l > 0 and distances[i][j] < distances[i][sorted_indices[i][small_l - 1]]:
+                sorted_indices[i][small_l] = sorted_indices[i][small_l - 1]
+                small_l -= 1
+            sorted_indices[i][small_l] = j
+
+    size = big_n
+    to_remove = []
+    while size > sel_count:
+        min_pos = _most_crowded(distances, sorted_indices, big_n, size)
+
         for i in range(big_n):
-            distances = [0.0] * big_n
-            for j in range(i + 1, big_n):
-                dist = 0.0
-                for small_l in range(big_l):
-                    a = individuals[i].fitness.values[small_l]
-                    b = individuals[j].fitness.values[small_l]
-                    val = a - b
-                    dist += val * val
-                distances[j] = dist
-            kth_dist = _randomized_select(distances, 0, big_n - 1, big_k)
-            density = 1.0 / (kth_dist + 2.0)
-            fits[i] += density
+            distances[i][min_pos] = float("inf")
+            distances[min_pos][i] = float("inf")
 
-        next_indices = [(fits[i], i) for i in range(big_n) if i not in chosen]
-        next_indices.sort()
-        chosen += [i for _, i in next_indices[: sel_count - len(chosen)]]
+            for j in range(1, size - 1):
+                if sorted_indices[i][j] == min_pos:
+                    sorted_indices[i][j] = sorted_indices[i][j + 1]
+                    sorted_indices[i][j + 1] = min_pos
 
-    elif len(chosen) > sel_count:
-        big_n = len(chosen)
-        distances = [[0.0] * big_n for _ in range(big_n)]
-        sorted_indices = [[0] * big_n for _ in range(big_n)]
-        for i in range(big_n):
-            for j in range(i + 1, big_n):
-                dist = 0.0
-                for small_l in range(big_l):
-                    a = individuals[chosen[i]].fitness.values[small_l]
-                    b = individuals[chosen[j]].fitness.values[small_l]
-                    val = a - b
-                    dist += val * val
-                distances[i][j] = dist
-                distances[j][i] = dist
-            distances[i][i] = -1
+        to_remove.append(min_pos)
+        size -= 1
 
-        for i in range(big_n):
-            for j in range(1, big_n):
-                small_l = j
-                while (
-                    small_l > 0 and distances[i][j] < distances[i][sorted_indices[i][small_l - 1]]
-                ):
-                    sorted_indices[i][small_l] = sorted_indices[i][small_l - 1]
-                    small_l -= 1
-                sorted_indices[i][small_l] = j
+    chosen = list(chosen)
+    for index in reversed(sorted(to_remove)):
+        del chosen[index]
+    return chosen
 
-        size = big_n
-        to_remove = []
-        while size > sel_count:
-            min_pos = 0
-            for i in range(1, big_n):
-                for j in range(1, size):
-                    dist_i_sorted_j = distances[i][sorted_indices[i][j]]
-                    dist_min_sorted_j = distances[min_pos][sorted_indices[min_pos][j]]
 
-                    if dist_i_sorted_j < dist_min_sorted_j:
-                        min_pos = i
-                        break
-                    elif dist_i_sorted_j > dist_min_sorted_j:
-                        break
+def _most_crowded(
+    distances: list[list[float]], sorted_indices: list[list[int]], big_n: int, size: int
+) -> int:
+    """Return the archive position with the closest neighbours.
 
-            for i in range(big_n):
-                distances[i][min_pos] = float("inf")
-                distances[min_pos][i] = float("inf")
+    Args:
+        distances: Pairwise squared distances between archive members.
+        sorted_indices: Neighbour indices of each member, nearest first.
+        big_n: Number of archive members.
+        size: Number of members still active.
 
-                for j in range(1, size - 1):
-                    if sorted_indices[i][j] == min_pos:
-                        sorted_indices[i][j] = sorted_indices[i][j + 1]
-                        sorted_indices[i][j + 1] = min_pos
+    Returns:
+        The position of the most crowded member.
+    """
+    min_pos = 0
+    for i in range(1, big_n):
+        for j in range(1, size):
+            dist_i_sorted_j = distances[i][sorted_indices[i][j]]
+            dist_min_sorted_j = distances[min_pos][sorted_indices[min_pos][j]]
 
-            to_remove.append(min_pos)
-            size -= 1
-
-        for index in reversed(sorted(to_remove)):
-            del chosen[index]
-
-    return [individuals[i] for i in chosen]
+            if dist_i_sorted_j < dist_min_sorted_j:
+                min_pos = i
+                break
+            elif dist_i_sorted_j > dist_min_sorted_j:
+                break
+    return min_pos
 
 
 def _partition(array: list[float], begin: int, end: int) -> int:

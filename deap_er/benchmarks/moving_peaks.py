@@ -22,6 +22,28 @@ __all__ = ["MovingPeaks", "MPConfigs", "MPFuncs"]
 type PeakFunc = Callable[[Sequence[float], Iterable[float], float, float], float]
 
 
+def _change_shape(
+    axis: list[float], axis_min: float, axis_max: float, sev: float, idx: int
+) -> None:
+    """Nudge one peak attribute, reflecting it off its bounds.
+
+    Args:
+        axis: Per-peak values, modified in place.
+        axis_min: Lower bound of the attribute.
+        axis_max: Upper bound of the attribute.
+        sev: Standard deviation of the change.
+        idx: Position of the peak to change.
+    """
+    change = random.gauss(0, 1) * sev
+    new_value = change + axis[idx]
+    if new_value < axis_min:
+        axis[idx] = 2.0 * axis_min - axis[idx] - change
+    elif new_value > axis_max:
+        axis[idx] = 2.0 * axis_max - axis[idx] - change
+    else:
+        axis[idx] = new_value
+
+
 class MovingPeaks:
     """A fitness landscape whose peaks change over time.
 
@@ -223,92 +245,105 @@ class MovingPeaks:
         """Returns the current error of the landscape."""
         return self._error
 
+    def _remove_peaks(self, count: int) -> None:
+        """Drop ``count`` randomly chosen peaks.
+
+        Args:
+            count: Number of peaks to remove.
+        """
+        for _ in range(count):
+            idx = random.randrange(len(self.peaks_function))
+            self.peaks_function.pop(idx)
+            self.peaks_position.pop(idx)
+            self.peaks_height.pop(idx)
+            self.peaks_width.pop(idx)
+            self.last_change_vector.pop(idx)
+
+    def _add_peaks(self, count: int) -> None:
+        """Append ``count`` randomly placed peaks.
+
+        Args:
+            count: Number of peaks to add.
+        """
+        for _ in range(count):
+            rand = random.choice(self.pfunc_pool)
+            self.peaks_function.append(rand)
+            rand = [random.uniform(self.min_coord, self.max_coord) for _ in range(self.dim)]
+            self.peaks_position.append(rand)
+            rand = random.uniform(self.min_height, self.max_height)
+            self.peaks_height.append(rand)
+            rand = random.uniform(self.min_width, self.max_width)
+            self.peaks_width.append(rand)
+            rand = [random.random() - 0.5 for _ in range(self.dim)]
+            self.last_change_vector.append(rand)
+
+    def _change_peak_count(self) -> None:
+        """Add or remove peaks, staying within the configured bounds."""
+        if self.min_peaks is None or self.max_peaks is None:
+            return
+
+        n_peaks = len(self.peaks_function)
+        u = random.random()
+        r = self.max_peaks - self.min_peaks
+        if u < 0.5:
+            u = random.random()
+            runs = int(round(r * u * self.number_severity))
+            self._remove_peaks(min(n_peaks - self.min_peaks, runs))
+        else:
+            u = random.random()
+            runs = int(round(r * u * self.number_severity))
+            self._add_peaks(min(self.max_peaks - n_peaks, runs))
+
+    def _move_peak(self, index: int) -> None:
+        """Shift one peak, reflecting it off the coordinate bounds.
+
+        The step is a blend of a fresh random direction and the peak's
+        previous direction, controlled by ``lambda_``.
+
+        Args:
+            index: Position of the peak to move.
+        """
+        len_ = len(self.peaks_position[index])
+        shift = [random.random() - 0.5 for _ in range(len_)]
+        shift_length = sum(s**2 for s in shift)
+        shift_length = self.move_severity / math.sqrt(shift_length) if shift_length > 0 else 0
+
+        zipper = zip(shift, self.last_change_vector[index], strict=False)
+        shift = [shift_length * (1.0 - self.lamb) * s + self.lamb * c for s, c in zipper]
+        shift_length = sum(s**2 for s in shift)
+        shift_length = self.move_severity / math.sqrt(shift_length) if shift_length > 0 else 0
+
+        shift = [s * shift_length for s in shift]
+
+        new_position = []
+        final_shift = []
+        for pp, s in zip(self.peaks_position[index], shift, strict=False):
+            new_coord = pp + s
+            if new_coord < self.min_coord:
+                new_position.append(2.0 * self.min_coord - pp - s)
+                final_shift.append(-1.0 * s)
+            elif new_coord > self.max_coord:
+                new_position.append(2.0 * self.max_coord - pp - s)
+                final_shift.append(-1.0 * s)
+            else:
+                new_position.append(new_coord)
+                final_shift.append(s)
+
+        self.peaks_position[index] = new_position
+        self.last_change_vector[index] = final_shift
+
     def change_peaks(self) -> None:
         """Changes the position, the height, the width and the number of peaks."""
         self._optimum = None
 
-        if self.min_peaks is not None and self.max_peaks is not None:
-            n_peaks = len(self.peaks_function)
-            u = random.random()
-            r = self.max_peaks - self.min_peaks
-            if u < 0.5:
-                u = random.random()
-                runs = int(round(r * u * self.number_severity))
-                n = min(n_peaks - self.min_peaks, runs)
-                for _ in range(n):
-                    len_ = len(self.peaks_function)
-                    idx = random.randrange(len_)
-                    self.peaks_function.pop(idx)
-                    self.peaks_position.pop(idx)
-                    self.peaks_height.pop(idx)
-                    self.peaks_width.pop(idx)
-                    self.last_change_vector.pop(idx)
-            else:
-                u = random.random()
-                runs = int(round(r * u * self.number_severity))
-                n = min(self.max_peaks - n_peaks, runs)
-                for _ in range(n):
-                    rand = random.choice(self.pfunc_pool)
-                    self.peaks_function.append(rand)
-                    rand = [random.uniform(self.min_coord, self.max_coord) for _ in range(self.dim)]
-                    self.peaks_position.append(rand)
-                    rand = random.uniform(self.min_height, self.max_height)
-                    self.peaks_height.append(rand)
-                    rand = random.uniform(self.min_width, self.max_width)
-                    self.peaks_width.append(rand)
-                    rand = [random.random() - 0.5 for _ in range(self.dim)]
-                    self.last_change_vector.append(rand)
+        self._change_peak_count()
 
         for i in range(len(self.peaks_function)):
-            len_ = len(self.peaks_position[i])
-            shift = [random.random() - 0.5 for _ in range(len_)]
-            shift_length = sum(s**2 for s in shift)
-            shift_length = self.move_severity / math.sqrt(shift_length) if shift_length > 0 else 0
-
-            zipper = zip(shift, self.last_change_vector[i], strict=False)
-            shift = [shift_length * (1.0 - self.lamb) * s + self.lamb * c for s, c in zipper]
-            shift_length = sum(s**2 for s in shift)
-            shift_length = self.move_severity / math.sqrt(shift_length) if shift_length > 0 else 0
-
-            shift = [s * shift_length for s in shift]
-
-            new_position = []
-            final_shift = []
-            for pp, s in zip(self.peaks_position[i], shift, strict=False):
-                new_coord = pp + s
-                if new_coord < self.min_coord:
-                    new_position.append(2.0 * self.min_coord - pp - s)
-                    final_shift.append(-1.0 * s)
-                elif new_coord > self.max_coord:
-                    new_position.append(2.0 * self.max_coord - pp - s)
-                    final_shift.append(-1.0 * s)
-                else:
-                    new_position.append(new_coord)
-                    final_shift.append(s)
-
-            self.peaks_position[i] = new_position
-            self.last_change_vector[i] = final_shift
-
-            def change_shape(
-                axis: list[float],
-                axis_min: float,
-                axis_max: float,
-                sev: float,
-                idx: int,
-            ) -> None:
-                change = random.gauss(0, 1) * sev
-                new_value = change + axis[idx]
-                if new_value < axis_min:
-                    axis[idx] = 2.0 * axis_min - axis[idx] - change
-                elif new_value > axis_max:
-                    axis[idx] = 2.0 * axis_max - axis[idx] - change
-                else:
-                    axis[idx] = new_value
-
-            change_shape(
+            self._move_peak(i)
+            _change_shape(
                 self.peaks_height, self.min_height, self.max_height, self.height_severity, i
             )
-            change_shape(self.peaks_width, self.min_width, self.max_width, self.width_severity, i)
+            _change_shape(self.peaks_width, self.min_width, self.max_width, self.width_severity, i)
 
 
 class MPFuncs:
