@@ -24,8 +24,8 @@ class _BaseClass:
 
     def __init__(self) -> None:
         """Create empty item and key lists."""
-        self.keys = list()
-        self.items = list()
+        self.keys = []
+        self.items = []
 
     def insert(self, individual: Individual) -> None:
         """Insert an individual while preserving sort order; does not enforce maxsize.
@@ -100,6 +100,17 @@ class HallOfFame(_BaseClass):
         self.similar = similar
         super().__init__()
 
+    def _has_similar(self, individual: Any) -> bool:
+        """Return whether ``individual`` is already in the archive.
+
+        Args:
+            individual: Candidate to compare against stored members.
+
+        Returns:
+            True if ``similar`` matches a stored member.
+        """
+        return any(self.similar(individual, hof_member) for hof_member in self)
+
     def update(self, population: Sequence[Any]) -> None:
         """Update the archive from ``population``.
 
@@ -115,13 +126,11 @@ class HallOfFame(_BaseClass):
                 self.insert(population[0])
                 continue
             if ind.fitness > self[-1].fitness or len(self) < self.maxsize:
-                for hof_member in self:
-                    if self.similar(ind, hof_member):
-                        break
-                else:
-                    if len(self) >= self.maxsize:
-                        self.remove(-1)
-                    self.insert(ind)
+                if self._has_similar(ind):
+                    continue
+                if len(self) >= self.maxsize:
+                    self.remove(-1)
+                self.insert(ind)
 
 
 class ParetoFront(_BaseClass):
@@ -152,7 +161,7 @@ class ParetoFront(_BaseClass):
             is_dominated = False
             dominates_one = False
             has_twin = False
-            to_remove = list()
+            to_remove = []
             for i, hof_member in enumerate(self):
                 if not dominates_one and hof_member.fitness.dominates(ind.fitness):
                     is_dominated = True

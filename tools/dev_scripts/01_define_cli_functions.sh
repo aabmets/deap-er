@@ -30,6 +30,7 @@ _deap_er_disable_prompt() {
     fi
     unset _DEAP_ER_OLD_PS1
     unset _DEAP_ER_PROMPT_ACTIVE
+    return 0
 }
 
 _run_allure() {
@@ -140,6 +141,7 @@ allure() {
 
 codegraph() {
     (cd /mnt/c && cmd.exe /c start "http://localhost:9749")
+    return 0
 }
 
 loadenv() {

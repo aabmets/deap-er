@@ -37,7 +37,7 @@ def compile_tree(expr: GPExprTypes, prim_set: PrimitiveSetTyped) -> Any:
     """
     code = str(expr)
     if len(prim_set.arguments) > 0:
-        args = ",".join(arg for arg in prim_set.arguments)
+        args = ",".join(prim_set.arguments)
         code = f"lambda {args}: {code}"
     try:
         # nosemgrep: python.lang.security.audit.eval-detected.eval-detected
@@ -66,7 +66,7 @@ def compile_adf_tree(expr: GPExprTypes, prim_sets: GPTypedSets) -> Any:
         A callable if the main primitive set has one or more
         arguments, otherwise the result of the evaluation.
     """
-    adf_dict = dict()
+    adf_dict = {}
     func = None
     for prim_set, sub_expr in reversed(list(zip(prim_sets, expr, strict=False))):
         prim_set.context.update(adf_dict)
@@ -85,9 +85,9 @@ def build_tree_graph(expr: GPExprTypes) -> GPGraph:
         Nodes, edges, and a mapping of node indices to labels.
     """
     nodes = list(range(len(expr)))
-    edges = list()
-    stack = list()
-    labels = dict()
+    edges = []
+    stack = []
+    labels = {}
 
     for i, node in enumerate(expr):
         if stack:

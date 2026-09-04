@@ -154,13 +154,13 @@ def main():
     def log_stats(ngen=0):
         chain = itertools.chain(*population)
         record = stats.compile(chain)
-        args = dict(
-            gen=ngen,
-            evals=mpb.nevals,
-            nswarm=len(population),
-            error=mpb.current_error,
-            offline_error=mpb.offline_error,
-        )
+        args = {
+            "gen": ngen,
+            "evals": mpb.nevals,
+            "nswarm": len(population),
+            "error": mpb.current_error,
+            "offline_error": mpb.offline_error,
+        }
         logbook.record(**args, **record)
         print(logbook.stream)
 

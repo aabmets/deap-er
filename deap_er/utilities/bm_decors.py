@@ -200,7 +200,7 @@ class Noise:
             result = func(individual, *args, **kwargs)
             if not isinstance(result, Iterable):
                 result = (result,)
-            noisy = list()
+            noisy = []
             for r, f in zip(result, self.rand_funcs, strict=False):
                 if f is None:
                     noisy.append(r)

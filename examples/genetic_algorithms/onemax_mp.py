@@ -50,16 +50,16 @@ def main():
     hof = tools.HallOfFame(maxsize=1)
     with mp.Pool() as pool:
         toolbox.register("map", pool.map)
-        args = dict(
-            toolbox=toolbox,
-            population=pop,
-            generations=50,
-            cx_prob=0.5,
-            mut_prob=0.2,
-            hof=hof,
-            stats=stats,
-            verbose=True,  # prints stats
-        )
+        args = {
+            "toolbox": toolbox,
+            "population": pop,
+            "generations": 50,
+            "cx_prob": 0.5,
+            "mut_prob": 0.2,
+            "hof": hof,
+            "stats": stats,
+            "verbose": True,  # prints stats
+        }
         tools.ea_simple(**args)
         print_results(hof[0])
 

@@ -86,9 +86,12 @@ class Logger:
     def log(self, ngen, pops):
         chain = itertools.chain(*pops)
         record = self.stats.compile(chain)
-        args = dict(
-            gen=ngen, evals=MPB.nevals, error=MPB.current_error, offline_error=MPB.offline_error
-        )
+        args = {
+            "gen": ngen,
+            "evals": MPB.nevals,
+            "error": MPB.current_error,
+            "offline_error": MPB.offline_error,
+        }
         self.logbook.record(**args, **record)
         if VERBOSE:
             print(self.logbook.stream)

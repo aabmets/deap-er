@@ -603,10 +603,10 @@ def bm_dtlz_7(individual: Individual, count: int) -> list[float]:
     def fn(a: float) -> float:
         return float(a / (1 + gval) * (1 + sin(3 * pi * a)))
 
-    gval = sum([a for a in individual[count - 1 :]])
+    gval = sum(individual[count - 1 :])
     gval = 1 + 9 / len(individual[count - 1 :]) * gval
 
-    fit = [x for x in individual[: count - 1]]
+    fit = list(individual[: count - 1])
     vals = [fn(a) for a in individual[: count - 1]]
     res = (1 + gval) * (count - sum(vals))
     fit.append(res)

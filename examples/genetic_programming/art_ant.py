@@ -65,9 +65,9 @@ class AntSimulator:
             routine()
 
     def parse_matrix(self, matrix):
-        self.matrix = list()
+        self.matrix = []
         for i, line in enumerate(matrix):
-            self.matrix.append(list())
+            self.matrix.append([])
             for j, col in enumerate(line):
                 if col == "#":
                     self.matrix[-1].append("food")
@@ -138,7 +138,7 @@ def setup():
 
 
 def print_results(best_ind):
-    if not best_ind.fitness.values > (50,):
+    if best_ind.fitness.values <= (50,):
         raise RuntimeError("Evolution failed to converge.")
     print("\nEvolution converged correctly.")
 
@@ -147,16 +147,16 @@ def main():
     toolbox, stats = setup()
     pop = toolbox.population(size=300)
     hof = tools.HallOfFame(1)
-    args = dict(
-        toolbox=toolbox,
-        population=pop,
-        generations=40,
-        cx_prob=0.5,
-        mut_prob=0.1,
-        hof=hof,
-        stats=stats,
-        verbose=True,  # prints stats
-    )
+    args = {
+        "toolbox": toolbox,
+        "population": pop,
+        "generations": 40,
+        "cx_prob": 0.5,
+        "mut_prob": 0.1,
+        "hof": hof,
+        "stats": stats,
+        "verbose": True,  # prints stats
+    }
     tools.ea_simple(**args)
     print_results(hof[0])
 

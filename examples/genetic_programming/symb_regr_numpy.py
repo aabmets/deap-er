@@ -62,7 +62,7 @@ def setup():
 
 
 def print_results(best_ind):
-    if not best_ind.fitness.values < (1.0e-3,):
+    if best_ind.fitness.values >= (1.0e-3,):
         raise RuntimeError("Evolution failed to converge.")
     print("\nEvolution converged correctly.")
 
@@ -71,16 +71,16 @@ def main():
     toolbox, stats = setup()
     pop = toolbox.population(size=300)
     hof = tools.HallOfFame(1)
-    args = dict(
-        toolbox=toolbox,
-        population=pop,
-        generations=40,
-        cx_prob=0.5,
-        mut_prob=0.1,
-        hof=hof,
-        stats=stats,
-        verbose=True,  # prints stats
-    )
+    args = {
+        "toolbox": toolbox,
+        "population": pop,
+        "generations": 40,
+        "cx_prob": 0.5,
+        "mut_prob": 0.1,
+        "hof": hof,
+        "stats": stats,
+        "verbose": True,  # prints stats
+    }
     tools.ea_simple(**args)
     print_results(hof[0])
 

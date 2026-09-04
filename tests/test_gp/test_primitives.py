@@ -120,7 +120,7 @@ def test_primitive_and_terminal_equality():
     assert first == second.mapping["add"]
     assert first != object()
     term = pset.mapping["ARG0"]
-    assert term == term
+    assert term == pset.mapping["ARG0"]
     assert term != object()
 
 

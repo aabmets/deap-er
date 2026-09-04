@@ -8,6 +8,7 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+import math
 from typing import Any
 
 import pytest
@@ -31,7 +32,7 @@ def test_symbolic_regression_benchmarks_return_finite_floats():
     for func, point in cases:
         value = func(point)
         assert isinstance(value, float)
-        assert value == value
+        assert math.isfinite(value)
     assert tools.bm_unwrapped_ball(point_2d) == pytest.approx(
         10 / (5 + (1.5 - 3) ** 2 + (2.5 - 3) ** 2)
     )

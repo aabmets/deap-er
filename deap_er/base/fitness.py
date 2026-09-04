@@ -88,7 +88,7 @@ class Fitness:
 
     @values.deleter
     def values(self) -> None:
-        self.wvalues = tuple()
+        self.wvalues = ()
 
     def dominates(self, other: Fitness, slc: slice | None = None) -> bool:
         """Return whether this fitness Pareto-dominates ``other``.
@@ -106,10 +106,8 @@ class Fitness:
             True if ``self`` dominates ``other``.
         """
         slc = slice(None) if slc is None else slc
-        zipper = list(zip(self.wvalues, other.wvalues, strict=False))
-        lesser = [a < b for a, b in zipper[slc]]
-        equal = [a == b for a, b in zipper[slc]]
-        return not (any(lesser) or all(equal))
+        compared = list(zip(self.wvalues, other.wvalues, strict=False))[slc]
+        return not (any(a < b for a, b in compared) or all(a == b for a, b in compared))
 
     def is_valid(self) -> bool:
         """Return whether this fitness has a complete set of values.

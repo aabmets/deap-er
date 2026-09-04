@@ -121,7 +121,8 @@ def test_nsga2():
 
     assert hv > HV_THRESHOLD
     for ind in pop:
-        assert not (any(numpy.asarray(ind) < bound_low) or any(numpy.asarray(ind) > bound_up))
+        assert not any(numpy.asarray(ind) < bound_low)
+        assert not any(numpy.asarray(ind) > bound_up)
 
     teardown_func()
 
@@ -244,6 +245,7 @@ def test_nsga3():
 
     assert hv > HV_THRESHOLD
     for ind in pop:
-        assert not (any(numpy.asarray(ind) < bound_low) or any(numpy.asarray(ind) > bound_up))
+        assert not any(numpy.asarray(ind) < bound_low)
+        assert not any(numpy.asarray(ind) > bound_up)
 
     teardown_func()

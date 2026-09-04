@@ -29,8 +29,8 @@ class Logbook(list[dict[str, Any]]):
         self.chapters = defaultdict(Logbook)
         self.buff_index: int = 0
         self.log_header: bool = True
-        self.columns_len: list[int] = list()
-        self.header: list[str] = list()
+        self.columns_len: list[int] = []
+        self.header: list[str] = []
         super().__init__()
 
     @property

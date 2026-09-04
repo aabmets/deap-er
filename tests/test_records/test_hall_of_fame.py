@@ -34,8 +34,9 @@ def _population(ind_cls, count=5):
 
 
 def test_remove_from_empty_raises_index_error():
+    hof = tools.HallOfFame(maxsize=3)
     with pytest.raises(IndexError):
-        tools.HallOfFame(maxsize=3).remove(0)
+        hof.remove(0)
 
 
 def test_remove_keeps_items_and_keys_aligned(ind_cls):

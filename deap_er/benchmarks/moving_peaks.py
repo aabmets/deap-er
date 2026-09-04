@@ -201,7 +201,7 @@ class MovingPeaks:
     @property
     def global_maximum(self) -> tuple[float, list[float]]:
         """Returns the value and position of the largest peak."""
-        potential_max = list()
+        potential_max = []
         zipper = zip(
             self.peaks_function,
             self.peaks_position,
@@ -218,7 +218,7 @@ class MovingPeaks:
     @property
     def sorted_maxima(self) -> list[tuple[float, list[float]]]:
         """Return visible peak values and positions, largest first."""
-        maximums = list()
+        maximums = []
         zipper = zip(
             self.peaks_function,
             self.peaks_position,

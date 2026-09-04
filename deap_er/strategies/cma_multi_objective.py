@@ -259,7 +259,7 @@ class StrategyMultiObjective:
         }
         for name, var in sources.items():
             attr = getattr(self, name)
-            merged = list()
+            merged = []
             for i, ind in enumerate(chosen):
                 if ind.ps_[0] == "o":
                     merged.append(var[i])
@@ -284,7 +284,7 @@ class StrategyMultiObjective:
             Newly sampled individuals.
         """
         arz = numpy.random.randn(self.lamb, self.dim)
-        individuals = list()
+        individuals = []
 
         for i, p in enumerate(self.parents):
             p.ps_ = "p", i

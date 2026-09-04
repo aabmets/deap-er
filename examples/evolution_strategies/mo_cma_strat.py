@@ -56,7 +56,7 @@ def setup():
 
 def print_results(valid, parents):
     hv = tools.hypervolume(parents, [11.0, 11.0])
-    if not hv > 110 and valid != len(parents):
+    if hv <= 110 and valid != len(parents):
         raise RuntimeError("Evolution failed to converge.")
     print(
         f"\nNumber of valid individuals is {valid}/{len(parents)} with a hypervolume of {hv:.2f}."

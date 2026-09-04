@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 BASHRC_FILE="$HOME/.bashrc"
-if [ ! -f "$BASHRC_FILE" ]; then
+if [[ ! -f "$BASHRC_FILE" ]]; then
     touch "$BASHRC_FILE"
 fi
 
@@ -44,6 +44,7 @@ replace_bashrc_block() {
         !found { print }
     ' "$BASHRC_FILE" > "$temp_bashrc"
     mv "$temp_bashrc" "$BASHRC_FILE"
+    return 0
 }
 
 if grep -qF "$START_MARKER" "$BASHRC_FILE" && grep -qF "$END_MARKER" "$BASHRC_FILE"; then

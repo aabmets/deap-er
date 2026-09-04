@@ -73,7 +73,7 @@ def _raw_fitness(individuals: list[Individual]) -> list[float]:
     big_n = len(individuals)
     strength_fits = [0.0] * big_n
     fits = [0.0] * big_n
-    dominating_individuals = [list() for _ in range(big_n)]
+    dominating_individuals = [[] for _ in range(big_n)]
 
     for i, ind_i in enumerate(individuals):
         for j, ind_j in enumerate(individuals[i + 1 :], i + 1):
@@ -178,7 +178,7 @@ def _truncate_archive(
         size -= 1
 
     chosen = list(chosen)
-    for index in reversed(sorted(to_remove)):
+    for index in sorted(to_remove, reverse=True):
         del chosen[index]
     return chosen
 

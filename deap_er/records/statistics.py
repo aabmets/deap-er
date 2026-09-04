@@ -31,8 +31,8 @@ class Statistics:
     def __init__(self, key: Callable[..., Any] | None = None) -> None:
         """See the class docstring."""
         self.key = key if key else lambda obj: obj
-        self.functions = dict()
-        self.fields = list()
+        self.functions = {}
+        self.fields = []
 
     def register(self, name: str, func: Callable[..., Any], *args: Any, **kwargs: Any) -> None:
         """Register a statistic computed by ``compile``.
@@ -57,7 +57,7 @@ class Statistics:
         Returns:
             Mapping of registered names to computed values.
         """
-        entry = dict()
+        entry = {}
         values = tuple(self.key(elem) for elem in data)
         for key, func in self.functions.items():
             entry[key] = func(values)
@@ -99,7 +99,7 @@ class MultiStatistics(dict[str, Any]):
         Returns:
             Mapping of chapter name to that chapter's compiled record.
         """
-        record = dict()
+        record = {}
         for name, stats in self.items():
             record[name] = stats.compile(data)
         return record

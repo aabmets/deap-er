@@ -30,13 +30,13 @@ download_github_binary() {
 
     tmp=$(mktemp -d) || return 1
 
-    if ! curl -fL -o "${tmp}/${filename}" "$url"; then
+    if ! curl --proto =https -fL -o "${tmp}/${filename}" "$url"; then
         echo "Failed to download ${filename} from ${project}" >&2
         rm -rf "$tmp"
         return 1
     fi
 
-    if ! curl -fL -o "${tmp}/${checksums_name}" "$checksums_url"; then
+    if ! curl --proto =https -fL -o "${tmp}/${checksums_name}" "$checksums_url"; then
         echo "Failed to download ${checksums_name} from ${project}" >&2
         rm -rf "$tmp"
         return 1
@@ -123,10 +123,10 @@ ensure_cli_tools() {
             fi
             ;;
         "uv")
-            curl -LsSf https://astral.sh/uv/install.sh | sh
+            curl --proto =https -LsSf https://astral.sh/uv/install.sh | sh
             ;;
         "bun")
-            curl -LsSf https://bun.sh/install | bash
+            curl --proto =https -LsSf https://bun.sh/install | bash
             ;;
         "jq")
             INSTALLED_ANY_CLI=1

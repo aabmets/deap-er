@@ -23,7 +23,7 @@ def setup():
 
 
 def print_results(best_ind):
-    if not best_ind.fitness.values < (20,):
+    if best_ind.fitness.values >= (20,):
         raise RuntimeError("Evolution failed to converge.")
     print("\nEvolution converged correctly.")
 
@@ -31,13 +31,13 @@ def print_results(best_ind):
 def main():
     toolbox, stats = setup()
     hof = tools.HallOfFame(1)
-    args = dict(
-        toolbox=toolbox,
-        generations=250,
-        hof=hof,
-        stats=stats,
-        verbose=True,  # prints stats
-    )
+    args = {
+        "toolbox": toolbox,
+        "generations": 250,
+        "hof": hof,
+        "stats": stats,
+        "verbose": True,  # prints stats
+    }
     tools.ea_generate_update(**args)
     print_results(hof[0])
 

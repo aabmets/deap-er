@@ -50,10 +50,9 @@ class _ArrayOverride(array.array[Any]):
 
     typecode: Any = "b"
 
-    @staticmethod
     def __new__(cls, seq: Sequence[Any]) -> array.array[Any]:
         """Build an instance from ``seq`` using the subclass typecode."""
-        return array.array.__new__(cls, str(cls.typecode), seq)
+        return super().__new__(cls, str(cls.typecode), seq)
 
     @override
     def __deepcopy__(self, memo: dict[int, Any]) -> "_ArrayOverride":

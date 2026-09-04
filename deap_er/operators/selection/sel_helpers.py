@@ -32,7 +32,7 @@ def assign_crowding_dist(individuals: list[Individual]) -> None:
     n_obj = len(individuals[0].fitness.values)
 
     for i in range(n_obj):
-        crowd.sort(key=lambda element: element[0][i])
+        crowd.sort(key=lambda element, obj_i=i: element[0][obj_i])
         distances[crowd[0][1]] = float("inf")
         distances[crowd[-1][1]] = float("inf")
         if crowd[-1][0][i] == crowd[0][0][i]:

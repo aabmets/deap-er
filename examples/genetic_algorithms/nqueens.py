@@ -52,7 +52,7 @@ def setup():
 
 
 def print_results(best_ind):
-    if not best_ind.fitness.values == (0.0,):
+    if best_ind.fitness.values != (0.0,):
         raise RuntimeError("Evolution failed to converge.")
     print(f"\nRow numbers for each queen on each column of the chessboard: \n{best_ind}")
     print("\nEvolution converged correctly.")
@@ -62,16 +62,16 @@ def main():
     toolbox, stats = setup()
     pop = toolbox.population(size=300)
     hof = tools.HallOfFame(1)
-    args = dict(
-        toolbox=toolbox,
-        population=pop,
-        generations=400,
-        cx_prob=0.6,
-        mut_prob=0.3,
-        hof=hof,
-        stats=stats,
-        verbose=True,  # prints stats
-    )
+    args = {
+        "toolbox": toolbox,
+        "population": pop,
+        "generations": 400,
+        "cx_prob": 0.6,
+        "mut_prob": 0.3,
+        "hof": hof,
+        "stats": stats,
+        "verbose": True,  # prints stats
+    }
     tools.ea_simple(**args)
     print_results(hof[0])
 

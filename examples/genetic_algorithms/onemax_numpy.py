@@ -39,16 +39,16 @@ def main():
     toolbox, stats = setup()
     pop = toolbox.population(size=300)
     hof = tools.HallOfFame(maxsize=1, similar=numpy.array_equal)
-    args = dict(
-        toolbox=toolbox,
-        population=pop,
-        generations=50,
-        cx_prob=0.5,
-        mut_prob=0.2,
-        hof=hof,
-        stats=stats,
-        verbose=True,  # prints stats
-    )
+    args = {
+        "toolbox": toolbox,
+        "population": pop,
+        "generations": 50,
+        "cx_prob": 0.5,
+        "mut_prob": 0.2,
+        "hof": hof,
+        "stats": stats,
+        "verbose": True,  # prints stats
+    }
     tools.ea_simple(**args)
     print_results(hof[0])
 

@@ -27,8 +27,8 @@ class History:
     def __init__(self) -> None:
         """Create an empty genealogy."""
         self.genealogy_index = 0
-        self.genealogy_history = dict()
-        self.genealogy_tree = dict()
+        self.genealogy_history = {}
+        self.genealogy_tree = {}
 
     @property
     def decorator(self) -> Callable[..., Any]:
@@ -58,7 +58,7 @@ class History:
         try:
             parent_indices = tuple(ind.history_index for ind in individuals)
         except AttributeError:
-            parent_indices = tuple()
+            parent_indices = ()
 
         for ind in individuals:
             self.genealogy_index += 1
@@ -102,7 +102,7 @@ class History:
 
         if hasattr(individual, "history_index"):
             visited = set()
-            gtree = dict()
+            gtree = {}
             _recursive(individual.history_index, 0)
             return gtree
         else:

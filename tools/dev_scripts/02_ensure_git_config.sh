@@ -11,14 +11,14 @@ ensure_git_config() {
     email=$(git config --local user.email)
     name=$(git config --local user.name)
 
-    if [ -z "$email" ]; then
+    if [[ -z "$email" ]]; then
         echo "Git user.email is not set for this project."
         read -rp "Enter your email: " email
         git config --local user.email "$email"
         echo ""
     fi
 
-    if [ -z "$name" ]; then
+    if [[ -z "$name" ]]; then
         echo "Git user.name is not set for this project."
         read -rp "Enter your name: " name
         git config --local user.name "$name"

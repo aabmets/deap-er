@@ -47,17 +47,17 @@ def create(name: str, base: type | object, **kwargs: Any) -> None:
         base = base.__class__
 
     # override numpy and array classes
-    base = dict(array=_ArrayOverride, numpy=_NumpyOverride).get(base.__module__, base)
+    base = {"array": _ArrayOverride, "numpy": _NumpyOverride}.get(base.__module__, base)
 
     # separate kwargs by their type
-    inst_attr, cls_attr = dict(), dict()
+    inst_attr, cls_attr = {}, {}
     for key, value in kwargs.items():
         condition = type(value) is type
         _dict = inst_attr if condition else cls_attr
         _dict[key] = value
 
     # create the new class
-    new_class = type(name, tuple([base]), cls_attr)
+    new_class = type(name, (cast(Any, base),), cls_attr)
 
     # define the replacement init func
     def new_init_func(self, *args_: Any, **kwargs_: Any) -> None:

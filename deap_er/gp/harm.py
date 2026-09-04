@@ -177,7 +177,7 @@ def _produce(
         The produced individuals and their sizes.
     """
     if pick_from is None:
-        pick_from = list()
+        pick_from = []
 
     produced_pop: list[Any] = []
     produced_pop_sizes: list[int] = []

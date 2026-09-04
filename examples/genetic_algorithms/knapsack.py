@@ -11,7 +11,7 @@ MAX_WEIGHT = 50
 NBR_ITEMS = 20
 NAME_LEN = 3
 
-items = dict()
+items = {}
 
 
 def create_items():
@@ -47,7 +47,7 @@ def mate(ind1: set, ind2: set) -> tuple[set, set]:
 def mutate(individual: set) -> tuple[set]:
     if random.random() < 0.5:
         if len(individual) > 0:
-            items_ = sorted(tuple(individual))
+            items_ = sorted(individual)
             choice = random.choice(items_)
             individual.remove(choice)
     else:
@@ -75,13 +75,13 @@ def setup():
 
 
 def print_results(hof):
-    best_ind = sorted(list(hof[-1]))
+    best_ind = sorted(hof[-1])
     best_weight, best_value = 0, 0
     for idx in best_ind:
         best_weight += items[idx][0]
         best_value += round(items[idx][1], 2)
 
-    keys = sorted(list(items.keys()))
+    keys = sorted(items.keys())
     for key in tuple(keys):
         if key not in best_ind:
             keys.remove(key)
@@ -101,16 +101,16 @@ def main():
     toolbox = setup()
     pop = toolbox.population(size=100)
     hof = tools.ParetoFront()
-    args = dict(
-        toolbox=toolbox,
-        population=pop,
-        generations=50,
-        offsprings=100,
-        survivors=50,
-        cx_prob=0.5,
-        mut_prob=0.2,
-        hof=hof,
-    )
+    args = {
+        "toolbox": toolbox,
+        "population": pop,
+        "generations": 50,
+        "offsprings": 100,
+        "survivors": 50,
+        "cx_prob": 0.5,
+        "mut_prob": 0.2,
+        "hof": hof,
+    }
     tools.ea_mu_plus_lambda(**args)
     print_results(hof)
 

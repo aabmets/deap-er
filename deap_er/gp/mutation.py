@@ -85,7 +85,7 @@ def mut_ephemeral(individual: GPIndividual, mode: str = "all") -> GPMutant:
     if mode not in ["one", "all"]:
         raise ValueError("Mode must be one of 'one' or 'all'.")
 
-    ephemera_idx = list()
+    ephemera_idx = []
     for index, node in enumerate(individual):
         if isinstance(node, Ephemeral):
             ephemera_idx.append(index)
@@ -115,7 +115,7 @@ def mut_insert(individual: GPIndividual, prim_set: PrimitiveSetTyped) -> GPMutan
     slice_ = individual.search_subtree(index)
     choice = random.choice
 
-    primitives = list()
+    primitives = []
     for p in prim_set.primitives[node.ret]:
         if node.ret in p.args:
             primitives.append(p)
@@ -126,7 +126,7 @@ def mut_insert(individual: GPIndividual, prim_set: PrimitiveSetTyped) -> GPMutan
     new_node = choice(primitives)
     new_subtree = [None] * len(new_node.args)
 
-    choices = list()
+    choices = []
     for i, a in enumerate(new_node.args):
         if a == node.ret:
             choices.append(i)
@@ -165,13 +165,13 @@ def mut_shrink(individual: GPIndividual) -> GPMutant:
 
     if len(i_prims) != 0:
         index, prim = random.choice(i_prims)
-        choices = list()
+        choices = []
         for i, type_ in enumerate(prim.args):
             if type_ == prim.ret:
                 choices.append(i)
         arg_idx = random.choice(choices)
         r_index = index + 1
-        subtree = list()
+        subtree = []
         for _ in range(arg_idx + 1):
             r_slice = individual.search_subtree(r_index)
             subtree = individual[r_slice]

@@ -157,8 +157,8 @@ class PrimitiveSetTyped:
         self.terminals = defaultdict(list)
         self.primitives = defaultdict(list)
         self.context = {"__builtins__": None}
-        self.arguments = list()
-        self.mapping = dict()
+        self.arguments = []
+        self.mapping = {}
         self.terms_count = 0
         self.prims_count = 0
 
@@ -207,7 +207,7 @@ class PrimitiveSetTyped:
         else:
             mapping = self.terminals
 
-        for type_ in list(mapping):
+        for type_ in mapping:
             if not isinstance(type_, type):
                 continue
             key = cast(type, type_)
@@ -393,7 +393,7 @@ class PrimitiveSet(PrimitiveSetTyped):
             ValueError: If ``arity`` is less than 1, or if ``name`` is
                 already registered.
         """
-        if not arity >= 1:
+        if arity < 1:
             raise ValueError("arity should be >= 1")
         args: list[type] = [object] * arity
         super().add_primitive(primitive, args, object, name)
@@ -487,7 +487,7 @@ class PrimitiveTree(list[Any]):
     def __str__(self) -> str:
         """Return the tree as a Python expression string."""
         string = ""
-        stack: list[Any] = list()
+        stack: list[Any] = []
         for node in self:
             stack.append((node, []))
             while len(stack[-1][1]) == stack[-1][0].arity:
@@ -518,7 +518,7 @@ class PrimitiveTree(list[Any]):
                 terminal type does not match the expected type.
         """
         tokens = re.split("[ \t\n\r\f\v(),]", string)
-        expr = list()
+        expr = []
         ret_types = deque()
         for token in tokens:
             if token == "":

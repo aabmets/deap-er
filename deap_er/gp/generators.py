@@ -17,6 +17,49 @@ from .primitives import PrimitiveSetTyped
 
 __all__ = ["generate", "gen_full", "gen_grow", "gen_half_and_half"]
 
+_ERR_MSG = "The gp.generate function tried to add a {0} of type '{1}', but there is none available."
+
+
+def _choose_terminal(prim_set: PrimitiveSetTyped, ret_type: Any) -> Any:
+    """Pick a terminal of ``ret_type`` from ``prim_set``.
+
+    Args:
+        prim_set: Primitive set to sample from.
+        ret_type: Required return type of the terminal.
+
+    Returns:
+        A terminal instance, constructing class terminals on the fly.
+
+    Raises:
+        IndexError: If no terminal of ``ret_type`` is registered.
+    """
+    try:
+        term = random.choice(prim_set.terminals[ret_type])
+    except IndexError as err:
+        raise IndexError(_ERR_MSG.format("terminal", ret_type)) from err
+    if isclass(term):
+        return term()
+    return term
+
+
+def _choose_primitive(prim_set: PrimitiveSetTyped, ret_type: Any) -> Any:
+    """Pick a primitive of ``ret_type`` from ``prim_set``.
+
+    Args:
+        prim_set: Primitive set to sample from.
+        ret_type: Required return type of the primitive.
+
+    Returns:
+        A primitive from the set.
+
+    Raises:
+        IndexError: If no primitive of ``ret_type`` is registered.
+    """
+    try:
+        return random.choice(prim_set.primitives[ret_type])
+    except IndexError as err:
+        raise IndexError(_ERR_MSG.format("primitive", ret_type)) from err
+
 
 def generate(
     prim_set: PrimitiveSetTyped,
@@ -47,33 +90,20 @@ def generate(
         IndexError: If ``prim_set`` has no terminal or primitive of
             the required type.
     """
-    err_msg = (
-        "The gp.generate function tried to add a {0} of type '{1}', but there is none available."
-    )
     if ret_type is None:
         ret_type = prim_set.ret
-    expr = list()
+    expr = []
     height = random.randint(min_depth, max_depth)
     stack = [(0, ret_type)]
     while len(stack) != 0:
         depth, ret_type = stack.pop()
         if condition(height, depth):
-            try:
-                term = random.choice(prim_set.terminals[ret_type])
-                if isclass(term):
-                    term = term()
-                expr.append(term)
-            except IndexError as err:
-                raise IndexError(err_msg.format("terminal", ret_type)) from err
+            expr.append(_choose_terminal(prim_set, ret_type))
         else:
-            try:
-                prim = prim_set.primitives[ret_type]
-                prim = random.choice(prim)
-                expr.append(prim)
-                for arg in reversed(prim.args):
-                    stack.append((depth + 1, arg))
-            except IndexError as err:
-                raise IndexError(err_msg.format("primitive", ret_type)) from err
+            prim = _choose_primitive(prim_set, ret_type)
+            expr.append(prim)
+            for arg in reversed(prim.args):
+                stack.append((depth + 1, arg))
     return expr
 
 
