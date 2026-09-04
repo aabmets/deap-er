@@ -8,13 +8,13 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from .dtypes import *
-from .primitives import *
-from .generators import gen_grow
+import random
 from collections.abc import Callable
 from typing import Any
-import random
 
+from .dtypes import *
+from .generators import gen_grow
+from .primitives import *
 
 __all__ = ["mut_semantic", "cx_semantic"]
 

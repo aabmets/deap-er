@@ -8,14 +8,16 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.records.dtypes import *
-from deap_er.records import Logbook
-from deap_er.base import Toolbox
-from collections.abc import Callable
-from .dtypes import GPIndividual
-import random
 import math
+import random
+from collections.abc import Callable
+from typing import Any
 
+from deap_er.base import Toolbox
+from deap_er.records import Logbook
+from deap_er.records.dtypes import *
+
+from .dtypes import GPIndividual
 
 __all__ = ["harm"]
 
@@ -75,7 +77,7 @@ def harm(
         return hl_1 * hl_2
 
     def _harm_accept_func(s: int) -> bool:
-        prob_hist = [t / n if n > 0 else t for n, t in zip(natural_hist, target_hist)]
+        prob_hist = [t / n if n > 0 else t for n, t in zip(natural_hist, target_hist, strict=False)]
         prob = prob_hist[s] if s < len(prob_hist) else _harm_target_func(s)
         return random.random() <= prob
 
@@ -88,8 +90,8 @@ def harm(
         if pick_from is None:
             pick_from = list()
 
-        produced_pop = list()
-        produced_pop_sizes = list()
+        produced_pop: list[Any] = []
+        produced_pop_sizes: list[int] = []
 
         while len(produced_pop) < n:
             if len(pick_from) > 0:
@@ -127,7 +129,7 @@ def harm(
 
     invalid_ind = [ind for ind in population if not ind.fitness.is_valid()]
     fitness = toolbox.map(toolbox.evaluate, invalid_ind)
-    for ind, fit in zip(invalid_ind, fitness):
+    for ind, fit in zip(invalid_ind, fitness, strict=False):
         ind.fitness.values = fit
 
     if hof is not None:
@@ -144,7 +146,7 @@ def harm(
 
     for gen in range(1, generations + 1):
         natural_pop, natural_pop_sizes = _harm_gen_pop(n=nb_model)
-        natural_hist = [0] * (max(natural_pop_sizes) + 3)
+        natural_hist: list[float] = [0.0] * (max(natural_pop_sizes) + 3)
 
         for ind_size in natural_pop_sizes:
             natural_hist[ind_size] += 0.4
@@ -173,7 +175,7 @@ def harm(
 
         invalid_ind = [ind for ind in offspring if not ind.fitness.is_valid()]
         fitness = toolbox.map(toolbox.evaluate, invalid_ind)
-        for ind, fit in zip(invalid_ind, fitness):
+        for ind, fit in zip(invalid_ind, fitness, strict=False):
             ind.fitness.values = fit
 
         if hof is not None:

@@ -8,13 +8,13 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+import random
+from collections.abc import Callable
+from inspect import isclass
+from typing import Any
+
 from .dtypes import *
 from .primitives import *
-from collections.abc import Callable
-from typing import Any
-from inspect import isclass
-import random
-
 
 __all__ = ["mut_uniform", "mut_node_replacement", "mut_ephemeral", "mut_insert", "mut_shrink"]
 

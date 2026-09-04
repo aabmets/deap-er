@@ -9,13 +9,13 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from __future__ import annotations
-from collections import defaultdict, deque
-from typing import Any
-from collections.abc import Callable, Iterable
-import copy
-import abc
-import re
 
+import abc
+import copy
+import re
+from collections import defaultdict, deque
+from collections.abc import Callable, Iterable
+from typing import Any, cast, override
 
 __all__ = [
     "Terminal",
@@ -60,6 +60,7 @@ class Terminal:
         """Return the string form of the terminal value."""
         return self.conv_fct(self.value)
 
+    @override
     def __eq__(self, other: object) -> bool:
         """Return whether ``other`` is a terminal with the same slots."""
         if type(self) is type(other):
@@ -111,8 +112,8 @@ class Primitive:
         self.arity = len(args)
         self.args = args
         self.ret = ret_type
-        args = ", ".join(map("{{{0}}}".format, list(range(self.arity))))
-        self.seq = "{name}({args})".format(name=self.name, args=args)
+        placeholders = ", ".join(map("{{{0}}}".format, list(range(self.arity))))
+        self.seq = f"{self.name}({placeholders})"
 
     def format(self, *args: str) -> str:
         """Format this primitive as a Python call.
@@ -125,6 +126,7 @@ class Primitive:
         """
         return self.seq.format(*args)
 
+    @override
     def __eq__(self, other: object) -> bool:
         """Return whether ``other`` is a primitive with the same slots."""
         if type(self) is type(other):
@@ -160,7 +162,7 @@ class PrimitiveSetTyped:
         self.prims_count = 0
 
         for i, type_ in enumerate(in_types):
-            arg_str = "{prefix}{index}".format(prefix=prefix, index=i)
+            arg_str = f"{prefix}{i}"
             self.arguments.append(arg_str)
             term = Terminal(arg_str, True, type_)
             self._add_prim(term)
@@ -204,9 +206,13 @@ class PrimitiveSetTyped:
         else:
             mapping = self.terminals
 
-        for type_ in mapping:
-            if issubclass(prim.ret, type_):
-                mapping[type_].append(prim)
+        for type_ in list(mapping):
+            if not isinstance(type_, type):
+                continue
+            key = cast(type, type_)
+            ret = cast(type, prim.ret)
+            if issubclass(ret, key):
+                mapping[key].append(prim)
 
     def add_primitive(
         self,
@@ -234,7 +240,10 @@ class PrimitiveSetTyped:
             )
 
         if name is None:
-            name = primitive.__name__
+            raw_name = getattr(primitive, "__name__", None)
+            if not isinstance(raw_name, str):
+                raise TypeError("Primitive must have a name or a '__name__' attribute.")
+            name = raw_name
         prim = Primitive(name, in_types, ret_type)
 
         self._add_prim(prim)
@@ -261,7 +270,8 @@ class PrimitiveSetTyped:
             )
         symbolic = False
         if name is None and callable(terminal):
-            name = terminal.__name__
+            raw_name = getattr(terminal, "__name__", None)
+            name = raw_name if isinstance(raw_name, str) else None
 
         if name is not None:
             self.context[name] = terminal
@@ -363,10 +373,11 @@ class PrimitiveSet(PrimitiveSetTyped):
 
     def __init__(self, name: str, arity: int, prefix: str = "ARG") -> None:
         """Create an untyped set with ``arity`` inputs."""
-        args = [object] * arity
+        args: list[type] = [object] * arity
         super().__init__(name, args, object, prefix)
 
-    def add_primitive(
+    @override
+    def add_primitive(  # type: ignore[override]
         self, primitive: Callable[..., Any], arity: int, name: str | None = None, *_: Any, **__: Any
     ) -> None:
         """Add an untyped primitive of the given arity.
@@ -382,10 +393,13 @@ class PrimitiveSet(PrimitiveSetTyped):
         """
         if not arity >= 1:
             raise ValueError("arity should be >= 1")
-        args = [object] * arity
+        args: list[type] = [object] * arity
         super().add_primitive(primitive, args, object, name)
 
-    def add_terminal(self, terminal: Any, name: str | None = None, *_: Any, **__: Any) -> None:
+    @override
+    def add_terminal(  # type: ignore[override]
+        self, terminal: Any, name: str | None = None, *_: Any, **__: Any
+    ) -> None:
         """Add an untyped terminal to the set.
 
         Args:
@@ -395,7 +409,8 @@ class PrimitiveSet(PrimitiveSetTyped):
         """
         super().add_terminal(terminal, object, name)
 
-    def add_ephemeral_constant(
+    @override
+    def add_ephemeral_constant(  # type: ignore[override]
         self, name: str, ephemeral: Callable[..., Any], *_: Any, **__: Any
     ) -> None:
         """Add an untyped ephemeral constant to the set.
@@ -407,7 +422,7 @@ class PrimitiveSet(PrimitiveSetTyped):
         super().add_ephemeral_constant(name, ephemeral, object)
 
 
-class PrimitiveTree(list):
+class PrimitiveTree(list[Any]):
     """Prefix-ordered tree of primitives and terminals.
 
     A list subclass used by genetic programming operators. Every node
@@ -434,7 +449,8 @@ class PrimitiveTree(list):
         new.__dict__.update(copy.deepcopy(self.__dict__, memo))
         return new
 
-    def __setitem__(self, key: int | slice, val: Any) -> None:
+    @override
+    def __setitem__(self, key: Any, val: Any) -> None:  # type: ignore[override]
         """Replace a node or subtree, preserving tree arity.
 
         Args:
@@ -465,10 +481,11 @@ class PrimitiveTree(list):
             )
         list.__setitem__(self, key, val)
 
+    @override
     def __str__(self) -> str:
         """Return the tree as a Python expression string."""
-        string = str()
-        stack = list()
+        string = ""
+        stack: list[Any] = list()
         for node in self:
             stack.append((node, []))
             while len(stack[-1][1]) == stack[-1][0].arity:
@@ -477,7 +494,7 @@ class PrimitiveTree(list):
                 if len(stack) == 0:
                     break
                 stack[-1][1].append(string)
-        return string
+        return str(string)
 
     @classmethod
     def from_string(cls, string: str, prim_set: PrimitiveSetTyped) -> PrimitiveTree:
@@ -504,10 +521,7 @@ class PrimitiveTree(list):
         for token in tokens:
             if token == "":
                 continue
-            if len(ret_types) != 0:
-                ret_type = ret_types.popleft()
-            else:
-                ret_type = None
+            ret_type = ret_types.popleft() if len(ret_types) != 0 else None
 
             if token in prim_set.mapping:
                 primitive = prim_set.mapping[token]
@@ -522,8 +536,8 @@ class PrimitiveTree(list):
             else:
                 try:
                     token = eval(token)
-                except NameError:
-                    raise TypeError(f"Unable to evaluate terminal: {token}.")
+                except NameError as err:
+                    raise TypeError(f"Unable to evaluate terminal: {token}.") from err
                 if ret_type is None:
                     ret_type = type(token)
                 if not issubclass(type(token), ret_type):
@@ -560,7 +574,7 @@ class PrimitiveTree(list):
             depth = stack.pop()
             max_depth = max(max_depth, depth)
             stack.extend([depth + 1] * elem.arity)
-        return max_depth
+        return int(max_depth)
 
     @property
     def root(self) -> Any:

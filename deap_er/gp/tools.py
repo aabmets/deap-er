@@ -8,15 +8,14 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+import random
+from collections.abc import Callable
+from copy import deepcopy
+from functools import wraps
+from typing import Any
+
 from .dtypes import *
 from .primitives import *
-from typing import Any
-from collections.abc import Callable
-from functools import wraps
-from copy import deepcopy
-import random
-import sys
-
 
 __all__ = ["compile_tree", "compile_adf_tree", "build_tree_graph", "static_limit"]
 
@@ -39,14 +38,13 @@ def compile_tree(expr: GPExprTypes, prim_set: PrimitiveSetTyped) -> Any:
     code = str(expr)
     if len(prim_set.arguments) > 0:
         args = ",".join(arg for arg in prim_set.arguments)
-        code = "lambda {args}: {code}".format(args=args, code=code)
+        code = f"lambda {args}: {code}"
     try:
         return eval(code, prim_set.context, {})
-    except MemoryError:
-        _, _, traceback = sys.exc_info()
+    except MemoryError as err:
         raise MemoryError(
             "Recursion depth of 90 exceeded. Use bloat control on your operators.\n"
-        ).with_traceback(traceback)
+        ) from err
 
 
 def compile_adf_tree(expr: GPExprTypes, prim_sets: GPTypedSets) -> Any:
@@ -69,7 +67,7 @@ def compile_adf_tree(expr: GPExprTypes, prim_sets: GPTypedSets) -> Any:
     """
     adf_dict = dict()
     func = None
-    for prim_set, sub_expr in reversed(list(zip(prim_sets, expr))):
+    for prim_set, sub_expr in reversed(list(zip(prim_sets, expr, strict=False))):
         prim_set.context.update(adf_dict)
         func = compile_tree(sub_expr, prim_set)
         adf_dict.update({prim_set.name: func})
@@ -96,9 +94,11 @@ def build_tree_graph(expr: GPExprTypes) -> GPGraph:
             stack[-1][1] -= 1
         if isinstance(node, Primitive):
             labels[i] = node.name
-        else:
+        elif hasattr(node, "value"):
             labels[i] = node.value
-        stack.append([i, node.arity])
+        else:
+            labels[i] = str(node)
+        stack.append([i, getattr(node, "arity", 0)])
         while stack and stack[-1][1] == 0:
             stack.pop()
 

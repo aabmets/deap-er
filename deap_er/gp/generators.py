@@ -8,13 +8,12 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from .primitives import PrimitiveSetTyped
-from typing import Any
+import random
 from collections.abc import Callable
 from inspect import isclass
-import random
-import sys
+from typing import Any
 
+from .primitives import PrimitiveSetTyped
 
 __all__ = ["generate", "gen_full", "gen_grow", "gen_half_and_half"]
 
@@ -64,9 +63,8 @@ def generate(
                 if isclass(term):
                     term = term()
                 expr.append(term)
-            except IndexError:
-                _, _, traceback = sys.exc_info()
-                raise IndexError(err_msg.format("terminal", ret_type)).with_traceback(traceback)
+            except IndexError as err:
+                raise IndexError(err_msg.format("terminal", ret_type)) from err
         else:
             try:
                 prim = prim_set.primitives[ret_type]
@@ -74,9 +72,8 @@ def generate(
                 expr.append(prim)
                 for arg in reversed(prim.args):
                     stack.append((depth + 1, arg))
-            except IndexError:
-                _, _, traceback = sys.exc_info()
-                raise IndexError(err_msg.format("primitive", ret_type)).with_traceback(traceback)
+            except IndexError as err:
+                raise IndexError(err_msg.format("primitive", ret_type)) from err
     return expr
 
 
