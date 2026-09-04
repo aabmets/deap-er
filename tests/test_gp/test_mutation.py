@@ -9,10 +9,9 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import operator
-import random
 
 import pytest
-from deap_er import base, creator
+from deap_er import base, creator, tools
 from deap_er.gp.generators import gen_full
 from deap_er.gp.mutation import (
     mut_ephemeral,
@@ -48,7 +47,7 @@ def test_mut_shrink_shrinks_untyped_trees(ind_cls, seed):
     # Every primitive in an untyped set has args equal to its return type,
     # so the operator has to accept those arguments as replacements.
     pset = _untyped_pset()
-    random.seed(seed)
+    tools.seed(seed)
     tree = ind_cls(gen_full(pset, min_depth=2, max_depth=3))
     before = len(tree)
 
@@ -59,7 +58,7 @@ def test_mut_shrink_shrinks_untyped_trees(ind_cls, seed):
 
 def test_mut_shrink_keeps_tree_printable(ind_cls):
     pset = _untyped_pset()
-    random.seed(11)
+    tools.seed(11)
     tree = ind_cls(gen_full(pset, min_depth=2, max_depth=3))
 
     (mutant,) = mut_shrink(tree)
@@ -80,7 +79,7 @@ def test_mut_shrink_leaves_tiny_trees_alone(ind_cls):
 def test_mut_shrink_substitutes_argument_of_matching_type(ind_cls):
     pset = PrimitiveSetTyped("main", [float], float)
     pset.add_primitive(operator.add, [float, float], float)
-    random.seed(5)
+    tools.seed(5)
     tree = ind_cls(PrimitiveTree.from_string("add(ARG0, add(ARG0, ARG0))", pset))
 
     (mutant,) = mut_shrink(tree)
@@ -90,7 +89,7 @@ def test_mut_shrink_substitutes_argument_of_matching_type(ind_cls):
 
 def test_mut_uniform_replaces_a_subtree(ind_cls):
     pset = _untyped_pset()
-    random.seed(21)
+    tools.seed(21)
     tree = ind_cls(gen_full(pset, min_depth=2, max_depth=2))
     before = str(tree)
 
@@ -111,7 +110,7 @@ def test_mut_node_replacement_leaves_tiny_trees_alone(ind_cls):
 
 def test_mut_node_replacement_swaps_a_compatible_node(ind_cls):
     pset = _untyped_pset()
-    random.seed(22)
+    tools.seed(22)
     tree = ind_cls(gen_full(pset, min_depth=2, max_depth=3))
 
     (mutant,) = mut_node_replacement(tree, pset)
@@ -121,7 +120,7 @@ def test_mut_node_replacement_swaps_a_compatible_node(ind_cls):
 
 def test_mut_insert_grows_or_keeps_the_tree(ind_cls):
     pset = _untyped_pset()
-    random.seed(23)
+    tools.seed(23)
     tree = ind_cls(gen_full(pset, min_depth=1, max_depth=2))
     before = len(tree)
 
@@ -144,7 +143,7 @@ def test_mut_ephemeral_modes(ind_cls):
     pset = PrimitiveSet("main", 1)
     pset.add_primitive(operator.add, 2)
     pset.add_ephemeral_constant("COV_EPH", lambda: 1)
-    random.seed(24)
+    tools.seed(24)
     tree = ind_cls(gen_full(pset, min_depth=1, max_depth=2))
 
     (one,) = mut_ephemeral(tree, mode="one")

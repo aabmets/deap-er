@@ -8,9 +8,9 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-import random
 
 import pytest
+from deap_er import tools
 from deap_er.benchmarks.moving_peaks import MovingPeaks
 
 
@@ -45,7 +45,7 @@ def test_fluctuating_peak_count_defaults_to_no_change_severity():
 
 
 def test_change_peaks_respects_peak_count_bounds():
-    random.seed(17)
+    tools.seed(17)
     landscape = MovingPeaks(dimensions=2, npeaks=[3, 5, 8], change_severity=1.0)
 
     for _ in range(10):
@@ -59,7 +59,7 @@ def test_change_peaks_respects_peak_count_bounds():
 def test_change_peaks_is_stable_with_a_fluctuating_count():
     # Characterization: pins the interleaving of the peak-count change and the
     # per-peak position, height, and width updates.
-    random.seed(77)
+    tools.seed(77)
     landscape = MovingPeaks(dimensions=2, npeaks=[2, 3, 5], change_severity=1.0)
 
     landscape.change_peaks()
@@ -67,14 +67,14 @@ def test_change_peaks_is_stable_with_a_fluctuating_count():
     assert len(landscape.peaks_function) == 2
     flat_positions = [coord for position in landscape.peaks_position for coord in position]
     assert flat_positions == pytest.approx(
-        [15.234792408525824, 62.33901224723937, 49.658985446975244, 84.19668008266241]
+        [80.7428994728303, 9.870377604514095, 76.38848077545254, 59.544151415190086]
     )
-    assert landscape.peaks_height == pytest.approx([56.942552763348274, 44.840135030472624])
-    assert landscape.peaks_width == pytest.approx([0.09985828374029866, 0.09755426652252269])
+    assert landscape.peaks_height == pytest.approx([50.800338213253816, 59.706739130737255])
+    assert landscape.peaks_width == pytest.approx([0.11793668124545155, 0.11189864736162168])
 
 
 def test_change_peaks_is_stable_with_a_fixed_count():
-    random.seed(5)
+    tools.seed(5)
     landscape = MovingPeaks(dimensions=2)
 
     landscape.change_peaks()
@@ -82,11 +82,11 @@ def test_change_peaks_is_stable_with_a_fixed_count():
     assert len(landscape.peaks_function) == 5
     assert landscape.peaks_height == pytest.approx(
         [
-            51.11696123992914,
-            64.17678979838504,
-            64.11815130548122,
-            39.782571152097994,
-            43.35067780087705,
+            49.07474653839666,
+            39.459476387341326,
+            47.88750297144452,
+            49.643784785486034,
+            57.39053280972766,
         ]
     )
-    assert landscape.peaks_position[0] == pytest.approx([90.70539297560782, 10.532337620054733])
+    assert landscape.peaks_position[0] == pytest.approx([65.47327583938005, 22.479355750749242])

@@ -1,9 +1,8 @@
-import random
 import string
 
 from deap_er import base, creator, tools
 
-random.seed(1234)  # disables randomization
+tools.seed(1234)  # disables randomization
 
 IND_INIT_SIZE = 5
 MAX_ITEM = 50
@@ -18,11 +17,11 @@ def create_items():
     alphabet = list(string.ascii_uppercase)
     for _ in range(NBR_ITEMS):
         while True:
-            name = "".join(random.choice(alphabet) for _ in range(NAME_LEN))
+            name = "".join(tools.rng.choice(alphabet) for _ in range(NAME_LEN))
             if name not in items:
                 break
-        weight = random.randint(1, 10)
-        value = random.uniform(0, 100)
+        weight = tools.rng.randint(1, 10)
+        value = tools.rng.uniform(0, 100)
         items.update({name: (weight, value)})
 
 
@@ -45,14 +44,14 @@ def mate(ind1: set, ind2: set) -> tuple[set, set]:
 
 
 def mutate(individual: set) -> tuple[set]:
-    if random.random() < 0.5:
+    if tools.rng.random() < 0.5:
         if len(individual) > 0:
             items_ = sorted(individual)
-            choice = random.choice(items_)
+            choice = tools.rng.choice(items_)
             individual.remove(choice)
     else:
         names = list(items.keys())
-        individual.add(random.choice(names))
+        individual.add(tools.rng.choice(names))
     return (individual,)  # The comma is essential here.
 
 
@@ -61,7 +60,7 @@ def setup():
     creator.create("Individual", set, fitness=creator.Fitness)
 
     toolbox = base.Toolbox()
-    toolbox.register("attr_item", random.choice, list(items.keys()))
+    toolbox.register("attr_item", tools.rng.choice, list(items.keys()))
     toolbox.register(
         "individual", tools.init_repeat, creator.Individual, toolbox.attr_item, IND_INIT_SIZE
     )

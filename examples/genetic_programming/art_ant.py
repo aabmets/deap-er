@@ -1,11 +1,10 @@
 import copy
-import random
 from functools import partial
 
 import numpy
 from deap_er import base, creator, gp, tools
 
-random.seed(1234)  # disables randomization
+tools.seed(1234)  # disables randomization
 
 
 class AntSimulator:

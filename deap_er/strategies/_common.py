@@ -14,6 +14,7 @@ from math import exp
 import numpy
 
 from deap_er.base.dtypes import Individual
+from deap_er.rng import rng
 
 __all__: list[str] = []
 
@@ -44,7 +45,7 @@ def _sample_offspring(
     Returns:
         Newly sampled individuals.
     """
-    arz = numpy.random.standard_normal((lamb, dim))
+    arz = rng.standard_normal((lamb, dim))
     arz = center + sigma * numpy.dot(arz, transform.T)
     return list(map(ind_init, arz))
 

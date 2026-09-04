@@ -1,9 +1,7 @@
-import random
-
 import numpy
 from deap_er import base, creator, tools
 
-random.seed(1234)  # disables randomization
+tools.seed(1234)  # disables randomization
 
 
 def setup():
@@ -11,7 +9,7 @@ def setup():
     creator.create("Individual", numpy.ndarray, fitness=creator.FitnessMax)
 
     toolbox = base.Toolbox()
-    toolbox.register("attr_bool", random.randint, 0, 1)
+    toolbox.register("attr_bool", tools.rng.randint, 0, 1)
     toolbox.register("individual", tools.init_repeat, creator.Individual, toolbox.attr_bool, 100)
     toolbox.register("population", tools.init_repeat, list, toolbox.individual)
 

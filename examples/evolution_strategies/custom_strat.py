@@ -1,10 +1,9 @@
 import array
-import random
 
 import numpy
 from deap_er import base, creator, tools
 
-random.seed(1234)  # disables randomization
+tools.seed(1234)  # disables randomization
 
 IND_SIZE = 30
 MIN_VALUE = 4
@@ -14,8 +13,8 @@ MAX_STRATEGY = 3
 
 
 def gen_evo_strat(icls, scls):
-    ind = icls(random.uniform(MIN_VALUE, MAX_VALUE) for _ in range(IND_SIZE))
-    ind.strategy = scls(random.uniform(MIN_STRATEGY, MAX_STRATEGY) for _ in range(IND_SIZE))
+    ind = icls(tools.rng.uniform(MIN_VALUE, MAX_VALUE) for _ in range(IND_SIZE))
+    ind.strategy = scls(tools.rng.uniform(MIN_STRATEGY, MAX_STRATEGY) for _ in range(IND_SIZE))
     return ind
 
 

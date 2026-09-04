@@ -1,9 +1,7 @@
-import random
-
 import numpy
 from deap_er import base, creator, tools
 
-random.seed(1234)  # disables randomization
+tools.seed(1234)  # disables randomization
 
 BOARD_SIZE = 20
 
@@ -34,7 +32,7 @@ def setup():
     creator.create("Individual", list, fitness=creator.FitnessMin)
 
     toolbox = base.Toolbox()
-    toolbox.register("permutation", random.sample, range(BOARD_SIZE), BOARD_SIZE)
+    toolbox.register("permutation", tools.rng.sample, range(BOARD_SIZE), BOARD_SIZE)
     toolbox.register("individual", tools.init_iterate, creator.Individual, toolbox.permutation)
     toolbox.register("population", tools.init_repeat, list, toolbox.individual)
     toolbox.register("mate", tools.cx_partially_matched)

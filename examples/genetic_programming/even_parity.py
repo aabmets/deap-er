@@ -1,11 +1,9 @@
 import operator
-import random
 
 import numpy
 from deap_er import base, creator, gp, tools
 
-random.seed(1234)  # disables randomization
-
+tools.seed(1234)  # disables randomization
 
 PARITY_FANIN_M = 6
 PARITY_SIZE_M = 2**PARITY_FANIN_M

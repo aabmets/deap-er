@@ -1,11 +1,10 @@
 import math
 import operator
-import random
 
 import numpy
 from deap_er import base, creator, gp, tools
 
-random.seed(1234)  # disables randomization
+tools.seed(1234)  # disables randomization
 
 
 def safe_div(left, right):
@@ -31,7 +30,7 @@ def setup():
     pset.add_primitive(operator.neg, 1)
     pset.add_primitive(math.cos, 1)
     pset.add_primitive(math.sin, 1)
-    pset.add_ephemeral_constant("rand101", lambda: random.randint(-1, 1))
+    pset.add_ephemeral_constant("rand101", lambda: tools.rng.randint(-1, 1))
     pset.rename_arguments(ARG0="x")
 
     creator.create("FitnessMin", base.Fitness, weights=(-1.0,))

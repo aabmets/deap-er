@@ -16,6 +16,7 @@ import numpy
 
 from deap_er import utilities as utils
 from deap_er.base.dtypes import Individual
+from deap_er.rng import rng
 
 from ._common import _step_size_multiplier
 
@@ -283,7 +284,7 @@ class StrategyMultiObjective:
         Returns:
             Newly sampled individuals.
         """
-        arz = numpy.random.randn(self.lamb, self.dim)
+        arz = rng.standard_normal((self.lamb, self.dim))
         individuals = []
 
         for i, p in enumerate(self.parents):
@@ -300,7 +301,7 @@ class StrategyMultiObjective:
             n_dom = utils.sort_non_dominated(self.parents, len(self.parents))[0]
 
             for i in range(self.lamb):
-                j = numpy.random.randint(0, len(n_dom))
+                j = rng.integers(0, len(n_dom))
                 _, p_idx = n_dom[j].ps_
                 dot = numpy.dot(self.big_a[p_idx], arz[i])
                 init = ind_init(self.parents[p_idx] + self.sigmas[p_idx] * dot)

@@ -10,9 +10,8 @@
 #
 from __future__ import annotations
 
-import random
-
 from deap_er.base.dtypes import *
+from deap_er.rng import rng
 
 from ._bounds import _broadcast_param
 
@@ -86,8 +85,8 @@ def _two_point(
         The two individuals after crossover.
     """
     size = min(len(ind1), len(ind2))
-    cxp1 = random.randint(1, size)
-    cxp2 = random.randint(1, size - 1)
+    cxp1 = rng.randint(1, size)
+    cxp2 = rng.randint(1, size - 1)
     if cxp2 >= cxp1:
         cxp2 += 1
     else:
@@ -130,7 +129,7 @@ def cx_one_point(ind1: Individual, ind2: Individual) -> Mates:
         The two individuals after crossover.
     """
     size = min(len(ind1), len(ind2))
-    cxp = random.randint(1, size - 1)
+    cxp = rng.randint(1, size - 1)
     ind1, ind2 = _slicer(ind1, ind2, cxp)
     return ind1, ind2
 
@@ -148,8 +147,8 @@ def cx_messy_one_point(ind1: Individual, ind2: Individual) -> Mates:
     Returns:
         The two individuals after crossover.
     """
-    cxp1 = random.randint(0, len(ind1))
-    cxp2 = random.randint(0, len(ind2))
+    cxp1 = rng.randint(0, len(ind1))
+    cxp2 = rng.randint(0, len(ind2))
     ind1, ind2 = _slicer(ind1, ind2, cxp1, cxp2)
     return ind1, ind2
 
@@ -237,8 +236,8 @@ def cx_partially_matched(ind1: Individual, ind2: Individual) -> Mates:
     size = min(len(ind1), len(ind2))
     p1, p2 = [0] * size, [0] * size
 
-    cxp1 = random.randint(0, size)
-    cxp2 = random.randint(0, size - 1)
+    cxp1 = rng.randint(0, size)
+    cxp2 = rng.randint(0, size - 1)
 
     if cxp2 >= cxp1:
         cxp2 += 1
@@ -276,7 +275,7 @@ def cx_uniform_partially_matched(ind1: Individual, ind2: Individual, cx_prob: fl
         p2[ind2[i]] = i
 
     for i in range(size):
-        if random.random() < cx_prob:
+        if rng.random() < cx_prob:
             _match(ind1, ind2, p1, p2, i)
 
     return ind1, ind2
@@ -298,7 +297,7 @@ def cx_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
         The two individuals after crossover.
     """
     for i, (x1, x2) in enumerate(zip(ind1, ind2, strict=False)):
-        gamma = (1.0 + 2.0 * alpha) * random.random() - alpha
+        gamma = (1.0 + 2.0 * alpha) * rng.random() - alpha
         ind1[i] = (1.0 - gamma) * x1 + gamma * x2
         ind2[i] = gamma * x1 + (1.0 - gamma) * x2
 
@@ -322,11 +321,11 @@ def cx_es_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
     """
     zipper = zip(ind1, ind1.strategy, ind2, ind2.strategy, strict=False)
     for i, (x1, s1, x2, s2) in enumerate(zipper):
-        gamma = (1.0 + 2.0 * alpha) * random.random() - alpha
+        gamma = (1.0 + 2.0 * alpha) * rng.random() - alpha
         ind1[i] = (1.0 - gamma) * x1 + gamma * x2
         ind2[i] = gamma * x1 + (1.0 - gamma) * x2
 
-        gamma = (1.0 + 2.0 * alpha) * random.random() - alpha
+        gamma = (1.0 + 2.0 * alpha) * rng.random() - alpha
         ind1.strategy[i] = (1.0 - gamma) * s1 + gamma * s2
         ind2.strategy[i] = gamma * s1 + (1.0 - gamma) * s2
 
@@ -349,7 +348,7 @@ def cx_simulated_binary(ind1: Individual, ind2: Individual, eta: float) -> Mates
         The two individuals after crossover.
     """
     for i, (x1, x2) in enumerate(zip(ind1, ind2, strict=False)):
-        rand = random.random()
+        rand = rng.random()
 
         beta = 2.0 * rand if rand <= 0.5 else 1.0 / (2.0 * (1.0 - rand))
 
@@ -407,10 +406,10 @@ def cx_simulated_binary_bounded(
     up = _broadcast_param("up", up, size, "the shorter individual")
 
     for i, xl, xu in zip(list(range(size)), low, up, strict=False):
-        if random.random() <= 0.5 and abs(ind1[i] - ind2[i]) > 1e-14:
+        if rng.random() <= 0.5 and abs(ind1[i] - ind2[i]) > 1e-14:
             x1 = min(ind1[i], ind2[i])
             x2 = max(ind1[i], ind2[i])
-            rand = random.random()
+            rand = rng.random()
 
             c1 = calc_c(x1 - xl)
             c1 = min(max(c1, xl), xu)
@@ -418,7 +417,7 @@ def cx_simulated_binary_bounded(
             c2 = calc_c(xu - x2)
             c2 = min(max(c2, xl), xu)
 
-            if random.random() <= 0.5:
+            if rng.random() <= 0.5:
                 ind1[i] = c2
                 ind2[i] = c1
             else:
@@ -443,7 +442,7 @@ def cx_uniform(ind1: Individual, ind2: Individual, cx_prob: float) -> Mates:
     """
     size = min(len(ind1), len(ind2))
     for i in range(size):
-        if random.random() < cx_prob:
+        if rng.random() < cx_prob:
             _slicer(ind1, ind2, i, i + 1)
     return ind1, ind2
 
@@ -461,7 +460,7 @@ def cx_ordered(ind1: Individual, ind2: Individual) -> Mates:
         The two individuals after crossover.
     """
     size = min(len(ind1), len(ind2))
-    a, b = random.sample(list(range(size)), 2)
+    a, b = rng.sample(list(range(size)), 2)
     if a > b:
         a, b = b, a
 

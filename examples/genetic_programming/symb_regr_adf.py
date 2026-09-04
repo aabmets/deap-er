@@ -1,11 +1,10 @@
 import math
 import operator
-import random
 
 import numpy
 from deap_er import base, creator, gp, tools
 
-random.seed(1234)  # disables randomization
+tools.seed(1234)  # disables randomization
 
 CX_PROB = 0.5
 MUT_PROB = 0.2
@@ -51,7 +50,7 @@ def setup():
 
     pset = gp.PrimitiveSet("MAIN", 1)
     add_primitives(pset)
-    pset.add_ephemeral_constant("rand101", lambda: random.randint(-1, 1))
+    pset.add_ephemeral_constant("rand101", lambda: tools.rng.randint(-1, 1))
     pset.add_adf(adf_set_0)
     pset.add_adf(adf_set_1)
     pset.add_adf(adf_set_2)
@@ -129,14 +128,14 @@ def main():
 
         for ind1, ind2 in zip(offspring[::2], offspring[1::2], strict=False):
             for tree1, tree2 in zip(ind1, ind2, strict=False):
-                if random.random() < CX_PROB:
+                if tools.rng.random() < CX_PROB:
                     toolbox.mate(tree1, tree2)
                     del ind1.fitness.values
                     del ind2.fitness.values
 
         for ind in offspring:
             for tree, pset in zip(ind, psets, strict=False):
-                if random.random() < MUT_PROB:
+                if tools.rng.random() < MUT_PROB:
                     toolbox.mutate(individual=tree, prim_set=pset)
                     del ind.fitness.values
 

@@ -8,9 +8,10 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-import random
 from collections.abc import Callable
 from typing import Any
+
+from deap_er.rng import rng
 
 from .dtypes import *
 from .generators import gen_grow
@@ -47,7 +48,7 @@ def mut_semantic(
         gen_func = gen_grow
 
     if mut_step is None:
-        mut_step = random.uniform(0, 2)
+        mut_step = rng.uniform(0, 2)
 
     tr1 = gen_func(prim_set, min_depth, max_depth)
     tr2 = gen_func(prim_set, min_depth, max_depth)

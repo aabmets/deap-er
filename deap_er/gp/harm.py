@@ -9,13 +9,13 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import math
-import random
 from collections.abc import Callable
 from typing import Any
 
 from deap_er.base import Toolbox
 from deap_er.records import Logbook
 from deap_er.records.dtypes import *
+from deap_er.rng import rng
 
 from .dtypes import GPIndividual
 
@@ -143,7 +143,7 @@ def _acceptance(
 
     def accept(size: int) -> bool:
         prob = prob_hist[size] if size < len(prob_hist) else target_prob(size)
-        return random.random() <= prob
+        return rng.random() <= prob
 
     return accept
 
@@ -189,7 +189,7 @@ def _produce(
                 produced_pop.append(aspirant)
                 produced_pop_sizes.append(len(aspirant))
         else:
-            op_random = random.random()
+            op_random = rng.random()
             if op_random < cx_prob:
                 aspirant1, aspirant2 = toolbox.mate(
                     *map(toolbox.clone, toolbox.select(population, 2))

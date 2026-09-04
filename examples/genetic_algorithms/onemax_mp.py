@@ -1,11 +1,10 @@
 import array
 import multiprocessing as mp
-import random
 
 import numpy
 from deap_er import base, creator, tools
 
-random.seed(1234)  # disables randomization
+tools.seed(1234)  # disables randomization
 
 
 # Evaluator can't be a lambda, because lambdas can't be pickled.
@@ -20,7 +19,7 @@ creator.create("Individual", array.array, typecode="b", fitness=creator.FitnessM
 
 def setup():
     toolbox = base.Toolbox()
-    toolbox.register("attr_bool", random.randint, 0, 1)
+    toolbox.register("attr_bool", tools.rng.randint, 0, 1)
     toolbox.register("individual", tools.init_repeat, creator.Individual, toolbox.attr_bool, 100)
     toolbox.register("population", tools.init_repeat, list, toolbox.individual)
 

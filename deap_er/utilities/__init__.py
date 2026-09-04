@@ -8,6 +8,7 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from ..rng import rng, seed
 from .bm_decors import *
 from .constraints import *
 from .hypervolume import *

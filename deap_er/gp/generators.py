@@ -8,10 +8,11 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-import random
 from collections.abc import Callable
 from inspect import isclass
 from typing import Any
+
+from deap_er.rng import rng
 
 from .primitives import PrimitiveSetTyped
 
@@ -34,7 +35,7 @@ def _choose_terminal(prim_set: PrimitiveSetTyped, ret_type: Any) -> Any:
         IndexError: If no terminal of ``ret_type`` is registered.
     """
     try:
-        term = random.choice(prim_set.terminals[ret_type])
+        term = rng.choice(prim_set.terminals[ret_type])
     except IndexError as err:
         raise IndexError(_ERR_MSG.format("terminal", ret_type)) from err
     if isclass(term):
@@ -56,7 +57,7 @@ def _choose_primitive(prim_set: PrimitiveSetTyped, ret_type: Any) -> Any:
         IndexError: If no primitive of ``ret_type`` is registered.
     """
     try:
-        return random.choice(prim_set.primitives[ret_type])
+        return rng.choice(prim_set.primitives[ret_type])
     except IndexError as err:
         raise IndexError(_ERR_MSG.format("primitive", ret_type)) from err
 
@@ -93,7 +94,7 @@ def generate(
     if ret_type is None:
         ret_type = prim_set.ret
     expr = []
-    height = random.randint(min_depth, max_depth)
+    height = rng.randint(min_depth, max_depth)
     stack = [(0, ret_type)]
     while len(stack) != 0:
         depth, ret_type = stack.pop()
@@ -151,7 +152,7 @@ def gen_grow(
     """
 
     def condition(height: int, depth: int) -> bool:
-        cond = random.random() < prim_set.terminal_ratio
+        cond = rng.random() < prim_set.terminal_ratio
         return depth == height or (depth >= min_depth and cond)
 
     return generate(prim_set, min_depth, max_depth, condition, ret_type)
@@ -174,5 +175,5 @@ def gen_half_and_half(
         and terminals.
     """
     choices = (gen_grow, gen_full)
-    func = random.choice(choices)
+    func = rng.choice(choices)
     return func(prim_set, min_depth, max_depth, ret_type)

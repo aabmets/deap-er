@@ -9,9 +9,9 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import math
-import random
 
 from deap_er.base.dtypes import *
+from deap_er.rng import rng
 
 from ._bounds import _broadcast_param
 
@@ -50,8 +50,8 @@ def mut_gaussian(individual: Individual, mu: NumOrSeq, sigma: NumOrSeq, mut_prob
 
     idx = list(range(size))
     for i, m, s in zip(idx, mu, sigma, strict=False):
-        if random.random() < mut_prob:
-            individual[i] += random.gauss(m, s)
+        if rng.random() < mut_prob:
+            individual[i] += rng.gauss(m, s)
 
     return (individual,)
 
@@ -86,11 +86,11 @@ def mut_polynomial_bounded(
 
     idx = list(range(size))
     for i, xl, xu in zip(idx, low, up, strict=False):
-        if random.random() <= mut_prob:
+        if rng.random() <= mut_prob:
             x = individual[i]
             delta_1 = (x - xl) / (xu - xl)
             delta_2 = (xu - x) / (xu - xl)
-            rand = random.random()
+            rand = rng.random()
             mut_pow = 1.0 / (eta + 1.0)
 
             if rand < 0.5:
@@ -123,8 +123,8 @@ def mut_shuffle_indexes(individual: Individual, mut_prob: float) -> Mutant:
     """
     size = len(individual)
     for i in range(size):
-        if random.random() < mut_prob:
-            swap_indx = random.randint(0, size - 2)
+        if rng.random() < mut_prob:
+            swap_indx = rng.randint(0, size - 2)
             if swap_indx >= i:
                 swap_indx += 1
             individual[i], individual[swap_indx] = individual[swap_indx], individual[i]
@@ -145,7 +145,7 @@ def mut_flip_bit(individual: Individual, mut_prob: float) -> Mutant:
         A one-element tuple containing the mutated individual.
     """
     for i in range(len(individual)):
-        if random.random() < mut_prob:
+        if rng.random() < mut_prob:
             individual[i] = type(individual[i])(not individual[i])
 
     return (individual,)
@@ -175,8 +175,8 @@ def mut_uniform_int(individual: Individual, low: int, up: int, mut_prob: float) 
 
     idx = list(range(size))
     for i, xl, xu in zip(idx, lows, ups, strict=False):
-        if random.random() < mut_prob:
-            individual[i] = random.randint(int(xl), int(xu))
+        if rng.random() < mut_prob:
+            individual[i] = rng.randint(int(xl), int(xu))
 
     return (individual,)
 
@@ -199,12 +199,12 @@ def mut_es_log_normal(individual: Individual, learn_rate: float, mut_prob: float
     size = len(individual)
     t = learn_rate / math.sqrt(2.0 * math.sqrt(size))
     t0 = learn_rate / math.sqrt(2.0 * size)
-    n = random.gauss(0, 1)
+    n = rng.gauss(0, 1)
     t0_n = t0 * n
 
     for indx in range(size):
-        if random.random() < mut_prob and hasattr(individual, "strategy"):
-            individual.strategy[indx] *= math.exp(t0_n + t * random.gauss(0, 1))
-            individual[indx] += individual.strategy[indx] * random.gauss(0, 1)
+        if rng.random() < mut_prob and hasattr(individual, "strategy"):
+            individual.strategy[indx] *= math.exp(t0_n + t * rng.gauss(0, 1))
+            individual[indx] += individual.strategy[indx] * rng.gauss(0, 1)
 
     return (individual,)

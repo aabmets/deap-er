@@ -9,7 +9,6 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import operator
-import random
 from functools import partial
 
 import pytest
@@ -53,7 +52,7 @@ def toolbox():
 
 
 def _seeded_population(toolbox):
-    random.seed(31)
+    tools.seed(31)
     return toolbox.population(size=20)
 
 
@@ -85,7 +84,7 @@ def test_harm_evaluation_counts_are_stable(toolbox):
         nb_model=40,
     )
 
-    assert logbook.select("nevals") == [20, 12, 15, 16]
+    assert logbook.select("nevals") == [20, 11, 15, 12]
 
 
 def test_harm_replaces_the_population_in_place(toolbox):
@@ -138,4 +137,4 @@ def test_harm_compiles_statistics_into_the_logbook(toolbox):
         stats=stats,
     )
 
-    assert logbook.select("max") == [7, 7, 7, 7]
+    assert logbook.select("max") == [7, 7, 13, 9]

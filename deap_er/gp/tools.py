@@ -8,11 +8,12 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-import random
 from collections.abc import Callable
 from copy import deepcopy
 from functools import wraps
 from typing import Any
+
+from deap_er.rng import rng
 
 from .dtypes import *
 from .primitives import *
@@ -127,7 +128,7 @@ def static_limit(limiter: Callable[..., Any], max_value: int | float) -> Callabl
             new_inds = list(func(*args, **kwargs))
             for i, ind in enumerate(new_inds):
                 if keep_inds and limiter(ind) > max_value:
-                    new_inds[i] = random.choice(keep_inds)
+                    new_inds[i] = rng.choice(keep_inds)
             return new_inds
 
         return wrapper

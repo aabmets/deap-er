@@ -8,7 +8,6 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-import random
 from typing import Any
 
 import numpy
@@ -17,7 +16,7 @@ from deap_er import tools
 
 
 def test_rand_is_in_unit_interval():
-    random.seed(0)
+    tools.seed(0)
     ignored: Any = [1.0, 2.0]
     (value,) = tools.bm_rand(ignored)
     assert 0.0 <= value < 1.0

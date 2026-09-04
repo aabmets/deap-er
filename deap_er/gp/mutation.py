@@ -8,10 +8,11 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-import random
 from collections.abc import Callable
 from inspect import isclass
 from typing import Any
+
+from deap_er.rng import rng
 
 from .dtypes import *
 from .primitives import *
@@ -32,7 +33,7 @@ def mut_uniform(
     Returns:
         A one-element tuple containing the mutated individual.
     """
-    index = random.randrange(len(individual))
+    index = rng.randrange(len(individual))
     i_slice = individual.search_subtree(index)
     ret_type = individual[index].ret
     individual[i_slice] = expr(prim_set=prim_set, ret_type=ret_type)
@@ -52,18 +53,18 @@ def mut_node_replacement(individual: GPIndividual, prim_set: PrimitiveSetTyped) 
     if len(individual) < 2:
         return (individual,)
 
-    index = random.randrange(1, len(individual))
+    index = rng.randrange(1, len(individual))
     node = individual[index]
 
     if node.arity == 0:
-        term = random.choice(prim_set.terminals[node.ret])
+        term = rng.choice(prim_set.terminals[node.ret])
         if isclass(term):
             term = term()
         individual[index] = term
     else:
         node_ret = prim_set.primitives[node.ret]
         prims = [p for p in node_ret if p.args == node.args]
-        individual[index] = random.choice(prims)
+        individual[index] = rng.choice(prims)
 
     return (individual,)
 
@@ -92,7 +93,7 @@ def mut_ephemeral(individual: GPIndividual, mode: str = "all") -> GPMutant:
 
     if len(ephemera_idx) > 0:
         if mode == "one":
-            ephemera_idx = (random.choice(ephemera_idx),)
+            ephemera_idx = (rng.choice(ephemera_idx),)
 
         for i in ephemera_idx:
             individual[i] = type(individual[i])()
@@ -110,10 +111,10 @@ def mut_insert(individual: GPIndividual, prim_set: PrimitiveSetTyped) -> GPMutan
     Returns:
         A one-element tuple containing the mutated individual.
     """
-    index = random.randrange(len(individual))
+    index = rng.randrange(len(individual))
     node = individual[index]
     slice_ = individual.search_subtree(index)
-    choice = random.choice
+    choice = rng.choice
 
     primitives = []
     for p in prim_set.primitives[node.ret]:
@@ -164,12 +165,12 @@ def mut_shrink(individual: GPIndividual) -> GPMutant:
             i_prims.append((i, node))
 
     if len(i_prims) != 0:
-        index, prim = random.choice(i_prims)
+        index, prim = rng.choice(i_prims)
         choices = []
         for i, type_ in enumerate(prim.args):
             if type_ == prim.ret:
                 choices.append(i)
-        arg_idx = random.choice(choices)
+        arg_idx = rng.choice(choices)
         r_index = index + 1
         subtree = []
         for _ in range(arg_idx + 1):

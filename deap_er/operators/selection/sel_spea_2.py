@@ -9,9 +9,9 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import math
-import random
 
 from deap_er.base.dtypes import Individual
+from deap_er.rng import rng
 
 __all__ = ["sel_spea_2"]
 
@@ -253,7 +253,7 @@ def _randomized_partition(array: list[float], begin: int, end: int) -> int:
     Returns:
         Split index of the partitioned slice.
     """
-    i = random.randint(begin, end)
+    i = rng.randint(begin, end)
     array[begin], array[i] = array[i], array[begin]
     return _partition(array, begin, end)
 

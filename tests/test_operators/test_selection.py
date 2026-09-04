@@ -8,8 +8,6 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-import random
-
 import numpy
 import pytest
 from deap_er import base, creator, tools
@@ -64,7 +62,7 @@ def test_double_tournament_favours_smaller_individuals(single_obj):
     # Equal fitness everywhere, so only the size tournament can decide.
     population = [_make(single_obj, [0] * length, (1.0,)) for length in (1, 1, 1, 20, 20, 20)]
 
-    random.seed(4321)
+    tools.seed(4321)
     chosen = tools.sel_double_tournament(
         population,
         rounds=40,
@@ -108,9 +106,9 @@ def test_epsilon_lexicase_recomputes_epsilon_for_each_selection(multi_obj):
     values = [(10.0, 0.0), (9.0, 50.0), (8.0, 100.0), (7.0, 150.0)]
     population = [_make(multi_obj, [i], value) for i, value in enumerate(values)]
 
-    random.seed(99)
+    tools.seed(99)
     batched = tools.sel_epsilon_lexicase(population, 8)
-    random.seed(99)
+    tools.seed(99)
     one_at_a_time = [tools.sel_epsilon_lexicase(population, 1)[0] for _ in range(8)]
 
     # Each selection must start from a fresh epsilon, so a batch of eight has to
@@ -149,7 +147,7 @@ def test_spea2_selection_is_stable(multi_obj, sel_count, expected):
     # truncation path, above it takes the density path, which consumes RNG.
     population = _spea2_population(multi_obj)
 
-    random.seed(2024)
+    tools.seed(2024)
     chosen = tools.sel_spea_2(population, sel_count)
 
     assert [ind[0] for ind in chosen] == expected
@@ -158,14 +156,14 @@ def test_spea2_selection_is_stable(multi_obj, sel_count, expected):
 def test_spea2_returns_requested_count(multi_obj):
     population = _spea2_population(multi_obj)
 
-    random.seed(11)
+    tools.seed(11)
     assert len(tools.sel_spea_2(population, 4)) == 4
 
 
 def test_roulette_returns_requested_count(single_obj):
     population = [_make(single_obj, [i], (float(i + 1),)) for i in range(6)]
 
-    random.seed(12)
+    tools.seed(12)
     chosen = tools.sel_roulette(population, 5)
 
     assert len(chosen) == 5
@@ -176,10 +174,10 @@ def test_nsga3_with_memory_updates_reference_points(multi_obj):
     ref_points = tools.uniform_reference_points(2, 4)
     select = tools.SelNSGA3WithMemory(ref_points)
 
-    random.seed(7)
+    tools.seed(7)
     for _ in range(2):
         population = [
-            _make(multi_obj, [random.random()], (random.random(), random.random()))
+            _make(multi_obj, [tools.rng.random()], (tools.rng.random(), tools.rng.random()))
             for _ in range(12)
         ]
         select(population, 6)

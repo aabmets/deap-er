@@ -8,11 +8,12 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-import random
 from collections import defaultdict
 from collections.abc import Callable, Collection
 from functools import partial
 from operator import eq, lt
+
+from deap_er.rng import rng
 
 from .dtypes import *
 
@@ -63,10 +64,10 @@ def _swap_subtrees(
     if len(common_types) == 0:
         return
 
-    type_ = random.choice(list(common_types))
+    type_ = rng.choice(list(common_types))
 
-    index1 = random.choice(types1[type_])
-    index2 = random.choice(types2[type_])
+    index1 = rng.choice(types1[type_])
+    index2 = rng.choice(types2[type_])
     slice1 = ind1.search_subtree(index1)
     slice2 = ind2.search_subtree(index2)
     ind1[slice1], ind2[slice2] = ind2[slice2], ind1[slice1]
@@ -127,8 +128,8 @@ def cx_one_point_leaf_biased(ind1: GPIndividual, ind2: GPIndividual, term_prob: 
 
     terminal_op = partial(eq, 0)
     primitive_op = partial(lt, 0)
-    arity_op1 = terminal_op if random.random() < term_prob else primitive_op
-    arity_op2 = terminal_op if random.random() < term_prob else primitive_op
+    arity_op1 = terminal_op if rng.random() < term_prob else primitive_op
+    arity_op2 = terminal_op if rng.random() < term_prob else primitive_op
 
     types1 = _collect_indices(ind1, arity_op1)
     types2 = _collect_indices(ind2, arity_op2)

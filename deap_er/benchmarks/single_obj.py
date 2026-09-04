@@ -8,7 +8,6 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-import random
 from functools import reduce
 from math import cos, e, exp, pi, sin, sqrt
 from operator import mul
@@ -16,6 +15,7 @@ from operator import mul
 import numpy
 
 from deap_er.base.dtypes import *
+from deap_er.rng import rng
 
 __all__ = [
     "bm_rand",
@@ -59,7 +59,7 @@ def bm_rand(*_) -> tuple[float]:
           * - Function
             - :math:`f(\mathbf{x}) = \text{random}(0,1)`
     """
-    result = random.random()
+    result = rng.random()
     return (float(result),)
 
 

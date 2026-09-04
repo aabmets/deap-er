@@ -1,8 +1,6 @@
-import random
-
 from deap_er import base, creator, tools
 
-random.seed(1234)  # disables randomization
+tools.seed(1234)  # disables randomization
 
 NGEN = 1000
 CX_PROB = 0.5
@@ -14,7 +12,7 @@ def setup():
     creator.create("Individual", list, fitness=creator.FitnessMax)
 
     toolbox = base.Toolbox()
-    toolbox.register("attr_bool", random.randint, 0, 1)
+    toolbox.register("attr_bool", tools.rng.randint, 0, 1)
     toolbox.register("individual", tools.init_repeat, creator.Individual, toolbox.attr_bool, 100)
     toolbox.register("population", tools.init_repeat, list, toolbox.individual)
     toolbox.register("mate", tools.cx_two_point)
@@ -46,13 +44,13 @@ def main():
         offspring = list(map(toolbox.clone, offspring))
 
         for child1, child2 in zip(offspring[::2], offspring[1::2], strict=False):
-            if random.random() < CX_PROB:
+            if tools.rng.random() < CX_PROB:
                 toolbox.mate(child1, child2)
                 del child1.fitness.values
                 del child2.fitness.values
 
         for mutant in offspring:
-            if random.random() < MUT_PROB:
+            if tools.rng.random() < MUT_PROB:
                 toolbox.mutate(mutant)
                 del mutant.fitness.values
 

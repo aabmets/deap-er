@@ -1,13 +1,12 @@
 import array
 import itertools
 import math
-import random
 
 import numpy
 from deap_er import base, creator, tools
 
 # Disable randomization to guarantee reproducibility
-random.seed(1234)
+tools.seed(1234)
 
 # Define constants, objects and functions.
 REG_POP_SIZE = 4
@@ -29,7 +28,7 @@ VERBOSE = True
 
 
 def brown_ind(iter_, best, sigma):
-    return iter_(random.gauss(x, sigma) for x in best)
+    return iter_(tools.rng.gauss(x, sigma) for x in best)
 
 
 def setup():
@@ -37,11 +36,11 @@ def setup():
     creator.create("Individual", array.array, typecode="d", fitness=creator.FitnessMax)
 
     toolbox = base.Toolbox()
-    toolbox.register("attr_float", random.uniform, BOUNDS[0], BOUNDS[1])
+    toolbox.register("attr_float", tools.rng.uniform, BOUNDS[0], BOUNDS[1])
     toolbox.register("individual", tools.init_repeat, creator.Individual, toolbox.attr_float, NDIMS)
     toolbox.register("brownian_individual", brown_ind, creator.Individual, sigma=0.3)
     toolbox.register("population", tools.init_repeat, list, toolbox.individual)
-    toolbox.register("select", random.sample, k=4)
+    toolbox.register("select", tools.rng.sample, k=4)
     toolbox.register("best", tools.sel_best, sel_count=1)
     toolbox.register("evaluate", MPB)
 
@@ -120,9 +119,9 @@ def regular_diff_evo(toolbox, subpop, xbest, new_pop) -> None:
     for individual in subpop[:REG_POP_SIZE]:
         x1, x2, x3, x4 = toolbox.select(subpop)
         offspring = toolbox.clone(individual)
-        index = random.randrange(NDIMS)
+        index = tools.rng.randrange(NDIMS)
         for i, _value in enumerate(individual):
-            if i == index or random.random() < CR:
+            if i == index or tools.rng.random() < CR:
                 offspring[i] = xbest[i] + F * (x1[i] + x2[i] - x3[i] - x4[i])
         offspring.fitness.values = toolbox.evaluate(offspring)
         if offspring.fitness >= individual.fitness:

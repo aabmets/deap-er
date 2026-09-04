@@ -165,7 +165,7 @@ def selection_case_exact(types: SimpleNamespace, seed: int) -> dict[str, Any]:
 
     for sel_count in (2, 4, 7, 10, 12):
         population = _population(types.two_obj, seed, 10, 3, 2)
-        random.seed(seed + 300000)
+        tools.seed(seed + 300000)
         out[f"spea2/{sel_count}"] = _indices(tools.sel_spea_2(population, sel_count))
 
     population = _population(types.four_obj, seed, 8, 3, 4)
@@ -175,7 +175,7 @@ def selection_case_exact(types: SimpleNamespace, seed: int) -> dict[str, Any]:
         ("epsilon_zero", (0.0,)),
         ("epsilon_half", (0.5,)),
     ):
-        random.seed(seed + 200000)
+        tools.seed(seed + 200000)
         if label == "lexicase":
             chosen = tools.sel_lexicase(population, 6)
         else:
@@ -190,17 +190,17 @@ def gp_crossover_case_exact(types: SimpleNamespace, seed: int) -> dict[str, Any]
     out: dict[str, Any] = {}
 
     for name, pset in (("untyped", _untyped_pset()), ("typed", _typed_pset())):
-        random.seed(seed)
+        tools.seed(seed)
         first = types.gp_ind(gp.gen_full(pset, 1, 4))
         second = types.gp_ind(gp.gen_grow(pset, 1, 4))
-        random.seed(seed + 100000)
+        tools.seed(seed + 100000)
         gp.cx_one_point(first, second)
         out[f"one_point/{name}"] = [str(first), str(second)]
 
-        random.seed(seed)
+        tools.seed(seed)
         third = types.gp_ind(gp.gen_full(pset, 1, 4))
         fourth = types.gp_ind(gp.gen_grow(pset, 1, 4))
-        random.seed(seed + 100000)
+        tools.seed(seed + 100000)
         gp.cx_one_point_leaf_biased(third, fourth, 0.1 + (seed % 9) / 10.0)
         out[f"leaf_biased/{name}"] = [str(third), str(fourth)]
 
@@ -232,7 +232,7 @@ def ea_drivers_case_exact(types: SimpleNamespace, seed: int) -> dict[str, Any]:
         stats = tools.Statistics(lambda ind: ind.fitness.values[0])
         stats.register("max", max)
 
-        random.seed(seed + 600000)
+        tools.seed(seed + 600000)
         if name == "ea_simple":
             final, logbook = tools.ea_simple(toolbox, population, 5, 0.5, 0.3, hof, stats)
         elif name == "ea_mu_plus_lambda":
@@ -253,9 +253,9 @@ def ea_drivers_case_exact(types: SimpleNamespace, seed: int) -> dict[str, Any]:
 
 def operators_case_exact(types: SimpleNamespace, seed: int) -> dict[str, Any]:
     """Integer mutation results for one seed."""
-    random.seed(seed + 9000)
+    tools.seed(seed + 9000)
     size = 3 + seed % 6
-    ind = types.min_ind([random.randint(0, 5) for _ in range(size)])
+    ind = types.min_ind([tools.rng.randint(0, 5) for _ in range(size)])
     tools.mut_uniform_int(ind, 0, 9, 0.5)
     return {"uniform_int": [int(gene) for gene in ind]}
 
@@ -268,28 +268,28 @@ def operators_case_approx(types: SimpleNamespace, seed: int) -> dict[str, list[f
     random.seed(seed)
     first = types.min_ind([random.uniform(0, 1) for _ in range(size)])
     second = types.min_ind([random.uniform(0, 1) for _ in range(size)])
-    random.seed(seed + 5000)
+    tools.seed(seed + 5000)
     tools.cx_simulated_binary_bounded(first, second, 2.0 + seed % 5, 0.0, 1.0)
     out["sbx_bounded_scalar"] = _flat(list(first), list(second))
 
-    random.seed(seed + 6000)
-    third = types.min_ind([random.uniform(0, 1) for _ in range(size)])
-    fourth = types.min_ind([random.uniform(0, 1) for _ in range(size)])
+    tools.seed(seed + 6000)
+    third = types.min_ind([tools.rng.uniform(0, 1) for _ in range(size)])
+    fourth = types.min_ind([tools.rng.uniform(0, 1) for _ in range(size)])
     tools.cx_simulated_binary_bounded(third, fourth, 20.0, [0.0] * size, [1.0] * size)
     out["sbx_bounded_sequence"] = _flat(list(third), list(fourth))
 
-    random.seed(seed + 7000)
-    poly = types.min_ind([random.uniform(0, 1) for _ in range(size)])
+    tools.seed(seed + 7000)
+    poly = types.min_ind([tools.rng.uniform(0, 1) for _ in range(size)])
     tools.mut_polynomial_bounded(poly, 20.0, 0.0, 1.0, 0.6)
     out["polynomial_bounded"] = _flat(list(poly))
 
-    random.seed(seed + 8000)
-    gauss = types.min_ind([random.uniform(0, 1) for _ in range(size)])
+    tools.seed(seed + 8000)
+    gauss = types.min_ind([tools.rng.uniform(0, 1) for _ in range(size)])
     tools.mut_gaussian(gauss, 0.0, 1.0, 0.5)
     out["gaussian_scalar"] = _flat(list(gauss))
 
-    random.seed(seed + 8500)
-    gauss_seq = types.min_ind([random.uniform(0, 1) for _ in range(size)])
+    tools.seed(seed + 8500)
+    gauss_seq = types.min_ind([tools.rng.uniform(0, 1) for _ in range(size)])
     tools.mut_gaussian(gauss_seq, [0.0] * size, [1.0] * size, 0.5)
     out["gaussian_sequence"] = _flat(list(gauss_seq))
 
@@ -324,7 +324,7 @@ def moving_peaks_case_approx(_types: SimpleNamespace, seed: int) -> dict[str, li
     out: dict[str, list[float]] = {}
 
     dim = 2 + seed % 3
-    random.seed(seed)
+    tools.seed(seed)
     fluctuating = MovingPeaks(dimensions=dim, npeaks=[2, 4, 7], change_severity=1.0)
     for _ in range(3):
         fluctuating.change_peaks()
@@ -333,7 +333,7 @@ def moving_peaks_case_approx(_types: SimpleNamespace, seed: int) -> dict[str, li
     )
     out["fluctuating_eval"] = _flat(fluctuating([0.5] * dim))
 
-    random.seed(seed + 400000)
+    tools.seed(seed + 400000)
     fixed = MovingPeaks(dimensions=3)
     for _ in range(3):
         fixed.change_peaks()
@@ -351,7 +351,7 @@ def strategies_case_approx(types: SimpleNamespace, seed: int) -> dict[str, list[
     """State of each CMA strategy after a short run."""
     out: dict[str, list[float]] = {}
 
-    numpy.random.seed(seed)
+    tools.seed(seed)
     standard = tools.Strategy(centroid=[0.0] * 5, sigma=1.0)
     for _ in range(10):
         population = standard.generate(types.min_ind)
@@ -362,7 +362,7 @@ def strategies_case_approx(types: SimpleNamespace, seed: int) -> dict[str, list[
         standard.centroid, standard.sigma, standard.diagD, standard.pc, standard.ps
     )
 
-    numpy.random.seed(seed + 900)
+    tools.seed(seed + 900)
     parent = types.min_ind([1.0] * 4)
     parent.fitness.values = tools.bm_sphere(parent)
     one_plus = tools.StrategyOnePlusLambda(parent, sigma=0.5, offsprings=3)
@@ -375,8 +375,8 @@ def strategies_case_approx(types: SimpleNamespace, seed: int) -> dict[str, list[
         list(one_plus.parent), one_plus.sigma, one_plus.psucc, one_plus.big_a, one_plus.pc
     )
 
-    numpy.random.seed(seed + 1900)
-    choices = numpy.random.uniform(0.0, 1.0, (6, 4))
+    tools.seed(seed + 1900)
+    choices = [[tools.rng.uniform(0.0, 1.0) for _ in range(4)] for _ in range(6)]
     mo_population = [types.mo_ind(x) for x in choices]
     for ind in mo_population:
         ind.fitness.values = _clipped_zdt1(ind)
@@ -391,8 +391,8 @@ def strategies_case_approx(types: SimpleNamespace, seed: int) -> dict[str, list[
     )
     out["multi_objective_hv"] = _flat(tools.hypervolume(multi.parents, [11.0, 11.0]))
 
-    numpy.random.seed(seed + 2900)
-    choices = numpy.random.uniform(0.0, 1.0, (5, 3))
+    tools.seed(seed + 2900)
+    choices = [[tools.rng.uniform(0.0, 1.0) for _ in range(3)] for _ in range(5)]
     uneven_population = [types.mo_ind(x) for x in choices]
     for ind in uneven_population:
         ind.fitness.values = _clipped_zdt1(ind)

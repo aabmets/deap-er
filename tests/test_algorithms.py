@@ -8,8 +8,6 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-import random
-
 import numpy
 from deap_er import base, creator, tools
 
@@ -67,7 +65,7 @@ def test_nsga2():
     generations = 100
 
     toolbox = base.Toolbox()
-    toolbox.register("attr_float", random.uniform, bound_low, bound_up)
+    toolbox.register("attr_float", tools.rng.uniform, bound_low, bound_up)
     toolbox.register(
         "individual",
         tools.init_repeat,
@@ -103,7 +101,7 @@ def test_nsga2():
         offspring = [toolbox.clone(ind) for ind in offspring]
 
         for ind1, ind2 in zip(offspring[::2], offspring[1::2], strict=False):
-            if random.random() <= 0.9:
+            if tools.rng.random() <= 0.9:
                 toolbox.mate(ind1, ind2)
 
             toolbox.mutate(ind1)
@@ -148,7 +146,7 @@ def test_mo_cma_es():
     survivors = 10
     generations = 500
 
-    numpy.random.seed(128)
+    tools.seed(128)
 
     toolbox = base.Toolbox()
     toolbox.register("evaluate", tools.bm_zdt_1)
@@ -156,8 +154,12 @@ def test_mo_cma_es():
         "evaluate", tools.ClosestValidPenalty(valid, closest_feasible, 1.0e6, distance)
     )
 
-    choices = numpy.random.uniform(bound_low, bound_up, (survivors, dimensions))
-    population = [creator.__dict__[INDCLSNAME](x) for x in choices]
+    population = [
+        creator.__dict__[INDCLSNAME](
+            [tools.rng.uniform(bound_low, bound_up) for _ in range(dimensions)]
+        )
+        for _ in range(survivors)
+    ]
     for ind in population:
         ind.fitness.values = toolbox.evaluate(ind)
 
@@ -199,7 +201,7 @@ def test_nsga3():
     ref_points = tools.uniform_reference_points(2, ref_ppo=12)
 
     toolbox = base.Toolbox()
-    toolbox.register("attr_float", random.uniform, bound_low, bound_up)
+    toolbox.register("attr_float", tools.rng.uniform, bound_low, bound_up)
     toolbox.register(
         "individual",
         tools.init_repeat,

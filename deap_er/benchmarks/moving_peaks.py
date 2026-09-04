@@ -10,12 +10,12 @@
 #
 import itertools
 import math
-import random
 from collections.abc import Callable, Iterable, Sequence
 from types import MappingProxyType
 from typing import Any, cast
 
 from deap_er.base.dtypes import *
+from deap_er.rng import rng
 
 __all__ = ["MovingPeaks", "MPConfigs", "MPFuncs"]
 
@@ -34,7 +34,7 @@ def _change_shape(
         sev: Standard deviation of the change.
         idx: Position of the peak to change.
     """
-    change = random.gauss(0, 1) * sev
+    change = rng.gauss(0, 1) * sev
     new_value = change + axis[idx]
     if new_value < axis_min:
         axis[idx] = 2.0 * axis_min - axis[idx] - change
@@ -109,19 +109,19 @@ class MovingPeaks:
             if len(funcs) == n_peaks:
                 self.peaks_function = funcs
             else:
-                self.peaks_function = random.sample(funcs, n_peaks)
+                self.peaks_function = rng.sample(funcs, n_peaks)
             self.pfunc_pool: tuple[PeakFunc, ...] = tuple(funcs)
         else:
             self.peaks_function = list(itertools.repeat(pfunc, n_peaks))
             self.pfunc_pool = (pfunc,)
 
         self.last_change_vector = [
-            [random.random() - 0.5 for _ in range(dimensions)] for _ in range(n_peaks)
+            [rng.random() - 0.5 for _ in range(dimensions)] for _ in range(n_peaks)
         ]
         self.min_coord = float(sc["min_coord"])
         self.max_coord = float(sc["max_coord"])
         self.peaks_position = [
-            [random.uniform(self.min_coord, self.max_coord) for _ in range(dimensions)]
+            [rng.uniform(self.min_coord, self.max_coord) for _ in range(dimensions)]
             for _ in range(n_peaks)
         ]
         uniform_height = float(sc["uniform_height"])
@@ -131,7 +131,7 @@ class MovingPeaks:
             self.peaks_height = [uniform_height for _ in range(n_peaks)]
         else:
             self.peaks_height = [
-                random.uniform(self.min_height, self.max_height) for _ in range(n_peaks)
+                rng.uniform(self.min_height, self.max_height) for _ in range(n_peaks)
             ]
 
         uniform_width = float(sc["uniform_width"])
@@ -140,9 +140,7 @@ class MovingPeaks:
         if uniform_width != 0:
             self.peaks_width = [uniform_width for _ in range(n_peaks)]
         else:
-            self.peaks_width = [
-                random.uniform(self.min_width, self.max_width) for _ in range(n_peaks)
-            ]
+            self.peaks_width = [rng.uniform(self.min_width, self.max_width) for _ in range(n_peaks)]
 
         self.basis_function: Callable[[Sequence[float]], float] | None = sc.get("bfunc")
         self.move_severity = float(sc["move_severity"])
@@ -252,7 +250,7 @@ class MovingPeaks:
             count: Number of peaks to remove.
         """
         for _ in range(count):
-            idx = random.randrange(len(self.peaks_function))
+            idx = rng.randrange(len(self.peaks_function))
             self.peaks_function.pop(idx)
             self.peaks_position.pop(idx)
             self.peaks_height.pop(idx)
@@ -266,15 +264,15 @@ class MovingPeaks:
             count: Number of peaks to add.
         """
         for _ in range(count):
-            rand = random.choice(self.pfunc_pool)
+            rand = rng.choice(self.pfunc_pool)
             self.peaks_function.append(rand)
-            rand = [random.uniform(self.min_coord, self.max_coord) for _ in range(self.dim)]
+            rand = [rng.uniform(self.min_coord, self.max_coord) for _ in range(self.dim)]
             self.peaks_position.append(rand)
-            rand = random.uniform(self.min_height, self.max_height)
+            rand = rng.uniform(self.min_height, self.max_height)
             self.peaks_height.append(rand)
-            rand = random.uniform(self.min_width, self.max_width)
+            rand = rng.uniform(self.min_width, self.max_width)
             self.peaks_width.append(rand)
-            rand = [random.random() - 0.5 for _ in range(self.dim)]
+            rand = [rng.random() - 0.5 for _ in range(self.dim)]
             self.last_change_vector.append(rand)
 
     def _change_peak_count(self) -> None:
@@ -283,14 +281,14 @@ class MovingPeaks:
             return
 
         n_peaks = len(self.peaks_function)
-        u = random.random()
+        u = rng.random()
         r = self.max_peaks - self.min_peaks
         if u < 0.5:
-            u = random.random()
+            u = rng.random()
             runs = int(round(r * u * self.number_severity))
             self._remove_peaks(min(n_peaks - self.min_peaks, runs))
         else:
-            u = random.random()
+            u = rng.random()
             runs = int(round(r * u * self.number_severity))
             self._add_peaks(min(self.max_peaks - n_peaks, runs))
 
@@ -304,7 +302,7 @@ class MovingPeaks:
             index: Position of the peak to move.
         """
         len_ = len(self.peaks_position[index])
-        shift = [random.random() - 0.5 for _ in range(len_)]
+        shift = [rng.random() - 0.5 for _ in range(len_)]
         shift_length = sum(s**2 for s in shift)
         shift_length = self.move_severity / math.sqrt(shift_length) if shift_length > 0 else 0
 

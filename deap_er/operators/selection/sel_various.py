@@ -8,10 +8,10 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-import random
 from operator import attrgetter
 
 from deap_er.base.dtypes import Individual
+from deap_er.rng import rng
 
 __all__ = [
     "sel_random",
@@ -32,7 +32,7 @@ def sel_random(individuals: list[Individual], sel_count: int) -> list[Individual
     Returns:
         The selected individuals.
     """
-    return [random.choice(individuals) for _ in range(sel_count)]
+    return [rng.choice(individuals) for _ in range(sel_count)]
 
 
 def sel_best(
@@ -90,7 +90,7 @@ def sel_roulette(
     sum_fits = sum(getattr(ind, fit_attr).values[0] for ind in individuals)
     chosen = []
     for _ in range(sel_count):
-        u = random.random() * sum_fits
+        u = rng.random() * sum_fits
         sum_ = 0
         for ind in sorted_:
             sum_ += getattr(ind, fit_attr).values[0]
@@ -126,7 +126,7 @@ def sel_stochastic_universal_sampling(
     sum_fits = sum(getattr(ind, fit_attr).values[0] for ind in individuals)
 
     distance = sum_fits / float(sel_count)
-    start = random.uniform(0, distance)
+    start = rng.uniform(0, distance)
     points = [start + i * distance for i in range(sel_count)]
 
     chosen = []

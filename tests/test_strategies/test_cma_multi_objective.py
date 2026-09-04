@@ -21,8 +21,8 @@ def population():
     creator.create(MO_FIT, base.Fitness, weights=(-1.0, -1.0))
     creator.create(MO_IND, numpy.ndarray, fitness=creator.__dict__[MO_FIT])
 
-    numpy.random.seed(3)
-    choices = numpy.random.uniform(0.0, 1.0, (6, 4))
+    tools.seed(3)
+    choices = numpy.array([[tools.rng.uniform(0.0, 1.0) for _ in range(4)] for _ in range(6)])
     individuals = [creator.__dict__[MO_IND](x) for x in choices]
     for ind in individuals:
         ind.fitness.values = tools.bm_zdt_1(ind)

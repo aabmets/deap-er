@@ -8,12 +8,12 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-import random
 from collections.abc import Callable
 
 import numpy as np
 
 from deap_er.base.dtypes import Individual
+from deap_er.rng import rng
 
 __all__ = ["sel_lexicase", "sel_epsilon_lexicase"]
 
@@ -42,12 +42,12 @@ def _lexicase_select(
     for _i in range(sel_count):
         fit_weights = individuals[0].fitness.weights
         cases = list(range(len(individuals[0].fitness.values)))
-        random.shuffle(cases)
+        rng.shuffle(cases)
         candidates = individuals
         while len(cases) > 0 and len(candidates) > 1:
             candidates = keep(candidates, cases[0], fit_weights[cases[0]] > 0)
             cases.pop(0)
-        choice = random.choice(candidates)
+        choice = rng.choice(candidates)
         selected.append(choice)
     return selected
 

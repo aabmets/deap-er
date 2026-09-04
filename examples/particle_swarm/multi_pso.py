@@ -1,13 +1,12 @@
 import itertools
 import math
 import operator
-import random
 
 import numpy
 from deap_er import base, creator, tools
 
 # Disable randomization to guarantee reproducibility
-random.seed(1234)
+tools.seed(1234)
 
 # Define constants, objects and functions.
 NDIM = 5
@@ -30,14 +29,14 @@ PMAX = BOUNDS[1]
 
 
 def generate_particle(pclass, dim, pmin, pmax, smin, smax):
-    part = pclass(random.uniform(pmin, pmax) for _ in range(dim))
-    part.speed = [random.uniform(smin, smax) for _ in range(dim)]
+    part = pclass(tools.rng.uniform(pmin, pmax) for _ in range(dim))
+    part.speed = [tools.rng.uniform(smin, smax) for _ in range(dim)]
     return part
 
 
 def update_particle(part, best, chi, c):
-    ce1 = (c * random.uniform(0, 1) for _ in range(len(part)))
-    ce2 = (c * random.uniform(0, 1) for _ in range(len(part)))
+    ce1 = (c * tools.rng.uniform(0, 1) for _ in range(len(part)))
+    ce2 = (c * tools.rng.uniform(0, 1) for _ in range(len(part)))
     ce1_p = map(operator.mul, ce1, map(operator.sub, best, part))
     ce2_g = map(operator.mul, ce2, map(operator.sub, part.best, part))
     a = map(
@@ -52,23 +51,23 @@ def update_particle(part, best, chi, c):
 def convert_swarm(swarm, rcloud, centre, dist):
     dim = len(swarm[0])
     for part in swarm:
-        position = [random.gauss(0, 1) for _ in range(dim)]
+        position = [tools.rng.gauss(0, 1) for _ in range(dim)]
         dist_ = math.sqrt(sum(x**2 for x in position))
 
         if dist == "gaussian":
-            u = abs(random.gauss(0, 1.0 / 3.0))
+            u = abs(tools.rng.gauss(0, 1.0 / 3.0))
             part[:] = [
                 (rcloud * x * u ** (1.0 / dim) / dist_) + c
                 for x, c in zip(position, centre, strict=False)
             ]
         elif dist == "uvd":
-            u = random.random()
+            u = tools.rng.random()
             part[:] = [
                 (rcloud * x * u ** (1.0 / dim) / dist_) + c
                 for x, c in zip(position, centre, strict=False)
             ]
         elif dist == "nuvd":
-            u = abs(random.gauss(0, 1.0 / 3.0))
+            u = abs(tools.rng.gauss(0, 1.0 / 3.0))
             part[:] = [(rcloud * x * u / dist_) + c for x, c in zip(position, centre, strict=False)]
 
         del part.fitness.values

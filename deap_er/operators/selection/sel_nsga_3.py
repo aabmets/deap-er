@@ -14,6 +14,7 @@ import numpy
 from numpy import ndarray
 
 from deap_er.base.dtypes import Individual
+from deap_er.rng import rng
 from deap_er.utilities.sorting import sort_non_dominated
 
 __all__ = ["sel_nsga_3", "SelNSGA3WithMemory"]
@@ -253,13 +254,13 @@ def _select_from_niche(
 
         logical_and = numpy.logical_and(available_niches, niche_counts == min_count)
         selected_niches = numpy.flatnonzero(logical_and)
-        numpy.random.shuffle(selected_niches)
+        rng.shuffle(selected_niches)
         selected_niches = selected_niches[:n]
 
         for niche in selected_niches:
             logical_and = numpy.logical_and(niches == niche, available)
             niche_individuals = numpy.flatnonzero(logical_and)
-            numpy.random.shuffle(niche_individuals)
+            rng.shuffle(niche_individuals)
 
             if niche_counts[niche] == 0:
                 arg_min = numpy.argmin(distances[niche_individuals])

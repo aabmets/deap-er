@@ -1,17 +1,16 @@
 import math
-import random
 
 import numpy
 from deap_er import base, creator, tools
 
-random.seed(1234)  # disables randomization
+tools.seed(1234)  # disables randomization
 
 NGEN = 1000
 
 
 def generate(size, pmin, pmax, smin, smax):
-    p_list = numpy.random.uniform(pmin, pmax, size)
-    s_list = numpy.random.uniform(smin, smax, size)
+    p_list = numpy.array([tools.rng.uniform(pmin, pmax) for _ in range(size)])
+    s_list = numpy.array([tools.rng.uniform(smin, smax) for _ in range(size)])
     part = creator.Particle(p_list)
     part.speed = s_list
     part.smin = smin
@@ -20,8 +19,8 @@ def generate(size, pmin, pmax, smin, smax):
 
 
 def update(part, best, phi1, phi2):
-    u1 = numpy.random.uniform(0, phi1, len(part))
-    u2 = numpy.random.uniform(0, phi2, len(part))
+    u1 = numpy.array([tools.rng.uniform(0, phi1) for _ in range(len(part))])
+    u2 = numpy.array([tools.rng.uniform(0, phi2) for _ in range(len(part))])
     v_u1 = u1 * (part.best - part)
     v_u2 = u2 * (best - part)
     part.speed += v_u1 + v_u2

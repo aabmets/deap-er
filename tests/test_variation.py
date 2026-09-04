@@ -8,7 +8,6 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-import random
 
 import pytest
 from deap_er import base, creator, tools
@@ -44,7 +43,7 @@ def _population(count=6):
 def test_var_or_never_returns_a_parent_object(toolbox):
     # Reproduction must hand back an independent copy, so that later
     # mutation of an offspring cannot reach back into the population.
-    random.seed(5)
+    tools.seed(5)
     population = _population()
 
     offspring = tools.var_or(toolbox, population, 40, cx_prob=0.0, mut_prob=0.0)
@@ -55,7 +54,7 @@ def test_var_or_never_returns_a_parent_object(toolbox):
 
 
 def test_var_or_reproduction_copies_the_genes(toolbox):
-    random.seed(5)
+    tools.seed(5)
     population = _population()
 
     offspring = tools.var_or(toolbox, population, 10, cx_prob=0.0, mut_prob=0.0)
@@ -64,7 +63,7 @@ def test_var_or_reproduction_copies_the_genes(toolbox):
 
 
 def test_var_or_mutating_offspring_leaves_parents_untouched(toolbox):
-    random.seed(7)
+    tools.seed(7)
     population = _population()
     before = [list(ind) for ind in population]
 
@@ -76,7 +75,7 @@ def test_var_or_mutating_offspring_leaves_parents_untouched(toolbox):
 
 
 def test_var_or_still_produces_the_requested_count(toolbox):
-    random.seed(9)
+    tools.seed(9)
     population = _population()
 
     offspring = tools.var_or(toolbox, population, 12, cx_prob=0.5, mut_prob=0.3)

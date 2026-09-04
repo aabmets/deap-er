@@ -1,10 +1,9 @@
 import array
-import random
 
 import numpy
 from deap_er import base, creator, tools
 
-random.seed(1234)  # disables randomization
+tools.seed(1234)  # disables randomization
 
 NDIM = 10
 CR = 0.25
@@ -18,7 +17,7 @@ def setup():
     creator.create("Individual", array.array, typecode="d", fitness=creator.FitnessMin)
 
     toolbox = base.Toolbox()
-    toolbox.register("attr_float", random.uniform, -3, 3)
+    toolbox.register("attr_float", tools.rng.uniform, -3, 3)
     toolbox.register("individual", tools.init_repeat, creator.Individual, toolbox.attr_float, NDIM)
     toolbox.register("population", tools.init_repeat, list, toolbox.individual)
     toolbox.register("select", tools.sel_random, sel_count=3)
@@ -62,9 +61,9 @@ def main():
         for k, agent in enumerate(pop):
             a, b, c = toolbox.select(pop)
             y = toolbox.clone(agent)
-            index = random.randrange(NDIM)
+            index = tools.rng.randrange(NDIM)
             for i, _value in enumerate(agent):
-                if i == index or random.random() < CR:
+                if i == index or tools.rng.random() < CR:
                     y[i] = a[i] + F * (b[i] - c[i])
             y.fitness.values = toolbox.evaluate(y)
             if y.fitness > agent.fitness:

@@ -8,13 +8,13 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-import random
 from collections.abc import Callable
 from functools import partial
 from operator import attrgetter
 from typing import Any
 
 from deap_er.base.dtypes import Individual
+from deap_er.rng import rng
 
 from .sel_various import sel_random
 
@@ -94,7 +94,7 @@ def sel_double_tournament(
                 ind1, ind2 = ind2, ind1
             elif len(ind1) == len(ind2):
                 prob = 0.5
-            chosen.append(ind1 if random.random() < prob else ind2)
+            chosen.append(ind1 if rng.random() < prob else ind2)
         return chosen
 
     def _fit_tourney(
@@ -171,12 +171,12 @@ def sel_tournament_dcd(individuals: list[Individual], sel_count: int) -> list[In
             return ind2
         elif ind1.fitness.crowding_dist > ind2.fitness.crowding_dist:
             return ind1
-        if random.random() <= 0.5:
+        if rng.random() <= 0.5:
             return ind1
         return ind2
 
-    individuals_1 = random.sample(individuals, len(individuals))
-    individuals_2 = random.sample(individuals, len(individuals))
+    individuals_1 = rng.sample(individuals, len(individuals))
+    individuals_2 = rng.sample(individuals, len(individuals))
 
     chosen = []
     for i in range(0, sel_count, 4):

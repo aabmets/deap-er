@@ -8,8 +8,6 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-import random
-
 import pytest
 from deap_er import base, creator, tools
 
@@ -39,10 +37,10 @@ def toolbox():
 
 
 def _population(count=10):
-    random.seed(3)
+    tools.seed(3)
     population = []
     for _ in range(count):
-        ind = creator.__dict__[EA_IND]([random.randint(0, 1) for _ in range(6)])
+        ind = creator.__dict__[EA_IND]([tools.rng.randint(0, 1) for _ in range(6)])
         ind.fitness.values = _evaluate(ind)
         population.append(ind)
     return population

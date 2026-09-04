@@ -8,10 +8,9 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-import random
-
 from deap_er.base import Toolbox
 from deap_er.base.dtypes import Individual
+from deap_er.rng import rng
 
 __all__ = ["var_and", "var_or"]
 
@@ -47,12 +46,12 @@ def var_and(
     offspring = [toolbox.clone(ind) for ind in population]
 
     for i in range(1, len(offspring), 2):
-        if random.random() < cx_prob:
+        if rng.random() < cx_prob:
             offspring[i - 1], offspring[i] = toolbox.mate(offspring[i - 1], offspring[i])
             del offspring[i - 1].fitness.values, offspring[i].fitness.values
 
     for i in range(len(offspring)):
-        if random.random() < mut_prob:
+        if rng.random() < mut_prob:
             (offspring[i],) = toolbox.mutate(offspring[i])  # don't remove the comma!
             del offspring[i].fitness.values
 
@@ -96,18 +95,18 @@ def var_or(
 
     offspring = []
     for _ in range(offsprings):
-        op_choice = random.random()
+        op_choice = rng.random()
         if op_choice < cx_prob:
-            ind1, ind2 = map(toolbox.clone, random.sample(population, 2))
+            ind1, ind2 = map(toolbox.clone, rng.sample(population, 2))
             ind1, ind2 = toolbox.mate(ind1, ind2)
             del ind1.fitness.values
             offspring.append(ind1)
         elif op_choice < evolve_prob:
-            ind = toolbox.clone(random.choice(population))
+            ind = toolbox.clone(rng.choice(population))
             (ind,) = toolbox.mutate(ind)  # don't remove the comma!
             del ind.fitness.values
             offspring.append(ind)
         else:
-            offspring.append(toolbox.clone(random.choice(population)))
+            offspring.append(toolbox.clone(rng.choice(population)))
 
     return offspring

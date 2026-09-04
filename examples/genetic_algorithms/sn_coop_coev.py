@@ -1,9 +1,7 @@
-import random
-
 import numpy
 from deap_er import base, creator, tools
 
-random.seed(1234)  # disables randomization
+tools.seed(1234)  # disables randomization
 
 INPUTS = 12
 MAXGEN = 100
@@ -12,13 +10,13 @@ P_CX_PROB, P_MUT_PROB = 0.6, 0.3
 
 
 def gen_wire(dimension):
-    wire1 = random.randrange(dimension)
-    wire2 = random.randrange(dimension)
+    wire1 = tools.rng.randrange(dimension)
+    wire2 = tools.rng.randrange(dimension)
     return wire1, wire2
 
 
 def gen_network(dimension, min_size, max_size):
-    size = random.randint(min_size, max_size)
+    size = tools.rng.randint(min_size, max_size)
     network = [gen_wire(dimension) for _ in range(size)]
     return network
 
@@ -29,15 +27,15 @@ def eval_network(host, parasite, dimension):
 
 
 def mut_network(individual, dimension, mutpb, addpb, delpb, indpb):
-    if random.random() < mutpb:
+    if tools.rng.random() < mutpb:
         for index, _elem in enumerate(individual):
-            if random.random() < indpb:
+            if tools.rng.random() < indpb:
                 individual[index] = gen_wire(dimension)
-    if random.random() < addpb:
-        index = random.randint(0, len(individual))
+    if tools.rng.random() < addpb:
+        index = tools.rng.randint(0, len(individual))
         individual.insert(index, gen_wire(dimension))
-    if random.random() < delpb:
-        index = random.randrange(len(individual))
+    if tools.rng.random() < delpb:
+        index = tools.rng.randrange(len(individual))
         del individual[index]
     return (individual,)  # The comma is essential here.
 
@@ -49,12 +47,12 @@ def clone_network(individual):
 
 
 def gen_parasite(dimension):
-    return [random.choice((0, 1)) for _ in range(dimension)]
+    return [tools.rng.choice((0, 1)) for _ in range(dimension)]
 
 
 def mut_parasite(individual, mut_prob):
     for i in individual:
-        if random.random() < mut_prob:
+        if tools.rng.random() < mut_prob:
             tools.mut_flip_bit(i, mut_prob)
     return (individual,)  # The comma is essential here.
 

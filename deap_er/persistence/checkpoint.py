@@ -9,7 +9,6 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import os
-import random
 import time
 import uuid
 from collections.abc import Iterator
@@ -17,7 +16,8 @@ from pathlib import Path
 from typing import Any, override
 
 import dill
-import numpy as np
+
+from deap_er.rng import rng
 
 __all__ = ["Checkpoint"]
 
@@ -26,7 +26,8 @@ class Checkpoint:
     """Save and load evolution progress with dill.
 
     Only attributes set on the checkpoint instance are written. The
-    ``random`` and ``numpy.random`` RNG states are persisted as well.
+    library RNG state (buffered uniforms and Generator) is persisted
+    as well.
     The target file is chosen at construction.
 
     Args:
@@ -47,8 +48,7 @@ class Checkpoint:
     _ext_ = ".dcpf"  # [D]eaper [C]heck [P]oint [F]ile
     _omit_ = ["_last_op_"]
 
-    _rand_state_: Any = None
-    _numpy_state_: Any = None
+    _rng_state_: Any = None
 
     def __getattr__(self, name: str) -> Any:
         """Allow dynamically assigned checkpoint attributes."""
@@ -97,8 +97,8 @@ class Checkpoint:
             with open(self.file_path, "rb") as f:
                 # nosemgrep: python.lang.security.deserialization.pickle.avoid-dill
                 self.__dict__ = dill.load(f)
-            random.setstate(self._rand_state_)
-            np.random.set_state(self._numpy_state_)
+            if self._rng_state_ is not None:
+                rng.set_state(self._rng_state_)
         except (OSError, dill.PickleError) as ex:
             if self.raise_errors:
                 raise ex
@@ -121,8 +121,7 @@ class Checkpoint:
             dill.PickleError: If serialization fails and ``raise_errors`` is True.
         """
         try:
-            self._rand_state_ = random.getstate()
-            self._numpy_state_ = np.random.get_state()
+            self._rng_state_ = rng.get_state()
             if self.make_dir:
                 self.file_path.parent.mkdir(parents=True, exist_ok=True)
             with open(self.file_path, "wb") as f:

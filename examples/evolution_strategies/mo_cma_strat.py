@@ -1,7 +1,7 @@
 import numpy
 from deap_er import base, creator, tools
 
-numpy.random.seed(1234)  # disables randomization
+tools.seed(1234)  # disables randomization
 
 
 SIZE = 5
@@ -35,7 +35,7 @@ def setup():
     toolbox.register("evaluate", tools.bm_zdt_1)
     toolbox.decorate("evaluate", tools.ClosestValidPenalty(validity, feasible, 1.0e6, distance))
 
-    pop = [creator.Individual(x) for x in (numpy.random.uniform(0, 1, (MU, SIZE)))]
+    pop = [creator.Individual([tools.rng.uniform(0, 1) for _ in range(SIZE)]) for _ in range(MU)]
     for ind in pop:
         ind.fitness.values = toolbox.evaluate(ind)
     strategy = tools.StrategyMultiObjective(

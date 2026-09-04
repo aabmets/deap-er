@@ -1,9 +1,7 @@
-import random
-
 import numpy
 from deap_er import base, creator, tools
 
-random.seed(1234)  # disables randomization
+tools.seed(1234)  # disables randomization
 
 INPUTS = 6
 NGEN = 100
@@ -19,30 +17,30 @@ def eval_network(individual, dimension):
 
 
 def gen_wire(dimension):
-    wire1 = random.randrange(dimension)
-    wire2 = random.randrange(dimension)
+    wire1 = tools.rng.randrange(dimension)
+    wire2 = tools.rng.randrange(dimension)
     return wire1, wire2
 
 
 def gen_network(dimension, min_size, max_size):
-    size = random.randint(min_size, max_size)
+    size = tools.rng.randint(min_size, max_size)
     network = [gen_wire(dimension) for _ in range(size)]
     return network
 
 
 def mut_wire(individual, dimension, mut_prob):
     for index, _elem in enumerate(individual):
-        if random.random() < mut_prob:
+        if tools.rng.random() < mut_prob:
             individual[index] = gen_wire(dimension)
 
 
 def mut_add_wire(individual, dimension):
-    index = random.randint(0, len(individual))
+    index = tools.rng.randint(0, len(individual))
     individual.insert(index, gen_wire(dimension))
 
 
 def mut_del_wire(individual):
-    index = random.randrange(len(individual))
+    index = tools.rng.randrange(len(individual))
     del individual[index]
 
 
@@ -101,19 +99,19 @@ def main():
         offspring = [toolbox.clone(ind) for ind in population]
 
         for ind1, ind2 in zip(offspring[::2], offspring[1::2], strict=False):
-            if random.random() < CX_PROB:
+            if tools.rng.random() < CX_PROB:
                 toolbox.mate(ind1, ind2)
                 del ind1.fitness.values
                 del ind2.fitness.values
 
         for ind in offspring:
-            if random.random() < MUT_PROB:
+            if tools.rng.random() < MUT_PROB:
                 toolbox.mutate(ind)
                 del ind.fitness.values
-            if random.random() < ADD_PROB:
+            if tools.rng.random() < ADD_PROB:
                 toolbox.addwire(ind)
                 del ind.fitness.values
-            if random.random() < DEL_PROB:
+            if tools.rng.random() < DEL_PROB:
                 toolbox.delwire(ind)
                 del ind.fitness.values
 
