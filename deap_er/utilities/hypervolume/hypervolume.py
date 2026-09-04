@@ -8,159 +8,70 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from typing import Any
+
+import moocore
 import numpy
 
 from deap_er.base.dtypes import Individual
 
-from .multi_list import MultiList
-from .node import Node
-
-__all__ = ["hypervolume", "HyperVolume"]
+__all__ = ["hypervolume"]
 
 
-def hypervolume(population: list[Individual], ref_point: list[float] | None = None) -> float:
-    """Return the hypervolume of a population.
-
-    Minimization is implicitly assumed.
+def _minimized_points(population: list[Any]) -> numpy.ndarray:
+    """Return objective rows in minimization space (``-wvalues``).
 
     Args:
-        population: Non-dominated individuals, each with a Fitness
-            attribute.
-        ref_point: Reference point for the hypervolume. Optional. If
-            omitted, the worst value of each objective plus one is
-            used.
+        population: Individuals with a Fitness attribute.
 
     Returns:
-        The hypervolume of the population.
+        A 2-D array of points, or shape ``(0, 0)`` when ``population``
+        is empty.
     """
-    wvals = numpy.array([ind.fitness.wvalues for ind in population]) * -1
-    point = numpy.max(wvals, axis=0) + 1 if ref_point is None else numpy.array(ref_point)
-    hv = HyperVolume(point)
-    return hv.compute(wvals)
+    if not population:
+        return numpy.empty((0, 0), dtype=float)
+    return numpy.array([ind.fitness.wvalues for ind in population], dtype=float) * -1
 
 
-class HyperVolume:
-    """Hypervolume indicator relative to a reference point.
+def _has_fitness(obj: object) -> bool:
+    """Return whether ``obj`` looks like an individual with Fitness.
 
     Args:
-        ref_point: Reference point for the hypervolume calculation.
+        obj: Value to inspect.
+
+    Returns:
+        True if ``obj`` has a ``fitness`` attribute.
     """
+    return hasattr(obj, "fitness")
 
-    multi_list: MultiList
 
-    def __init__(self, ref_point: numpy.ndarray) -> None:
-        """See the class docstring."""
-        self.ref_point = ref_point
-        self.dims = len(ref_point)
+def hypervolume(
+    points: numpy.ndarray | list[Individual] | Individual,
+    ref_point: numpy.ndarray | list[float] | None = None,
+) -> float:
+    """Return the hypervolume of a point set or a population.
 
-    def compute(self, point_set: numpy.ndarray) -> float:
-        """Compute the hypervolume dominated by a non-dominated point set.
+    Minimization is assumed. An individual or a sequence of
+    individuals is converted via ``-wvalues``. A bare point matrix
+    (no ``fitness``) is used as-is. ``ref_point`` is in that same
+    space. Delegates to ``moocore.hypervolume``.
 
-        Minimization is implicitly assumed.
+    Args:
+        points: Minimized objective rows, one individual, or a
+            population with Fitness.
+        ref_point: Reference point. Optional. If omitted, the worst
+            value of each objective plus one is used.
 
-        Args:
-            point_set: Points to evaluate.
-
-        Returns:
-            The hypervolume of the point set.
-        """
-        self._pre_process(point_set)
-        return self._hv_recursive(self.dims - 1, len(point_set), self.dims * [-1.0e308])
-
-    def _pre_process(self, point_set: numpy.ndarray) -> None:
-        """Translate ``point_set`` and index it for recursive computation.
-
-        Args:
-            point_set: Objective vectors to evaluate. Shifted in place
-                when the reference point is non-zero.
-        """
-        if any(self.ref_point):
-            point_set -= self.ref_point
-        node_list = MultiList(self.dims)
-        nodes = [Node(self.dims, point) for point in point_set]
-        for i in range(self.dims):
-            decorated = [(node.cargo[i], node) for node in nodes]
-            decorated.sort()
-            nodes[:] = [node for _, node in decorated]
-            node_list.extend(nodes, i)
-        self.multi_list = node_list
-
-    def _hv_recursive(self, dim_index: int, length: int, bounds: list[float]) -> float:
-        """Compute the hypervolume of the indexed points in one dimension.
-
-        Args:
-            dim_index: Objective dimension currently being processed.
-            length: Number of points still in the list.
-            bounds: Exclusion bounds per dimension. Updated during the
-                recursion.
-
-        Returns:
-            The hypervolume contribution at this dimension.
-        """
-        sentinel = self.multi_list.sentinel
-        reinsert = self.multi_list.reinsert
-        remove = self.multi_list.remove
-
-        def inception() -> None:
-            q.volume[dim_index] = hvol
-            if q.ignore >= dim_index:
-                q.area[dim_index] = q.prev[dim_index].area[dim_index]
-            else:
-                q.area[dim_index] = self._hv_recursive(dim_index - 1, length, bounds)
-                if q.area[dim_index] <= q.prev[dim_index].area[dim_index]:
-                    q.ignore = dim_index
-
-        def in_bounds() -> bool:
-            a = q.prev[dim_index].cargo[dim_index] >= bounds[dim_index]
-            b = q.cargo[dim_index] > bounds[dim_index]
-            return bool(a or b)
-
-        hvol = 0.0
-        if length == 0:
-            return hvol
-        elif dim_index == 0:
-            return float(-sentinel.next[0].cargo[0])
-        elif dim_index == 1:
-            q = sentinel.next[1]
-            h = q.cargo[0]
-            p = q.next[1]
-            while p is not sentinel:
-                hvol += h * (q.cargo[1] - p.cargo[1])
-                if p.cargo[0] < h:
-                    h = p.cargo[0]
-                q = p
-                p = q.next[1]
-            hvol += h * q.cargo[1]
-            return float(hvol)
-        else:
-            p = sentinel
-            q = p.prev[dim_index]
-            while q.cargo is not None:
-                if q.ignore < dim_index:
-                    q.ignore = 0
-                q = q.prev[dim_index]
-            q = p.prev[dim_index]
-            while length > 1 and in_bounds():
-                p = q
-                remove(p, dim_index, bounds)
-                q = p.prev[dim_index]
-                length -= 1
-            if length > 1:
-                hvol = q.cargo[dim_index] - q.prev[dim_index].cargo[dim_index]
-                hvol *= q.prev[dim_index].area[dim_index]
-                hvol += q.prev[dim_index].volume[dim_index]
-            else:
-                q.area[0] = 1
-                q.area[1 : dim_index + 1] = [q.area[i] * -q.cargo[i] for i in range(dim_index)]
-            inception()
-            while p is not sentinel:
-                new_point = p.cargo[dim_index] - q.cargo[dim_index]
-                hvol += q.area[dim_index] * new_point
-                bounds[dim_index] = p.cargo[dim_index]
-                reinsert(p, dim_index, bounds)
-                length += 1
-                q = p
-                p = p.next[dim_index]
-                inception()
-            hvol -= q.area[dim_index] * q.cargo[dim_index]
-            return float(hvol)
+    Returns:
+        The hypervolume of the point set.
+    """
+    if _has_fitness(points):
+        arr = _minimized_points([points])
+    elif not isinstance(points, numpy.ndarray) and points and _has_fitness(points[0]):
+        arr = _minimized_points(list(points))
+    else:
+        arr = numpy.asarray(points, dtype=float)
+    if arr.size == 0:
+        return 0.0
+    ref = numpy.max(arr, axis=0) + 1 if ref_point is None else numpy.asarray(ref_point)
+    return float(moocore.hypervolume(arr, ref=ref, maximise=False))

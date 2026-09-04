@@ -8,40 +8,24 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from collections.abc import Callable
-from typing import Any
-
+import moocore
 import numpy
 
 from deap_er.base.dtypes import Individual
 
-from .hypervolume import HyperVolume
+from .hypervolume import _minimized_points
 
 __all__ = ["least_contrib"]
 
 
-def _compute_hv(data: tuple[numpy.ndarray, numpy.ndarray]) -> float:
-    """Compute the hypervolume of one point set against a reference point.
-
-    Args:
-        data: Pair of ``(point_set, ref_point)``.
-
-    Returns:
-        The hypervolume of ``point_set``.
-    """
-    point_set, ref_point = data[0], data[1]
-    hv = HyperVolume(ref_point)
-    return hv.compute(point_set)
-
-
 def least_contrib(
-    population: list[Individual],
-    ref_point: list[float] | numpy.ndarray | None = None,
-    map_func: Callable[..., Any] | None = map,
-) -> int | numpy.ndarray:
+    population: list[Individual], ref_point: list[float] | numpy.ndarray | None = None
+) -> int:
     """Return the index of the individual with the least hypervolume contribution.
 
-    Minimization is implicitly assumed.
+    Minimization is implicitly assumed. ``ref_point`` is interpreted in
+    that same space (after ``wvalues`` are negated). Delegates to
+    ``moocore.hv_contributions``.
 
     Args:
         population: Non-dominated individuals, each with a Fitness
@@ -49,23 +33,17 @@ def least_contrib(
         ref_point: Reference point for the hypervolume. Optional. If
             omitted, the worst value of each objective plus one is
             used.
-        map_func: Map that applies a callable to an iterable.
-            Optional. A pool map can be supplied to parallelize the
-            per-individual computations. Defaults to the built-in
-            single-process ``map``.
 
     Returns:
         The index of the individual with the least hypervolume
-        contribution.
+        contribution. The first index wins when contributions tie.
+
+    Raises:
+        ValueError: If ``population`` is empty.
     """
-    wvals = numpy.array([ind.fitness.wvalues for ind in population]) * -1
-    point = numpy.max(wvals, axis=0) + 1 if ref_point is None else numpy.array(ref_point)
-
-    data = []
-    for i in range(len(population)):
-        point_set = numpy.concatenate((wvals[:i], wvals[i + 1 :]))
-        data.append((point_set, point))
-
-    mapper = map if map_func is None else map_func
-    contrib_values = list(mapper(_compute_hv, data))
-    return int(numpy.argmax(contrib_values))
+    if not population:
+        raise ValueError("population must not be empty")
+    wvals = _minimized_points(population)
+    point = numpy.max(wvals, axis=0) + 1 if ref_point is None else numpy.asarray(ref_point)
+    contrib = moocore.hv_contributions(wvals, ref=point, maximise=False)
+    return int(numpy.argmin(contrib))
