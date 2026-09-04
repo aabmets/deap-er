@@ -25,30 +25,8 @@ jobs:
         env:
           NEW_VERSION: ${{ inputs.version }}
         run: |
-          uv run python <<'PY'  # NOSONAR --no-build would skip this package
-          import os
-          import sys
-          from pathlib import Path
-
-          from packaging.version import InvalidVersion, Version
-
-          raw = os.environ["NEW_VERSION"].strip()
-          current = None
-          for line in Path("pyproject.toml").read_text().splitlines():
-              if line.startswith("version = "):
-                  current = line.split("=", 1)[1].strip().strip('"')
-                  break
-          if current is None:
-              sys.exit("Could not read project.version from pyproject.toml")
-          try:
-              new = Version(raw)
-              cur = Version(current)
-          except InvalidVersion as exc:
-              sys.exit(f"Invalid version: {exc}")
-          if new <= cur:
-              sys.exit(f"Version {raw} must be greater than current {current}")
-          print(f"{raw} > {current}")
-          PY
+          uv sync --frozen --only-group release --no-install-project
+          .venv/bin/python tools/check_release_version.py
 
   bump:
     needs: gate

@@ -418,7 +418,6 @@ dev = [
     { name = "coverage" },
     { name = "mkdocs-material" },
     { name = "mkdocstrings", extra = ["python"] },
-    { name = "packaging" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "pytest-mock" },
@@ -426,6 +425,9 @@ dev = [
     { name = "pytest-xdist" },
     { name = "ruff" },
     { name = "ty" },
+]
+release = [
+    { name = "packaging" },
 ]
 
 [package.metadata]
@@ -442,7 +444,6 @@ dev = [
     { name = "coverage", specifier = "==7.16.0" },
     { name = "mkdocs-material", specifier = ">=9.7.7" },
     { name = "mkdocstrings", extras = ["python"], specifier = ">=1.0.6" },
-    { name = "packaging", specifier = "==26.3" },
     { name = "pytest", specifier = "==9.1.1" },
     { name = "pytest-cov", specifier = "==7.1.0" },
     { name = "pytest-mock", specifier = "==3.15.1" },
@@ -451,6 +452,7 @@ dev = [
     { name = "ruff", specifier = "==0.16.5" },
     { name = "ty", specifier = "==0.0.78" },
 ]
+release = [{ name = "packaging", specifier = "==26.3" }]
 
 [[package]]
 name = "dill"
