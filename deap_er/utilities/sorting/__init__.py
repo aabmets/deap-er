@@ -8,5 +8,10 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from .sort_non_dominated import *
-from .sorting_network import *
+from .sort_non_dominated import sort_non_dominated
+from .sorting_network import SortingNetwork
+
+__all__ = [
+    "sort_non_dominated",
+    "SortingNetwork",
+]

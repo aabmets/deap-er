@@ -8,4 +8,6 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from .checkpoint import *
+from .checkpoint import Checkpoint
+
+__all__ = ["Checkpoint"]

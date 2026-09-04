@@ -8,6 +8,22 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from .base.dtypes import *
-from .gp.dtypes import *
-from .records.dtypes import *
+from .base.dtypes import Individual, Mates, Mutant, NumOrSeq
+from .gp.dtypes import GPExprTypes, GPGraph, GPIndividual, GPMates, GPMutant, GPTypedSets
+from .records.dtypes import AlgoResult, Hof, Stats
+
+__all__ = [
+    "Individual",
+    "Mates",
+    "Mutant",
+    "NumOrSeq",
+    "GPIndividual",
+    "GPMates",
+    "GPMutant",
+    "GPExprTypes",
+    "GPTypedSets",
+    "GPGraph",
+    "Hof",
+    "Stats",
+    "AlgoResult",
+]

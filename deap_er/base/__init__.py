@@ -8,5 +8,10 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from .fitness import *
-from .toolbox import *
+from .fitness import Fitness
+from .toolbox import Toolbox
+
+__all__ = [
+    "Fitness",
+    "Toolbox",
+]

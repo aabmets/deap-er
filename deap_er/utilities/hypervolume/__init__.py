@@ -8,5 +8,10 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from .hypervolume import *
-from .least_contrib import *
+from .hypervolume import hypervolume
+from .least_contrib import least_contrib
+
+__all__ = [
+    "hypervolume",
+    "least_contrib",
+]

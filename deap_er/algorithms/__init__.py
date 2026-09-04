@@ -8,8 +8,17 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from .ea_generate_update import *
-from .ea_mu_comma_lambda import *
-from .ea_mu_plus_lambda import *
-from .ea_simple import *
-from .variation import *
+from .ea_generate_update import ea_generate_update
+from .ea_mu_comma_lambda import ea_mu_comma_lambda
+from .ea_mu_plus_lambda import ea_mu_plus_lambda
+from .ea_simple import ea_simple
+from .variation import var_and, var_or
+
+__all__ = [
+    "ea_generate_update",
+    "ea_mu_comma_lambda",
+    "ea_mu_plus_lambda",
+    "ea_simple",
+    "var_and",
+    "var_or",
+]

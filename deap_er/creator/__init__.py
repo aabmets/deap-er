@@ -10,4 +10,32 @@
 #
 from . import creator
 from .creator import create
-from .lint_hints import *
+from .lint_hints import (
+    Fitness,
+    FitnessMax,
+    FitnessMin,
+    FitnessMulti,
+    FitnessVaried,
+    Individual,
+    Particle,
+    Population,
+    Strategy,
+    Swarm,
+    Tree,
+)
+
+__all__ = [
+    "Fitness",
+    "FitnessMax",
+    "FitnessMin",
+    "FitnessMulti",
+    "FitnessVaried",
+    "Individual",
+    "Particle",
+    "Population",
+    "Strategy",
+    "Swarm",
+    "Tree",
+    "create",
+    "creator",
+]

@@ -12,9 +12,9 @@ from typing import Any
 
 from deap_er.base.dtypes import Individual
 
-from .hall_of_fame import *
-from .logbook import *
-from .statistics import *
+from .hall_of_fame import HallOfFame, ParetoFront
+from .logbook import Logbook
+from .statistics import MultiStatistics, Statistics
 
 __all__ = ["Hof", "Stats", "AlgoResult", "Individual"]
 

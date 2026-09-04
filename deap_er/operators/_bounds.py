@@ -10,7 +10,7 @@
 #
 from collections.abc import Sequence
 
-from deap_er.base.dtypes import *
+from deap_er.base.dtypes import NumOrSeq
 
 __all__: list[str] = []
 

@@ -14,7 +14,7 @@ from copy import deepcopy
 from operator import eq
 from typing import Any, override
 
-from deap_er.base.dtypes import *
+from deap_er.base.dtypes import Individual
 
 __all__ = ["HallOfFame", "ParetoFront"]
 

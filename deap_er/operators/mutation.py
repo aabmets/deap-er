@@ -10,7 +10,7 @@
 #
 import math
 
-from deap_er.base.dtypes import *
+from deap_er.base.dtypes import Individual, Mutant, NumOrSeq
 from deap_er.rng import rng
 
 from ._bounds import _broadcast_param

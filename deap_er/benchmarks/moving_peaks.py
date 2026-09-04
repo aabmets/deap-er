@@ -14,7 +14,6 @@ from collections.abc import Callable, Iterable, Sequence
 from types import MappingProxyType
 from typing import Any, cast
 
-from deap_er.base.dtypes import *
 from deap_er.rng import rng
 
 __all__ = ["MovingPeaks", "MPConfigs", "MPFuncs"]

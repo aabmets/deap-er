@@ -10,7 +10,7 @@
 #
 from __future__ import annotations
 
-from deap_er.base.dtypes import *
+from deap_er.base.dtypes import Individual, Mates, NumOrSeq
 from deap_er.rng import rng
 
 from ._bounds import _broadcast_param

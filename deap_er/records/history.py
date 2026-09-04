@@ -12,7 +12,7 @@ from collections.abc import Callable
 from copy import deepcopy
 from typing import Any
 
-from deap_er.base.dtypes import *
+from deap_er.base.dtypes import Individual
 
 __all__ = ["History"]
 

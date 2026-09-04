@@ -15,8 +15,11 @@ from typing import Any
 
 from deap_er.rng import rng
 
-from .dtypes import *
-from .primitives import *
+from .dtypes import GPExprTypes, GPGraph, GPTypedSets
+from .primitives import (
+    Primitive,
+    PrimitiveSetTyped,
+)
 
 __all__ = ["compile_tree", "compile_adf_tree", "build_tree_graph", "static_limit"]
 

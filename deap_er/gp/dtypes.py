@@ -11,7 +11,7 @@
 from collections.abc import Iterator
 from typing import Any, Protocol
 
-from .primitives import *
+from .primitives import PrimitiveSetTyped, PrimitiveTree
 
 __all__ = ["GPIndividual", "GPMates", "GPMutant", "GPExprTypes", "GPTypedSets", "GPGraph"]
 

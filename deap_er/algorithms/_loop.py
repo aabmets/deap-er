@@ -10,7 +10,7 @@
 #
 from deap_er.base import Toolbox
 from deap_er.records import Logbook
-from deap_er.records.dtypes import *
+from deap_er.records.dtypes import Hof, Individual, Stats
 
 __all__: list[str] = []
 

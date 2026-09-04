@@ -13,9 +13,8 @@ from typing import Any
 
 from deap_er.rng import rng
 
-from .dtypes import *
 from .generators import gen_grow
-from .primitives import *
+from .primitives import PrimitiveSetTyped, Terminal
 
 __all__ = ["mut_semantic", "cx_semantic"]
 

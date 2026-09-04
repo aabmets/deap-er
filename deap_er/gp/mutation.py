@@ -14,8 +14,8 @@ from typing import Any
 
 from deap_er.rng import rng
 
-from .dtypes import *
-from .primitives import *
+from .dtypes import GPIndividual, GPMutant
+from .primitives import Ephemeral, Primitive, PrimitiveSetTyped
 
 __all__ = ["mut_uniform", "mut_node_replacement", "mut_ephemeral", "mut_insert", "mut_shrink"]
 
