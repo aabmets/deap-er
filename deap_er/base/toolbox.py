@@ -13,12 +13,10 @@ from copy import deepcopy
 from functools import partial
 from typing import Any
 
-from .lint_hints import LintHints
-
 __all__ = ["Toolbox"]
 
 
-class Toolbox(LintHints):
+class Toolbox:
     """A container for evolutionary operators.
 
     Registers callables under aliases so algorithms can request
@@ -30,6 +28,20 @@ class Toolbox(LintHints):
         """Register the default ``clone`` and ``map`` operators."""
         self.register("clone", deepcopy)
         self.register("map", map)
+
+    def __getattr__(self, name: str) -> Any:
+        """Resolve aliases bound by ``register``.
+
+        ``register`` attaches names with ``setattr``. This hook is
+        for the type checker and for missing aliases at runtime.
+
+        Args:
+            name: Operator alias.
+
+        Raises:
+            AttributeError: If ``name`` is not registered.
+        """
+        raise AttributeError(name)
 
     def register(self, alias: str, func: Callable[..., Any], *args: Any, **kwargs: Any) -> None:
         """Bind ``func`` to ``alias`` on this toolbox.
