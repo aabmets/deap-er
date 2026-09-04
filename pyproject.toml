@@ -83,6 +83,7 @@ addopts = [
     "--clean-alluredir",
     "--cov-report=html:reports/coverage-html",
     "--cov-report=json:reports/coverage.json",
+    "--cov-report=xml:reports/coverage.xml",
     "--cov-report=markdown:reports/coverage.md",
     "--import-mode=importlib",
     "--numprocesses=auto",
