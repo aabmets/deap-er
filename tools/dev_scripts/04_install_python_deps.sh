@@ -40,7 +40,7 @@ ensure_python_dependencies() {
             cd "$proj_dir"
             # shellcheck disable=SC1091
             source "${venv_dir}/bin/activate"
-            if ! uv sync --active --group dev; then
+            if ! uv sync --active --group dev; then  # NOSONAR --no-build would skip this package
                 echo "Failed to install Python dependencies for deap-er" >&2
                 return 1
             fi

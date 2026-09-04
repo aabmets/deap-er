@@ -86,8 +86,8 @@ allure() {
 
     local port=13001
     local bind_host="127.0.0.1"
-    local check_url="http://127.0.0.1:${port}"
-    local browser_url="http://127.0.0.1:${port}"
+    local check_url="http://127.0.0.1:${port}"  # NOSONAR localhost Allure report
+    local browser_url="http://127.0.0.1:${port}"  # NOSONAR localhost Allure report
     local report_dir="$(pwd)/reports/allure-report"
     local wsl_ip=""
     local i=0
@@ -97,7 +97,7 @@ allure() {
         if [[ -n "$wsl_ip" ]]; then
             # Windows cannot reach WSL's 127.0.0.1; bind all interfaces and open the WSL IP.
             bind_host="0.0.0.0"
-            browser_url="http://${wsl_ip}:${port}"
+            browser_url="http://${wsl_ip}:${port}"  # NOSONAR localhost Allure report
         fi
     fi
 
@@ -125,9 +125,9 @@ allure() {
     )
 
     while (( i < 40 )); do
-        if curl -sf "$check_url" >/dev/null 2>&1; then
-            cmd.exe /c start "" "$browser_url" >/dev/null 2>&1 || true
-            echo "Allure report serving at ${browser_url}"
+        if curl -sf "$check_url" >/dev/null 2>&1; then  # NOSONAR localhost Allure report
+            cmd.exe /c start "" "$browser_url" >/dev/null 2>&1 || true  # NOSONAR localhost Allure report
+            echo "Allure report serving at ${browser_url}"  # NOSONAR localhost Allure report
             return 0
         fi
         sleep 0.25
@@ -135,12 +135,12 @@ allure() {
     done
 
     fuser -k "${port}/tcp" >/dev/null 2>&1 || true
-    >&2 echo "ERROR: Allure report server failed to start on ${browser_url}."
+    >&2 echo "ERROR: Allure report server failed to start on ${browser_url}."  # NOSONAR localhost Allure report
     return 1
 }
 
 codegraph() {
-    (cd /mnt/c && cmd.exe /c start "http://localhost:9749")
+    (cd /mnt/c && cmd.exe /c start "http://localhost:9749")  # NOSONAR local codegraph UI
     return 0
 }
 

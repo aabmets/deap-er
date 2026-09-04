@@ -19,9 +19,9 @@ jobs:
       - uses: actions/configure-pages@v5
       - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
       - name: Install dependencies
-        run: uv sync --group dev
+        run: uv sync --group dev  # NOSONAR --no-build would skip this package
       - name: Build site
-        run: uv run mkdocs build
+        run: uv run mkdocs build  # NOSONAR --no-build would skip this package
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site

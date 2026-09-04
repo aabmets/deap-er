@@ -13,7 +13,7 @@ ensure_node_dependencies() {
     echo "Installing Node dependencies for deap-er..." >&2
     (
         cd "$PROJECT_DIR"
-        if ! bun install; then
+        if ! bun install; then  # NOSONAR Allure CLI needs postinstall
             echo "Failed to install Node dependencies for deap-er" >&2
             return 1
         fi
