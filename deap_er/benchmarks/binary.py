@@ -16,14 +16,17 @@ __all__ = ["bm_royal_road_1", "bm_royal_road_2", "bm_chuang_f1", "bm_chuang_f2",
 
 
 def bm_royal_road_1(individual: Individual, order: int) -> tuple[int]:
-    """
-    | Royal Road Function R1 as presented by Melanie Mitchell
-    | in "An introduction to Genetic Algorithms".
+    """Evaluate Royal Road function R1.
 
-    :param individual: The individual to be evaluated.
-    :param order: The order of the royal road function.
-    :return: The value of the royal road function.
-    :type individual: :ref:`Individual <datatypes>`
+    As presented by Melanie Mitchell in "An introduction to Genetic
+    Algorithms".
+
+    Args:
+        individual: Individual to evaluate.
+        order: Order of the royal road function.
+
+    Returns:
+        The royal road function value.
     """
     nelem = len(individual) // order
     max_value = int(2**order - 1)
@@ -39,14 +42,17 @@ def bm_royal_road_1(individual: Individual, order: int) -> tuple[int]:
 
 
 def bm_royal_road_2(individual: Individual, order: int) -> tuple[int]:
-    """
-    | Royal Road Function R2 as presented by Melanie Mitchell
-    | in "An introduction to Genetic Algorithms".
+    """Evaluate Royal Road function R2.
 
-    :param individual: The individual to be evaluated.
-    :param order: The order of the royal road function.
-    :return: The value of the royal road function.
-    :type individual: :ref:`Individual <datatypes>`
+    As presented by Melanie Mitchell in "An introduction to Genetic
+    Algorithms".
+
+    Args:
+        individual: Individual to evaluate.
+        order: Order of the royal road function.
+
+    Returns:
+        The royal road function value.
     """
     total = 0
     n_order = order
@@ -57,16 +63,17 @@ def bm_royal_road_2(individual: Individual, order: int) -> tuple[int]:
 
 
 def bm_chuang_f1(individual: Individual) -> tuple[int]:
-    """
-    | Binary deceptive function by Chung-Yao Chuang and Wen-Lian Hsu from
-    | "Multivariate Multi-Model Approach for Globally Multimodal Problems".
-    |
-    | The function has two global optima in [1,1,...,1] and [0,0,...,0].
-    | The individual has to be of 40 + 1 dimensions.
+    """Evaluate Chuang and Hsu's first binary deceptive function.
 
-    :param individual: The individual to be evaluated.
-    :return: The value of the deceptive function.
-    :type individual: :ref:`Individual <datatypes>`
+    From "Multivariate Multi-Model Approach for Globally Multimodal
+    Problems". Two global optima at all-ones and all-zeros. The
+    individual must have 41 dimensions.
+
+    Args:
+        individual: Individual to evaluate.
+
+    Returns:
+        The deceptive function value.
     """
     total = 0
     if individual[-1] == 0:
@@ -79,16 +86,17 @@ def bm_chuang_f1(individual: Individual) -> tuple[int]:
 
 
 def bm_chuang_f2(individual: Individual) -> tuple[int]:
-    """
-    | Binary deceptive function by Chung-Yao Chuang and Wen-Lian Hsu from
-    | "Multivariate Multi-Model Approach for Globally Multimodal Problems".
-    |
-    | The function has four global optima in [1,1,...,0,0], [0,0,...,1,1],
-    | [1,1,...,1] and [0,0,...,0]. The individual has to be of 40 + 1 dimensions.
+    """Evaluate Chuang and Hsu's second binary deceptive function.
 
-    :param individual: The individual to be evaluated.
-    :return: The value of the deceptive function.
-    :type individual: :ref:`Individual <datatypes>`
+    From "Multivariate Multi-Model Approach for Globally Multimodal
+    Problems". Four global optima: half-and-half, reverse half-and-half,
+    all-ones, and all-zeros. The individual must have 41 dimensions.
+
+    Args:
+        individual: Individual to evaluate.
+
+    Returns:
+        The deceptive function value.
     """
     total = 0
     if individual[-2] == 0 and individual[-1] == 0:
@@ -107,16 +115,17 @@ def bm_chuang_f2(individual: Individual) -> tuple[int]:
 
 
 def bm_chuang_f3(individual: Individual) -> tuple[int]:
-    """
-    | Binary deceptive function by Chung-Yao Chuang and Wen-Lian Hsu from
-    | "Multivariate Multi-Model Approach for Globally Multimodal Problems".
-    |
-    | The function has two global optima in [1,1,...,1] and [0,0,...,0].
-    | The individual has to be of 40 + 1 dimensions.
+    """Evaluate Chuang and Hsu's third binary deceptive function.
 
-    :param individual: The individual to be evaluated.
-    :return: The value of the deceptive function.
-    :type individual: :ref:`Individual <datatypes>`
+    From "Multivariate Multi-Model Approach for Globally Multimodal
+    Problems". Two global optima at all-ones and all-zeros. The
+    individual must have 41 dimensions.
+
+    Args:
+        individual: Individual to evaluate.
+
+    Returns:
+        The deceptive function value.
     """
     total = 0
     if individual[-1] == 0:
@@ -130,12 +139,28 @@ def bm_chuang_f3(individual: Individual) -> tuple[int]:
 
 
 def _trap(individual: Individual) -> int:
+    """Score a binary block with a deceptive all-ones trap.
+
+    Args:
+        individual: Binary block to score.
+
+    Returns:
+        The trap value for the block.
+    """
     u = sum(individual)
     k = len(individual)
     return k if u == k else k - 1 - u
 
 
 def _inv_trap(individual: Individual) -> int:
+    """Score a binary block with a deceptive all-zeros trap.
+
+    Args:
+        individual: Binary block to score.
+
+    Returns:
+        The inverse-trap value for the block.
+    """
     u = sum(individual)
     k = len(individual)
     return k if u == 0 else u - 1

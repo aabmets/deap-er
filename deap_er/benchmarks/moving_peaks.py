@@ -20,17 +20,13 @@ __all__ = ["MovingPeaks", "MPConfigs", "MPFuncs"]
 
 
 class MovingPeaks:
-    """
-    | The Moving Peaks Benchmark is a fitness function changing over time.
-    | It consists of a number of peaks changing in height, width and location.
-    | If the kwarg ``npeaks`` is a list of three integers, the number of peaks
-    | will fluctuate between the first and the third element of that list, where
-    | the second element is the initial number of peaks. When fluctuating the
-    | number of peaks, the kwarg *change_severity* must be included in kwargs.
-    | The default configuration of the Moving Peaks benchmark is :data:`MPConfigs.DEFAULT`.
+    """A fitness landscape whose peaks change over time.
 
-    :param dimensions: The dimensionality of the search domain.
-    :param kwargs: Keyword arguments, optional.
+    Peaks move in height, width, and location. If ``npeaks`` is a list
+    of three integers, the peak count fluctuates between the first and
+    third values, starting at the second. Fluctuating the count requires
+    ``change_severity`` in kwargs. The default preset is
+    ``MPConfigs.DEFAULT``.
 
     .. dropdown:: Table of Kwargs
        :margin: 0 5 0 0
@@ -59,6 +55,13 @@ class MovingPeaks:
     """
 
     def __init__(self, dimensions: int, **kwargs: Optional):
+        """Build a moving-peaks landscape.
+
+        Args:
+            dimensions: Dimensionality of the search domain.
+            **kwargs: Optional landscape settings. See the class
+                docstring table of kwargs.
+        """
         self.dim = dimensions
         sc = MPConfigs.DEFAULT.copy()  # default config
         sc.update(kwargs)
@@ -125,14 +128,15 @@ class MovingPeaks:
         self.nevals = 0
 
     def __call__(self, individual: Individual, count: bool = True) -> tuple[float]:
-        """
-        Evaluate the given **individual** in the context of the current configuration.
+        """Evaluate the given **individual** in the context of the current configuration.
 
-        :param individual: The individual to be evaluated.
-        :param count: Whether to count this evaluation in the
-            total evaluation count, optional.
-        :return: The fitness of the individual.
-        :type individual: :ref:`Individual <datatypes>`
+        Args:
+            individual: Individual to evaluate.
+            count: Whether to include this evaluation in the
+                evaluation count and error statistics.
+
+        Returns:
+            The fitness of the individual.
         """
         possible_values = []
         zipper = zip(self.peaks_function, self.peaks_position, self.peaks_height, self.peaks_width)
@@ -161,9 +165,7 @@ class MovingPeaks:
 
     @property
     def global_maximum(self) -> tuple:
-        """
-        Returns the value and position of the largest peak.
-        """
+        """Returns the value and position of the largest peak."""
         potential_max = list()
         zipper = zip(self.peaks_function, self.peaks_position, self.peaks_height, self.peaks_width)
         for func, pos, height, width in zipper:
@@ -174,10 +176,7 @@ class MovingPeaks:
 
     @property
     def sorted_maxima(self) -> list:
-        """
-        Returns all visible peak values and positions,
-        sorted from the largest to the smallest peaks.
-        """
+        """Return visible peak values and positions, largest first."""
         maximums = list()
         zipper = zip(self.peaks_function, self.peaks_position, self.peaks_height, self.peaks_width)
         for func, pos, height, width in zipper:
@@ -189,22 +188,16 @@ class MovingPeaks:
 
     @property
     def offline_error(self) -> float:
-        """
-        Returns the offline error of the landscape.
-        """
+        """Returns the offline error of the landscape."""
         return self._offline_error / self.nevals
 
     @property
     def current_error(self) -> Optional[float]:
-        """
-        Returns the current error of the landscape.
-        """
+        """Returns the current error of the landscape."""
         return self._error
 
     def change_peaks(self):
-        """
-        Changes the position, the height, the width and the number of peaks.
-        """
+        """Changes the position, the height, the width and the number of peaks."""
         self._optimum = None
 
         if self.min_peaks is not None and self.max_peaks is not None:
@@ -294,21 +287,20 @@ class MovingPeaks:
 
 
 class MPFuncs:
-    """
-    | This class contains the peak functions for the Moving Peaks problem.
-    | These functions can be used for creating custom configuration presets.
-    """
+    """Peak functions for Moving Peaks custom presets."""
 
     @staticmethod
     def pf1(individual: Individual, positions: Iterable, height: float, width: float) -> float:
-        """
-        The peak function of the :data:`DEFAULT` preset.
+        """The peak function of the :data:`DEFAULT` preset.
 
-        :param individual: The individual to be evaluated.
-        :param positions: The positions of the peaks.
-        :param height: The height of the peaks.
-        :param width: The width of the peaks.
-        :return: The fitness of the individual.
+        Args:
+            individual: Individual to evaluate.
+            positions: Peak centre coordinates.
+            height: Peak height.
+            width: Peak width.
+
+        Returns:
+            The fitness of the individual.
         """
         value = 0.0
         for x, p in zip(individual, positions):
@@ -317,14 +309,16 @@ class MPFuncs:
 
     @staticmethod
     def pf2(individual: Individual, positions: Iterable, height: float, width: float) -> float:
-        """
-        The peak function of the :data:`ALT1` and :data:`ALT2` presets.
+        """The peak function of the :data:`ALT1` and :data:`ALT2` presets.
 
-        :param individual: The individual to be evaluated.
-        :param positions: The positions of the peaks.
-        :param height: The height of the peaks.
-        :param width: The width of the peaks.
-        :return: The fitness of the individual.
+        Args:
+            individual: Individual to evaluate.
+            positions: Peak centre coordinates.
+            height: Peak height.
+            width: Peak width.
+
+        Returns:
+            The fitness of the individual.
         """
         value = 0.0
         for x, p in zip(individual, positions):
@@ -333,13 +327,15 @@ class MPFuncs:
 
     @staticmethod
     def pf3(individual: Individual, positions: Iterable, height: float, *_) -> float:
-        """
-        An optional peak function.
+        """An optional peak function.
 
-        :param individual: The individual to be evaluated.
-        :param positions: The positions of the peaks.
-        :param height: The height of the peaks.
-        :return: The fitness of the individual.
+        Args:
+            individual: Individual to evaluate.
+            positions: Peak centre coordinates.
+            height: Peak height.
+
+        Returns:
+            The fitness of the individual.
         """
         value = 0.0
         for x, p in zip(individual, positions):
@@ -348,9 +344,9 @@ class MPFuncs:
 
 
 class MPConfigs:
-    """
-    | This class contains the configuration presets for the Moving Peaks problem.
-    | The presets are of type :data:`dict` and can be accessed as **class attributes**.
+    """Configuration presets for the Moving Peaks problem.
+
+    Each preset is a ``dict`` class attribute.
 
     .. dropdown:: Table of Presets
        :margin: 0 5 0 0
@@ -358,7 +354,7 @@ class MPConfigs:
         =================== ===================== ===================== =====================
         Keys / Presets      **DEFAULT**           **ALT1**              **ALT2**
         =================== ===================== ===================== =====================
-        ``pfunc``           :func:`MPFuncs.pf1`   :func:`MPFuncs.pf2`   :func:`MPFuncs.pf2`
+        ``pfunc``           ``MPFuncs.pf1``       ``MPFuncs.pf2``       ``MPFuncs.pf2``
         ``bfunc``           :obj:`None`           :obj:`None`           :obj:`lambda x: 10`
         ``npeaks``          5                     10                    50
         ``change_severity`` :obj:`None`           :obj:`None`           :obj:`None`
