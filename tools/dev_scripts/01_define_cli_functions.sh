@@ -4,6 +4,34 @@
 # Define CLI functions
 # =====================
 
+_DEAP_ER_PROMPT_PREFIX='\[\033[1;35m\][deap-er]\[\033[0m\] '
+
+_deap_er_enable_prompt() {
+    if [[ -n "${_DEAP_ER_PROMPT_ACTIVE:-}" ]]; then
+        return 0
+    fi
+    if [[ "${PS1-}" == "${_DEAP_ER_PROMPT_PREFIX}"* ]]; then
+        _DEAP_ER_PROMPT_ACTIVE=1
+        return 0
+    fi
+    _DEAP_ER_OLD_PS1="${PS1-}"
+    PS1="${_DEAP_ER_PROMPT_PREFIX}${PS1-}"
+    export PS1
+    _DEAP_ER_PROMPT_ACTIVE=1
+}
+
+_deap_er_disable_prompt() {
+    if [[ "${PS1-}" == "${_DEAP_ER_PROMPT_PREFIX}"* ]]; then
+        PS1="${PS1#"$_DEAP_ER_PROMPT_PREFIX"}"
+        export PS1
+    elif [[ -n "${_DEAP_ER_OLD_PS1+_}" ]]; then
+        PS1="$_DEAP_ER_OLD_PS1"
+        export PS1
+    fi
+    unset _DEAP_ER_OLD_PS1
+    unset _DEAP_ER_PROMPT_ACTIVE
+}
+
 _run_allure() {
     local allure_bin="$1"
     shift
@@ -102,4 +130,20 @@ allure() {
 
 codegraph() {
     (cd /mnt/c && cmd.exe /c start "http://localhost:9749")
+}
+
+exitdev() {
+    local active=0
+    if declare -F deactivate >/dev/null 2>&1; then
+        deactivate
+        active=1
+    fi
+    if [[ -n "${_DEAP_ER_PROMPT_ACTIVE:-}" || "${PS1-}" == "${_DEAP_ER_PROMPT_PREFIX}"* ]]; then
+        active=1
+    fi
+    _deap_er_disable_prompt
+    if [[ "$active" -eq 0 ]]; then
+        >&2 echo "ERROR: Dev environment is not active."
+        return 1
+    fi
 }

@@ -15,6 +15,7 @@ devhelp() {
     echo -e "  \033[32mpycov\033[0m       Open the latest Python coverage report in the browser"
     echo -e "  \033[32mallure\033[0m      Open the latest Allure report for the current directory"
     echo -e "  \033[32mcodegraph\033[0m   Open the codebase-memory-mcp graph visualization"
+    echo -e "  \033[32mexitdev\033[0m     Deactivate the Python virtual environment and remove the prompt prefix"
     echo -e "  \033[32mdevhelp\033[0m     Show this help message"
     echo ""
 }
@@ -51,5 +52,6 @@ source "${SCRIPTS}/05_install_node_deps.sh"
 source "${SCRIPTS}/06_enable_autosource.sh"
 
 source .venv/bin/activate
+_deap_er_enable_prompt
 
 devhelp
