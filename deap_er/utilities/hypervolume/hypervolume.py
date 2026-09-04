@@ -13,20 +13,23 @@ from .multi_list import MultiList
 from .node import Node
 import numpy
 
-
 __all__ = ["hypervolume", "HyperVolume"]
 
 
 def hypervolume(population: list, ref_point: Optional[list] = None) -> float:
-    """
-    Returns the hypervolume of a **population**.
+    """Return the hypervolume of a population.
+
     Minimization is implicitly assumed.
 
-    :param population: A list of non-dominated individuals,
-        where each individual has a Fitness attribute.
-    :param ref_point: The reference point for the hypervolume, optional.
-        If not provided, the worst value for each objective +1 is used.
-    :return: The hypervolume of the given population.
+    Args:
+        population: Non-dominated individuals, each with a Fitness
+            attribute.
+        ref_point: Reference point for the hypervolume. Optional. If
+            omitted, the worst value of each objective plus one is
+            used.
+
+    Returns:
+        The hypervolume of the population.
     """
     wvals = [ind.fitness.wvalues for ind in population]
     wvals = numpy.array(wvals) * -1
@@ -39,30 +42,40 @@ def hypervolume(population: list, ref_point: Optional[list] = None) -> float:
 
 
 class HyperVolume:
-    """
-    Creates a new HyperVolume object with the **ref_point**.
+    """Hypervolume indicator relative to a reference point.
 
-    :param ref_point: The reference point for the hypervolume calculation.
+    Args:
+        ref_point: Reference point for the hypervolume calculation.
     """
 
     multi_list: MultiList
 
     def __init__(self, ref_point: numpy.ndarray) -> None:
+        """See the class docstring."""
         self.ref_point = ref_point
         self.dims = len(ref_point)
 
     def compute(self, point_set: numpy.ndarray) -> float:
-        """
-        Computes the hypervolume that is dominated by the non-dominated
-        **point_set**. Minimization is implicitly assumed.
+        """Compute the hypervolume dominated by a non-dominated point set.
 
-        :param point_set: The set of points that are to be evaluated.
-        :return: The hypervolume of the given point set.
+        Minimization is implicitly assumed.
+
+        Args:
+            point_set: Points to evaluate.
+
+        Returns:
+            The hypervolume of the point set.
         """
         self._pre_process(point_set)
         return self._hv_recursive(self.dims - 1, len(point_set), self.dims * [-1.0e308])
 
     def _pre_process(self, point_set: numpy.ndarray) -> None:
+        """Translate ``point_set`` and index it for recursive computation.
+
+        Args:
+            point_set: Objective vectors to evaluate. Shifted in place
+                when the reference point is non-zero.
+        """
         if any(self.ref_point):
             point_set -= self.ref_point
         node_list = MultiList(self.dims)
@@ -75,6 +88,17 @@ class HyperVolume:
         self.multi_list = node_list
 
     def _hv_recursive(self, dim_index: int, length: int, bounds: list) -> float:
+        """Compute the hypervolume of the indexed points in one dimension.
+
+        Args:
+            dim_index: Objective dimension currently being processed.
+            length: Number of points still in the list.
+            bounds: Exclusion bounds per dimension. Updated during the
+                recursion.
+
+        Returns:
+            The hypervolume contribution at this dimension.
+        """
         sentinel = self.multi_list.sentinel
         reinsert = self.multi_list.reinsert
         remove = self.multi_list.remove

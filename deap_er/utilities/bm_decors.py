@@ -13,28 +13,37 @@ from itertools import repeat
 from functools import wraps
 import numpy
 
-
 __all__ = ["Translate", "Rotate", "Scale", "Noise", "bin2float"]
 
 
 class Translate:
-    """
-    A decorator for evaluation functions. When the decorated function is called, the
-    input :ref:`Individual <datatypes>` is translated by the preset list of **vector**
-    values, the result of which is then passed into the evaluation function as a plain
-    list of values. This decorator adds the :func:`translate` method to the decorated
-    function, which can be used to update the translation vector values.
+    """Decorator that translates an individual before evaluation.
 
-    :param vector: The translation vector values.
-        Must have the same length as the individual.
+    The decorated function receives a plain list of translated values.
+    After decoration, ``func.translate`` updates the translation vector.
+
+    Args:
+        vector: Translation values. Must have the same length as the
+            individual.
     """
 
     vector = None
 
     def __init__(self, vector: list):
+        """See the class docstring."""
         self.translate(vector)
 
     def __call__(self, func: Callable) -> Callable:
+        """Wrap an evaluation function with the translation.
+
+        Args:
+            func: Evaluation function to decorate.
+
+        Returns:
+            A callable that translates the individual, then calls
+            ``func``. The wrapper has a ``translate`` method.
+        """
+
         @wraps(func)
         def wrapper(individual, *args, **kwargs):
             translated = [v - t for v, t in zip(individual, self.vector)]
@@ -44,35 +53,45 @@ class Translate:
         return wrapper
 
     def translate(self, vector: list) -> None:
-        """
-        Updates the translation **vector** values.
-        After decorating the evaluation function, this method
-        is directly available from the function object, which
-        can be used to update the translation vector values.
+        """Update the translation vector.
 
-        :param vector: The translation vector.
+        After decorating the evaluation function, this method is
+        available on the function object.
+
+        Args:
+            vector: The translation vector.
         """
         self.vector = vector
 
 
 class Rotate:
-    """
-    A decorator for evaluation functions. When the decorated function is called, the
-    input :ref:`Individual <datatypes>` is rotated by the preset ndarray of **matrix**
-    values, the result of which is then passed into the evaluation function as a plain
-    ndarray of values. This decorator adds a :func:`rotate` method to the decorated
-    function, which can be used to update the rotation matrix values.
+    """Decorator that rotates an individual before evaluation.
 
-    :param matrix: The rotation matrix values. Must be a valid orthogonal
-        N * N rotation matrix, where N is the length of the individual.
+    The decorated function receives a plain ndarray of rotated values.
+    After decoration, ``func.rotate`` updates the rotation matrix.
+
+    Args:
+        matrix: Orthogonal N-by-N rotation matrix, where N is the
+            length of the individual.
     """
 
     matrix = None
 
     def __init__(self, matrix):
+        """See the class docstring."""
         self.rotate(matrix)
 
     def __call__(self, func):
+        """Wrap an evaluation function with the rotation.
+
+        Args:
+            func: Evaluation function to decorate.
+
+        Returns:
+            A callable that rotates the individual, then calls
+            ``func``. The wrapper has a ``rotate`` method.
+        """
+
         @wraps(func)
         def wrapper(individual, *args, **kwargs):
             rotated = numpy.dot(self.matrix, individual)
@@ -82,35 +101,45 @@ class Rotate:
         return wrapper
 
     def rotate(self, matrix):
-        """
-        Updates the rotation **matrix** values.
-        After decorating the evaluation function, this method
-        is directly available from the function object, which
-        can be used to update the rotation matrix values.
+        """Update the rotation matrix.
 
-        :param matrix: The rotation matrix.
+        After decorating the evaluation function, this method is
+        available on the function object.
+
+        Args:
+            matrix: The rotation matrix.
         """
         self.matrix = numpy.linalg.inv(matrix)
 
 
 class Scale:
-    """
-    A decorator for evaluation functions. When the decorated function is called, the
-    input :ref:`Individual <datatypes>` is scaled by the preset list of **factor**
-    values, the result of which is then passed into the evaluation function as a plain
-    list of values. This decorator adds the :func:`scale` method to the decorated
-    function, which can be used to update the scale factor values.
+    """Decorator that scales an individual before evaluation.
 
-    :param factor: The scale factor values.
-        Must have the same length as the individual.
+    The decorated function receives a plain list of scaled values.
+    After decoration, ``func.scale`` updates the scale factors.
+
+    Args:
+        factor: Scale factors. Must have the same length as the
+            individual.
     """
 
     factor = None
 
     def __init__(self, factor):
+        """See the class docstring."""
         self.scale(factor)
 
     def __call__(self, func):
+        """Wrap an evaluation function with the scaling.
+
+        Args:
+            func: Evaluation function to decorate.
+
+        Returns:
+            A callable that scales the individual, then calls
+            ``func``. The wrapper has a ``scale`` method.
+        """
+
         @wraps(func)
         def wrapper(individual, *args, **kwargs):
             scaled = [v * f for v, f in zip(individual, self.factor)]
@@ -120,38 +149,47 @@ class Scale:
         return wrapper
 
     def scale(self, factor: list) -> None:
-        """
-        Updates the scale **factor** values.
-        After decorating the evaluation function, this method
-        is directly available from the function object, which
-        can be used to update the scale factor values.
+        """Update the scale factors.
 
-        :param factor: The scale factor.
+        After decorating the evaluation function, this method is
+        available on the function object.
+
+        Args:
+            factor: The scale factor.
         """
         self.factor = tuple(1.0 / f for f in factor)
 
 
 class Noise:
-    """
-    A decorator for evaluation functions. When the decorated function is called,
-    noise is added to the result(s) of the decorated function by the preset callable(s),
-    which are called without arguments. This decorator adds the :func:`noise` method to
-    the decorated functions, which can be used to update the noise generator callables.
+    """Decorator that adds noise to an evaluation result.
 
-    :param funcs: The noise generator callables.
-        Can either be a single callable, which is applied to all values
-        in the results object, or a list of callables, which must have the
-        same length as the input individual. The values in the funcs argument
-        can also be of type :obj:`None`, which prevents noise from being
-        added to the corresponding value(s).
+    Each noise generator is called without arguments. After
+    decoration, ``func.noise`` updates the generators.
+
+    Args:
+        funcs: Noise generator callables. A single callable is
+            applied to every result value. A list must match the
+            result length. A ``None`` entry leaves that value
+            unchanged.
     """
 
     rand_funcs = None
 
     def __init__(self, funcs):
+        """See the class docstring."""
         self.noise(funcs)
 
     def __call__(self, func):
+        """Wrap an evaluation function with noise on its result.
+
+        Args:
+            func: Evaluation function to decorate.
+
+        Returns:
+            A callable that calls ``func`` and adds noise to the
+            result. The wrapper has a ``noise`` method.
+        """
+
         @wraps(func)
         def wrapper(individual, *args, **kwargs):
             result = func(individual, *args, **kwargs)
@@ -169,28 +207,32 @@ class Noise:
         return wrapper
 
     def noise(self, funcs: Union[Callable, list[Callable]]) -> None:
-        """
-        Updates the noise generator **funcs**.
-        After decorating the evaluation function, this method
-        is directly available from the function object.
+        """Update the noise generators.
 
-        :param funcs: The noise function(s).
+        After decorating the evaluation function, this method is
+        available on the function object.
+
+        Args:
+            funcs: The noise function or functions.
         """
         if not isinstance(funcs, Iterable):
             self.rand_funcs = repeat(funcs)
 
 
 def bin2float(min_: float, max_: float, n_bits: int) -> Callable:
-    """
-    Returns a decorator, which converts a binary array into
-    an array of floats where each float is composed of **n_bits**
-    and has a value between **min** and **max** and returns the
-    result of the decorated function.
+    """Return a decorator that decodes a binary individual to floats.
 
-    :param min_: Minimum value of the value range.
-    :param max_: Maximum value of the value range.
-    :param n_bits: Number of bits used to represent the float.
-    :return: Decorated function.
+    Each float uses ``n_bits`` bits and is mapped into
+    ``[min_, max_]``. The decorated function receives the decoded
+    float array.
+
+    Args:
+        min_: Lower bound of each decoded value.
+        max_: Upper bound of each decoded value.
+        n_bits: Bits used to encode each float.
+
+    Returns:
+        A decorator for an evaluation function.
     """
 
     def wrapper(function):

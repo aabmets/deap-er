@@ -10,52 +10,56 @@
 #
 from collections.abc import Callable, Iterable
 
-
 __all__ = ["init_repeat", "init_iterate", "init_cycle"]
 
 
 def init_repeat(container: Callable, func: Callable, size: int) -> Iterable:
-    """
-    Calls the **func** argument **count** times and puts the results
-    into an instance of **container**. This helper function can be used
-    in conjunction with a Toolbox to register a generator of filled
-    containers, such as individuals or a population.
+    """Call ``func`` ``size`` times and store the results in ``container``.
 
-    :param container: A callable which takes an iterable as argument
-        and returns a :external+python:py:class:`~collections.abc.Collection`.
-    :param func: The function to be called count times.
-    :param size: The number of times to call the func.
-    :return: An iterable filled with count results of func.
+    Use with a Toolbox to register a generator of filled containers,
+    such as individuals or a population.
+
+    Args:
+        container: Callable that takes an iterable and returns a collection.
+        func: Function called once per element.
+        size: Number of times to call ``func``.
+
+    Returns:
+        A collection filled with ``size`` results of ``func``.
     """
     return container(func() for _ in range(size))
 
 
 def init_iterate(container: Callable, generator: Callable) -> Iterable:
-    """
-    Calls the **generator** function and puts the results into an instance
-    of **container**. The **generator** function should return an iterable.
-    This helper function can be used in conjunction with a Toolbox to register
-    a generator of filled containers, as individuals or a population.
+    """Call ``generator`` and store its results in ``container``.
 
-    :param container: A callable which takes an iterable as argument
-        and returns a :external+python:py:class:`~collections.abc.Collection`.
-    :param generator: A function returning an iterable to fill the container with.
-    :return: An iterable filled with the results of the generator.
+    ``generator`` must return an iterable. Use with a Toolbox to
+    register a generator of filled containers, as individuals or a
+    population.
+
+    Args:
+        container: Callable that takes an iterable and returns a collection.
+        generator: Function that returns the iterable used to fill the
+            container.
+
+    Returns:
+        A collection filled with the results of ``generator``.
     """
     return container(generator())
 
 
 def init_cycle(container: Callable, funcs: Iterable, size: int = 1) -> Iterable:
-    """
-    Calls each function in the **funcs** iterable **count** times and stores
-    the results from all function calls into the **container**. This helper
-    function can be used in conjunction with a Toolbox to register a generator
-    of filled containers, as individuals or a population.
+    """Call each function in ``funcs`` ``size`` times and store all results.
 
-    :param container: A callable which takes an iterable as argument
-        and returns a :external+python:py:class:`~collections.abc.Collection`.
-    :param funcs: A sequence of functions to be called.
-    :param size: Number of times to iterate through the sequence of functions.
-    :return: An iterable filled with the results of all function calls.
+    Use with a Toolbox to register a generator of filled containers,
+    as individuals or a population.
+
+    Args:
+        container: Callable that takes an iterable and returns a collection.
+        funcs: Sequence of functions to call.
+        size: Number of times to iterate through ``funcs``.
+
+    Returns:
+        A collection filled with the results of all function calls.
     """
     return container(func() for _ in range(size) for func in funcs)

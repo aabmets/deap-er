@@ -13,30 +13,26 @@ from collections.abc import Sequence, Callable
 from itertools import repeat
 from functools import wraps
 
-
 __all__ = ["DeltaPenalty", "ClosestValidPenalty"]
 
 
 class DeltaPenalty:
-    """
-    This decorator returns penalized fitness for invalid individuals and
-    the original fitness value for valid individuals. The penalized fitness
-    is made of a constant factor **delta** added with an optional **distance**
-    penalty. The distance function, if provided, returns a value, which is
-    growing as the individual moves away from the valid zone.
+    """Decorator that penalizes fitness of invalid individuals.
 
-    :param feasibility: A function returning the
-        validity status of an individual.
-    :param delta: Constant or a sequence of constants
-        returned for an invalid individual.
-    :param distance: A function returning the distance
-        between the individual and a given valid point.
-    :return: A decorator for the fitness function.
+    Valid individuals keep the original fitness. Invalid ones receive
+    ``delta`` plus an optional distance penalty that grows as the
+    individual moves away from the valid region.
 
-    :type delta: :ref:`NumOrSeq <datatypes>`
+    Args:
+        feasibility: Function that reports whether an individual is valid.
+        delta: Constant or sequence of constants used as the base
+            penalty for an invalid individual.
+        distance: Optional function returning the distance between the
+            individual and a valid point.
     """
 
     def __init__(self, feasibility: Callable, delta: NumOrSeq, distance: Callable = None):
+        """See the class docstring."""
         self.fea_func = feasibility
         if not isinstance(delta, Sequence):
             self.delta = repeat(delta)
@@ -45,6 +41,16 @@ class DeltaPenalty:
         self.dist_fct = distance
 
     def __call__(self, func):
+        """Wrap a fitness function with the delta penalty.
+
+        Args:
+            func: Fitness function to decorate.
+
+        Returns:
+            A callable that returns the original fitness for valid
+            individuals and the penalized fitness otherwise.
+        """
+
         @wraps(func)
         def wrapper(individual, *args, **kwargs):
             if self.fea_func(individual):
@@ -64,33 +70,43 @@ class DeltaPenalty:
 
 
 class ClosestValidPenalty:
-    """
-    This decorator returns penalized fitness for invalid individuals and
-    the original fitness value for valid individuals. The penalized fitness
-    is made of the fitness of the closest valid individual added with an
-    optional weighted **distance** penalty. The distance function, if
-    provided, returns a value, which is growing as the individual
-    moves away from the valid zone.
+    """Decorator that penalizes fitness of invalid individuals.
 
-    :param validity: A function returning the validity status of any individual.
-    :param feasible: A function returning the closest feasible
-        individual from the current invalid individual.
-    :param alpha: Multiplication factor on the distance
-        between the valid and invalid individuals.
-    :param distance: A function returning the distance
-        between the individual and a given valid point.
-    :return: A decorator for the fitness function.
+    Valid individuals keep the original fitness. Invalid ones receive
+    the fitness of the closest valid individual plus an optional
+    weighted distance penalty that grows as the individual moves
+    away from the valid region.
+
+    Args:
+        validity: Function that reports whether an individual is valid.
+        feasible: Function that returns the closest feasible individual
+            for an invalid one.
+        alpha: Multiplication factor on the distance between the valid
+            and invalid individuals.
+        distance: Optional function returning the distance between the
+            individual and a valid point.
     """
 
     def __init__(
         self, validity: Callable, feasible: Callable, alpha: float, distance: Callable = None
     ):
+        """See the class docstring."""
         self.fea_func = validity
         self.fbl_fct = feasible
         self.alpha = alpha
         self.dist_fct = distance
 
     def __call__(self, func):
+        """Wrap a fitness function with the closest-valid penalty.
+
+        Args:
+            func: Fitness function to decorate.
+
+        Returns:
+            A callable that returns the original fitness for valid
+            individuals and the penalized fitness otherwise.
+        """
+
         @wraps(func)
         def wrapper(individual, *args, **kwargs):
             if self.fea_func(individual):

@@ -13,21 +13,24 @@ from typing import Callable, Sequence
 from operator import itemgetter
 import bisect
 
-
 __all__ = ["sort_log_non_dominated"]
 
 
 def sort_log_non_dominated(individuals: list, sel_count: int, ffo: bool = False) -> list:
-    """
-    Sorts **individuals** in pareto non-dominated fronts
-    using the Generalized Reduced Run-Time Complexity
-    Non-Dominated Sorting Algorithm.
+    """Sort individuals into non-dominated Pareto fronts.
 
-    :param individuals: A list of individuals to sort.
-    :param sel_count: The number of individuals to select.
-    :param ffo: If True, only the first front is returned, optional.
-    :return: A list of Pareto fronts, where the
-        first element is the true Pareto front.
+    Uses the Generalized Reduced Run-Time Complexity Non-Dominated
+    Sorting Algorithm.
+
+    Args:
+        individuals: Individuals to sort.
+        sel_count: Number of individuals to select.
+        ffo: If True, return only the first front. Optional.
+
+    Returns:
+        A list of Pareto fronts. The first element is the true
+        Pareto front. An empty list if ``sel_count`` is 0. When
+        ``ffo`` is True, the first front itself is returned.
     """
     if sel_count == 0:
         return []
@@ -61,6 +64,18 @@ def sort_log_non_dominated(individuals: list, sel_count: int, ffo: bool = False)
 
 
 def _is_dominated(wvalues1: Sequence, wvalues2: Sequence) -> bool:
+    """Return whether ``wvalues1`` is strictly Pareto-dominated by ``wvalues2``.
+
+    Both sequences are weighted objective values. Higher is better.
+
+    Args:
+        wvalues1: Candidate weighted values.
+        wvalues2: Weighted values tested as a dominator.
+
+    Returns:
+        True if ``wvalues2`` is at least as good on every objective
+        and strictly better on at least one.
+    """
     not_equal = False
     for self_wvalue, other_wvalue in zip(wvalues1, wvalues2):
         if self_wvalue > other_wvalue:
@@ -71,6 +86,17 @@ def _is_dominated(wvalues1: Sequence, wvalues2: Sequence) -> bool:
 
 
 def _median(seq: Sequence, key: Callable = None) -> float:
+    """Return the median of ``seq``, optionally after applying ``key``.
+
+    For an even-length sequence the two central values are averaged.
+
+    Args:
+        seq: Values to summarize.
+        key: Optional transform applied before comparing and averaging.
+
+    Returns:
+        The median value.
+    """
     key = key if key else lambda x: x
     sorted_seq = sorted(seq, key=key)
     length = len(seq)
@@ -83,6 +109,17 @@ def _median(seq: Sequence, key: Callable = None) -> float:
 
 
 def _splitter(seq: Sequence, obj: int, median: float) -> tuple:
+    """Partition fitness vectors around ``median`` on objective ``obj``.
+
+    Args:
+        seq: Fitness vectors (weighted-value tuples).
+        obj: Objective index used for the split.
+        median: Threshold on that objective.
+
+    Returns:
+        Four lists: values at or above the median, values below,
+        values above, and values at or below.
+    """
     seq_1, seq_2, seq_3, seq_4 = [], [], [], []
 
     for fit in seq:
@@ -100,6 +137,15 @@ def _splitter(seq: Sequence, obj: int, median: float) -> tuple:
 
 
 def _sorting_helper_1(fitness: Sequence, obj: int, front: dict) -> None:
+    """Assign non-dominated front ranks on the first ``obj + 1`` objectives.
+
+    Mutates ``front`` in place.
+
+    Args:
+        fitness: Unique fitness vectors, sorted best-first.
+        obj: Highest objective index still under consideration.
+        front: Map from fitness vector to front rank.
+    """
     if len(fitness) < 2:
         return
     elif len(fitness) == 2:
@@ -118,6 +164,17 @@ def _sorting_helper_1(fitness: Sequence, obj: int, front: dict) -> None:
 
 
 def _split_a(fitness: Sequence, obj: int):
+    """Split ``fitness`` into a better half and a worse half on objective ``obj``.
+
+    Chooses the more balanced of two median-split conventions.
+
+    Args:
+        fitness: Fitness vectors to partition.
+        obj: Objective index used for the split.
+
+    Returns:
+        The better subset and the worse subset.
+    """
     median_ = _median(fitness, itemgetter(obj))
     best_a, worst_a, best_b, worst_b = _splitter(fitness, obj, median_)
 
@@ -131,6 +188,12 @@ def _split_a(fitness: Sequence, obj: int):
 
 
 def _sweep_a(fitness: Sequence, front: dict) -> None:
+    """Update front ranks of a two-objective, already-sorted fitness list.
+
+    Args:
+        fitness: Fitness vectors ordered on the first objective.
+        front: Map from fitness vector to front rank.
+    """
     stairs = [-fitness[0][1]]
     f_stairs = [fitness[0]]
     for fit in fitness[1:]:
@@ -148,6 +211,17 @@ def _sweep_a(fitness: Sequence, front: dict) -> None:
 
 
 def _sorting_helper_2(best: Sequence, worst: Sequence, obj: int, front: dict) -> None:
+    """Raise front ranks in ``worst`` using domination from ``best``.
+
+    Considers the first ``obj + 1`` objectives. Mutates ``front`` in
+    place.
+
+    Args:
+        best: Fitness vectors already ranked.
+        worst: Fitness vectors that may be dominated by ``best``.
+        obj: Highest objective index still under consideration.
+        front: Map from fitness vector to front rank.
+    """
     key = itemgetter(obj)
     if len(worst) == 0 or len(best) == 0:
         return
@@ -170,6 +244,19 @@ def _sorting_helper_2(best: Sequence, worst: Sequence, obj: int, front: dict) ->
 
 
 def _split_b(best: Sequence, worst: Sequence, obj: int):
+    """Split ``best`` and ``worst`` around a shared median on objective ``obj``.
+
+    Chooses the more balanced of two split conventions.
+
+    Args:
+        best: Better fitness vectors.
+        worst: Worse fitness vectors.
+        obj: Objective index used for the split.
+
+    Returns:
+        Four subsets: high and low halves of ``best``, then of
+        ``worst``.
+    """
     if len(best) > len(worst):
         median_ = _median(best)
     else:
@@ -188,6 +275,14 @@ def _split_b(best: Sequence, worst: Sequence, obj: int):
 
 
 def _sweep_b(best, worst, front):
+    """Update front ranks of ``worst`` from a two-objective sweep over ``best``.
+
+    Args:
+        best: Already-ranked fitness vectors, ordered on the first
+            objective.
+        worst: Fitness vectors whose ranks may increase.
+        front: Map from fitness vector to front rank.
+    """
     stairs, f_stairs = [], []
     iter_best = iter(best)
     next_best = next(iter_best, False)

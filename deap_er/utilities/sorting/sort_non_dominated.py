@@ -10,21 +10,24 @@
 #
 from collections import defaultdict
 
-
 __all__ = ["sort_non_dominated"]
 
 
 def sort_non_dominated(individuals: list, sel_count: int, ffo: bool = False) -> list:
-    """
-    Sorts the first 'sel_count' of 'individuals' into
-    different non-domination levels using the
-    "Fast Non-dominated Sorting Approach".
+    """Sort individuals into non-dominated Pareto fronts.
 
-    :param individuals: A list of individuals to sort.
-    :param sel_count: The number of individuals to select.
-    :param ffo: If True, only the first front is returned, optional.
-    :return: A list of Pareto fronts, where the
-        first element is the true Pareto front.
+    Uses the Fast Non-dominated Sorting Approach. Only the first
+    ``sel_count`` individuals are placed into fronts.
+
+    Args:
+        individuals: Individuals to sort.
+        sel_count: Number of individuals to select.
+        ffo: If True, return only the first front. Optional.
+
+    Returns:
+        A list of Pareto fronts. The first element is the true
+        Pareto front. An empty list if ``sel_count`` is 0.
+        When ``ffo`` is True, the list contains only the first front.
     """
     if sel_count == 0:
         return []

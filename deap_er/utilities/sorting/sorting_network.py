@@ -11,26 +11,24 @@
 from typing import Optional
 from itertools import product
 
-
 __all__ = ["SortingNetwork"]
 
 
 class SortingNetwork:
-    """
-    A sorting network is an abstract mathematical model of a network of wires
-    and comparator modules that is used to sort a sequence of numbers. The wires
-    are thought of as running from left to right, carrying values (one per wire)
-    that traverse the network all at the same time. Each comparator connects two
-    wires. When a pair of values, traveling through a pair of wires, encounter a
-    comparator, the comparator swaps the values if and only if the top wire's
-    value is greater or equal to the bottom wire's value.
+    """A network of wires and comparators that sorts a sequence.
 
-    :param dimension: The number of wires in the network.
-    :param connectors: A list of pairs of wires
-        that are connected by a comparator, optional.
+    Wires run from left to right and carry one value each. A
+    comparator connects two wires and swaps their values when the
+    upper wire is greater than the lower wire.
+
+    Args:
+        dimension: Number of wires in the network.
+        connectors: Optional list of wire pairs connected by a
+            comparator.
     """
 
     def __init__(self, dimension: int, connectors: Optional[list] = None):
+        """See the class docstring."""
         self.dimension = dimension
         self.data = list()
         if connectors:
@@ -39,21 +37,27 @@ class SortingNetwork:
         super().__init__()
 
     def __iter__(self):
+        """Iterate over comparator levels."""
         return iter(self.data)
 
     def __contains__(self, item):
+        """Return whether ``item`` is a stored level."""
         return item in self.data
 
     def __getitem__(self, key):
+        """Return the comparator level at ``key``."""
         return self.data[key]
 
     def __setitem__(self, key, value):
+        """Replace the comparator level at ``key``."""
         self.data[key] = value
 
     def __delitem__(self, key):
+        """Delete the comparator level at ``key``."""
         del self.data[key]
 
     def __len__(self):
+        """Return the number of comparator levels."""
         return len(self.data)
 
     @property
@@ -68,14 +72,15 @@ class SortingNetwork:
 
     @staticmethod
     def check_conflict(level: list, wire1: int, wire2: int) -> bool:
-        """
-        Checks if the given wires are in conflict
-        with each other on the given level.
+        """Return whether the wires conflict on the given level.
 
-        :param level: The level of the network.
-        :param wire1: The index of the first wire.
-        :param wire2: The index of the second wire.
-        :return: True if the wires are in conflict, False otherwise.
+        Args:
+            level: Comparators already present on the level.
+            wire1: Index of the first wire.
+            wire2: Index of the second wire.
+
+        Returns:
+            True if the wires conflict, False otherwise.
         """
         for wires in level:
             if wires[1] >= wire1 and wires[0] <= wire2:
@@ -83,12 +88,13 @@ class SortingNetwork:
         return False
 
     def add_connector(self, wire1: int, wire2: int) -> None:
-        """
-        Adds a connector to the network.
+        """Add a comparator between the two wires.
 
-        :param wire1: The index of the first wire.
-        :param wire2: The index of the second wire.
-        :return: Nothing.
+        Same-index wires are ignored.
+
+        Args:
+            wire1: Index of the first wire.
+            wire2: Index of the second wire.
         """
         if wire1 == wire2:
             return
@@ -109,11 +115,11 @@ class SortingNetwork:
             self.data[index].append(cnx)
 
     def sort(self, values: list) -> None:
-        """
-        Sorts the given values using the network.
+        """Sort ``values`` in place using this network.
 
-        :param values: A list of values to be sorted.
-        :return: Nothing.
+        Args:
+            values: Sequence to sort. Must have at least ``dimension``
+                elements.
         """
         for level in self.data:
             for wire1, wire2 in level:
@@ -121,11 +127,16 @@ class SortingNetwork:
                     values[wire1], values[wire2] = values[wire2], values[wire1]
 
     def evaluate(self, cases: Optional[list] = None) -> int:
-        """
-        Evaluates the network's performance on the given cases.
+        """Count how many ``cases`` the network fails to sort.
 
-        :param cases: A list of pairs of values that are to be evaluated.
-        :return: The number of cases that were not correctly sorted.
+        When ``cases`` is omitted, every binary sequence of length
+        ``dimension`` is tested.
+
+        Args:
+            cases: Sequences to sort and check. Optional.
+
+        Returns:
+            The number of incorrectly sorted cases.
         """
         if cases is None:
             cases = product((0, 1), repeat=self.dimension)
@@ -143,10 +154,10 @@ class SortingNetwork:
         return errors
 
     def draw(self) -> str:
-        """
-        Creates a visual representation of the network.
+        """Return an ASCII diagram of the network.
 
-        :return: The schemata of the network.
+        Returns:
+            A schematic of the wires and comparators.
         """
         str_wires = [["-"] * 7 * self.depth]
         str_wires[0][0] = "0"

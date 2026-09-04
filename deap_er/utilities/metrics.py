@@ -15,19 +15,19 @@ import numpy
 
 
 def nsga_diversity(population: list, first: Individual, last: Individual) -> float:
-    """
-    Given a Pareto front **population** and the two extreme points **first** and
-    **last** of the optimal Pareto front, this function returns the diversity metric
-    of the **population** as explained in the original NSGA-II article by K. Deb.
-    Smaller values indicate better solutions.
+    """Return the NSGA-II diversity metric of a Pareto front.
 
-    :param population: The Pareto front to be evaluated.
-    :param first: The first extreme point of the optimal Pareto front.
-    :param last: The last extreme point of the optimal Pareto front.
-    :return: The diversity metric of the front.
+    ``population`` is the front to score. ``first`` and ``last`` are
+    the extreme points of the optimal Pareto front, as in Deb's
+    original NSGA-II article. Smaller values indicate better spread.
 
-    :type first: :ref:`Individual <datatypes>`
-    :type last: :ref:`Individual <datatypes>`
+    Args:
+        population: Pareto front to evaluate.
+        first: First extreme point of the optimal Pareto front.
+        last: Last extreme point of the optimal Pareto front.
+
+    Returns:
+        The diversity metric of the front.
     """
     df = hypot(
         population[0].fitness.values[0] - first[0], population[0].fitness.values[1] - first[1]
@@ -54,14 +54,18 @@ def nsga_diversity(population: list, first: Individual, last: Individual) -> flo
 
 
 def nsga_convergence(population: list, optimal: list) -> float:
-    """
-    Given a Pareto **front** and the **optimal** Pareto front, this function
-    returns the convergence metric of the front as explained in the original
-    NSGA-II article by K. Deb. Smaller values indicate more optimal solutions.
+    """Return the NSGA-II convergence metric of a Pareto front.
 
-    :param population: The Pareto front to be evaluated.
-    :param optimal: The optimal Pareto front.
-    :return: The convergence metric of the front.
+    ``population`` is the front to score and ``optimal`` is the true
+    Pareto front, as in Deb's original NSGA-II article. Smaller values
+    indicate closer solutions.
+
+    Args:
+        population: Pareto front to evaluate.
+        optimal: Optimal Pareto front.
+
+    Returns:
+        The convergence metric of the front.
     """
     distances = []
     for ind in population:
@@ -77,17 +81,18 @@ def nsga_convergence(population: list, optimal: list) -> float:
 
 
 def inv_gen_dist(ind1: Individual, ind2: Individual) -> tuple[Any, Optional[Any]]:
-    """
-    Computes the Inverted Generational Distance (IGD) between the two individuals.
-    The IGD is a metric for assessing the quality of approximations to the
-    Pareto front obtained by multi-objective optimization algorithms.
+    """Compute the inverted generational distance between two point sets.
 
-    :param ind1: The first individual.
-    :param ind2: The second individual.
-    :return: The IGD between the two individuals.
+    IGD measures how well one approximation covers another in
+    multi-objective optimization.
 
-    :type ind1: :ref:`Individual <datatypes>`
-    :type ind2: :ref:`Individual <datatypes>`
+    Args:
+        ind1: First point set.
+        ind2: Second point set.
+
+    Returns:
+        The average distance from each point in ``ind2`` to the
+        nearest point in ``ind1``.
     """
     from scipy import spatial
 

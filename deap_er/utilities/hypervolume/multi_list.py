@@ -9,25 +9,29 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from collections.abc import Iterable, MutableSequence
+
 from .node import Node
 
 
 class MultiList:
-    """
-    A special data structure needed by the Fonseca HyperVolume indicator.
-    It consists of several doubly linked lists that share common nodes.
-    Every node has multiple predecessors and successors, one in every list.
+    """Linked lists that share nodes across dimensions.
 
-    :param dimensions: The number of dimensions in the multi-list.
+    Used by the Fonseca hypervolume indicator. Every node has one
+    predecessor and one successor in each dimension.
+
+    Args:
+        dimensions: Number of dimensions in the multi-list.
     """
 
     def __init__(self, dimensions: int) -> None:
+        """See the class docstring."""
         self.dimensions = dimensions
         self.sentinel = Node(dimensions)
         self.sentinel.next = [self.sentinel] * dimensions
         self.sentinel.prev = [self.sentinel] * dimensions
 
     def __str__(self) -> str:
+        """Return a per-dimension listing of node cargo."""
         strings = list()
         for i in range(self.dimensions):
             current_list = list()
@@ -36,15 +40,24 @@ class MultiList:
                 current_list.append(str(node))
                 node = node.next[i]
             strings.append(str(current_list))
-        _repr = str()
+        _repr = ""
         for string in strings:
             _repr += string + "\n"
         return _repr
 
     def __len__(self):
+        """Return the number of dimensions."""
         return self.dimensions
 
     def get_length(self, index: int) -> int:
+        """Return the number of nodes in the list at dimension ``index``.
+
+        Args:
+            index: Dimension of the list to measure.
+
+        Returns:
+            Node count, excluding the sentinel.
+        """
         length = 0
         node = self.sentinel.next[index]
         while node != self.sentinel:
@@ -53,6 +66,12 @@ class MultiList:
         return length
 
     def append(self, node: Node, index: int) -> None:
+        """Append ``node`` to the list at dimension ``index``.
+
+        Args:
+            node: Node to append.
+            index: Dimension of the list to extend.
+        """
         penultimate = self.sentinel.prev[index]
         node.next[index] = self.sentinel
         node.prev[index] = penultimate
@@ -60,6 +79,12 @@ class MultiList:
         penultimate.next[index] = node
 
     def extend(self, nodes: Iterable[Node], index: int) -> None:
+        """Append each node in ``nodes`` to the list at dimension ``index``.
+
+        Args:
+            nodes: Nodes to append, in order.
+            index: Dimension of the list to extend.
+        """
         for node in nodes:
             penultimate = self.sentinel.prev[index]
             node.next[index] = self.sentinel
@@ -69,6 +94,19 @@ class MultiList:
 
     @staticmethod
     def remove(node: Node, index: int, bounds: MutableSequence) -> Node:
+        """Unlink ``node`` from lists in dimensions below ``index``.
+
+        Tightens ``bounds`` when the removed cargo is smaller on a
+        dimension.
+
+        Args:
+            node: Node to unlink.
+            index: Exclusive upper bound on dimensions to unlink.
+            bounds: Per-dimension bounds updated in place.
+
+        Returns:
+            The unlinked node.
+        """
         for i in range(index):
             predecessor = node.prev[i]
             successor = node.next[i]
@@ -80,6 +118,16 @@ class MultiList:
 
     @staticmethod
     def reinsert(node: Node, index: int, bounds: MutableSequence) -> None:
+        """Restore ``node`` into lists in dimensions below ``index``.
+
+        Tightens ``bounds`` when the restored cargo is smaller on a
+        dimension.
+
+        Args:
+            node: Node to restore.
+            index: Exclusive upper bound on dimensions to relink.
+            bounds: Per-dimension bounds updated in place.
+        """
         for i in range(index):
             node.prev[i].next[i] = node
             node.next[i].prev[i] = node
