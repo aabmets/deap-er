@@ -16,15 +16,17 @@ __all__ = ["sel_spea_2"]
 
 
 def sel_spea_2(individuals: list, sel_count: int) -> list:
-    """
-    Selects the next generation of individuals using the SPEA-II algorithm.
-    Usually, the size of **individuals** should be larger than the **sel_count**
-    parameter. If the size of **individuals** is equal to **sel_count**, the
-    population will be sorted according to their pareto fronts.
+    """Select the next generation with SPEA-II.
 
-    :param individuals: A list of individuals to select from.
-    :param sel_count: The number of individuals to select.
-    :return: A list of selected individuals.
+    The pool is usually larger than ``sel_count``. If the two sizes
+    are equal, the population is sorted by Pareto front.
+
+    Args:
+        individuals: Individuals to select from.
+        sel_count: Number of individuals to select.
+
+    Returns:
+        The selected individuals.
     """
     big_l = len(individuals[0].fitness.values)
     big_n = len(individuals)
@@ -126,6 +128,18 @@ def sel_spea_2(individuals: list, sel_count: int) -> list:
 
 
 def _partition(array: list, begin: int, end: int) -> int:
+    """Partition a slice of ``array`` around the value at ``begin``.
+
+    The slice ``array[begin:end + 1]`` is modified in place.
+
+    Args:
+        array: Sequence to partition.
+        begin: Inclusive start of the slice and initial pivot value.
+        end: Inclusive end of the slice.
+
+    Returns:
+        Split index of the partitioned slice.
+    """
     x = array[begin]
     i = begin - 1
     j = end + 1
@@ -143,12 +157,39 @@ def _partition(array: list, begin: int, end: int) -> int:
 
 
 def _randomized_partition(array: list, begin: int, end: int) -> int:
+    """Partition a slice of ``array`` around a randomly chosen pivot.
+
+    The slice ``array[begin:end + 1]`` is modified in place.
+
+    Args:
+        array: Sequence to partition.
+        begin: Inclusive start of the slice.
+        end: Inclusive end of the slice.
+
+    Returns:
+        Split index of the partitioned slice.
+    """
     i = random.randint(begin, end)
     array[begin], array[i] = array[i], array[begin]
     return _partition(array, begin, end)
 
 
 def _randomized_select(array: list, begin: int, end: int, i: float) -> int:
+    """Return the element of rank ``i`` in a slice of ``array``.
+
+    The slice ``array[begin:end + 1]`` is modified in place. ``i``
+    may be non-integral; the comparison uses it as an order-statistic
+    threshold.
+
+    Args:
+        array: Sequence to search.
+        begin: Inclusive start of the slice.
+        end: Inclusive end of the slice.
+        i: Desired rank within the slice.
+
+    Returns:
+        The selected order statistic.
+    """
     if begin == end:
         return array[begin]
     q = _randomized_partition(array, begin, end)

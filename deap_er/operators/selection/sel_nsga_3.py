@@ -18,16 +18,18 @@ __all__ = ["sel_nsga_3", "SelNSGA3WithMemory"]
 
 
 class SelNSGA3WithMemory:
-    """
-    The NSGA-III selection operator with memory for best, worst and extreme
-    points. Instances of this class can be registered into a Toolbox.
+    """NSGA-III selection that remembers ideal, nadir, and extreme points.
 
-    :param ref_points: Reference points for selection.
-    :param sorting: The algorithm to use for non-dominated
-        sorting. Can be either 'log' or 'standard' string literal.
+    Instances can be registered into a Toolbox.
+
+    Args:
+        ref_points: Reference points for selection.
+        sorting: Non-dominated sorting algorithm. Either ``'log'``
+            or ``'standard'``.
     """
 
     def __init__(self, ref_points: ndarray, sorting: str = "log"):
+        """See the class docstring."""
         self.ref_points = ref_points
         self.sorting = sorting
         self.best_point = numpy.full((1, ref_points.shape[1]), numpy.inf)
@@ -35,13 +37,14 @@ class SelNSGA3WithMemory:
         self.extreme_points = None
 
     def __call__(self, individuals: list, sel_count: int) -> list:
-        """
-        This method is called by the Toolbox to select
-        individuals for the next generation.
+        """Select individuals for the next generation.
 
-        :param individuals: A list of individuals to select from.
-        :param sel_count: The number of individuals to select.
-        :return: A list of selected individuals.
+        Args:
+            individuals: Individuals to select from.
+            sel_count: Number of individuals to select.
+
+        Returns:
+            The selected individuals.
         """
         chosen = sel_nsga_3(
             individuals,
@@ -66,23 +69,29 @@ def sel_nsga_3(
     extreme_points: ndarray = None,
     _memory: SelNSGA3WithMemory = None,
 ) -> list:
-    """
-    Selects the next generation of individuals using the NSGA-III algorithm.
+    """Select the next generation with NSGA-III.
 
-    :param individuals: A list of individuals to select from.
-    :param sel_count: The number of individuals to select.
-    :param ref_points: The reference points to use for the selection.
-    :param sorting: The non-dominated sorting algorithm to use, optional.
-    :param best_point: Best point of the previous generation, optional.
-        If not provided, finds the best point from the current individuals.
-    :param worst_point: Worst point of the previous generation, optional.
-        If not provided, finds the worst point from the current individuals.
-    :param extreme_points: Extreme points of the previous generation, optional.
-        If not provided, finds the extreme points from the current individuals.
-    :param _memory: This private parameter is used by the SelNSGA3WithMemory
-        objects to store the best, the worst and the extreme points of the
-        selection into itself. Not recommended for manual use.
-    :return: A list of selected individuals.
+    Args:
+        individuals: Individuals to select from.
+        sel_count: Number of individuals to select.
+        ref_points: Reference points used for niche selection.
+        sorting: Non-dominated sorting algorithm. Either ``'log'``
+            or ``'standard'``.
+        best_point: Ideal point of the previous generation. If
+            omitted, it is taken from the current individuals.
+        worst_point: Nadir point of the previous generation. If
+            omitted, it is taken from the current individuals.
+        extreme_points: Extreme points of the previous generation.
+            If omitted, they are taken from the current individuals.
+        _memory: ``SelNSGA3WithMemory`` instance that stores the
+            updated ideal, nadir, and extreme points. Not intended
+            for manual use.
+
+    Returns:
+        The selected individuals.
+
+    Raises:
+        RuntimeError: If ``sorting`` is not ``'log'`` or ``'standard'``.
     """
     if sorting == "standard":
         pareto_fronts = sort_non_dominated(individuals, sel_count)
@@ -130,7 +139,19 @@ def sel_nsga_3(
 def _find_extreme_points(
     fitness: ndarray, best_point: ndarray, extreme_points: ndarray = None
 ) -> ndarray:
+    """Find one extreme point per objective.
 
+    Previous extreme points, when given, are considered together with
+    the current fitness values.
+
+    Args:
+        fitness: Objective values of the current fronts.
+        best_point: Current ideal point.
+        extreme_points: Extreme points of the previous generation.
+
+    Returns:
+        One extreme point per objective.
+    """
     if extreme_points is not None:
         fitness = numpy.concatenate((fitness, extreme_points), axis=0)
 
@@ -146,7 +167,20 @@ def _find_extreme_points(
 def _find_intercepts(
     extreme_points: ndarray, best_point: ndarray, current_worst: ndarray, front_worst: ndarray
 ) -> ndarray:
+    """Compute axis intercepts of the hyperplane through the extreme points.
 
+    Falls back to a worst-point estimate when the hyperplane is
+    degenerate or the intercepts are not usable.
+
+    Args:
+        extreme_points: One extreme point per objective.
+        best_point: Current ideal point.
+        current_worst: Worst point including memory from prior generations.
+        front_worst: Worst point on the current fronts.
+
+    Returns:
+        Intercepts used to scale the objectives.
+    """
     b = numpy.ones(extreme_points.shape[1])
     big_a = extreme_points - best_point
     try:
@@ -172,6 +206,17 @@ def _find_intercepts(
 def _associate_to_niche(
     fitness: ndarray, reference_points: ndarray, best_point: ndarray, intercepts: ndarray
 ) -> tuple:
+    """Assign each individual to the nearest reference-point niche.
+
+    Args:
+        fitness: Objective values of the current fronts.
+        reference_points: Reference points that define the niches.
+        best_point: Current ideal point.
+        intercepts: Axis intercepts used to normalize the objectives.
+
+    Returns:
+        Niche index and distance to that niche for each individual.
+    """
     fn = (fitness - best_point) / (intercepts - best_point)
     fn = numpy.repeat(numpy.expand_dims(fn, axis=1), len(reference_points), axis=1)
     norm = numpy.linalg.norm(reference_points, axis=1)
@@ -191,6 +236,21 @@ def _associate_to_niche(
 def _select_from_niche(
     individuals: list, count: int, niches: ndarray, distances: ndarray, niche_counts: ndarray
 ) -> list:
+    """Fill the remaining slots from the last front by niche.
+
+    Prefers under-represented niches. An empty niche takes its closest
+    member; a non-empty niche takes a random remaining member.
+
+    Args:
+        individuals: Individuals on the last accepted front.
+        count: Number of individuals still needed.
+        niches: Niche index of each individual on that front.
+        distances: Distance of each individual to its niche.
+        niche_counts: Current occupancy of each niche. Updated in place.
+
+    Returns:
+        Individuals chosen from the last front.
+    """
     selected = []
     available = numpy.ones(len(individuals), dtype=numpy.bool)
     while len(selected) < count:

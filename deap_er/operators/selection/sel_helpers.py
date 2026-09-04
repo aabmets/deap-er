@@ -15,16 +15,14 @@ __all__ = ["assign_crowding_dist", "uniform_reference_points"]
 
 
 def assign_crowding_dist(individuals: list) -> None:
-    """
-    Assigns a crowding distance to each individual's fitness.
-    The crowding distance can be retrieved via the *crowding_dist*
-    attribute of each individual's fitness. The individuals
-    are modified in-place.
+    """Assign a crowding distance to each individual's fitness.
 
-    :param individuals: A list of individuals with Fitness attributes.
-    :return: Nothing.
-    """
+    The distance is stored on the ``crowding_dist`` attribute of each
+    individual's fitness. The individuals are modified in place.
 
+    Args:
+        individuals: Individuals with Fitness attributes.
+    """
     if len(individuals) == 0:
         return
 
@@ -49,18 +47,34 @@ def assign_crowding_dist(individuals: list) -> None:
 def uniform_reference_points(
     objectives: int, ref_ppo: int = 4, scaling: float = None
 ) -> numpy.ndarray:
-    """
-    Generates reference points uniformly on the hyperplane
-    intersecting each axis at 1. The scaling factor is used
-    to combine multiple layers of reference points.
+    """Generate reference points uniformly on the unit simplex.
 
-    :param objectives: Number of objectives.
-    :param ref_ppo: Number of reference points per objective, optional.
-    :param scaling: Scaling factor, optional.
-    :return: Uniform reference points.
+    Points lie on the hyperplane that intersects each axis at 1.
+    ``scaling`` shrinks that layer toward the simplex center so
+    several layers can be combined.
+
+    Args:
+        objectives: Number of objectives.
+        ref_ppo: Number of reference points per objective.
+        scaling: Optional scaling factor for combining layers.
+
+    Returns:
+        Uniform reference points.
     """
 
     def _recursive(ref, ovs, left, total, depth) -> list:
+        """Fill remaining objectives of one Das-Dennis reference point.
+
+        Args:
+            ref: Partial weight vector being filled.
+            ovs: Number of objectives.
+            left: Remaining integer budget to distribute.
+            total: Total budget that sets the simplex spacing.
+            depth: Objective index currently being assigned.
+
+        Returns:
+            Completed reference points generated from this prefix.
+        """
         points = []
         if depth == ovs - 1:
             ref[depth] = left / total

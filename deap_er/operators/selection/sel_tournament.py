@@ -20,15 +20,16 @@ __all__ = ["sel_tournament", "sel_double_tournament", "sel_tournament_dcd"]
 def sel_tournament(
     individuals: list, rounds: int, contestants: int, fit_attr: str = "fitness"
 ) -> list:
-    """
-    Selects the best individual among the randomly
-    chosen **contestants** for **rounds** times.
+    """Select the best of ``contestants`` random individuals, ``rounds`` times.
 
-    :param individuals: A list of individuals to select from.
-    :param rounds: The number of rounds in the tournament.
-    :param contestants: The number of individuals participating in each round.
-    :param fit_attr: The attribute of individuals to use as the selection criterion.
-    :return: A list of selected individuals.
+    Args:
+        individuals: Individuals to select from.
+        rounds: Number of tournament rounds.
+        contestants: Number of individuals in each round.
+        fit_attr: Attribute used as the selection criterion.
+
+    Returns:
+        The selected individuals.
     """
     chosen = []
     for _ in range(rounds):
@@ -45,24 +46,38 @@ def sel_double_tournament(
     fitness_first: bool,
     fit_attr: str = "fitness",
 ) -> list:
-    """
-    Tournament selection which uses the size of the individuals in
-    order to discriminate good solutions. It can also be used for
-    Genetic Programming as a bloat control technique.
+    """Select with a fitness tournament and a size tournament.
 
-    :param individuals: A list of individuals to select from.
-    :param rounds: The number of rounds in the tournament.
-    :param fitness_size: The number of individuals participating in each fitness tournament.
-    :param parsimony_size: The number of individuals participating in each size tournament.
-            This value has to be a real number in the range of [1,2].
-    :param fitness_first: If set to True, the fitness tournament will be performed first.
-    :param fit_attr: The attribute of individuals to use as the selection criterion.
-    :return: A list of selected individuals.
+    The size contest can be used in genetic programming as a bloat
+    control technique.
+
+    Args:
+        individuals: Individuals to select from.
+        rounds: Number of tournament rounds.
+        fitness_size: Number of individuals in each fitness tournament.
+        parsimony_size: Number of individuals in each size tournament.
+            Must be in ``[1, 2]``.
+        fitness_first: If True, run the fitness tournament first.
+        fit_attr: Attribute used as the fitness selection criterion.
+
+    Returns:
+        The selected individuals.
+
+    Raises:
+        ValueError: If ``parsimony_size`` is outside ``[1, 2]``.
     """
     if not (1 <= parsimony_size <= 2):
         raise ValueError("Parsimony tournament size has to be in the range of [1, 2].")
 
     def _size_tourney(select):
+        """Run the parsimony (size) half of the double tournament.
+
+        Args:
+            select: Selection callable used to pick the two contestants.
+
+        Returns:
+            Winners of the size contests.
+        """
         chosen = []
         for i in range(rounds):
             prob = parsimony_size / 2.0
@@ -75,6 +90,14 @@ def sel_double_tournament(
         return chosen
 
     def _fit_tourney(select):
+        """Run the fitness half of the double tournament.
+
+        Args:
+            select: Selection callable used to pick the contestants.
+
+        Returns:
+            Winners of the fitness contests.
+        """
         chosen = []
         for i in range(rounds):
             aspirants = select(individuals, sel_count=fitness_size)
@@ -90,18 +113,23 @@ def sel_double_tournament(
 
 
 def sel_tournament_dcd(individuals: list, sel_count: int) -> list:
-    """
-    Tournament selection based on the dominance between two individuals,
-    if the two individuals do not inter-dominate, then the selection is
-    made based on their crowding distance. The **individuals** sequence
-    length has to be a multiple of four only if the **sel_count** is equal
-    to the length of **individuals**. This selection requires the individuals
-    to have the *crowding_dist* attribute, which can be set by the
-    *assign_crowding_dist* function.
+    """Select by pairwise dominance, breaking ties with crowding distance.
 
-    :param individuals: A list of individuals to select from.
-    :param sel_count: The number of individuals to select.
-    :return: A list of selected individuals.
+    If ``sel_count`` equals the pool size, that size must be a multiple
+    of four. Each individual must already have a ``crowding_dist``
+    attribute, which ``assign_crowding_dist`` can set.
+
+    Args:
+        individuals: Individuals to select from.
+        sel_count: Number of individuals to select.
+
+    Returns:
+        The selected individuals.
+
+    Raises:
+        ValueError: If ``sel_count`` is larger than the pool, or if
+            ``sel_count`` equals the pool size and is not divisible
+            by four.
     """
     if sel_count > len(individuals):
         raise ValueError(
@@ -115,6 +143,15 @@ def sel_tournament_dcd(individuals: list, sel_count: int) -> list:
         )
 
     def tourney(ind1, ind2):
+        """Return the better of two individuals by dominance, then crowding.
+
+        Args:
+            ind1: First contestant.
+            ind2: Second contestant.
+
+        Returns:
+            The winning individual.
+        """
         if ind1.fitness.dominates(ind2.fitness):
             return ind1
         elif ind2.fitness.dominates(ind1.fitness):

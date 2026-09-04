@@ -16,13 +16,17 @@ __all__ = ["sel_lexicase", "sel_epsilon_lexicase"]
 
 
 def sel_lexicase(individuals: list, sel_count: int) -> list:
-    """
-    Returns an individual that does the best on the fitness
-    cases when considered one at a time in random order.
+    """Select individuals by lexicase filtering of fitness cases.
 
-    :param individuals: A list of individuals to select from.
-    :param sel_count: The number of individuals to select.
-    :return: A list of selected individuals.
+    Each selected individual is the last remaining candidate after
+    fitness cases are considered one at a time in random order.
+
+    Args:
+        individuals: Individuals to select from.
+        sel_count: Number of individuals to select.
+
+    Returns:
+        The selected individuals.
     """
     selected = []
     for i in range(sel_count):
@@ -44,16 +48,21 @@ def sel_lexicase(individuals: list, sel_count: int) -> list:
 
 
 def sel_epsilon_lexicase(individuals: list, sel_count: int, epsilon: float = None) -> list:
-    """
-    Returns an individual that does the best on the fitness
-    cases when considered one at a time in random order.
+    """Select individuals by epsilon-lexicase filtering of fitness cases.
 
-    :param individuals: A list of individuals to select from.
-    :param sel_count: The number of individuals to select.
-    :param epsilon: The epsilon parameter, optional. If not
-        provided, the epsilon parameter is automatically
-        calculated from the median of fitness values.
-    :return: A list of selected individuals.
+    Each selected individual is the last remaining candidate after
+    fitness cases are considered one at a time in random order.
+    Candidates within ``epsilon`` of the best case value are kept.
+
+    Args:
+        individuals: Individuals to select from.
+        sel_count: Number of individuals to select.
+        epsilon: Slack around the best case value. If omitted, it is
+            computed from the median absolute deviation of the case
+            values.
+
+    Returns:
+        The selected individuals.
     """
     selected = []
     for i in range(sel_count):

@@ -26,6 +26,19 @@ __all__ = [
 
 
 def _pre_process(name: str, var: NumOrSeq, size: int) -> Sequence:
+    """Broadcast a scalar parameter or validate a per-gene sequence.
+
+    Args:
+        name: Argument name used in the error message.
+        var: A single value or a sequence of per-gene values.
+        size: Required number of values (the individual length).
+
+    Returns:
+        A sequence of at least ``size`` values.
+
+    Raises:
+        ValueError: If ``var`` is a sequence shorter than ``size``.
+    """
     if not isinstance(var, Sequence):
         var = repeat(var, size)
     elif isinstance(var, Sequence) and len(var) < size:
@@ -36,20 +49,23 @@ def _pre_process(name: str, var: NumOrSeq, size: int) -> Sequence:
 
 
 def mut_gaussian(individual: Individual, mu: NumOrSeq, sigma: NumOrSeq, mut_prob: float) -> Mutant:
-    """
-    Applies a gaussian mutation of mean **mu** and standard
-    deviation **sigma** on the input individual.
+    """Apply a Gaussian mutation of mean *mu* and standard deviation *sigma*.
 
-    :param individual: The individual to be mutated.
-    :param mu: The mean value of the gaussian mutation.
-    :param sigma: The standard deviation of the gaussian mutation.
-    :param mut_prob: The probability of mutating each attribute.
-    :returns: A mutated individual.
+    The individual is modified in place. ``mu`` and ``sigma`` may be
+    scalars or per-gene sequences.
 
-    :type individual: :ref:`Individual <datatypes>`
-    :type mu: :ref:`NumOrSeq <datatypes>`
-    :type sigma: :ref:`NumOrSeq <datatypes>`
-    :rtype: :ref:`Mutant <datatypes>`
+    Args:
+        individual: Individual to mutate.
+        mu: Mean of the Gaussian mutation.
+        sigma: Standard deviation of the Gaussian mutation.
+        mut_prob: Probability of mutating each attribute.
+
+    Returns:
+        A one-element tuple containing the mutated individual.
+
+    Raises:
+        ValueError: If ``mu`` or ``sigma`` is a sequence shorter than
+            the individual.
     """
     size = len(individual)
     mu = _pre_process("mu", mu, size)
@@ -66,24 +82,26 @@ def mut_gaussian(individual: Individual, mu: NumOrSeq, sigma: NumOrSeq, mut_prob
 def mut_polynomial_bounded(
     individual: Individual, eta: float, low: NumOrSeq, up: NumOrSeq, mut_prob: float
 ) -> Mutant:
-    """
-    Applies a polynomial mutation with a crowding
-    degree of **eta** on the input individual.
+    """Apply a bounded polynomial mutation with crowding degree *eta*.
 
-    :param individual: The individual to be mutated.
-    :param eta: The crowding degree of the crossover.
-        Higher values produce children more similar to
-        their parents, while smaller values produce
-        children more divergent from their parents.
-    :param low: The lower bound of the search space.
-    :param up: The upper bound of the search space.
-    :param mut_prob: The probability of mutating each attribute.
-    :returns: A mutated individual.
+    The individual is modified in place. ``low`` and ``up`` may be
+    scalars or per-gene sequences.
 
-    :type individual: :ref:`Individual <datatypes>`
-    :type low: :ref:`NumOrSeq <datatypes>`
-    :type up: :ref:`NumOrSeq <datatypes>`
-    :rtype: :ref:`Mutant <datatypes>`
+    Args:
+        individual: Individual to mutate.
+        eta: Crowding degree of the mutation. Higher values produce
+            children more similar to their parents; smaller values
+            produce children more divergent from their parents.
+        low: Lower bound of the search space.
+        up: Upper bound of the search space.
+        mut_prob: Probability of mutating each attribute.
+
+    Returns:
+        A one-element tuple containing the mutated individual.
+
+    Raises:
+        ValueError: If ``low`` or ``up`` is a sequence shorter than
+            the individual.
     """
     size = len(individual)
     low = _pre_process("low", low, size)
@@ -115,15 +133,16 @@ def mut_polynomial_bounded(
 
 
 def mut_shuffle_indexes(individual: Individual, mut_prob: float) -> Mutant:
-    """
-    Shuffles the attributes of the input individual.
+    """Shuffle attributes of the individual.
 
-    :param individual: The individual to be mutated.
-    :param mut_prob: The probability of mutating each attribute.
-    :returns: A mutated individual.
+    The individual is modified in place.
 
-    :type individual: :ref:`Individual <datatypes>`
-    :rtype: :ref:`Mutant <datatypes>`
+    Args:
+        individual: Individual to mutate.
+        mut_prob: Probability of mutating each attribute.
+
+    Returns:
+        A one-element tuple containing the mutated individual.
     """
     size = len(individual)
     for i in range(size):
@@ -137,15 +156,16 @@ def mut_shuffle_indexes(individual: Individual, mut_prob: float) -> Mutant:
 
 
 def mut_flip_bit(individual: Individual, mut_prob: float) -> Mutant:
-    """
-    Flips the values of random attributes of the input individual.
+    """Flip the values of random attributes of the individual.
 
-    :param individual: The individual to be mutated.
-    :param mut_prob: The probability of mutating each attribute.
-    :returns: A mutated individual.
+    The individual is modified in place.
 
-    :type individual: :ref:`Individual <datatypes>`
-    :rtype: :ref:`Mutant <datatypes>`
+    Args:
+        individual: Individual to mutate.
+        mut_prob: Probability of mutating each attribute.
+
+    Returns:
+        A one-element tuple containing the mutated individual.
     """
     for i in range(len(individual)):
         if random.random() < mut_prob:
@@ -155,18 +175,22 @@ def mut_flip_bit(individual: Individual, mut_prob: float) -> Mutant:
 
 
 def mut_uniform_int(individual: Individual, low: int, up: int, mut_prob: float) -> Mutant:
-    """
-    | Mutates an individual by replacing attribute values with integers
-    | chosen uniformly between the **low** and **up**, inclusively.
+    """Replace attributes with integers drawn uniformly from [*low*, *up*].
 
-    :param individual: The individual to be mutated.
-    :param low: The lower bound of the search space.
-    :param up: The upper bound of the search space.
-    :param mut_prob: The probability of mutating each attribute.
-    :returns: A mutated individual.
+    The individual is modified in place. Bounds are inclusive.
 
-    :type individual: :ref:`Individual <datatypes>`
-    :rtype: :ref:`Mutant <datatypes>`
+    Args:
+        individual: Individual to mutate.
+        low: Lower bound of the search space.
+        up: Upper bound of the search space.
+        mut_prob: Probability of mutating each attribute.
+
+    Returns:
+        A one-element tuple containing the mutated individual.
+
+    Raises:
+        ValueError: If ``low`` or ``up`` is a sequence shorter than
+            the individual.
     """
     size = len(individual)
     low = _pre_process("low", low, size)
@@ -181,17 +205,19 @@ def mut_uniform_int(individual: Individual, low: int, up: int, mut_prob: float) 
 
 
 def mut_es_log_normal(individual: Individual, learn_rate: float, mut_prob: float) -> Mutant:
-    """
-    Mutates an evolution strategy according to its *strategy* attribute.
+    """Mutate an evolution strategy according to its ``strategy`` attribute.
 
-    :param individual: The individual to be mutated.
-    :param learn_rate: The learning rate of the evolution strategy. For
-        an evolution strategy of (10, 100) the recommended value is 1.
-    :param mut_prob: The probability of mutating each attribute.
-    :returns: A mutated individual.
+    The individual is modified in place. Genes are updated only when
+    the individual has a ``strategy`` attribute.
 
-    :type individual: :ref:`Individual <datatypes>`
-    :rtype: :ref:`Mutant <datatypes>`
+    Args:
+        individual: Individual to mutate.
+        learn_rate: Learning rate of the evolution strategy. For an
+            evolution strategy of (10, 100) the recommended value is 1.
+        mut_prob: Probability of mutating each attribute.
+
+    Returns:
+        A one-element tuple containing the mutated individual.
     """
     size = len(individual)
     t = learn_rate / math.sqrt(2.0 * math.sqrt(size))

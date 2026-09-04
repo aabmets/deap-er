@@ -22,53 +22,61 @@ __all__ = [
 
 
 def sel_random(individuals: list, sel_count: int) -> list:
-    """
-    Selects randomly **sel_count** individuals from the input **individuals**.
+    """Select ``sel_count`` individuals uniformly at random.
 
-    :param individuals: A list of individuals to select from.
-    :param sel_count: The number of individuals to select.
-    :return: A list of selected individuals.
+    Args:
+        individuals: Individuals to select from.
+        sel_count: Number of individuals to select.
+
+    Returns:
+        The selected individuals.
     """
     return [random.choice(individuals) for _ in range(sel_count)]
 
 
 def sel_best(individuals: list, sel_count: int, fit_attr: str = "fitness") -> list:
-    """
-    Selects the best **sel_count** individuals from the input **individuals**.
+    """Select the ``sel_count`` best individuals.
 
-    :param individuals: A list of individuals to select from.
-    :param sel_count: The number of individuals to select.
-    :param fit_attr: The attribute of individuals to use as the selection criterion.
-    :return: A list of selected individuals.
+    Args:
+        individuals: Individuals to select from.
+        sel_count: Number of individuals to select.
+        fit_attr: Attribute used as the selection criterion.
+
+    Returns:
+        The selected individuals.
     """
     key = attrgetter(fit_attr)
     return sorted(individuals, key=key, reverse=True)[:sel_count]
 
 
 def sel_worst(individuals: list, sel_count: int, fit_attr: str = "fitness") -> list:
-    """
-    Selects the worst **sel_count** individuals among the input **individuals**.
+    """Select the ``sel_count`` worst individuals.
 
-    :param individuals: A list of individuals to select from.
-    :param sel_count: The number of individuals to select.
-    :param fit_attr: The attribute of individuals to use as the selection criterion.
-    :return: A list of selected individuals.
+    Args:
+        individuals: Individuals to select from.
+        sel_count: Number of individuals to select.
+        fit_attr: Attribute used as the selection criterion.
+
+    Returns:
+        The selected individuals.
     """
     key = attrgetter(fit_attr)
     return sorted(individuals, key=key)[:sel_count]
 
 
 def sel_roulette(individuals: list, sel_count: int, fit_attr: str = "fitness") -> list:
-    """
-    Selects **sel_count** individuals from the input **individuals** using
-    **sel_count** spins of a roulette. The selection is made by looking
-    only at the first objective of each individual. The returned list
-    contains references to the input **individuals**.
+    """Select ``sel_count`` individuals by roulette-wheel sampling.
 
-    :param individuals: A list of individuals to select from.
-    :param sel_count: The number of individuals to select.
-    :param fit_attr: The attribute of individuals to use as the selection criterion.
-    :return: A list of selected individuals.
+    Each draw uses only the first objective of ``fit_attr``. The
+    returned list holds references to the input individuals.
+
+    Args:
+        individuals: Individuals to select from.
+        sel_count: Number of individuals to select.
+        fit_attr: Attribute used as the selection criterion.
+
+    Returns:
+        The selected individuals.
     """
     key = attrgetter(fit_attr)
     sorted_ = sorted(individuals, key=key, reverse=True)
@@ -89,16 +97,19 @@ def sel_roulette(individuals: list, sel_count: int, fit_attr: str = "fitness") -
 def sel_stochastic_universal_sampling(
     individuals: list, sel_count: int, fit_attr: str = "fitness"
 ) -> list:
-    """
-    Selects the **sel_count** individuals among the input **individuals**.
-    The selection is made by using a single random value to sample all the
-    individuals by choosing them at evenly spaced intervals. The returned
-    list contains references to the input **individuals**.
+    """Select ``sel_count`` individuals by stochastic universal sampling.
 
-    :param individuals: A list of individuals to select from.
-    :param sel_count: The number of individuals to select.
-    :param fit_attr: The attribute of individuals to use as the selection criterion.
-    :return: A list of selected individuals.
+    A single random offset samples the wheel at evenly spaced
+    intervals. Only the first objective of ``fit_attr`` is used. The
+    returned list holds references to the input individuals.
+
+    Args:
+        individuals: Individuals to select from.
+        sel_count: Number of individuals to select.
+        fit_attr: Attribute used as the selection criterion.
+
+    Returns:
+        The selected individuals.
     """
     key = attrgetter(fit_attr)
     sorted_ = sorted(individuals, key=key, reverse=True)
