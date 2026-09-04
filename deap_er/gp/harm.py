@@ -21,6 +21,15 @@ from .dtypes import GPIndividual
 
 __all__ = ["harm"]
 
+_HARM_DEFAULTS: dict[str, float | int] = {
+    "alpha": 0.05,
+    "beta": 10.0,
+    "gamma": 0.25,
+    "rho": 0.9,
+    "nb_model": -1,
+    "min_cutoff": 20,
+}
+
 
 def _accept_all(_size: int) -> bool:
     """Accept an individual of any size.
@@ -237,15 +246,10 @@ def harm(
     generations: int,
     cx_prob: float,
     mut_prob: float,
-    alpha: float = 0.05,
-    beta: float = 10.0,
-    gamma: float = 0.25,
-    rho: float = 0.9,
-    nb_model: int = -1,
-    min_cutoff: int = 20,
     hof: Hof | None = None,
     stats: Stats | None = None,
     verbose: bool = False,
+    **kwargs: Any,
 ) -> AlgoResult:
     """Evolve a GP population with HARM bloat control.
 
@@ -259,25 +263,47 @@ def harm(
         generations: Number of generations to run.
         cx_prob: Probability of mating two individuals.
         mut_prob: Probability of mutating an individual.
-        alpha: Half-life of the exponential, scaled linearly with
-            the cutoff. Higher values accept larger individuals.
-        beta: Minimum half-life, so growth remains possible while
-            individuals are still small.
-        gamma: Fraction of individuals allowed past the cutoff.
-        rho: Fitness range used to place the cutoff. Higher values
-            search more aggressively for slightly better solutions
-            and may overfit.
-        nb_model: Individuals generated to model the natural size
-            distribution. ``-1`` uses ``max(2000, len(population))``.
-        min_cutoff: Absolute minimum cutoff, to avoid shrinking the
-            population too early.
         hof: Optional HallOfFame or ParetoFront to update.
         stats: Optional Statistics or MultiStatistics to compile.
         verbose: If True, print the logbook stream each generation.
+        **kwargs: HARM size-control knobs. Keyword-only. Accepted
+            keys:
+
+            * ``alpha``: Half-life of the exponential, scaled
+              linearly with the cutoff. Higher values accept larger
+              individuals. Default ``0.05``.
+            * ``beta``: Minimum half-life, so growth remains
+              possible while individuals are still small. Default
+              ``10.0``.
+            * ``gamma``: Fraction of individuals allowed past the
+              cutoff. Default ``0.25``.
+            * ``rho``: Fitness range used to place the cutoff.
+              Higher values search more aggressively for slightly
+              better solutions and may overfit. Default ``0.9``.
+            * ``nb_model``: Individuals generated to model the
+              natural size distribution. ``-1`` uses
+              ``max(2000, len(population))``. Default ``-1``.
+            * ``min_cutoff``: Absolute minimum cutoff, to avoid
+              shrinking the population too early. Default ``20``.
 
     Returns:
         The final population and the logbook.
+
+    Raises:
+        TypeError: If ``kwargs`` contains an unknown name.
     """
+    unknown = kwargs.keys() - _HARM_DEFAULTS.keys()
+    if unknown:
+        names = ", ".join(repr(name) for name in sorted(unknown))
+        raise TypeError(f"harm() got unexpected keyword argument(s): {names}")
+
+    alpha = float(kwargs.get("alpha", _HARM_DEFAULTS["alpha"]))
+    beta = float(kwargs.get("beta", _HARM_DEFAULTS["beta"]))
+    gamma = float(kwargs.get("gamma", _HARM_DEFAULTS["gamma"]))
+    rho = float(kwargs.get("rho", _HARM_DEFAULTS["rho"]))
+    nb_model = int(kwargs.get("nb_model", _HARM_DEFAULTS["nb_model"]))
+    min_cutoff = int(kwargs.get("min_cutoff", _HARM_DEFAULTS["min_cutoff"]))
+
     logbook = Logbook()
     logbook.header = ["gen", "nevals"] + (stats.fields if stats else [])
 
