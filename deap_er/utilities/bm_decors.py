@@ -15,10 +15,10 @@ from typing import Any
 
 import numpy
 
-__all__ = ["Translate", "Rotate", "Scale", "Noise", "bin2float"]
+__all__ = ["Translation", "Rotation", "Scaling", "Noise", "bin2float"]
 
 
-class Translate:
+class Translation:
     """Decorator that translates an individual before evaluation.
 
     The decorated function receives a plain list of translated values.
@@ -67,7 +67,7 @@ class Translate:
         self.vector = vector
 
 
-class Rotate:
+class Rotation:
     """Decorator that rotates an individual before evaluation.
 
     The decorated function receives a plain ndarray of rotated values.
@@ -116,7 +116,7 @@ class Rotate:
         self.matrix = numpy.linalg.inv(matrix)
 
 
-class Scale:
+class Scaling:
     """Decorator that scales an individual before evaluation.
 
     The decorated function receives a plain list of scaled values.
@@ -169,7 +169,7 @@ class Noise:
     """Decorator that adds noise to an evaluation result.
 
     Each noise generator is called without arguments. After
-    decoration, ``func.noise`` updates the generators.
+    decoration, ``func.add_noise`` updates the generators.
 
     Args:
         funcs: Noise generator callables. A single callable is
@@ -182,7 +182,7 @@ class Noise:
 
     def __init__(self, funcs: Callable[..., Any] | list[Callable[..., Any] | None]) -> None:
         """See the class docstring."""
-        self.noise(funcs)
+        self.add_noise(funcs)
 
     def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
         """Wrap an evaluation function with noise on its result.
@@ -192,7 +192,7 @@ class Noise:
 
         Returns:
             A callable that calls ``func`` and adds noise to the
-            result. The wrapper has a ``noise`` method.
+            result. The wrapper has an ``add_noise`` method.
         """
 
         @wraps(func)
@@ -209,10 +209,10 @@ class Noise:
             return tuple(noisy)
 
         decorated: Any = wrapper
-        decorated.noise = self.noise
+        decorated.add_noise = self.add_noise
         return decorated
 
-    def noise(self, funcs: Callable[..., Any] | list[Callable[..., Any] | None]) -> None:
+    def add_noise(self, funcs: Callable[..., Any] | list[Callable[..., Any] | None]) -> None:
         """Update the noise generators.
 
         After decorating the evaluation function, this method is

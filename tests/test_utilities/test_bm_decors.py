@@ -19,17 +19,17 @@ def _sphere(individual):
 
 
 def test_translate_rotate_and_scale_transform_the_individual():
-    evaluate: Any = tools.Translate([1.0, 2.0])(_sphere)
+    evaluate: Any = tools.Translation([1.0, 2.0])(_sphere)
     assert evaluate([1.0, 2.0]) == (0.0,)
     evaluate.translate([0.0, 0.0])
     assert evaluate([1.0, 2.0]) == (5.0,)
 
-    rotate: Any = tools.Rotate(numpy.eye(2))(_sphere)
+    rotate: Any = tools.Rotation(numpy.eye(2))(_sphere)
     assert rotate([1.0, 0.0]) == (1.0,)
     rotate.rotate(numpy.array([[0.0, 1.0], [1.0, 0.0]]))
     assert rotate([1.0, 0.0]) == (1.0,)
 
-    scale: Any = tools.Scale([2.0, 4.0])(_sphere)
+    scale: Any = tools.Scaling([2.0, 4.0])(_sphere)
     assert scale([2.0, 4.0]) == (2.0,)
     scale.scale([1.0, 1.0])
     assert scale([1.0, 2.0]) == (5.0,)
@@ -41,7 +41,7 @@ def test_noise_adds_per_objective_or_repeated_noise():
 
     noisy: Any = tools.Noise([lambda: 0.5, None])(evaluate)
     assert noisy([0]) == (1.5, 2.0)
-    noisy.noise(lambda: 1.0)
+    noisy.add_noise(lambda: 1.0)
     assert noisy([0]) == (2.0, 3.0)
 
     scalar: Any = tools.Noise(lambda: 0.25)(lambda _ind: 4.0)

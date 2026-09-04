@@ -9,7 +9,7 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from ..rng import rng, seed
-from .bm_decors import Noise, Rotate, Scale, Translate, bin2float
+from .bm_decors import Noise, Rotation, Scaling, Translation, bin2float
 from .constraints import ClosestValidPenalty, DeltaPenalty
 from .hypervolume import hypervolume, least_contrib
 from .initializers import init_cycle, init_iterate, init_repeat
@@ -19,9 +19,9 @@ from .sorting import SortingNetwork, sort_non_dominated
 __all__ = [
     "rng",
     "seed",
-    "Translate",
-    "Rotate",
-    "Scale",
+    "Translation",
+    "Rotation",
+    "Scaling",
     "Noise",
     "bin2float",
     "DeltaPenalty",
