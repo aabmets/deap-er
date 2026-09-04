@@ -46,7 +46,7 @@ def sel_double_tournament(
     individuals: list[Individual],
     rounds: int,
     fitness_size: int,
-    parsimony_size: int,
+    parsimony_size: float,
     fitness_first: bool,
     fit_attr: str = "fitness",
 ) -> list[Individual]:
@@ -73,19 +73,23 @@ def sel_double_tournament(
     if not (1 <= parsimony_size <= 2):
         raise ValueError("Parsimony tournament size has to be in the range of [1, 2].")
 
-    def _size_tourney(select: Callable[..., Any]) -> list[Individual]:
+    def _size_tourney(
+        pool: list[Individual], sel_count: int, select: Callable[..., Any]
+    ) -> list[Individual]:
         """Run the parsimony (size) half of the double tournament.
 
         Args:
+            pool: Individuals to select from.
+            sel_count: Number of size contests to run.
             select: Selection callable used to pick the two contestants.
 
         Returns:
             Winners of the size contests.
         """
         chosen = []
-        for _i in range(rounds):
+        for _i in range(sel_count):
             prob = parsimony_size / 2.0
-            ind1, ind2 = select(individuals, sel_count=2)
+            ind1, ind2 = select(pool, sel_count=2)
             if len(ind1) > len(ind2):
                 ind1, ind2 = ind2, ind1
             elif len(ind1) == len(ind2):
@@ -93,27 +97,30 @@ def sel_double_tournament(
             chosen.append(ind1 if random.random() < prob else ind2)
         return chosen
 
-    def _fit_tourney(select: Callable[..., Any]) -> list[Individual]:
+    def _fit_tourney(
+        pool: list[Individual], sel_count: int, select: Callable[..., Any]
+    ) -> list[Individual]:
         """Run the fitness half of the double tournament.
 
         Args:
+            pool: Individuals to select from.
+            sel_count: Number of fitness contests to run.
             select: Selection callable used to pick the contestants.
 
         Returns:
             Winners of the fitness contests.
         """
         chosen = []
-        for _i in range(rounds):
-            aspirants = select(individuals, sel_count=fitness_size)
+        for _i in range(sel_count):
+            aspirants = select(pool, sel_count=fitness_size)
             chosen.append(max(aspirants, key=attrgetter(fit_attr)))
         return chosen
 
     if fitness_first:
         t_fit = partial(_fit_tourney, select=sel_random)
-        return _size_tourney(t_fit)
-    else:
-        t_size = partial(_size_tourney, select=sel_random)
-        return _fit_tourney(t_size)
+        return _size_tourney(individuals, rounds, t_fit)
+    t_size = partial(_size_tourney, select=sel_random)
+    return _fit_tourney(individuals, rounds, t_size)
 
 
 def sel_tournament_dcd(individuals: list[Individual], sel_count: int) -> list[Individual]:

@@ -76,16 +76,18 @@ def sel_epsilon_lexicase(
         candidates = individuals
         while len(cases) > 0 and len(candidates) > 1:
             errors = [x.fitness.values[cases[0]] for x in candidates]
-            if not epsilon:
+            if epsilon is None:
                 median = float(np.median(errors))
-                epsilon = float(np.median([abs(x - median) for x in errors]))
+                slack = float(np.median([abs(x - median) for x in errors]))
+            else:
+                slack = epsilon
             if fit_weights[cases[0]] > 0:
                 best_val = max(errors)
-                min_val = best_val - epsilon
+                min_val = best_val - slack
                 candidates = [x for x in candidates if x.fitness.values[cases[0]] >= min_val]
             else:
                 best_val = min(errors)
-                max_val = best_val + epsilon
+                max_val = best_val + slack
                 candidates = [x for x in candidates if x.fitness.values[cases[0]] <= max_val]
             cases.pop(0)
         choice = random.choice(candidates)

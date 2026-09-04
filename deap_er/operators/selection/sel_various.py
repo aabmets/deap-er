@@ -118,6 +118,9 @@ def sel_stochastic_universal_sampling(
     Returns:
         The selected individuals.
     """
+    if sel_count <= 0:
+        return []
+
     key = attrgetter(fit_attr)
     sorted_ = sorted(individuals, key=key, reverse=True)
     sum_fits = sum(getattr(ind, fit_attr).values[0] for ind in individuals)

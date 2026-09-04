@@ -33,7 +33,7 @@ class SelNSGA3WithMemory:
         self.ref_points = ref_points
         self.best_point = numpy.full((1, ref_points.shape[1]), numpy.inf)
         self.worst_point = numpy.full((1, ref_points.shape[1]), -numpy.inf)
-        self.extreme_points = None
+        self.extreme_points: ndarray | None = None
 
     def __call__(self, individuals: list[Individual], sel_count: int) -> list[Individual]:
         """Select individuals for the next generation.
@@ -115,10 +115,10 @@ def sel_nsga_3(
     )
     chosen.extend(selected)
 
-    if _memory and isinstance(_memory, SelNSGA3WithMemory):
-        _memory.best_point = _memory.best_point.reshape((1, -1))
-        _memory.worst_point = _memory.worst_point.reshape((1, -1))
-        _memory.extreme_points = _memory.extreme_points
+    if isinstance(_memory, SelNSGA3WithMemory):
+        _memory.best_point = numpy.asarray(best_point).reshape((1, -1))
+        _memory.worst_point = numpy.asarray(worst_point).reshape((1, -1))
+        _memory.extreme_points = extreme_points
 
     return chosen
 
