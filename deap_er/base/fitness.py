@@ -18,35 +18,27 @@ __all__ = ["Fitness"]
 
 
 class Fitness:
-    """
-    A fitness object measures the quality of a solution. The class
-    attribute *'weights'* must be set before a Fitness object can be
-    instantiated. A fitness can be instantiated without arguments,
-    but the fitness then remains invalid until a valid sequence of
-    numbers has been assigned to the *'values'* property.
+    """Quality of a solution, compared through weighted objectives.
 
-    :param values: The values of the fitness object, optional.
-    :type values: :ref:`SeqOfNum <datatypes>`
+    The class attribute ``weights`` must be set before a Fitness object
+    can be instantiated. A fitness may be created without values, but
+    it stays invalid until ``values`` is assigned a sequence of the
+    same length as ``weights``.
+
+    Args:
+        values: Initial objective values. Optional.
+
+    Attributes:
+        weights: Shared per fitness type. Each element is a real number
+            for one objective: negative means minimize, positive means
+            maximize.
     """
 
     weights: tuple = tuple()
-    """
-    The weights are used to compare the fitness of different individuals. 
-    They are shared between all individuals of the same type. When subclassing 
-    *'Fitness'*, the *'weights'* class attribute must be a tuple of real numbers, 
-    where each element is associated to an objective: a negative weight element 
-    corresponds to the minimization and a positive weight to the maximization 
-    of the associated objective.
-    """
     wvalues: tuple = tuple()
-    """
-    Contains the weighted values of the fitness. These are obtained by
-    multiplying the fitness values by the weights. It is generally 
-    unnecessary to manipulate this attribute directly, as it's mostly 
-    used internally by the Fitness comparison operators.
-    """
 
     def __init__(self, values: NumOrSeq = None):
+        """See the class docstring."""
         if not self.weights:
             raise TypeError(
                 "Can't instantiate 'Fitness', when class attribute 'weights' tuple is not set."
@@ -56,12 +48,16 @@ class Fitness:
 
     @property
     def values(self) -> Iterable[float]:
-        """
-        Fitness values of the individual. The setter accepts either
-        a number or a sequence of numbers as input. If the input is
-        a number, it is added as the first element of an empty tuple.
-        The getter returns a tuple of floats and the deleter sets
-        the internal 'wvalues' attribute to an empty tuple.
+        """Objective values of the individual.
+
+        The setter accepts a number or a sequence of numbers. A single
+        number is stored as a one-element sequence. The getter returns
+        a tuple of floats, or an empty tuple when the fitness is
+        invalid. Deleting the property clears the stored values.
+
+        Raises:
+            TypeError: If the assigned sequence length does not match
+                ``weights``.
         """
         if self.is_valid():
             return tuple(map(truediv, self.wvalues, self.weights))
@@ -84,14 +80,19 @@ class Fitness:
         self.wvalues = tuple()
 
     def dominates(self, other: Fitness, slc: slice = None) -> bool:
-        """
-        Returns true if each objective of *'self'* is not worse than
-        the corresponding objective of the **other** and at least
-        one objective of *'self'* is better.
+        """Return whether this fitness Pareto-dominates ``other``.
 
-        :param other: An instance of Fitness to test against.
-        :param slc: A slice of objectives to test for domination, optional.
-        :return: True if 'self' dominates the 'other'.
+        Each compared objective of ``self`` must be at least as good as
+        the corresponding objective of ``other``, and at least one must
+        be strictly better.
+
+        Args:
+            other: Fitness to test against.
+            slc: Slice of objectives to compare. Optional; all
+                objectives are used when omitted.
+
+        Returns:
+            True if ``self`` dominates ``other``.
         """
         slc = slice(None) if slc is None else slc
         zipper = list(zip(self.wvalues, other.wvalues))
@@ -102,48 +103,58 @@ class Fitness:
         return True
 
     def is_valid(self) -> bool:
-        """
-        A Fitness instance is valid when the Fitness *'weights'* class
-        attribute length is larger than 0 and the instance property
-        *'values'* has the same length as the *'weights'* attribute.
+        """Return whether this fitness has a complete set of values.
 
-        :return: True if the Fitness instance is valid.
+        Returns:
+            True if ``weights`` is non-empty and ``values`` has the
+            same length.
         """
         a = len(self.weights)
         b = len(self.wvalues)
         return a == b and a > 0
 
     def __gt__(self, other: Fitness) -> bool:
+        """Return whether this fitness is strictly better than ``other``."""
         return self.wvalues > other.wvalues
 
     def __ge__(self, other: Fitness) -> bool:
+        """Return whether this fitness is at least as good as ``other``."""
         return self.wvalues >= other.wvalues
 
     def __le__(self, other: Fitness) -> bool:
+        """Return whether this fitness is at most as good as ``other``."""
         return self.wvalues <= other.wvalues
 
     def __lt__(self, other: Fitness) -> bool:
+        """Return whether this fitness is strictly worse than ``other``."""
         return self.wvalues < other.wvalues
 
     def __eq__(self, other: Fitness) -> bool:
+        """Return whether the two fitnesses compare equal."""
         return self.wvalues == other.wvalues
 
     def __ne__(self, other: Fitness) -> bool:
+        """Return whether the two fitnesses compare unequal."""
         return self.wvalues != other.wvalues
 
     def __len__(self):
+        """Return the number of stored weighted values."""
         return len(self.wvalues)
 
     def __hash__(self):
+        """Hash the weighted values."""
         return hash(self.wvalues)
 
     def __str__(self):
+        """Return the unweighted values as a string."""
         return str(self.values)
 
     def __repr__(self):
+        """Return a reconstructable representation."""
         return "{0}.{1}({2})".format(self.__module__, self.__class__.__name__, str(self.values))
 
     def __deepcopy__(self, memo):
+        """Return a new Fitness with the same weighted values."""
         copy = self.__class__()
         copy.wvalues = self.wvalues
         return copy

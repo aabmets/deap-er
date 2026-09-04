@@ -18,39 +18,39 @@ __all__ = ["_NumpyOverride", "_ArrayOverride"]
 
 
 class _NumpyOverride(numpy.ndarray):
-    """
-    Class override for the 'numpy.ndarray' class, because
-    the 'numpy.ndarray' class is problematic for DEAP-er.
-    """
+    """``numpy.ndarray`` subclass used by ``creator.create`` for array individuals."""
 
     @staticmethod
     def __new__(cls, seq: Sequence) -> numpy.array:
+        """Build an instance from ``seq``."""
         return numpy.array(list(seq)).view(cls)
 
     def __deepcopy__(self, memo: dict, *_, **__):
+        """Copy the array and its instance ``__dict__``."""
         copy = numpy.ndarray.copy(self)
         dc = deepcopy(self.__dict__, memo)
         copy.__dict__.update(dc)
         return copy
 
     def __setstate__(self, state, *_, **__):
+        """Restore instance attributes from pickle ``state``."""
         self.__dict__.update(state)
 
     def __reduce__(self):
+        """Return pickle reconstruction data."""
         return self.__class__, (list(self),), self.__dict__
 
 
 class _ArrayOverride(array.array):
-    """
-    Class override for the 'array.array' class, because
-    the 'array.array' class is problematic for DEAP-er.
-    """
+    """``array.array`` subclass used by ``creator.create`` for array individuals."""
 
     @staticmethod
     def __new__(cls, seq: Sequence) -> array.array:
+        """Build an instance from ``seq`` using the subclass typecode."""
         return super().__new__(cls, cls.typecode, seq)
 
     def __deepcopy__(self, memo: dict) -> object:
+        """Copy the array and its instance ``__dict__``."""
         cls = self.__class__
         copy = cls.__new__(cls, self)
         memo[id(self)] = copy
@@ -59,4 +59,5 @@ class _ArrayOverride(array.array):
         return copy
 
     def __reduce__(self) -> tuple:
+        """Return pickle reconstruction data."""
         return self.__class__, (list(self),), self.__dict__

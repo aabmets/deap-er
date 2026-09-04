@@ -17,18 +17,21 @@ __all__ = ["create"]
 
 
 def create(name: str, base: Union[type, object], **kwargs: Optional) -> None:
-    """
-    Creates a new class named **name**, which inherits from the **base** class, and
-    registers it into the global namespace of the *creator* module. Any optional
-    **kwargs** provided to this function will be set as attributes of the new class.
+    """Create a class named ``name`` and register it on the ``creator`` module.
 
-    :param name: The name of the new class to create.
-    :param base: A type or an object from which to inherit.
-    :param kwargs: One or more keyword arguments to add to the new class
-        as attributes, optional. If a kwarg is an instance, it will
-        be added as a class attribute. If a kwarg is a class, it
-        will be instantiated and added as an instance attribute.
-    :return: Nothing.
+    The new class inherits from ``base``. Each keyword argument becomes
+    an attribute: a *class object* is stored as an instance attribute
+    (instantiated when each individual is created); any other value is
+    stored as a class attribute.
+
+    Warns if ``name`` already exists on the module; the old definition
+    is overwritten.
+
+    Args:
+        name: Name of the class to create.
+        base: Type or instance to inherit from. An instance is replaced
+            by its class.
+        **kwargs: Attributes added to the new class.
     """
     # warn about class definition overwrite
     if name in globals():

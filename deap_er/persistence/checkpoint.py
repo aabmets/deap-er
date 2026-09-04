@@ -22,25 +22,24 @@ __all__ = ["Checkpoint"]
 
 
 class Checkpoint:
-    """
-    This class can be used to save and load evolution progress to and from files.
-    It's implemented as a lightweight wrapper around the builtin :code:`open()` function.
-    Objects are (de-)serialized using the `dill <https://pypi.org/project/dill/>`_ library.
-    Only those objects which have been set as attributes of the checkpoint object are
-    persisted to disk. The target save file is assigned on object instantiation.
-    Checkpoint objects automatically persist also the *RNG* states of the
-    :mod:`random` and :mod:`numpy.random` modules.
+    """Save and load evolution progress with dill.
 
-    :param file_name: The name of the checkpoint file.
-        By default, a random UUID + :code:`.dcpf` extension is used.
-    :param dir_path: The path to the checkpoint directory. By default,
-        the current working directory + :code:`/deap-er` is used.
-    :param autoload: If True **and** the checkpoint file exists, loads the
-        file during initialization, optional. The default value is True.
-    :param make_dir: If True, the target directory is recursively created
-        on save, if it does not exist. The default value is True.
-    :param raise_errors: If True, errors are propagated, optional.
-        By default, errors are not propagated and False is returned instead.
+    Only attributes set on the checkpoint instance are written. The
+    ``random`` and ``numpy.random`` RNG states are persisted as well.
+    The target file is chosen at construction.
+
+    Args:
+        file_name: Checkpoint file name. Defaults to a random UUID
+            with a ``.dcpf`` extension.
+        dir_path: Directory for the file. Defaults to
+            ``<cwd>/deap-er``.
+        autoload: If True and the file exists, load it during
+            initialization. Defaults to True.
+        make_dir: If True, create missing parent directories on
+            save. Defaults to True.
+        raise_errors: If True, propagate I/O and pickle errors.
+            Otherwise ``load`` and ``save`` return False. Defaults
+            to False.
     """
 
     _dir_ = "deap-er"  # Checkpoint Directory
@@ -61,6 +60,7 @@ class Checkpoint:
         make_dir: Optional[bool] = True,
         raise_errors: Optional[bool] = False,
     ):
+        """See the class docstring for argument meanings."""
         if file_name is None:
             file_name = str(uuid.uuid4()) + self._ext_
         if dir_path is None:
@@ -73,12 +73,14 @@ class Checkpoint:
             self.load()
 
     def load(self) -> bool:
-        """
-        Loads objects from the checkpoint file and sets them as attributes of ``self``.
+        """Load attributes from the checkpoint file onto this instance.
 
-        :raise IOError: If the operation failed and :code:`self.raise_errors` is True.
-        :raise dill.PickleError: If the operation failed and :code:`self.raise_errors` is True.
-        :return: True if the operation completed successfully, False otherwise.
+        Returns:
+            True on success, False on failure when ``raise_errors`` is False.
+
+        Raises:
+            OSError: If the file cannot be read and ``raise_errors`` is True.
+            dill.PickleError: If deserialization fails and ``raise_errors`` is True.
         """
         try:
             with open(self.file_path, "rb") as f:
@@ -94,14 +96,17 @@ class Checkpoint:
         return True
 
     def save(self) -> bool:
-        """
-        Saves the attributes of ``self`` into the checkpoint file.
-        If the file already exists, it will be overwritten.
-        If the target directory does not exist, it will be created recursively.
+        """Write this instance's attributes to the checkpoint file.
 
-        :raise IOError: If the operation failed and :code:`self.raise_errors` is True.
-        :raise dill.PickleError: If the operation failed and :code:`self.raise_errors` is True.
-        :return: True if the operation completed successfully, False otherwise.
+        Overwrites an existing file. Creates parent directories when
+        ``make_dir`` is True.
+
+        Returns:
+            True on success, False on failure when ``raise_errors`` is False.
+
+        Raises:
+            OSError: If the file cannot be written and ``raise_errors`` is True.
+            dill.PickleError: If serialization fails and ``raise_errors`` is True.
         """
         try:
             self._rand_state_ = random.getstate()
@@ -122,18 +127,21 @@ class Checkpoint:
         return True
 
     def range(self, generations: int) -> range:
-        """
-        A special generator method that behaves almost like the builtin :code:`range()`
-        function, but it accepts only a single argument of the number of generations to
-        compute. It is intended to be used in a ``for`` loop to iterate over the main
-        evolutionary process. The checkpoint is saved to disk every ``self.save_freq``
-        seconds and also at the end of the loop, if saving is enabled. The saving
-        frequency can be changed while the ``for`` loop is running. The values of
-        the range counter are automatically determined from the current *(loaded)*
-        state of the checkpoint object.
+        """Yield generation indices, saving periodically when enabled.
 
-        :param generations: The amount of generations to compute.
-        :return: A generator that yields the integer values of the internal counter.
+        Continues from the last stored counter. When ``save_freq`` is
+        not ``-1``, the checkpoint is written about every
+        ``save_freq`` seconds and once more after the last yield.
+        ``save_freq`` may be changed while iterating.
+
+        Args:
+            generations: Number of generations to yield.
+
+        Returns:
+            A generator of integer generation indices.
+
+        Raises:
+            ValueError: If ``generations`` is negative.
         """
         if generations < 0:
             raise ValueError("Iterations argument cannot be a negative number.")
@@ -158,47 +166,45 @@ class Checkpoint:
 
     @property
     def save_freq(self) -> float:
-        """
-        The time in seconds after which to periodically save the checkpoint to
-        a file, when the ``range()`` function is being executed in a ``for`` loop.
-        Setting the value to ``-1`` disables saving. Accepts ``int`` and ``float``
-        types as values. Float-types allow sub-second timing precision.
+        """Seconds between automatic saves during ``range()``.
 
-        :return: The current saving frequency period, in
-            seconds. The default value is 60 seconds.
+        ``-1`` disables saving. The default is 60 seconds.
+
+        Returns:
+            The current period in seconds.
         """
         return self._save_freq_
 
     @save_freq.setter
     def save_freq(self, value: Union[int, float]) -> None:
+        """Set the automatic-save period in seconds.
+
+        Args:
+            value: Period in seconds, or ``-1`` to disable saving.
+        """
         self._save_freq_ = float(value)
 
     @property
     def last_op(self) -> str:
-        """
-        | Returns the status of the last operation performed on the checkpoint object.
-        | Possible string-type return values are:
+        """Status of the last load or save.
 
-            * *none*
-            * *load_success*
-            * *load_error*
-            * *save_success*
-            * *save_error*
+        One of ``none``, ``load_success``, ``load_error``,
+        ``save_success``, or ``save_error``.
         """
         return self._last_op_
 
     def is_loaded(self) -> bool:
-        """
-        Shorthand for ``checkpoint.last_op == 'load_success'``.
+        """Return whether the last operation was a successful load.
 
-        :return: True if the checkpoint was successfully loaded from file.
+        Returns:
+            True if ``last_op`` is ``load_success``.
         """
         return self._last_op_ == "load_success"
 
     def is_saved(self) -> bool:
-        """
-        Shorthand for ``checkpoint.last_op == 'save_success'``.
+        """Return whether the last operation was a successful save.
 
-        :return: True if the checkpoint was successfully saved to file.
+        Returns:
+            True if ``last_op`` is ``save_success``.
         """
         return self._last_op_ == "save_success"

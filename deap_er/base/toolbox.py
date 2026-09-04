@@ -18,30 +18,30 @@ __all__ = ["Toolbox"]
 
 
 class Toolbox(LintHints):
-    """
-    A container for evolutionary operators. Toolboxes are essential
-    components which facilitate the process of computational evolution.
+    """A container for evolutionary operators.
+
+    Registers callables under aliases so algorithms can request
+    ``mate``, ``mutate``, ``select``, ``evaluate``, and similar tools
+    without hard-coding implementations.
     """
 
     def __init__(self):
+        """Register the default ``clone`` and ``map`` operators."""
         self.register("clone", deepcopy)
         self.register("map", map)
 
     def register(self, alias: str, func: Callable, *args: Optional, **kwargs: Optional) -> None:
-        """
-        Registers a **func** in the toolbox under the name **alias**.
-        Any **args** or **kwargs** will be automatically passed to the
-        registered function when it's called. Fixed arguments can
-        be overridden at function call time.
+        """Bind ``func`` to ``alias`` on this toolbox.
 
-        :param alias: The name to register the 'func' under.
-            The alias will be overwritten if it already exists.
-        :param func: The function to which the alias is going to refer.
-        :param args: Positional arguments which are automatically
-            passed to the 'func' when it's called, optional.
-        :param kwargs: Keyword arguments which are automatically
-            passed to the 'func' when it's called, optional.
-        :return: Nothing.
+        Extra positional and keyword arguments are bound into the
+        registered callable. Callers may still override those bound
+        values when they invoke the alias.
+
+        Args:
+            alias: Name to register. Overwrites an existing alias of the same name.
+            func: Callable the alias will refer to.
+            *args: Positional arguments bound into ``func``.
+            **kwargs: Keyword arguments bound into ``func``.
         """
         p_func = partial(func, *args, **kwargs)
         p_func.__name__ = alias
@@ -52,24 +52,20 @@ class Toolbox(LintHints):
         setattr(self, alias, p_func)
 
     def unregister(self, alias: str) -> None:
-        """
-        Removes an operator with the name **alias** from the toolbox.
+        """Remove the operator registered as ``alias``.
 
-        :param alias: The name of the operator to remove from the toolbox.
-        :return: Nothing.
+        Args:
+            alias: Name of the operator to remove.
         """
         delattr(self, alias)
 
     def decorate(self, alias: str, *decorators: Optional[Callable]) -> None:
-        """
-        Decorates an operator **alias** with the provided **decorators**.
+        """Wrap the operator ``alias`` with one or more decorators.
 
-        :param alias: Name of the operator to decorate. The 'alias'
-            must be a registered operator in the toolbox.
-        :param decorators: Positional arguments of decorator functions
-            to apply to the 'alias', optional. If none are provided,
-            the operator is left unchanged. If multiple are provided,
-            they are applied in order of iteration over the 'decorators'.
+        Args:
+            alias: Name of a registered operator.
+            *decorators: Decorators applied left to right. If omitted, the
+                operator is left unchanged.
         """
         if not decorators:
             return
