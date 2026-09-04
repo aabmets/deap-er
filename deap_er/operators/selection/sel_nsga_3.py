@@ -14,7 +14,7 @@ import numpy
 from numpy import ndarray
 
 from deap_er.base.dtypes import Individual
-from deap_er.utilities.sorting import *
+from deap_er.utilities.sorting import sort_non_dominated
 
 __all__ = ["sel_nsga_3", "SelNSGA3WithMemory"]
 
@@ -26,14 +26,11 @@ class SelNSGA3WithMemory:
 
     Args:
         ref_points: Reference points for selection.
-        sorting: Non-dominated sorting algorithm. Either ``'log'``
-            or ``'standard'``.
     """
 
-    def __init__(self, ref_points: ndarray, sorting: str = "log") -> None:
+    def __init__(self, ref_points: ndarray) -> None:
         """See the class docstring."""
         self.ref_points = ref_points
-        self.sorting = sorting
         self.best_point = numpy.full((1, ref_points.shape[1]), numpy.inf)
         self.worst_point = numpy.full((1, ref_points.shape[1]), -numpy.inf)
         self.extreme_points = None
@@ -52,7 +49,6 @@ class SelNSGA3WithMemory:
             individuals,
             sel_count,
             self.ref_points,
-            self.sorting,
             self.best_point,
             self.worst_point,
             self.extreme_points,
@@ -65,7 +61,6 @@ def sel_nsga_3(
     individuals: list[Individual],
     sel_count: int,
     ref_points: ndarray,
-    sorting: str = "log",
     best_point: ndarray | None = None,
     worst_point: ndarray | None = None,
     extreme_points: ndarray | None = None,
@@ -77,8 +72,6 @@ def sel_nsga_3(
         individuals: Individuals to select from.
         sel_count: Number of individuals to select.
         ref_points: Reference points used for niche selection.
-        sorting: Non-dominated sorting algorithm. Either ``'log'``
-            or ``'standard'``.
         best_point: Ideal point of the previous generation. If
             omitted, it is taken from the current individuals.
         worst_point: Nadir point of the previous generation. If
@@ -91,18 +84,10 @@ def sel_nsga_3(
 
     Returns:
         The selected individuals.
-
-    Raises:
-        RuntimeError: If ``sorting`` is not ``'log'`` or ``'standard'``.
     """
-    if sorting == "standard":
-        pareto_fronts = sort_non_dominated(individuals, sel_count)
-    elif sorting == "log":
-        pareto_fronts = sort_log_non_dominated(individuals, sel_count)
-    else:
-        raise RuntimeError(
-            f"selNSGA3: The choice of non-dominated sorting method '{sorting}' is invalid."
-        )
+    if not individuals or sel_count <= 0:
+        return []
+    pareto_fronts = sort_non_dominated(individuals, sel_count)
 
     fitness = numpy.array([ind.fitness.wvalues for f in pareto_fronts for ind in f])
     fitness *= -1

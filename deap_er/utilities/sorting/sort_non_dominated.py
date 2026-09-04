@@ -10,70 +10,49 @@
 #
 from collections import defaultdict
 
+import moocore
+import numpy
+
 from deap_er.base.dtypes import Individual
 
 __all__ = ["sort_non_dominated"]
 
 
-def sort_non_dominated(
-    individuals: list[Individual], sel_count: int, ffo: bool = False
-) -> list[list[Individual]]:
+def sort_non_dominated(individuals: list[Individual], sel_count: int) -> list[list[Individual]]:
     """Sort individuals into non-dominated Pareto fronts.
 
-    Uses the Fast Non-dominated Sorting Approach. Only the first
-    ``sel_count`` individuals are placed into fronts.
+    Uses ``moocore.pareto_rank`` on ``fitness.wvalues`` (higher is
+    better). Fronts are truncated once they hold at least
+    ``sel_count`` individuals.
 
     Args:
         individuals: Individuals to sort.
-        sel_count: Number of individuals to select.
-        ffo: If True, return only the first front. Optional.
+        sel_count: Number of individuals to place into fronts.
 
     Returns:
         A list of Pareto fronts. The first element is the true
-        Pareto front. An empty list if ``sel_count`` is 0.
-        When ``ffo`` is True, the list contains only the first front.
+        Pareto front. An empty list if ``sel_count`` is 0. A
+        single empty front if ``individuals`` is empty and
+        ``sel_count`` is positive.
     """
     if sel_count == 0:
         return []
+    if not individuals:
+        return [[]]
 
-    map_fit_ind = defaultdict(list)
-    for ind in individuals:
-        map_fit_ind[ind.fitness].append(ind)
-    fits = list(map_fit_ind.keys())
+    points = numpy.array([ind.fitness.wvalues for ind in individuals], dtype=float)
+    ranks = moocore.pareto_rank(points, maximise=True)
 
-    current_front = []
-    next_front = []
-    dominating_fits = defaultdict(int)
-    dominated_fits = defaultdict(list)
+    by_rank: defaultdict[int, list[Individual]] = defaultdict(list)
+    for ind, rank in zip(individuals, ranks, strict=True):
+        by_rank[int(rank)].append(ind)
 
-    for i, fit_i in enumerate(fits):
-        for fit_j in fits[i + 1 :]:
-            if fit_i.dominates(fit_j):
-                dominating_fits[fit_j] += 1
-                dominated_fits[fit_i].append(fit_j)
-            elif fit_j.dominates(fit_i):
-                dominating_fits[fit_i] += 1
-                dominated_fits[fit_j].append(fit_i)
-        if dominating_fits[fit_i] == 0:
-            current_front.append(fit_i)
-
-    fronts = [[]]
-    for fit in current_front:
-        fronts[-1].extend(map_fit_ind[fit])
-    pareto_sorted = len(fronts[-1])
-
-    if not ffo:
-        big_n = min(len(individuals), sel_count)
-        while pareto_sorted < big_n:
-            fronts.append([])
-            for fit_p in current_front:
-                for fit_d in dominated_fits[fit_p]:
-                    dominating_fits[fit_d] -= 1
-                    if dominating_fits[fit_d] == 0:
-                        next_front.append(fit_d)
-                        pareto_sorted += len(map_fit_ind[fit_d])
-                        fronts[-1].extend(map_fit_ind[fit_d])
-            current_front = next_front
-            next_front = []
-
+    fronts: list[list[Individual]] = []
+    placed = 0
+    for rank in range(int(max(ranks)) + 1):
+        front = by_rank[rank]
+        fronts.append(front)
+        placed += len(front)
+        if placed >= sel_count:
+            break
     return fronts

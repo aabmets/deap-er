@@ -55,9 +55,6 @@ class StrategyMultiObjective:
        * cm_learn_rate - *(float)*
           * Learning rate of the covariance matrix.
           * *Default:* ``2.0 / (len(population[0]) ** 2 + 6.0)``
-       * mp_pool - *(object)*
-          * Any multiprocessing Pool object with a ``map`` method.
-          * *Default:* None
     """
 
     def __init__(self, population: list[Individual], sigma: float, **kwargs: Any) -> None:
@@ -74,7 +71,6 @@ class StrategyMultiObjective:
         self.th_cum = kwargs.get("th_cum", 2.0 / (self.dim + 2.0))
         self.cm_learn_rate = kwargs.get("cm_learn_rate", 2.0 / (self.dim**2 + 6.0))
         self.thresh_sr = kwargs.get("thresh_sr", 0.44)
-        self.mp_pool = kwargs.get("mp_pool")
 
         self.sigmas = [sigma] * pop_size
         self.big_a = [numpy.identity(self.dim) for _ in range(pop_size)]
@@ -98,7 +94,7 @@ class StrategyMultiObjective:
         if len(candidates) <= self.mu:
             return candidates, []
 
-        pareto_fronts = utils.sort_log_non_dominated(candidates, len(candidates))
+        pareto_fronts = utils.sort_non_dominated(candidates, len(candidates))
 
         chosen: list[Individual] = []
         mid_front: list[Individual] = []
@@ -120,12 +116,8 @@ class StrategyMultiObjective:
                 numpy.max(numpy.array([ind.fitness.wvalues for ind in candidates]) * -1, axis=0) + 1
             )
 
-            mapper = map
-            if self.mp_pool and hasattr(self.mp_pool, "map") and callable(self.mp_pool.map):
-                mapper = self.mp_pool.map
-
             for _ in range(len(mid_front) - k):
-                idx = utils.least_contrib(mid_front, ref, mapper)
+                idx = utils.least_contrib(mid_front, ref)
                 not_chosen.append(mid_front.pop(idx))
 
             chosen += mid_front
@@ -278,7 +270,7 @@ class StrategyMultiObjective:
                 individuals[-1].ps_ = "o", i
 
         else:
-            n_dom = utils.sort_log_non_dominated(self.parents, len(self.parents), ffo=True)
+            n_dom = utils.sort_non_dominated(self.parents, len(self.parents))[0]
 
             for i in range(self.lamb):
                 j = numpy.random.randint(0, len(n_dom))

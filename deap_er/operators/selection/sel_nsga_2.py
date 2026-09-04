@@ -12,16 +12,14 @@ from itertools import chain
 from operator import attrgetter
 
 from deap_er.base.dtypes import Individual
-from deap_er.utilities.sorting import *
+from deap_er.utilities.sorting import sort_non_dominated
 
 from .sel_helpers import assign_crowding_dist
 
 __all__ = ["sel_nsga_2"]
 
 
-def sel_nsga_2(
-    individuals: list[Individual], sel_count: int, sorting: str = "standard"
-) -> list[Individual]:
+def sel_nsga_2(individuals: list[Individual], sel_count: int) -> list[Individual]:
     """Select the next generation with NSGA-II.
 
     The pool is usually larger than ``sel_count``. If the two sizes
@@ -30,23 +28,13 @@ def sel_nsga_2(
     Args:
         individuals: Individuals to select from.
         sel_count: Number of individuals to select.
-        sorting: Non-dominated sorting algorithm. Either ``'log'``
-            or ``'standard'``.
 
     Returns:
         The selected individuals.
-
-    Raises:
-        RuntimeError: If ``sorting`` is not ``'log'`` or ``'standard'``.
     """
-    if sorting == "standard":
-        pareto_fronts = sort_non_dominated(individuals, sel_count)
-    elif sorting == "log":
-        pareto_fronts = sort_log_non_dominated(individuals, sel_count)
-    else:
-        raise RuntimeError(
-            f"selNSGA2: The choice of non-dominated sorting method '{sorting}' is invalid."
-        )
+    if not individuals or sel_count <= 0:
+        return []
+    pareto_fronts = sort_non_dominated(individuals, sel_count)
 
     for front in pareto_fronts:
         assign_crowding_dist(front)
