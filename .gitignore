@@ -35,7 +35,6 @@ sdist/
 var/
 wheels/
 share/python-wheels/
-venv/
 *.egg-info/
 .installed.cfg
 *.egg
@@ -69,8 +68,8 @@ coverage
 .env.production.local
 .env.local
 .venv
-env/
 venv/
+env/
 ENV/
 env.bak/
 venv.bak/
