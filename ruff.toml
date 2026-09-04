@@ -33,14 +33,31 @@ indent-width = 4
 target-version = "py313"
 
 [lint]
-select = ["E", "F", "UP", "B", "SIM", "I"]
-ignore = ["F403", "F405", "B019", "UP040", "SIM118"]
+select = ["E", "F", "UP", "B", "SIM", "I", "D"]
+ignore = [
+    "F403",
+    "F405",
+    "B019",
+    "UP040",
+    "SIM118",
+    "D100",
+    "D104",
+]
 fixable = ["ALL"]
 unfixable = []
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
+[lint.pydocstyle]
+convention = "google"
+
 [lint.per-file-ignores]
 "**/__init__.py" = ["F401"]
+"tests/**" = ["D"]
+"deap_er/base/lint_hints.py" = ["D"]
+"deap_er/creator/lint_hints.py" = ["D"]
+"deap_er/tools.py" = ["D"]
+"deap_er/dtypes.py" = ["D"]
+"**/*dtypes.py" = ["D"]
 
 [format]
 quote-style = "double"

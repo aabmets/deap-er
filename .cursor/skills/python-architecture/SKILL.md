@@ -75,7 +75,7 @@ Copy this header verbatim:
 #
 ```
 
-Public classes and functions need Sphinx-style docstrings (`:param:`, `:return:`, `:returns:`). mkdocstrings reads them with `docstring_style: sphinx`. That is docstring syntax, not a Sphinx docs stack.
+Public classes and functions need Google-style docstrings (`Args:`, `Returns:`, `Raises:`). mkdocstrings reads them with `docstring_style: google`. Document the caller-facing contract, not internals. Do not repeat types that are already on the signature. Omit `Returns` when the function returns `None`. Ruff enforces this via `lint.pydocstyle.convention = "google"` (`D` rules). Module and package docstrings are not required (`D100` / `D104` ignored).
 
 ## Do not impose
 

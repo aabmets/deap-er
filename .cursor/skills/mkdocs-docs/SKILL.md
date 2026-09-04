@@ -58,7 +58,7 @@ Reference stub:
 
 Do not hand-copy API text into `docs/reference/`. Docstrings live on the Python objects.
 
-Python docstrings stay **Sphinx-style** (`:param:`, `:return:`). `mkdocs.yml` sets `docstring_style: sphinx`.
+Python docstrings stay **Google-style** (`Args:`, `Returns:`). `mkdocs.yml` sets `docstring_style: google`.
 
 Admonitions use Material syntax (`!!! attention`, `!!! note`), not RST `.. attention::`.
 

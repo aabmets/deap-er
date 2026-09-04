@@ -38,7 +38,7 @@ plugins:
       handlers:
         python:
           options:
-            docstring_style: sphinx
+            docstring_style: google
             show_root_heading: true
             show_source: true
             members_order: source
