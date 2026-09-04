@@ -45,7 +45,13 @@ class _BaseClass:
 
         Args:
             index: Position of the individual to remove.
+
+        Raises:
+            IndexError: If the hall of fame is empty or ``index`` is
+                out of range.
         """
+        if not len(self):
+            raise IndexError("remove from empty HallOfFame")
         del self.keys[len(self) - (index % len(self) + 1)]
         del self.items[index]
 

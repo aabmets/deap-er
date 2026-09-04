@@ -95,7 +95,7 @@ class Logbook(list[dict[str, Any]]):
     def __delitem__(self, key: SupportsIndex | slice, /) -> None:
         """Delete an entry and the same index from every chapter."""
         if isinstance(key, slice):
-            for i in range(*key.indices(len(self))):
+            for i in sorted(range(*key.indices(len(self))), reverse=True):
                 self.pop(i)
                 for chapter in self.chapters.values():
                     chapter.pop(i)
