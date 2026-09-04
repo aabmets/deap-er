@@ -17,20 +17,21 @@ __all__ = ["History"]
 
 
 class History:
-    """
-    Maintains a history of the individuals produced in the evolution.
+    """Genealogy of individuals produced during evolution.
+
+    Call ``update`` on the initial population and after each variation,
+    or wrap variation operators with ``decorator``.
     """
 
     def __init__(self):
+        """Create an empty genealogy."""
         self.genealogy_index = int()
         self.genealogy_history = dict()
         self.genealogy_tree = dict()
 
     @property
     def decorator(self) -> Callable:
-        """
-        A decorator that adds genealogy history to the individuals.
-        """
+        """Decorator that records a variation operator's returned individuals."""
 
         def wrapper(func):
             def wrapped(*args, **kwargs):
@@ -43,13 +44,15 @@ class History:
         return wrapper
 
     def update(self, individuals: list) -> None:
-        """
-        Update the genealogy history with the given **individuals**.
-        This method should be called with the initial population
-        to initialize the history and also after each variation.
+        """Record ``individuals`` in the genealogy.
 
-        :param individuals: The individuals to update the genealogy history with.
-        :return: Nothing.
+        Call this on the initial population and after each variation.
+        Individuals that already have ``history_index`` become the
+        parents of the newly recorded entries; otherwise the entries
+        are roots.
+
+        Args:
+            individuals: Individuals to add to the genealogy.
         """
         try:
             parent_indices = tuple(ind.history_index for ind in individuals)
@@ -63,19 +66,22 @@ class History:
             self.genealogy_tree[self.genealogy_index] = parent_indices
 
     def get_genealogy(self, individual: Individual, max_depth: float = float("inf")) -> dict:
-        """
-        Get the genealogy of the given **individual**. The individual must have the
-        *'history_index'* attribute which is set by the *'update'* method in order
-        to retrieve its associated genealogy tree. The returned graph contains
-        the parents up to **max_depth** variations before this individual. The
-        default value of **max_depth** is up to the beginning of the evolution.
+        """Return the ancestor graph of an individual.
 
-        :param individual: The individual at the root of the genealogy tree.
-        :param max_depth: The maximum depth of the genealogy tree.
-        :return: A dictionary where each key is an individual index and the
-            values are tuples corresponding to the index of the parents.
+        The individual must have a ``history_index`` set by ``update``.
+        The graph includes parents up to ``max_depth`` variation steps.
+        The default ``max_depth`` walks back to the start of the
+        evolution.
 
-        :type individual: :ref:`Individual <datatypes>`
+        Args:
+            individual: Individual at the root of the genealogy tree.
+            max_depth: Maximum number of variation steps to walk.
+
+        Returns:
+            Mapping of individual index to a tuple of parent indices.
+
+        Raises:
+            AttributeError: If the individual has no ``history_index``.
         """
 
         def _recursive(index, depth):

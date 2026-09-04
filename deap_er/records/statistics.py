@@ -16,48 +16,46 @@ __all__ = ["Statistics", "MultiStatistics"]
 
 
 class Statistics:
-    """
-    Object that compiles statistics on a list of arbitrary objects.
-    When created, the statistics object receives a **key** argument that
-    is used to get the values on which the statistics will be computed.
-    If not provided, the **key** argument defaults to the identity function.
+    """Compile named statistics on a sequence of objects.
 
-    The value returned by the key may be a multidimensional object, i.e.:
-    a tuple or a list, as long as the registered statistical function
-    supports it. For example, statistics can be computed directly on
-    multi-objective fitness when using numpy statistical function.
+    ``key`` selects the value scored on each element. The default key
+    is the identity function. The key may return a sequence when the
+    registered functions accept one, for example a multi-objective
+    fitness passed to a NumPy statistic.
 
-    :param key: A function that takes an object and returns a
-        value on which the statistics will be computed.
+    Args:
+        key: Extracts the value to score from each element. Defaults
+            to the identity function.
     """
 
     def __init__(self, key: Optional[Callable] = None):
+        """See the class docstring."""
         self.key = key if key else lambda obj: obj
         self.functions = dict()
         self.fields = list()
 
     def register(self, name: str, func: Callable, *args: Optional, **kwargs: Optional) -> None:
-        """
-        Registers a new statistical function that will be applied
-        to the sequence each time the *record* method is called.
+        """Register a statistic computed by ``compile``.
 
-        :param name: The name of the statistics function as it would
-            appear in the dictionary of the statistics object.
-        :param func: A function that will compute the desired
-            statistics on the data as preprocessed by the key.
-        :param args: Positional arguments to be passed to the function, optional.
-        :param kwargs: Keyword arguments to be passed to the function, optional.
-        :return: Nothing.
+        Extra positional and keyword arguments are bound into ``func``.
+
+        Args:
+            name: Key used for this statistic in the compiled record.
+            func: Function applied to the sequence of key values.
+            *args: Positional arguments bound into ``func``.
+            **kwargs: Keyword arguments bound into ``func``.
         """
         self.functions[name] = partial(func, *args, **kwargs)
         self.fields.append(name)
 
     def compile(self, data: Iterable) -> dict:
-        """
-        Compiles the statistics on the given data.
+        """Compute every registered statistic on ``data``.
 
-        :param data: The data on which the statistics will be computed.
-        :return: A dictionary containing the statistics.
+        Args:
+            data: Iterable of elements passed through ``key``.
+
+        Returns:
+            Mapping of registered names to computed values.
         """
         entry = dict()
         values = tuple(self.key(elem) for elem in data)
@@ -67,38 +65,39 @@ class Statistics:
 
 
 class MultiStatistics(dict):
-    """
-    Object that compiles statistics on a list of arbitrary objects.
-    Allows computation of statistics on multiple keys using a single
-    call to the 'compile' method.
+    """Compile several named ``Statistics`` objects in one call.
+
+    Construct with keyword arguments that map a chapter name to a
+    ``Statistics`` instance, for example
+    ``MultiStatistics(fitness=stats_fit, size=stats_size)``.
+    ``register`` forwards the same function to every chapter.
     """
 
     @property
     def fields(self):
+        """Sorted names of the contained ``Statistics`` objects."""
         return sorted(self.keys())
 
     def register(self, name: str, func: Callable, *args: Optional, **kwargs: Optional) -> None:
-        """
-        Registers a new statistical function that will be applied
-        to the sequence each time the *record* method is called.
+        """Register ``func`` on every contained ``Statistics`` object.
 
-        :param name: The name of the statistics function as it would
-            appear in the dictionary of the statistics object.
-        :param func: A function that will compute the desired
-            statistics on the data as preprocessed by the key.
-        :param args: Positional arguments to be passed to the function, optional.
-        :param kwargs: Keyword arguments to be passed to the function, optional.
-        :return: Nothing.
+        Args:
+            name: Key used for this statistic in each chapter record.
+            func: Function applied to each chapter's key values.
+            *args: Positional arguments bound into ``func``.
+            **kwargs: Keyword arguments bound into ``func``.
         """
         for stats in self.values():
             stats.register(name, func, *args, **kwargs)
 
     def compile(self, data: Iterable) -> dict:
-        """
-        Compiles the statistics on the given data.
+        """Compile every contained ``Statistics`` object on ``data``.
 
-        :param data: The data on which the statistics will be computed.
-        :return: A dictionary containing the statistics.
+        Args:
+            data: Iterable of elements passed to each chapter.
+
+        Returns:
+            Mapping of chapter name to that chapter's compiled record.
         """
         record = dict()
         for name, stats in self.items():

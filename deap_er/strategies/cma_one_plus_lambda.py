@@ -19,42 +19,44 @@ __all__ = ["StrategyOnePlusLambda"]
 
 
 class StrategyOnePlusLambda:
-    """
-    The one-plus-lambda Covariance Matrix Adaptation evolution strategy.
+    """One-plus-lambda Covariance Matrix Adaptation evolution strategy.
 
-    :param parent: A mutable sequence that indicates where to start
-        the evolution. The parent requires a fitness attribute.
-    :param sigma: The initial standard deviation of the distribution.
-    :param kwargs: One or more keyword arguments, optional.
-    :type parent: :ref:`Individual <datatypes>`
+    Args:
+        parent: Starting individual. Must have a fitness attribute.
+        sigma: Initial standard deviation of the distribution.
+        **kwargs: Optional strategy parameters. See the table below.
+
+    Raises:
+        TypeError: If ``parent`` has no fitness attribute.
 
     .. dropdown:: Table of Kwargs
        :margin: 0 5 0 0
 
        * offsprings - *(int)*
           * The number of children to produce at each generation.
-          * *Default:* :code:`1`
+          * *Default:* ``1``
        * ss_dmp - *(float)*
           * Damping of the step-size.
-          * *Default:* :code:`1.0 + len(population) / 2.0 * lambda`
+          * *Default:* ``1.0 + len(parent) / (2.0 * offsprings)``
        * th_cum - *(float)*
           * Time horizon of the cumulative contribution.
-          * *Default:* :code:`2.0 / (len(population) + 2.0)`
+          * *Default:* ``2.0 / (len(parent) + 2.0)``
        * tgt_sr - *(float)*
           * Target success rate.
-          * *Default:* :code:`1.0 / (5 + sqrt(lambda) / 2.0)`
+          * *Default:* ``1.0 / (5 + sqrt(offsprings) / 2.0)``
        * thresh_sr - *(float)*
           * Threshold success rate.
-          * *Default:* :code:`0.44`
+          * *Default:* ``0.44``
        * ss_learn_rate - *(float)*
           * Learning rate of the step-size.
-          * *Default:* :code:`tgt_sr * lambda / (2.0 + tgt_sr * lambda)`
+          * *Default:* ``tgt_sr * offsprings / (2.0 + tgt_sr * offsprings)``
        * cm_learn_rate - *(float)*
           * Learning rate of the covariance matrix.
-          * *Default:* :code:`2.0 / (len(population) ** 2 + 6.0)`
+          * *Default:* ``2.0 / (len(parent) ** 2 + 6.0)``
     """
 
     def __init__(self, parent: Individual, sigma: float, **kwargs: Optional):
+        """See the class docstring."""
         if not hasattr(parent, "fitness"):
             raise TypeError("The parent must have a fitness attribute.")
 
@@ -78,14 +80,14 @@ class StrategyOnePlusLambda:
         self.compute_params(**kwargs)
 
     def compute_params(self, **kwargs: Optional) -> None:
-        """
-        Computes the parameters of the strategy based on the *lambda*
-        parameter. This function is called automatically when this strategy
-        is instantiated, but it needs to be called again with the updated
-        **kwargs** if the *lambda* parameter changes during evolution.
+        """Recompute strategy parameters from ``kwargs``.
 
-        :param kwargs: One or more keyword arguments, optional.
-        :return: Nothing.
+        Called from the constructor. Call again if ``offsprings``
+        changes during evolution.
+
+        Args:
+            **kwargs: Optional strategy parameters. See the class
+                docstring.
         """
         self.lamb = kwargs.get("offsprings", 1)
         self.thresh_sr = kwargs.get("thresh_sr", 0.44)
@@ -108,23 +110,28 @@ class StrategyOnePlusLambda:
         self.psucc = self.tgt_sr
 
     def generate(self, ind_init: Callable) -> list:
-        """
-        Generates a population of *lambda* individuals of
-        type **ind_init** from the current strategy.
+        """Sample ``offsprings`` individuals around the current parent.
 
-        :param ind_init: A callable object that generates individuals.
-        :return: A list of individuals.
+        Args:
+            ind_init: Callable that turns a sampled vector into an
+                individual.
+
+        Returns:
+            Newly sampled individuals.
         """
         arz = numpy.random.standard_normal((self.lamb, self.dim))
         arz = self.parent + self.sigma * numpy.dot(arz, self.big_a.T)
         return list(map(ind_init, arz))
 
     def update(self, population: list) -> None:
-        """
-        Updates the current CMA strategy from the **population**.
+        """Update parent, step-size, and covariance from ``population``.
 
-        :param population: A list of individuals.
-        :return: Nothing.
+        The parent is replaced when a better offspring exists. Success
+        rate drives the step-size; a successful replacement also
+        updates the covariance.
+
+        Args:
+            population: Evaluated individuals from ``generate``.
         """
         if hasattr(self.parent, "fitness"):
             population.sort(key=lambda ind: ind.fitness, reverse=True)

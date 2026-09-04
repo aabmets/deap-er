@@ -16,12 +16,15 @@ __all__ = ["Logbook"]
 
 
 class Logbook(list):
-    """
-    Contains evolution records as a chronological list of dictionaries.
-    Data can be retrieved using the *select* method with the appropriate names.
+    """Chronological evolution records as a list of dictionaries.
+
+    Retrieve columns with ``select``. Nested dictionaries passed to
+    ``record`` become named chapters. Set ``header`` to control column
+    order when printing.
     """
 
     def __init__(self):
+        """Create an empty logbook."""
         self.chapters = defaultdict(Logbook)
         self.buff_index: int = 0
         self.log_header: bool = True
@@ -31,18 +34,19 @@ class Logbook(list):
 
     @property
     def stream(self) -> str:
-        """
-        A stream of the logbook.
-        """
+        """Formatted text of entries recorded since the last stream read."""
         start_index, self.buff_index = self.buff_index, len(self)
         return self.__str__(start_index)
 
     def record(self, **data) -> None:
-        """
-        Adds a new entry to the logbook as a list of dictionaries.
+        """Append one chronological entry.
 
-        :param data: The new entry.
-        :return: Nothing.
+        Nested dict values are recorded into named chapters. Remaining
+        keys form the entry on this logbook. Non-dict keys are also
+        copied into each chapter.
+
+        Args:
+            **data: Fields for the new entry. Dict values become chapters.
         """
         apply_to_all = {k: v for k, v in data.items() if not isinstance(v, dict)}
         for key, value in list(data.items()):
@@ -54,29 +58,39 @@ class Logbook(list):
         self.append(data)
 
     def select(self, *names) -> list:
-        """
-        Returns a list of values for the given names.
+        """Return recorded values for one or more field names.
 
-        :param names: The names of the values to retrieve.
-        :return: A list of values for the given names.
+        A missing name yields ``None`` in that column. One name
+        returns a flat list; several names return a list of lists.
+
+        Args:
+            *names: Field names to retrieve.
+
+        Returns:
+            Values for the requested names, in chronological order.
         """
         if len(names) == 1:
             return [entry.get(names[0], None) for entry in self]
         return [[entry.get(name, None) for entry in self] for name in names]
 
     def pop(self, index: int = 0) -> dict:
-        """
-        Retrieves and deletes element at **index**. The header and
-        the stream will be adjusted to follow the modification.
+        """Remove and return the entry at ``index``.
 
-        :param index: The index of the element to retrieve and delete.
-        :return: The element at the given index.
+        The stream cursor is moved back when the removed entry has
+        already been streamed.
+
+        Args:
+            index: Position of the entry to remove.
+
+        Returns:
+            The removed entry.
         """
         if index < self.buff_index:
             self.buff_index -= 1
         return super(self.__class__, self).pop(index)
 
     def __delitem__(self, key) -> None:
+        """Delete an entry and the same index from every chapter."""
         if isinstance(key, slice):
             for (i,) in range(*key.indices(len(self))):
                 self.pop(i)
@@ -88,6 +102,15 @@ class Logbook(list):
                 chapter.pop(key)
 
     def __txt__(self, start_index: int) -> list:
+        """Format rows from ``start_index`` as aligned column strings.
+
+        Args:
+            start_index: First entry to include.
+
+        Returns:
+            One formatted line per row, including a header when
+            ``start_index`` is 0 and ``log_header`` is True.
+        """
         columns = self.header
         if not len(self):
             return ["The Logbook is empty."]
@@ -144,5 +167,13 @@ class Logbook(list):
         return str_list
 
     def __str__(self, start_index: int = 0) -> str:
+        """Return the logbook as an aligned text table.
+
+        Args:
+            start_index: First entry to include.
+
+        Returns:
+            Newline-joined formatted rows.
+        """
         text = self.__txt__(start_index)
         return "\n".join(text)

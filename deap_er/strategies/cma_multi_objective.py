@@ -18,46 +18,47 @@ __all__ = ["StrategyMultiObjective"]
 
 
 class StrategyMultiObjective:
-    """
-    The multi-objective Covariance Matrix Adaptation evolution strategy.
+    """Multi-objective Covariance Matrix Adaptation evolution strategy.
 
-    :param population: An initial population of individuals.
-    :param sigma: The initial step size of the complete system.
-    :param kwargs: One or more keyword arguments, optional.
+    Args:
+        population: Initial parent population.
+        sigma: Initial step size for every parent.
+        **kwargs: Optional strategy parameters. See the table below.
 
     .. dropdown:: Table of Kwargs
        :margin: 0 5 0 0
 
        * offsprings - *(int)*
           * The number of children to produce at each generation.
-          * *Default:* :code:`1`
+          * *Default:* ``1``
        * survivors - *(int)*
-          * The number of children to keep as parents for the next generation.
-          * *Default:* :code:`len(population)`
+          * The number of parents to keep for the next generation.
+          * *Default:* ``len(population)``
        * ss_dmp - *(float)*
           * Damping of the step-size.
-          * *Default:* :code:`1.0 + len(population) / 2.0`
+          * *Default:* ``1.0 + len(population[0]) / 2.0``
        * th_cum - *(float)*
           * Time horizon of the cumulative contribution.
-          * *Default:* :code:`2.0 / (len(population) + 2.0)`
+          * *Default:* ``2.0 / (len(population[0]) + 2.0)``
        * tgt_sr - *(float)*
           * Target success rate.
-          * *Default:* :code:`1.0 / 5.5`
+          * *Default:* ``1.0 / 5.5``
        * thresh_sr - *(float)*
           * Threshold success rate.
-          * *Default:* :code:`0.44`
+          * *Default:* ``0.44``
        * ss_learn_rate - *(float)*
           * Learning rate of the step-size.
-          * *Default:* :code:`tgt_sr / (2.0 + tgt_sr)`
+          * *Default:* ``tgt_sr / (2.0 + tgt_sr)``
        * cm_learn_rate - *(float)*
           * Learning rate of the covariance matrix.
-          * *Default:* :code:`2.0 / (len(population) ** 2 + 6.0)`
+          * *Default:* ``2.0 / (len(population[0]) ** 2 + 6.0)``
        * mp_pool - *(object)*
-          * Any multiprocessing *Pool* object, which has a :code:`map` method.
+          * Any multiprocessing Pool object with a ``map`` method.
           * *Default:* None
     """
 
     def __init__(self, population: list, sigma: float, **kwargs: Optional):
+        """See the class docstring."""
         self.parents = population
         self.dim = len(self.parents[0])
         pop_size = len(population)
@@ -79,6 +80,18 @@ class StrategyMultiObjective:
         self.psucc = [self.tgt_sr] * pop_size
 
     def _select(self, candidates):
+        """Split candidates into ``survivors`` chosen and the remainder.
+
+        Uses non-dominated sorting. When a front would overflow
+        ``survivors``, extra members are dropped by least hypervolume
+        contribution.
+
+        Args:
+            candidates: Individuals to rank.
+
+        Returns:
+            Chosen individuals and those not selected.
+        """
         if len(candidates) <= self.mu:
             return candidates, []
 
@@ -119,6 +132,18 @@ class StrategyMultiObjective:
 
     @staticmethod
     def _rank_one_update(inv_cholesky, big_a, alpha, beta, v):
+        """Apply a rank-one covariance update to the Cholesky factors.
+
+        Args:
+            inv_cholesky: Inverse of the current Cholesky factor.
+            big_a: Current Cholesky factor of the covariance.
+            alpha: Weight of the existing covariance.
+            beta: Weight of the rank-one term.
+            v: Evolution-path vector used in the update.
+
+        Returns:
+            Updated inverse Cholesky factor and Cholesky factor.
+        """
         w = numpy.dot(inv_cholesky, v)
 
         if w.max(initial=None) > 1e-20:
@@ -134,11 +159,14 @@ class StrategyMultiObjective:
         return inv_cholesky, big_a
 
     def update(self, population: list) -> None:
-        """
-        Updates the current CMA strategy from the **population**.
+        """Select new parents and update each parent's CMA parameters.
 
-        :param population: A list of individuals.
-        :return: Nothing.
+        Offspring are merged with the current parents, then reduced to
+        ``survivors`` by non-dominated sorting. Step-size and
+        covariance are updated per successful parent.
+
+        Args:
+            population: Evaluated individuals from ``generate``.
         """
         chosen, not_chosen = self._select(population + self.parents)
 
@@ -215,12 +243,18 @@ class StrategyMultiObjective:
         self.parents = chosen
 
     def generate(self, ind_init: Callable) -> list:
-        """
-        Generates a population of *lambda* individuals of
-        type **ind_init** from the current strategy.
+        """Sample ``offsprings`` individuals from the current parents.
 
-        :param ind_init: A callable object that generates individuals.
-        :return: A list of individuals.
+        When ``offsprings`` equals the parent count, each parent
+        produces one child. Otherwise parents are drawn from the first
+        non-dominated front.
+
+        Args:
+            ind_init: Callable that turns a sampled vector into an
+                individual.
+
+        Returns:
+            Newly sampled individuals.
         """
         arz = numpy.random.randn(self.lamb, self.dim)
         individuals = list()

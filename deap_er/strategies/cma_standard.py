@@ -17,46 +17,48 @@ __all__ = ["Strategy"]
 
 
 class Strategy:
-    """
-    The standard Covariance Matrix Adaptation evolution strategy.
+    """Standard Covariance Matrix Adaptation evolution strategy.
 
-    :param centroid: An object that indicates where to start the evolution.
-    :param sigma: The initial standard deviation of the distribution.
-    :param kwargs: One or more keyword arguments, optional.
+    Args:
+        centroid: Starting point of the search distribution.
+        sigma: Initial standard deviation of the distribution.
+        **kwargs: Optional strategy parameters. See the table below.
 
     .. dropdown:: Table of Kwargs
        :margin: 0 5 0 0
 
        * offsprings - *(int)*
           * The number of children to produce at each generation.
-          * *Default:* :code:`int(4 + 3 * log(len(centroid)))`
+          * *Default:* ``int(4 + 3 * log(len(centroid)))``
        * survivors - *(int)*
           * The number of children to keep as parents for the next generation.
-          * *Default:* :code:`int(children / 2)`
+          * *Default:* ``int(offsprings / 2)``
        * weights - *(str)*
-          * Evolution decrease speed. Can be *'superlinear'*, *'linear'* or *'equal'*.
-          * *Default:* :code:`'superlinear'`
+          * Recombination weights. One of ``superlinear``, ``linear``,
+            or ``equal``.
+          * *Default:* ``'superlinear'``
        * cm_init - *(numpy.ndarray)*
           * The initial covariance matrix of the distribution.
-          * *Default:* :code:`numpy.identity(len(centroid))`
+          * *Default:* ``numpy.identity(len(centroid))``
        * cm_cum - *(float)*
           * Cumulation constant of the covariance matrix.
-          * *Default:* :code:`4 / (len(centroid) + 4)`
+          * *Default:* ``4 / (len(centroid) + 4)``
        * ss_cum - *(float)*
           * Cumulation constant of the step-size.
-          * *Default:* :code:`(mueff + 2) / (len(centroid) + mueff + 3)`
+          * *Default:* ``(mueff + 2) / (len(centroid) + mueff + 3)``
        * ss_dmp - *(float)*
           * Damping of the step-size.
-          * *Default:* :code:`1 + 2 * max(0, sqrt((mueff - 1) / (len(centroid) + 1)) - 1) + ss_cum`
+          * *Default:* ``1 + 2 * max(0, sqrt((mueff - 1) / (len(centroid) + 1)) - 1) + ss_cum``
        * rank_one - *(float)*
           * Learning rate for rank-one update.
-          * *Default:* :code:`2 / ((len(centroid) + 1.3) ** 2 + mueff)`
+          * *Default:* ``2 / ((len(centroid) + 1.3) ** 2 + mueff)``
        * rank_mu - *(float)*
           * Learning rate for rank-mu update.
-          * *Default:* :code:`2 * (mueff - 2 + 1 / mueff) / ((len(centroid) + 2) ** 2 + mueff)`
+          * *Default:* ``2 * (mueff - 2 + 1 / mueff) / ((len(centroid) + 2) ** 2 + mueff)``
     """
 
     def __init__(self, centroid: Iterable, sigma: float, **kwargs: Optional):
+        """See the class docstring."""
         self.update_count = 0
         self.centroid = numpy.array(centroid)
         self.sigma = sigma
@@ -86,14 +88,18 @@ class Strategy:
         self.compute_params(**kwargs)
 
     def compute_params(self, **kwargs: Optional) -> None:
-        """
-        Computes the parameters of the strategy based on the *lambda*
-        parameter. This function is called automatically when this strategy
-        is instantiated, but it needs to be called again with the updated
-        **kwargs** if the *lambda* parameter changes during evolution.
+        """Recompute strategy parameters from ``kwargs``.
 
-        :param kwargs: One or more keyword arguments, optional.
-        :return: Nothing.
+        Called from the constructor. Call again if ``offsprings``
+        changes during evolution.
+
+        Args:
+            **kwargs: Optional strategy parameters. See the class
+                docstring.
+
+        Raises:
+            RuntimeError: If ``weights`` is not ``superlinear``,
+                ``linear``, or ``equal``.
         """
         default = int(4 + 3 * log(self.dim))
         self.lamb = kwargs.get("offsprings", default)
@@ -146,23 +152,27 @@ class Strategy:
         self.cond = self.diagD[indx[-1]] / self.diagD[indx[0]]
 
     def generate(self, ind_init: Callable) -> list:
-        """
-        Generates a population of *lambda* individuals of
-        type **ind_init** from the current strategy.
+        """Sample ``offsprings`` individuals from the current distribution.
 
-        :param ind_init: A callable object that generates individuals.
-        :return: A list of individuals.
+        Args:
+            ind_init: Callable that turns a sampled vector into an
+                individual.
+
+        Returns:
+            Newly sampled individuals.
         """
         arz = numpy.random.standard_normal((self.lamb, self.dim))
         arz = self.centroid + self.sigma * numpy.dot(arz, self.big_bd.T)
         return list(map(ind_init, arz))
 
     def update(self, population: list) -> None:
-        """
-        Updates the current CMA strategy from the **population**.
+        """Update centroid, step-size, and covariance from ``population``.
 
-        :param population: A list of individuals.
-        :return: Nothing.
+        Individuals are ranked by fitness. The best ``survivors``
+        members drive the update.
+
+        Args:
+            population: Evaluated individuals from ``generate``.
         """
         population.sort(key=lambda ind: ind.fitness, reverse=True)
 

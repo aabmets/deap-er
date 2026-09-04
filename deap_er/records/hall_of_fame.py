@@ -19,24 +19,19 @@ __all__ = ["HallOfFame", "ParetoFront"]
 
 
 class _BaseClass:
-    """
-    Private base class for the HallOfFame and ParetoFront classes.
-    """
+    """Shared storage and ordering for HallOfFame and ParetoFront."""
 
     def __init__(self):
+        """Create empty item and key lists."""
         self.keys = list()
         self.items = list()
 
     def insert(self, individual: Individual) -> None:
-        """
-        Inserts a new individual into the hall of fame. The individual is
-        inserted on the right side of an equal individual. Inserting a new
-        individual also preserves the hall of fame's order. This method does
-        NOT check for the size of the hall of fame, so that the worst
-        individual is not removed to maintain a constant size.
+        """Insert an individual while preserving sort order; does not enforce maxsize.
 
-        :param individual: The individual to insert into the hall of fame.
-        :return: Nothing.
+        Args:
+            individual: Individual to insert. Ignored if it has no
+                fitness attribute.
         """
         if hasattr(individual, "fitness"):
             individual = deepcopy(individual)
@@ -45,66 +40,67 @@ class _BaseClass:
             self.keys.insert(i, individual.fitness)
 
     def remove(self, index: int) -> None:
-        """
-        Removes the individual at the specified index from the hall of fame.
+        """Remove the individual at ``index``.
 
-        :param index: The index of the individual to remove.
-        :return: Nothing.
+        Args:
+            index: Position of the individual to remove.
         """
         del self.keys[len(self) - (index % len(self) + 1)]
         del self.items[index]
 
     def clear(self) -> None:
-        """
-        Clears the hall of fame.
-
-        :return: Nothing.
-        """
+        """Remove every stored individual."""
         del self.items[:]
         del self.keys[:]
 
     def __len__(self):
+        """Return the number of stored individuals."""
         return len(self.items)
 
     def __getitem__(self, i):
+        """Return the individual at position ``i``."""
         return self.items[i]
 
     def __iter__(self):
+        """Iterate over individuals from best to worst."""
         return iter(self.items)
 
     def __reversed__(self):
+        """Iterate over individuals from worst to best."""
         return reversed(self.items)
 
     def __str__(self):
+        """Return the stored individuals as a string."""
         return str(self.items)
 
 
 class HallOfFame(_BaseClass):
-    """
-    The hall of fame contains the best individual that ever lived in the
-    population during the evolution. It is lexicographically sorted at all
-    time so that the first element of the hall of fame is the individual that
-    has the best first fitness value ever seen, according to the weights
-    provided to the fitness at creation time.
+    """Archive of the best individuals seen during evolution.
 
-    :param maxsize: The maximum number of individuals to store in the hall of fame.
-    :param similar: A function to compare two individuals, optional.
+    Members stay sorted by fitness so the first item is the best
+    individual seen so far, according to the fitness weights.
+
+    Args:
+        maxsize: Maximum number of individuals to keep.
+        similar: Equality test used to skip duplicates. Defaults to
+            ``operator.eq``.
     """
 
     def __init__(self, maxsize: int, similar: Optional[Callable] = eq):
+        """See the class docstring."""
         self.maxsize = maxsize
         self.similar = similar
         super().__init__()
 
     def update(self, population: list) -> None:
-        """
-        Updates the hall of fame with the **population** by replacing the
-        worst individuals with the best individuals from the **population**.
-        The size of the hall of fame is kept constant.
+        """Update the archive from ``population``.
 
-        :param population: A list of individual with a fitness
-            attribute to update the hall of fame with.
-        :return: Nothing.
+        Better individuals replace the worst members. The archive stays
+        at most ``maxsize`` and skips individuals already present
+        according to ``similar``.
+
+        Args:
+            population: Individuals with a fitness attribute.
         """
         for ind in population:
             if len(self) == 0 and self.maxsize != 0:
@@ -121,27 +117,28 @@ class HallOfFame(_BaseClass):
 
 
 class ParetoFront(_BaseClass):
-    """
-    The Pareto front hall of fame contains all the non-dominated individuals
-    that ever lived in the population. That means that the Pareto front hall
-    of fame can contain an infinity of different individuals.
+    """Archive of every non-dominated individual seen during evolution.
 
-    :param similar: A function to compare two individuals, optional.
+    The front is unbounded: every unique non-dominated individual is kept.
+
+    Args:
+        similar: Equality test used to skip duplicates. Defaults to
+            ``operator.eq``.
     """
 
     def __init__(self, similar: Optional[Callable] = eq):
+        """See the class docstring."""
         self.similar = similar
         super().__init__()
 
     def update(self, population: list) -> None:
-        """
-        Updates the Pareto front hall of fame with the **population** by adding
-        the individuals from the population that are not dominated by the hall
-        of fame. If any individual in the hall of fame is dominated, it is removed.
+        """Add non-dominated individuals from ``population``.
 
-        :param population: A list of individual with a fitness
-            attribute to update the hall of fame with.
-        :return: Nothing.
+        Members dominated by a new individual are removed. Similar
+        individuals with equal fitness are not added again.
+
+        Args:
+            population: Individuals with a fitness attribute.
         """
         for ind in population:
             is_dominated = False
