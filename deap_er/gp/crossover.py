@@ -19,17 +19,18 @@ __all__ = ["cx_one_point", "cx_one_point_leaf_biased"]
 
 
 def cx_one_point(ind1: GPIndividual, ind2: GPIndividual) -> GPMates:
-    """
-    Randomly selects a crossover point in each individual and exchanges
-    each subtree with the point as the root between each individual.
+    """Exchange a random subtree between two individuals.
 
-    :param ind1: The first individual to mate.
-    :param ind2: The second individual to mate.
-    :return: Two mated individuals.
+    A crossover point is chosen in each tree and the subtrees rooted
+    there are swapped. Individuals shorter than two nodes are returned
+    unchanged.
 
-    :type ind1: :ref:`GPIndividual <datatypes>`
-    :type ind2: :ref:`GPIndividual <datatypes>`
-    :rtype: :ref:`GPMates <datatypes>`
+    Args:
+        ind1: First individual to mate.
+        ind2: Second individual to mate.
+
+    Returns:
+        The two individuals after subtree exchange.
     """
     if len(ind1) < 2 or len(ind2) < 2:
         return ind1, ind2
@@ -60,19 +61,20 @@ def cx_one_point(ind1: GPIndividual, ind2: GPIndividual) -> GPMates:
 
 
 def cx_one_point_leaf_biased(ind1: GPIndividual, ind2: GPIndividual, term_prob: float) -> GPMates:
-    """
-    Randomly selects a crossover point in each individual and exchanges
-    each subtree with the point as the root between each individual.
+    """Exchange a random subtree, biased toward terminals.
 
-    :param ind1: The first individual to mate.
-    :param ind2: The second individual to mate.
-    :param term_prob: The probability of selecting
-        a terminal node as the crossover point.
-    :return: Two mated individuals.
+    Same as one-point crossover, except each parent independently
+    selects a terminal as the crossover point with probability
+    ``term_prob``.
 
-    :type ind1: :ref:`GPIndividual <datatypes>`
-    :type ind2: :ref:`GPIndividual <datatypes>`
-    :rtype: :ref:`GPMates <datatypes>`
+    Args:
+        ind1: First individual to mate.
+        ind2: Second individual to mate.
+        term_prob: Probability of choosing a terminal as the
+            crossover point.
+
+    Returns:
+        The two individuals after subtree exchange.
     """
     if len(ind1) < 2 or len(ind2) < 2:
         return ind1, ind2

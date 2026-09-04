@@ -26,16 +26,19 @@ def mut_semantic(
     gen_func: Callable = None,
     mut_step: float = None,
 ) -> tuple[list]:
-    """
-    Perform a semantic mutation on the given individual.
+    """Mutate an individual by a semantic mutation.
 
-    :param individual: The individual to be mutated.
-    :param prim_set: Primitive set from which primitives are selected.
-    :param gen_func: The function which generates the random tree.
-    :param mut_step: The mutation step.
-    :param min_depth: Minimum depth of the random tree.
-    :param max_depth: Maximum depth of the random tree.
-    :return: The mutated individual.
+    Args:
+        individual: Individual to mutate.
+        prim_set: Primitive set used to build the random trees.
+        min_depth: Minimum depth of each random tree.
+        max_depth: Maximum depth of each random tree.
+        gen_func: Tree generator. Defaults to ``gen_grow``.
+        mut_step: Mutation step. Drawn uniformly from ``[0, 2]``
+            when omitted.
+
+    Returns:
+        A one-element tuple containing the mutated individual.
     """
     _check(prim_set, "mutation")
 
@@ -73,16 +76,18 @@ def cx_semantic(
     max_depth: int = 6,
     gen_func: Callable = gen_grow,
 ) -> tuple[list, list]:
-    """
-    Perform a semantic crossover on the given individuals.
+    """Mate two individuals by a semantic crossover.
 
-    :param ind1: The first individual to be mated.
-    :param ind2: The second individual to be mated.
-    :param prim_set: Primitive set from which primitives are selected.
-    :param gen_func: The function which generates the random tree.
-    :param min_depth: Minimum depth of the random tree.
-    :param max_depth: Maximum depth of the random tree.
-    :return: Two mated individuals.
+    Args:
+        ind1: First individual to mate.
+        ind2: Second individual to mate.
+        prim_set: Primitive set used to build the random tree.
+        min_depth: Minimum depth of the random tree.
+        max_depth: Maximum depth of the random tree.
+        gen_func: Tree generator. Defaults to ``gen_grow``.
+
+    Returns:
+        The two individuals after crossover.
     """
     _check(prim_set, "crossover")
 
@@ -107,6 +112,15 @@ def cx_semantic(
 
 
 def _check(p_set: PrimitiveSetTyped, op: str) -> None:
+    """Require the semantic operators ``lf``, ``mul``, ``add``, and ``sub``.
+
+    Args:
+        p_set: Primitive set that must contain those names.
+        op: Operation label used in the error message.
+
+    Raises:
+        TypeError: If any required name is missing from ``p_set.mapping``.
+    """
     for func in ["lf", "mul", "add", "sub"]:
         if func not in p_set.mapping:
             raise TypeError(f"A '{func}' function is required to perform semantic '{op}'.")

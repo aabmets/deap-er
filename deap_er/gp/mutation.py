@@ -19,17 +19,15 @@ __all__ = ["mut_uniform", "mut_node_replacement", "mut_ephemeral", "mut_insert",
 
 
 def mut_uniform(individual: GPIndividual, expr: Callable, prim_set: PrimitiveSetTyped) -> GPMutant:
-    """
-    Mutates an individual by replacing a random subtree with
-    an expression generated from the given **expr**.
+    """Replace a random subtree with an expression from ``expr``.
 
-    :param individual: The GP tree to be mutated.
-    :param expr: A callable that, when called, returns a random GP subtree.
-    :param prim_set: The PrimitiveSet to be used for the mutation.
-    :return: The mutated individual.
+    Args:
+        individual: GP tree to mutate.
+        expr: Callable that returns a random subtree.
+        prim_set: Primitive set passed to ``expr``.
 
-    :type individual: :ref:`GPIndividual <datatypes>`
-    :rtype: :ref:`GPMutant <datatypes>`
+    Returns:
+        A one-element tuple containing the mutated individual.
     """
     index = random.randrange(len(individual))
     i_slice = individual.search_subtree(index)
@@ -39,16 +37,14 @@ def mut_uniform(individual: GPIndividual, expr: Callable, prim_set: PrimitiveSet
 
 
 def mut_node_replacement(individual: GPIndividual, prim_set: PrimitiveSetTyped) -> GPMutant:
-    """
-    Mutates an individual by replacing a random primitive
-    with a random primitive from the given **p_set**.
+    """Replace a random node with a compatible node from ``prim_set``.
 
-    :param individual: The GP tree to be mutated.
-    :param prim_set: The PrimitiveSet to be used for the mutation.
-    :return: The mutated individual.
+    Args:
+        individual: GP tree to mutate.
+        prim_set: Primitive set to sample the replacement from.
 
-    :type individual: :ref:`GPIndividual <datatypes>`
-    :rtype: :ref:`GPMutant <datatypes>`
+    Returns:
+        A one-element tuple containing the mutated individual.
     """
     if len(individual) < 2:
         return (individual,)
@@ -70,16 +66,18 @@ def mut_node_replacement(individual: GPIndividual, prim_set: PrimitiveSetTyped) 
 
 
 def mut_ephemeral(individual: GPIndividual, mode: str = "all") -> GPMutant:
-    """
-    Mutates an individual by replacing either
-    one random or all ephemeral constants.
+    """Resample one or all ephemeral constants in the tree.
 
-    :param individual: The GP tree to be mutated.
-    :param mode: The mode of mutation. Either 'one' or 'all'.
-    :return: The mutated individual.
+    Args:
+        individual: GP tree to mutate.
+        mode: ``'one'`` to replace a single random ephemeral, or
+            ``'all'`` to replace every ephemeral.
 
-    :type individual: :ref:`GPIndividual <datatypes>`
-    :rtype: :ref:`GPMutant <datatypes>`
+    Returns:
+        A one-element tuple containing the mutated individual.
+
+    Raises:
+        ValueError: If ``mode`` is not ``'one'`` or ``'all'``.
     """
     if mode not in ["one", "all"]:
         raise ValueError("Mode must be one of 'one' or 'all'.")
@@ -100,15 +98,14 @@ def mut_ephemeral(individual: GPIndividual, mode: str = "all") -> GPMutant:
 
 
 def mut_insert(individual: GPIndividual, prim_set: PrimitiveSetTyped) -> GPMutant:
-    """
-    Inserts a new branch at a random position in the tree.
+    """Insert a new primitive branch at a random position.
 
-    :param individual: The GP tree to be mutated.
-    :param prim_set: The PrimitiveSet to be used for the mutation.
-    :return: The mutated individual.
+    Args:
+        individual: GP tree to mutate.
+        prim_set: Primitive set used to choose the inserted branch.
 
-    :type individual: :ref:`GPIndividual <datatypes>`
-    :rtype: :ref:`GPMutant <datatypes>`
+    Returns:
+        A one-element tuple containing the mutated individual.
     """
     index = random.randrange(len(individual))
     node = individual[index]
@@ -147,15 +144,13 @@ def mut_insert(individual: GPIndividual, prim_set: PrimitiveSetTyped) -> GPMutan
 
 
 def mut_shrink(individual: GPIndividual) -> GPMutant:
-    """
-    Shrinks a tree by removing a random branch, replacing
-    it with a random argument of the branch.
+    """Replace a random branch with one of its arguments.
 
-    :param individual: The GP tree to be mutated.
-    :return: The mutated individual.
+    Args:
+        individual: GP tree to mutate.
 
-    :type individual: :ref:`GPIndividual <datatypes>`
-    :rtype: :ref:`GPMutant <datatypes>`
+    Returns:
+        A one-element tuple containing the mutated individual.
     """
     if len(individual) < 3 or individual.height <= 1:
         return (individual,)

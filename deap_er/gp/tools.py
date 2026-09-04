@@ -21,17 +21,19 @@ __all__ = ["compile_tree", "compile_adf_tree", "build_tree_graph", "static_limit
 
 
 def compile_tree(expr: GPExprTypes, prim_set: PrimitiveSetTyped) -> Any:
-    """
-    Evaluates the expression on the given primitive set.
+    """Evaluate ``expr`` against ``prim_set``.
 
-    :param expr: The expression to compile. It can be a string,
-        a PrimitiveTree or any object which produces a valid
-        Python expression when converted into a string.
-    :param prim_set: The primitive set to evaluate the expression on.
-    :return: A callable if the 'p_set' has 1 or more arguments,
+    Args:
+        expr: Expression to compile. A string, a ``PrimitiveTree``,
+            or any object whose string form is valid Python.
+        prim_set: Primitive set that supplies the evaluation context.
+
+    Returns:
+        A callable if ``prim_set`` has one or more arguments,
         otherwise the result of the evaluation.
 
-    :type expr: :ref:`Expression <datatypes>`
+    Raises:
+        MemoryError: If evaluation exceeds the recursion limit.
     """
     code = str(expr)
     if len(prim_set.arguments) > 0:
@@ -47,25 +49,22 @@ def compile_tree(expr: GPExprTypes, prim_set: PrimitiveSetTyped) -> Any:
 
 
 def compile_adf_tree(expr: GPExprTypes, prim_sets: GPTypedSets) -> Any:
-    """
-    Compiles the expression represented by a list of trees.
-    The first element of the list is the main tree, and the
-    following elements are automatically defined functions
-    that can be called by the first tree.
+    """Compile a main tree together with its ADF trees.
 
-    :param expr: The expression to compile. It can be a string,
-        a PrimitiveTree or any object which produces a valid
-        Python expression when converted into a string.
-    :param prim_sets: List of primitive sets. The first element is
-        the main tree and the others are automatically defined
-        functions (ADF) that can be called by the first tree.
-        The last element is associated with the 'expr' and
-        should contain a reference to the preceding ADFs.
-    :return: A callable if the main primitive set has 1 or more
+    The first element of ``expr`` is the main tree. The rest are
+    automatically defined functions that the main tree may call.
+
+    Args:
+        expr: Sequence of expressions to compile, one per primitive
+            set. Each item may be a string, a ``PrimitiveTree``, or
+            any object whose string form is valid Python.
+        prim_sets: Primitive sets aligned with ``expr``. The first
+            set is the main program and should refer to the ADFs;
+            the following sets define those ADFs.
+
+    Returns:
+        A callable if the main primitive set has one or more
         arguments, otherwise the result of the evaluation.
-
-    :type expr: :ref:`Expression <datatypes>`
-    :type prim_sets: :ref:`PrimSets <datatypes>`
     """
     adf_dict = dict()
     func = None
@@ -77,18 +76,13 @@ def compile_adf_tree(expr: GPExprTypes, prim_sets: GPTypedSets) -> Any:
 
 
 def build_tree_graph(expr: GPExprTypes) -> GPGraph:
-    """
-    Builds a graph representation of the given expression. The graph
-    is a tuple of three elements: a list of nodes, a list of edges and a
-    dictionary of node labels. The nodes are the leaves of the tree and
-    the edges are the connections between the nodes. The dictionary
-    contains the leaves values, where the keys are the leaves indices.
+    """Build a graph representation of a tree expression.
 
-    :param expr: A tree expression to convert into a graph.
-    :return: A list of nodes, a list of edges and a dictionary of labels.
+    Args:
+        expr: Tree expression to convert.
 
-    :type expr: :ref:`Expression <datatypes>`
-    :rtype: :ref:`Graph <datatypes>`
+    Returns:
+        Nodes, edges, and a mapping of node indices to labels.
     """
     nodes = list(range(len(expr)))
     edges = list()
@@ -111,15 +105,17 @@ def build_tree_graph(expr: GPExprTypes) -> GPGraph:
 
 
 def static_limit(limiter: Callable, max_value: Union[int, float]) -> Callable:
-    """
-    Provides a decorator to limit the production of offspring.
-    It may be used to decorate both crossover and mutation operators.
-    When an invalid child is generated, it is replaced by one of its
-    parents, which is randomly selected.
+    """Return a decorator that rejects oversized GP offspring.
 
-    :param limiter: The function which obtains the measurement from an individual.
-    :param max_value: The maximum value allowed for the given measurement.
-    :return: A decorator which can be applied to a GP operator in a Toolbox.
+    May wrap crossover or mutation. An offspring whose measurement
+    exceeds ``max_value`` is replaced by a randomly chosen parent.
+
+    Args:
+        limiter: Callable that measures an individual.
+        max_value: Maximum allowed measurement.
+
+    Returns:
+        A decorator for a GP operator registered on a Toolbox.
     """
 
     def decorator(func):

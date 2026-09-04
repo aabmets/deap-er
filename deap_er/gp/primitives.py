@@ -27,20 +27,21 @@ __all__ = [
 
 
 class Terminal:
-    """
-    Class that encapsulates a terminal primitive in an expression.
-    Terminals can be either values or 0-arity functions.
+    """Leaf node in a GP expression.
 
-    :param terminal: The terminal value or function.
-    :param symbolic: If True, the terminal is a string.
-    :param ret_type: The return type of the terminal.
+    A terminal is a value or a zero-arity function.
 
-    :type terminal: :ref:`TerminalTypes <datatypes>`
+    Args:
+        terminal: Value or zero-arity function stored in the leaf.
+        symbolic: If True, format the value with ``str``; otherwise
+            with ``repr``.
+        ret_type: Return type of the terminal.
     """
 
     __slots__ = ("name", "value", "ret", "conv_fct")
 
     def __init__(self, terminal: Any, symbolic: bool, ret_type: type):
+        """Store ``terminal`` as a named leaf of ``ret_type``."""
         self.ret = ret_type
         self.value = terminal
         self.name = str(terminal)
@@ -48,12 +49,18 @@ class Terminal:
 
     @property
     def arity(self):
+        """Number of arguments this terminal takes.
+
+        Always 0.
+        """
         return 0
 
     def format(self):
+        """Return the string form of the terminal value."""
         return self.conv_fct(self.value)
 
     def __eq__(self, other):
+        """Return whether ``other`` is a terminal with the same slots."""
         if type(self) is type(other):
             return all(getattr(self, slot) == getattr(other, slot) for slot in self.__slots__)
         else:
@@ -61,34 +68,44 @@ class Terminal:
 
 
 class Ephemeral(Terminal):
-    """
-    Class that encapsulates a terminal which value is set when
-    the object is created. This is an abstract base class. When
-    subclassing, a staticmethod named *'func'* must be defined.
+    """Terminal whose value is sampled when the instance is created.
+
+    Abstract base class. Subclasses must define a static method named
+    ``func``.
     """
 
     def __init__(self):
+        """Sample ``func`` and initialize as a non-symbolic terminal."""
         Terminal.__init__(self, self.func(), symbolic=False, ret_type=self.ret)
 
     @staticmethod
     @abc.abstractmethod
     def func():
+        """Produce a new ephemeral value.
+
+        Subclasses must override this static method.
+
+        Raises:
+            NotImplementedError: If the subclass does not define ``func``.
+        """
         raise NotImplementedError
 
 
 class Primitive:
-    """
-    Class that encapsulates a primitive and when called with arguments it
-    returns the Python code to call the primitive with the arguments.
+    """Function node in a GP expression.
 
-    :param name: The name of the primitive.
-    :param args: The list of arguments of the primitive.
-    :param ret_type: The return type of the primitive.
+    Formats as a Python call when given formatted child expressions.
+
+    Args:
+        name: Name of the primitive.
+        args: Argument types of the primitive.
+        ret_type: Return type of the primitive.
     """
 
     __slots__ = ("name", "arity", "args", "ret", "seq")
 
     def __init__(self, name: str, args: list, ret_type: type):
+        """Store the primitive name, argument types, and return type."""
         self.name = name
         self.arity = len(args)
         self.args = args
@@ -97,9 +114,18 @@ class Primitive:
         self.seq = "{name}({args})".format(name=self.name, args=args)
 
     def format(self, *args):
+        """Format this primitive as a Python call.
+
+        Args:
+            *args: Formatted child expressions, one per argument.
+
+        Returns:
+            The primitive applied to ``args`` as source text.
+        """
         return self.seq.format(*args)
 
     def __eq__(self, other):
+        """Return whether ``other`` is a primitive with the same slots."""
         if type(self) is type(other):
             return all(getattr(self, slot) == getattr(other, slot) for slot in self.__slots__)
         else:
@@ -107,17 +133,17 @@ class Primitive:
 
 
 class PrimitiveSetTyped:
-    """
-    Class that contains the primitives which can be
-    used to solve a Strongly Typed GP problem.
+    """Primitive set for strongly typed genetic programming.
 
-    :param name: The name of the primitive set.
-    :param in_types: The list of input types.
-    :param ret_type: The return type.
-    :param prefix: The prefix of the primitive set.
+    Args:
+        name: Name of the primitive set.
+        in_types: Input types, one per argument.
+        ret_type: Return type of expressions built from this set.
+        prefix: Prefix used to name input arguments.
     """
 
     def __init__(self, name: str, in_types: list, ret_type: type, prefix: str = "ARG") -> None:
+        """Create an empty typed set and register one terminal per input."""
         self.name = name
         self.ins = in_types
         self.ret = ret_type
@@ -139,6 +165,15 @@ class PrimitiveSetTyped:
 
     @staticmethod
     def _add_type(mapping: dict, ret_type: Any) -> None:
+        """Ensure ``mapping`` has a list for ``ret_type``.
+
+        If the type is new, the list is filled with items already stored
+        under compatible types.
+
+        Args:
+            mapping: Type-to-items dictionary to update.
+            ret_type: Return type to register.
+        """
         if ret_type not in mapping:
             new_list = []
             for type_, list_ in mapping.items():
@@ -149,6 +184,11 @@ class PrimitiveSetTyped:
             mapping[ret_type] = new_list
 
     def _add_prim(self, prim: Union[Primitive, Terminal, Type[Ephemeral]]) -> None:
+        """Register ``prim`` in this set under its return type.
+
+        Args:
+            prim: Primitive, terminal, or ephemeral class to add.
+        """
         self._add_type(self.primitives, prim.ret)
         self._add_type(self.terminals, prim.ret)
         self.mapping[prim.name] = prim
@@ -168,15 +208,16 @@ class PrimitiveSetTyped:
     def add_primitive(
         self, primitive: Callable, in_types: list, ret_type: type, name: str = None
     ) -> None:
-        """
-        Adds a primitive to the set.
+        """Add a primitive to the set.
 
-        :param primitive: Callable object or a function.
-        :param in_types: List of primitives arguments' type.
-        :param ret_type: Type returned by the primitive.
-        :param name: Alternative name for the primitive
-            instead of its __name__ attribute.
-        :return: Nothing.
+        Args:
+            primitive: Callable to register.
+            in_types: Argument types of the primitive.
+            ret_type: Type returned by the primitive.
+            name: Optional name. Defaults to ``primitive.__name__``.
+
+        Raises:
+            ValueError: If ``name`` is already registered in the set.
         """
         if name in self.context:
             raise ValueError(
@@ -194,14 +235,16 @@ class PrimitiveSetTyped:
         self.prims_count += 1
 
     def add_terminal(self, terminal: Callable, ret_type: type, name: str = None) -> None:
-        """
-        Adds a terminal to the set.
+        """Add a terminal to the set.
 
-        :param terminal: Callable object or a function.
-        :param ret_type: Type returned by the terminal.
-        :param name: Alternative name for the terminal
-            instead of its __name__ attribute.
-        :return: Nothing.
+        Args:
+            terminal: Value or callable to register as a terminal.
+            ret_type: Type returned by the terminal.
+            name: Optional name. Defaults to ``terminal.__name__``
+                when ``terminal`` is callable.
+
+        Raises:
+            ValueError: If ``name`` is already registered in the set.
         """
         if name in self.context:
             raise ValueError(
@@ -225,15 +268,19 @@ class PrimitiveSetTyped:
         self.terms_count += 1
 
     def add_ephemeral_constant(self, name: str, ephemeral: Callable, ret_type: type) -> None:
-        """
-        Adds an ephemeral constant to the set. An ephemeral constant
-        is a function without arguments that returns a random value.
-        The value is immutable, but unique for each Tree.
+        """Add an ephemeral constant to the set.
 
-        :param ephemeral: Callable object or a function.
-        :param ret_type: Type returned by the ephemeral.
-        :param name: Name of this ephemeral type.
-        :return: Nothing.
+        An ephemeral is a zero-arity function that returns a random
+        value. Each tree samples its own immutable value.
+
+        Args:
+            name: Name of this ephemeral type.
+            ephemeral: Zero-arity callable that produces a value.
+            ret_type: Type returned by the ephemeral.
+
+        Raises:
+            TypeError: If ``name`` is already used by a different
+                ephemeral or by another class in this module.
         """
         module_gp = globals()
         if name not in module_gp:
@@ -262,23 +309,22 @@ class PrimitiveSetTyped:
         self.terms_count += 1
 
     def add_adf(self, prim_set: PrimitiveSetTyped) -> None:
-        """
-        Adds an Automatically Defined Function (ADF) to the set.
+        """Add an Automatically Defined Function (ADF) to the set.
 
-        :param prim_set: PrimitiveSetTyped instance containing
-            the primitives with which the ADF can be built.
-        :return: Nothing.
+        Args:
+            prim_set: Primitive set that defines the ADF name, inputs,
+                and return type.
         """
         prim = Primitive(prim_set.name, prim_set.ins, prim_set.ret)
         self._add_prim(prim)
         self.prims_count += 1
 
     def rename_arguments(self, **kwargs) -> None:
-        """
-        Renames the arguments in self with new names from *kwargs*.
+        """Rename input arguments using the given mapping.
 
-        :param kwargs: Dictionary of new names for the arguments.
-        :return: Nothing.
+        Args:
+            **kwargs: Map of current argument names to new names. Names
+                that are not current arguments are ignored.
         """
         for i, old_name in enumerate(self.arguments):
             if old_name in kwargs:
@@ -290,59 +336,102 @@ class PrimitiveSetTyped:
 
     @property
     def terminal_ratio(self):
-        """
-        The ratio between the quantity of terminals and the
-        quantity of all the other kinds of primitives.
-        """
+        """Ratio of terminals to all primitives in the set."""
         return self.terms_count / float(self.terms_count + self.prims_count)
 
 
 class PrimitiveSet(PrimitiveSetTyped):
-    """
-    Subclass of 'PrimitiveSetTyped' without the type definition.
+    """Untyped primitive set.
 
-    :param name: The name of the primitive set.
-    :param arity: The arity of the primitive set.
-    :param prefix: The prefix of the primitive set.
+    Subclass of ``PrimitiveSetTyped`` that treats every type as
+    ``object``.
+
+    Args:
+        name: Name of the primitive set.
+        arity: Number of input arguments.
+        prefix: Prefix used to name input arguments.
     """
 
     def __init__(self, name: str, arity: int, prefix: str = "ARG"):
+        """Create an untyped set with ``arity`` inputs."""
         args = [object] * arity
         super().__init__(name, args, object, prefix)
 
     def add_primitive(self, primitive: Callable, arity: int, name: str = None, *_, **__) -> None:
+        """Add an untyped primitive of the given arity.
+
+        Args:
+            primitive: Callable to register.
+            arity: Number of arguments. Must be at least 1.
+            name: Optional name. Defaults to ``primitive.__name__``.
+
+        Raises:
+            ValueError: If ``arity`` is less than 1, or if ``name`` is
+                already registered.
+        """
         if not arity >= 1:
             raise ValueError("arity should be >= 1")
         args = [object] * arity
         super().add_primitive(primitive, args, object, name)
 
     def add_terminal(self, terminal: Any, name: str = None, *_, **__) -> None:
+        """Add an untyped terminal to the set.
+
+        Args:
+            terminal: Value or callable to register as a terminal.
+            name: Optional name. Defaults to ``terminal.__name__``
+                when ``terminal`` is callable.
+        """
         super().add_terminal(terminal, object, name)
 
     def add_ephemeral_constant(self, name: str, ephemeral: Callable, *_, **__) -> None:
+        """Add an untyped ephemeral constant to the set.
+
+        Args:
+            name: Name of this ephemeral type.
+            ephemeral: Zero-arity callable that produces a value.
+        """
         super().add_ephemeral_constant(name, ephemeral, object)
 
 
 class PrimitiveTree(list):
-    """
-    Tree specifically formatted for the optimization of genetic programming
-    operations. This class is a subclass of *'list'*, where the nodes are appended,
-    or are assumed to have been appended, when creating an object of this class
-    with a list of primitives and terminals. The nodes appended to the tree are
-    required to have the *'arity'* attribute, which defines the arity of the primitive.
+    """Prefix-ordered tree of primitives and terminals.
 
-    :param content: List of primitives and terminals to be added to the tree.
+    A list subclass used by genetic programming operators. Every node
+    must expose an ``arity`` attribute.
+
+    Args:
+        content: Primitives and terminals that form the tree.
     """
 
     def __init__(self, content: Iterable):
+        """Initialize the tree from ``content``."""
         super().__init__(content)
 
     def __deepcopy__(self, memo: dict):
+        """Return a deep copy of this tree.
+
+        Args:
+            memo: Memo mapping used by ``copy.deepcopy``.
+
+        Returns:
+            A new tree with copied contents and attributes.
+        """
         new = self.__class__(self)
         new.__dict__.update(copy.deepcopy(self.__dict__, memo))
         return new
 
     def __setitem__(self, key, val):
+        """Replace a node or subtree, preserving tree arity.
+
+        Args:
+            key: Index or slice of the node or subtree to replace.
+            val: Replacement node or sequence of nodes.
+
+        Raises:
+            IndexError: If a slice starts past the end of the tree.
+            ValueError: If the replacement would change the tree arity.
+        """
         if isinstance(key, slice):
             if key.start >= len(self):
                 raise IndexError(
@@ -364,6 +453,7 @@ class PrimitiveTree(list):
         list.__setitem__(self, key, val)
 
     def __str__(self):
+        """Return the tree as a Python expression string."""
         string = str()
         stack = list()
         for node in self:
@@ -378,14 +468,22 @@ class PrimitiveTree(list):
 
     @classmethod
     def from_string(cls, string: str, prim_set: PrimitiveSetTyped) -> PrimitiveTree:
-        """
-        Converts a string expression into a PrimitiveTree given a
-        PrimitiveSet **p_set**. The primitive set needs to contain
-        every primitive present in the expression.
+        """Build a tree from a Python expression string.
 
-        :param string: String representation of a Python expression.
-        :param prim_set: Primitive set from which primitives are selected.
-        :return: PrimitiveTree populated with the deserialized primitives.
+        ``prim_set`` must contain every primitive that appears in
+        ``string``.
+
+        Args:
+            string: Python expression to deserialize.
+            prim_set: Primitive set used to resolve names.
+
+        Returns:
+            A tree populated with the deserialized primitives.
+
+        Raises:
+            TypeError: If a token cannot be evaluated, or if a
+                primitive or terminal type does not match the expected
+                type.
         """
         tokens = re.split("[ \t\n\r\f\v(),]", string)
         expr = list()
@@ -425,14 +523,13 @@ class PrimitiveTree(list):
         return cls(expr)
 
     def search_subtree(self, begin: int) -> slice:
-        """
-        Returns a slice object that corresponds to the
-        range of values that defines the subtree which
-        has the element with index 'begin' as its root.
+        """Return the slice of the subtree rooted at ``begin``.
 
-        :param begin: Index of the root of the subtree.
-        :return: Slice object that corresponds to the range
-            of values that defines the subtree.
+        Args:
+            begin: Index of the subtree root.
+
+        Returns:
+            Slice covering that subtree.
         """
         end = begin + 1
         total = self[begin].arity
@@ -443,9 +540,7 @@ class PrimitiveTree(list):
 
     @property
     def height(self):
-        """
-        The height of the tree or the depth of the deepest node.
-        """
+        """Height of the tree, which is the depth of the deepest node."""
         stack = [0]
         max_depth = 0
         for elem in self:
@@ -456,7 +551,5 @@ class PrimitiveTree(list):
 
     @property
     def root(self):
-        """
-        The root of the tree (element 0 in the list).
-        """
+        """Root node of the tree (the first element)."""
         return self[0]

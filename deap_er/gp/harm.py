@@ -35,43 +35,36 @@ def harm(
     stats: Stats = None,
     verbose: bool = False,
 ) -> AlgoResult:
-    """
-    Implements population bloat control by an evolution algorithm for a genetic
-    program. The default parameter values are recommended for most use-cases.
+    """Evolve a GP population with HARM bloat control.
 
-    :param toolbox: A Toolbox which contains the evolution operators.
-    :param population: A list of individuals to evolve.
-    :param generations: The number of generations to compute.
-    :param cx_prob: The probability of mating two individuals.
-    :param mut_prob: The probability of mutating an individual.
-    :param alpha: The half-life of the exponential, which is linearly
-        proportional to the cutoff point, optional. Higher values
-        increase the chance of accepting larger individuals.
-    :param beta: The minimal value of the half-life, which ensures that
-        reasonably sized growth is always possible even during the
-        first few generations, when sizes can be small, optional.
-    :param gamma: The percentage of individuals that are allowed after
-        the cutoff point, optional. Sets the proportion of the
-        population that is allowed to grow in size.
-    :param rho: Controls the position of the cutoff point by setting the
-        range of fitness in which to search for the smallest individual,
-        optional. Higher values of 'rho' can be used to search more
-        aggressively for slightly better solutions with the potential
-        downside of increasing the risk of over-fitting.
-    :param nb_model: The number of individuals to generate in order to
-        model the natural distribution, optional. The default value
-        of -1 sets the 'nb_model' to max(2000, len(population)).
-    :param min_cutoff: The absolute minimum value for the cutoff point,
-        optional. It ensures that the algorithm does not shrink the
-        population too much at the beginning of the evolution.
-    :param hof: A HallOfFame or a ParetoFront object, optional.
-    :param stats: A Statistics or a MultiStatistics object, optional.
-    :param verbose: Whether to print debug messages, optional.
-    :return: The final population and the logbook.
+    Default parameter values are recommended for most use cases.
+    Requires ``mate``, ``mutate``, ``select``, ``evaluate``, ``clone``,
+    and ``map`` on ``toolbox``.
 
-    :type hof: :ref:`Hof <datatypes>`
-    :type stats: :ref:`Stats <datatypes>`
-    :rtype: :ref:`AlgoResult <datatypes>`
+    Args:
+        toolbox: Toolbox with the evolution operators.
+        population: Individuals to evolve. Replaced in place.
+        generations: Number of generations to run.
+        cx_prob: Probability of mating two individuals.
+        mut_prob: Probability of mutating an individual.
+        alpha: Half-life of the exponential, scaled linearly with
+            the cutoff. Higher values accept larger individuals.
+        beta: Minimum half-life, so growth remains possible while
+            individuals are still small.
+        gamma: Fraction of individuals allowed past the cutoff.
+        rho: Fitness range used to place the cutoff. Higher values
+            search more aggressively for slightly better solutions
+            and may overfit.
+        nb_model: Individuals generated to model the natural size
+            distribution. ``-1`` uses ``max(2000, len(population))``.
+        min_cutoff: Absolute minimum cutoff, to avoid shrinking the
+            population too early.
+        hof: Optional HallOfFame or ParetoFront to update.
+        stats: Optional Statistics or MultiStatistics to compile.
+        verbose: If True, print the logbook stream each generation.
+
+    Returns:
+        The final population and the logbook.
     """
 
     def _harm_target_func(x: int) -> float:
