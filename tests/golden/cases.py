@@ -359,7 +359,7 @@ def strategies_case_approx(types: SimpleNamespace, seed: int) -> dict[str, list[
             ind.fitness.values = tools.bm_sphere(ind)
         standard.update(population)
     out["standard"] = _flat(
-        standard.centroid, standard.sigma, standard.diagD, standard.pc, standard.ps
+        standard.centroid, standard.sigma, standard.diag_d, standard.pc, standard.ps
     )
 
     tools.seed(seed + 900)

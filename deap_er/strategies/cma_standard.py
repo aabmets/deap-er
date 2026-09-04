@@ -24,6 +24,12 @@ __all__ = ["Strategy"]
 class Strategy:
     """Standard Covariance Matrix Adaptation evolution strategy.
 
+    Hansen's ``chiN`` and ``diag(D)`` are stored as ``chi_n`` and
+    ``diag_d``. ``chi_n`` is the expected norm of an
+    ``N``-dimensional standard normal vector. ``diag_d`` is the
+    diagonal of ``D``, the square-root eigenvalues of the covariance
+    ``C``.
+
     Args:
         centroid: Starting point of the search distribution.
         sigma: Initial standard deviation of the distribution.
@@ -73,7 +79,7 @@ class Strategy:
         self.ps = numpy.zeros(self.dim)
 
         temp = 1 - 1.0 / (4.0 * self.dim) + 1.0 / (21.0 * self.dim**2)
-        self.chiN = sqrt(self.dim) * temp
+        self.chi_n = sqrt(self.dim) * temp
 
         self.lamb: int
         self.mu: int
@@ -85,7 +91,7 @@ class Strategy:
         self.ss_dmp: float
         self.cm_cum: float
         self.big_c: numpy.ndarray
-        self.diagD: numpy.ndarray
+        self.diag_d: numpy.ndarray
         self.big_b: numpy.ndarray
         self.big_bd: numpy.ndarray
         self.cond: float
@@ -150,12 +156,12 @@ class Strategy:
         self.cm_cum = float(kwargs.get("cm_cum", default))
 
         self.big_c = kwargs.get("cm_init", numpy.identity(self.dim))
-        self.diagD, self.big_b = numpy.linalg.eigh(self.big_c)
-        indx = numpy.argsort(self.diagD)
-        self.diagD = self.diagD[indx] ** 0.5
+        self.diag_d, self.big_b = numpy.linalg.eigh(self.big_c)
+        indx = numpy.argsort(self.diag_d)
+        self.diag_d = self.diag_d[indx] ** 0.5
         self.big_b = self.big_b[:, indx]
-        self.big_bd = self.big_b * self.diagD
-        self.cond = self.diagD[indx[-1]] / self.diagD[indx[0]]
+        self.big_bd = self.big_b * self.diag_d
+        self.cond = self.diag_d[indx[-1]] / self.diag_d[indx[0]]
 
     def generate(self, ind_init: Callable[..., Individual]) -> list[Individual]:
         """Sample ``offsprings`` individuals from the current distribution.
@@ -188,11 +194,11 @@ class Strategy:
         c_diff = self.centroid - old_centroid
 
         temp_1 = sqrt(self.ss_cum * (2 - self.ss_cum) * self.mu_eff)
-        temp_2 = numpy.dot(self.big_b, (1.0 / self.diagD) * numpy.dot(self.big_b.T, c_diff))
+        temp_2 = numpy.dot(self.big_b, (1.0 / self.diag_d) * numpy.dot(self.big_b.T, c_diff))
         self.ps = (1 - self.ss_cum) * self.ps + temp_1 / self.sigma * temp_2
 
         temp_1 = sqrt(1.0 - (1.0 - self.ss_cum) ** (2.0 * (self.update_count + 1.0)))
-        temp_2 = numpy.linalg.norm(self.ps) / temp_1 / self.chiN < (1.4 + 2.0 / (self.dim + 1.0))
+        temp_2 = numpy.linalg.norm(self.ps) / temp_1 / self.chi_n < (1.4 + 2.0 / (self.dim + 1.0))
         hsig = float(temp_2)
 
         temp_1 = sqrt(self.cm_cum * (2 - self.cm_cum) * self.mu_eff)
@@ -207,16 +213,16 @@ class Strategy:
             temp_1 * self.big_c + self.rank_one * temp_2 + self.rank_mu * temp_3 / self.sigma**2
         )
 
-        temp = numpy.linalg.norm(self.ps) / self.chiN - 1.0
+        temp = numpy.linalg.norm(self.ps) / self.chi_n - 1.0
         self.sigma *= numpy.exp(temp * self.ss_cum / self.ss_dmp)
 
-        self.diagD, self.big_b = numpy.linalg.eigh(self.big_c)
-        indx = numpy.argsort(self.diagD)
+        self.diag_d, self.big_b = numpy.linalg.eigh(self.big_c)
+        indx = numpy.argsort(self.diag_d)
 
-        self.cond = self.diagD[indx[-1]] / self.diagD[indx[0]]
+        self.cond = self.diag_d[indx[-1]] / self.diag_d[indx[0]]
 
-        self.diagD = self.diagD[indx] ** 0.5
+        self.diag_d = self.diag_d[indx] ** 0.5
         self.big_b = self.big_b[:, indx]
-        self.big_bd = self.big_b * self.diagD
+        self.big_bd = self.big_b * self.diag_d
 
         self.update_count += 1
