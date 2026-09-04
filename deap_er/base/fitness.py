@@ -9,11 +9,11 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from __future__ import annotations
-from collections.abc import Iterable
-from operator import mul, truediv
-from typing import Any
-from .dtypes import NumOrSeq
 
+from collections.abc import Sequence
+from typing import Any, override
+
+from .dtypes import NumOrSeq
 
 __all__ = ["Fitness"]
 
@@ -35,8 +35,9 @@ class Fitness:
             maximize.
     """
 
-    weights: tuple[float, ...] = tuple()
-    wvalues: tuple[float, ...] = tuple()
+    weights: Sequence[int | float] = ()
+    wvalues: tuple[float, ...] = ()
+    crowding_dist: float = 0.0
 
     def __init__(self, values: NumOrSeq | None = None) -> None:
         """See the class docstring."""
@@ -61,20 +62,25 @@ class Fitness:
                 ``weights``.
         """
         if self.is_valid():
-            return tuple(map(truediv, self.wvalues, self.weights))
-        return tuple()
+            return tuple(
+                wvalue / weight for wvalue, weight in zip(self.wvalues, self.weights, strict=True)
+            )
+        return ()
 
     @values.setter
     def values(self, values: NumOrSeq) -> None:
-        if not isinstance(values, Iterable):
-            values = (float(values),)
-        if len(values) != len(self.weights):
+        if isinstance(values, int | float):
+            seq: tuple[float, ...] = (float(values),)
+        else:
+            seq = tuple(float(value) for value in values)
+        if len(seq) != len(self.weights):
             raise TypeError(
                 "The assigned values must have the same length as "
                 "the 'weights' attribute of the 'Fitness' class."
             )
-        wvalues = map(mul, values, self.weights)
-        self.wvalues = tuple(wvalues)
+        self.wvalues = tuple(
+            value * weight for value, weight in zip(seq, self.weights, strict=True)
+        )
 
     @values.deleter
     def values(self) -> None:
@@ -96,12 +102,10 @@ class Fitness:
             True if ``self`` dominates ``other``.
         """
         slc = slice(None) if slc is None else slc
-        zipper = list(zip(self.wvalues, other.wvalues))
+        zipper = list(zip(self.wvalues, other.wvalues, strict=False))
         lesser = [a < b for a, b in zipper[slc]]
         equal = [a == b for a, b in zipper[slc]]
-        if any(lesser) or all(equal):
-            return False
-        return True
+        return not (any(lesser) or all(equal))
 
     def is_valid(self) -> bool:
         """Return whether this fitness has a complete set of values.
@@ -130,29 +134,38 @@ class Fitness:
         """Return whether this fitness is strictly worse than ``other``."""
         return self.wvalues < other.wvalues
 
-    def __eq__(self, other: Fitness) -> bool:
+    @override
+    def __eq__(self, other: object) -> bool:
         """Return whether the two fitnesses compare equal."""
+        if not isinstance(other, Fitness):
+            return NotImplemented
         return self.wvalues == other.wvalues
 
-    def __ne__(self, other: Fitness) -> bool:
+    @override
+    def __ne__(self, other: object) -> bool:
         """Return whether the two fitnesses compare unequal."""
+        if not isinstance(other, Fitness):
+            return NotImplemented
         return self.wvalues != other.wvalues
 
     def __len__(self) -> int:
         """Return the number of stored weighted values."""
         return len(self.wvalues)
 
+    @override
     def __hash__(self) -> int:
         """Hash the weighted values."""
         return hash(self.wvalues)
 
+    @override
     def __str__(self) -> str:
         """Return the unweighted values as a string."""
         return str(self.values)
 
+    @override
     def __repr__(self) -> str:
         """Return a reconstructable representation."""
-        return "{0}.{1}({2})".format(self.__module__, self.__class__.__name__, str(self.values))
+        return f"{self.__module__}.{self.__class__.__name__}({str(self.values)})"
 
     def __deepcopy__(self, memo: dict[int, Any]) -> Fitness:
         """Return a new Fitness with the same weighted values."""

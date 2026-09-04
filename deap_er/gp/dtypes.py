@@ -8,15 +8,30 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from .primitives import *
-from typing import Any
+from collections.abc import Iterator
+from typing import Any, Protocol
 
+from .primitives import *
 
 __all__ = ["GPIndividual", "GPMates", "GPMutant", "GPExprTypes", "GPTypedSets", "GPGraph"]
 
 
-type GPIndividual = list[Any] | PrimitiveTree
-""":meta private:"""
+class GPIndividual(Protocol):
+    """Prefix-tree individual used by genetic programming operators.
+
+    :meta private:
+    """
+
+    fitness: Any
+    root: Any
+    height: int
+
+    def search_subtree(self, begin: int) -> slice: ...
+    def __getitem__(self, key: int | slice, /) -> Any: ...
+    def __setitem__(self, key: int | slice, value: Any, /) -> None: ...
+    def __len__(self) -> int: ...
+    def __iter__(self) -> Iterator[Any]: ...
+
 
 type GPMates = tuple[GPIndividual, GPIndividual]
 """:meta private:"""

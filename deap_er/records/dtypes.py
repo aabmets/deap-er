@@ -8,11 +8,13 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from .hall_of_fame import *
-from .statistics import *
-from .logbook import *
+from typing import Any
+
 from deap_er.base.dtypes import Individual
 
+from .hall_of_fame import *
+from .logbook import *
+from .statistics import *
 
 __all__ = ["Hof", "Stats", "AlgoResult", "Individual"]
 
@@ -23,5 +25,5 @@ type Hof = HallOfFame | ParetoFront
 type Stats = Statistics | MultiStatistics
 """:meta private:"""
 
-type AlgoResult = tuple[list[Individual], Logbook]
+type AlgoResult = tuple[list[Any], Logbook]
 """:meta private:"""

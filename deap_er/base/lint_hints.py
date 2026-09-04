@@ -8,33 +8,36 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from typing import Callable
+from collections.abc import Callable
 from functools import partial
+from typing import Any
+
+from .dtypes import Individual
 
 
 class LintHints:
-    __test__: Callable
+    __test__: Callable[..., Any]
 
-    map: partial
-    clone: partial
+    map: partial[Any]
+    clone: partial[Any]
 
-    attr_int: Callable
-    attr_bool: Callable
-    attr_float: Callable
-    attr_item: Callable
+    attr_int: Callable[..., Any]
+    attr_bool: Callable[..., Any]
+    attr_float: Callable[..., Any]
+    attr_item: Callable[..., Any]
 
-    individual: Callable
-    individuals: Callable
-    population: Callable
-    populations: Callable
-    particle: Callable
-    particles: Callable
-    swarm: Callable
-    swarms: Callable
+    individual: Callable[..., Individual]
+    individuals: Callable[..., list[Individual]]
+    population: Callable[..., list[Individual]]
+    populations: Callable[..., list[list[Individual]]]
+    particle: Callable[..., Individual]
+    particles: Callable[..., list[Individual]]
+    swarm: Callable[..., list[Individual]]
+    swarms: Callable[..., list[list[Individual]]]
 
-    evaluate: Callable
-    select: Callable
-    mate: Callable
-    mutate: Callable
-    generate: Callable
-    update: Callable
+    evaluate: Callable[..., Any]
+    select: Callable[..., list[Individual]]
+    mate: Callable[..., tuple[Individual, Individual]]
+    mutate: Callable[..., tuple[Individual]]
+    generate: Callable[..., list[Individual]]
+    update: Callable[..., Any]
