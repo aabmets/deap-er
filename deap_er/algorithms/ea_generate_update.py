@@ -9,8 +9,9 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.base import Toolbox
-from deap_er.records import Logbook
 from deap_er.records.dtypes import *
+
+from ._loop import _new_logbook, _record_generation
 
 __all__ = ["ea_generate_update"]
 
@@ -36,8 +37,7 @@ def ea_generate_update(
     Returns:
         The final population and the logbook.
     """
-    logbook = Logbook()
-    logbook.header = ["gen", "nevals"] + (stats.fields if stats else [])
+    logbook = _new_logbook(stats)
 
     population: list[Individual] = []
     for gen in range(generations):
@@ -49,11 +49,15 @@ def ea_generate_update(
 
         toolbox.update(population)
 
-        if hof is not None:
-            hof.update(population)
-        record = stats.compile(population) if stats else {}
-        logbook.record(gen=gen, nevals=len(population), **record)
-        if verbose:
-            print(logbook.stream)
+        _record_generation(
+            logbook,
+            gen,
+            len(population),
+            population=population,
+            offspring=population,
+            hof=hof,
+            stats=stats,
+            verbose=verbose,
+        )
 
     return population, logbook

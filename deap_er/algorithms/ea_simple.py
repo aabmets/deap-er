@@ -9,9 +9,9 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.base import Toolbox
-from deap_er.records import Logbook
 from deap_er.records.dtypes import *
 
+from ._loop import _evaluate_invalid, _new_logbook, _record_generation
 from .variation import *
 
 __all__ = ["ea_simple"]
@@ -45,25 +45,25 @@ def ea_simple(
     Returns:
         The final population and the logbook.
     """
-    logbook = Logbook()
-    logbook.header = ["gen", "nevals"] + (stats.fields if stats else [])
+    logbook = _new_logbook(stats)
 
     for gen in range(1, generations + 1):
         offspring = toolbox.select(population, len(population))
         offspring = var_and(toolbox, offspring, cx_prob, mut_prob)
 
-        invalids = [ind for ind in offspring if not ind.fitness.is_valid()]
-        fitness = toolbox.map(toolbox.evaluate, invalids)
-        for ind, fit in zip(invalids, fitness, strict=False):
-            ind.fitness.values = fit
+        nevals = _evaluate_invalid(toolbox, offspring)
 
         population[:] = offspring
 
-        if hof is not None:
-            hof.update(offspring)
-        record = stats.compile(population) if stats else {}
-        logbook.record(gen=gen, nevals=len(invalids), **record)
-        if verbose:
-            print(logbook.stream)
+        _record_generation(
+            logbook,
+            gen,
+            nevals,
+            population=population,
+            offspring=offspring,
+            hof=hof,
+            stats=stats,
+            verbose=verbose,
+        )
 
     return population, logbook
