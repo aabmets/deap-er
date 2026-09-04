@@ -8,8 +8,9 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.base.dtypes import Individual
 from collections import defaultdict
+
+from deap_er.base.dtypes import Individual
 
 __all__ = ["sort_non_dominated"]
 

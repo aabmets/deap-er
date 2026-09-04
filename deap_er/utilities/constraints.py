@@ -8,11 +8,12 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.base.dtypes import *
-from collections.abc import Sequence, Callable
-from typing import Any
-from itertools import repeat
+from collections.abc import Callable, Sequence
 from functools import wraps
+from itertools import repeat
+from typing import Any
+
+from deap_er.base.dtypes import *
 
 __all__ = ["DeltaPenalty", "ClosestValidPenalty"]
 
@@ -70,7 +71,9 @@ class DeltaPenalty:
                 if not isinstance(dists, Sequence):
                     dists = repeat(dists)
 
-            return tuple(d - w * dist for d, w, dist in zip(self.delta, weights, dists))
+            return tuple(
+                d - w * dist for d, w, dist in zip(self.delta, weights, dists, strict=False)
+            )
 
         return wrapper
 
@@ -135,6 +138,8 @@ class ClosestValidPenalty:
                 if not isinstance(dists, Sequence):
                     dists = repeat(dists)
 
-            return tuple(f - w * self.alpha * d for f, w, d in zip(f_fbl, weights, dists))
+            return tuple(
+                f - w * self.alpha * d for f, w, d in zip(f_fbl, weights, dists, strict=False)
+            )
 
         return wrapper

@@ -8,11 +8,14 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.base.dtypes import Individual
-from .hypervolume import HyperVolume
 from collections.abc import Callable
 from typing import Any
+
 import numpy
+
+from deap_er.base.dtypes import Individual
+
+from .hypervolume import HyperVolume
 
 __all__ = ["least_contrib"]
 
@@ -33,7 +36,7 @@ def _compute_hv(data: tuple[numpy.ndarray, numpy.ndarray]) -> float:
 
 def least_contrib(
     population: list[Individual],
-    ref_point: list[float] | None = None,
+    ref_point: list[float] | numpy.ndarray | None = None,
     map_func: Callable[..., Any] | None = map,
 ) -> int | numpy.ndarray:
     """Return the index of the individual with the least hypervolume contribution.
@@ -55,18 +58,14 @@ def least_contrib(
         The index of the individual with the least hypervolume
         contribution.
     """
-    wvals = [ind.fitness.wvalues for ind in population]
-    wvals = numpy.array(wvals) * -1
-    if ref_point is None:
-        ref_point = numpy.max(wvals, axis=0) + 1
-    else:
-        ref_point = numpy.array(ref_point)
+    wvals = numpy.array([ind.fitness.wvalues for ind in population]) * -1
+    point = numpy.max(wvals, axis=0) + 1 if ref_point is None else numpy.array(ref_point)
 
     data = []
     for i in range(len(population)):
-        point_set = (wvals[:i], wvals[i + 1 :])
-        point_set = numpy.concatenate(point_set)
-        data.append((point_set, ref_point))
+        point_set = numpy.concatenate((wvals[:i], wvals[i + 1 :]))
+        data.append((point_set, point))
 
-    contrib_values = list(map_func(_compute_hv, data))
-    return numpy.argmax(contrib_values)
+    mapper = map if map_func is None else map_func
+    contrib_values = list(mapper(_compute_hv, data))
+    return int(numpy.argmax(contrib_values))

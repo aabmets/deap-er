@@ -8,9 +8,9 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from collections.abc import Iterator, Iterable
-from typing import Any
+from collections.abc import Iterable, Iterator
 from itertools import product
+from typing import Any
 
 __all__ = ["SortingNetwork"]
 
@@ -31,7 +31,7 @@ class SortingNetwork:
     def __init__(self, dimension: int, connectors: list[tuple[int, int]] | None = None) -> None:
         """See the class docstring."""
         self.dimension = dimension
-        self.data = list()
+        self.data: list[list[tuple[int, int]]] = []
         if connectors:
             for wire1, wire2 in connectors:
                 self.add_connector(wire1, wire2)
@@ -83,10 +83,7 @@ class SortingNetwork:
         Returns:
             True if the wires conflict, False otherwise.
         """
-        for wires in level:
-            if wires[1] >= wire1 and wires[0] <= wire2:
-                return True
-        return False
+        return any(wires[1] >= wire1 and wires[0] <= wire2 for wires in level)
 
     def add_connector(self, wire1: int, wire2: int) -> None:
         """Add a comparator between the two wires.
@@ -182,7 +179,7 @@ class SortingNetwork:
 
         network_draw = "".join(str_wires[0])
 
-        for line, space in zip(str_wires[1:], str_spaces):
+        for line, space in zip(str_wires[1:], str_spaces, strict=False):
             network_draw += "\n"
             network_draw += "".join(space)
             network_draw += "\n"

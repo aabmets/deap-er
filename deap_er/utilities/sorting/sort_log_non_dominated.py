@@ -8,14 +8,27 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.base.dtypes import Individual
+import bisect
 from collections import defaultdict
 from collections.abc import Callable, Sequence
-from typing import Any
 from operator import itemgetter
-import bisect
+from typing import Any, Literal, overload
+
+from deap_er.base.dtypes import Individual
 
 __all__ = ["sort_log_non_dominated"]
+
+
+@overload
+def sort_log_non_dominated(
+    individuals: list[Individual], sel_count: int, ffo: Literal[True]
+) -> list[Individual]: ...
+
+
+@overload
+def sort_log_non_dominated(
+    individuals: list[Individual], sel_count: int, ffo: Literal[False] = False
+) -> list[list[Individual]]: ...
 
 
 def sort_log_non_dominated(
@@ -40,7 +53,7 @@ def sort_log_non_dominated(
         return []
 
     unique_fits = defaultdict(list)
-    for i, ind in enumerate(individuals):
+    for ind in individuals:
         unique_fits[ind.fitness.wvalues].append(ind)
 
     obj = len(individuals[0].fitness.wvalues) - 1
@@ -81,7 +94,7 @@ def _is_dominated(wvalues1: Sequence[Any], wvalues2: Sequence[Any]) -> bool:
         and strictly better on at least one.
     """
     not_equal = False
-    for self_wvalue, other_wvalue in zip(wvalues1, wvalues2):
+    for self_wvalue, other_wvalue in zip(wvalues1, wvalues2, strict=False):
         if self_wvalue > other_wvalue:
             return False
         elif self_wvalue < other_wvalue:
@@ -267,10 +280,7 @@ def _split_b(
         Four subsets: high and low halves of ``best``, then of
         ``worst``.
     """
-    if len(best) > len(worst):
-        median_ = _median(best)
-    else:
-        median_ = _median(worst, itemgetter(obj))
+    median_ = _median(best) if len(best) > len(worst) else _median(worst, itemgetter(obj))
 
     best1_a, best2_a, best1_b, best2_b = _splitter(best, obj, median_)
     worst1_a, worst2_a, worst1_b, worst2_b = _splitter(worst, obj, median_)

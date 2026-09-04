@@ -8,10 +8,12 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+import numpy
+
 from deap_er.base.dtypes import Individual
+
 from .multi_list import MultiList
 from .node import Node
-import numpy
 
 __all__ = ["hypervolume", "HyperVolume"]
 
@@ -31,13 +33,9 @@ def hypervolume(population: list[Individual], ref_point: list[float] | None = No
     Returns:
         The hypervolume of the population.
     """
-    wvals = [ind.fitness.wvalues for ind in population]
-    wvals = numpy.array(wvals) * -1
-    if ref_point is None:
-        ref_point = numpy.max(wvals, axis=0) + 1
-    else:
-        ref_point = numpy.array(ref_point)
-    hv = HyperVolume(ref_point)
+    wvals = numpy.array([ind.fitness.wvalues for ind in population]) * -1
+    point = numpy.max(wvals, axis=0) + 1 if ref_point is None else numpy.array(ref_point)
+    hv = HyperVolume(point)
     return hv.compute(wvals)
 
 
@@ -115,13 +113,13 @@ class HyperVolume:
         def in_bounds() -> bool:
             a = q.prev[dim_index].cargo[dim_index] >= bounds[dim_index]
             b = q.cargo[dim_index] > bounds[dim_index]
-            return True if a or b else False
+            return bool(a or b)
 
         hvol = 0.0
         if length == 0:
             return hvol
         elif dim_index == 0:
-            return -sentinel.next[0].cargo[0]
+            return float(-sentinel.next[0].cargo[0])
         elif dim_index == 1:
             q = sentinel.next[1]
             h = q.cargo[0]
@@ -133,7 +131,7 @@ class HyperVolume:
                 q = p
                 p = q.next[1]
             hvol += h * q.cargo[1]
-            return hvol
+            return float(hvol)
         else:
             p = sentinel
             q = p.prev[dim_index]
@@ -165,4 +163,4 @@ class HyperVolume:
                 p = p.next[dim_index]
                 inception()
             hvol -= q.area[dim_index] * q.cargo[dim_index]
-            return hvol
+            return float(hvol)

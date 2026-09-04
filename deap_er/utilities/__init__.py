@@ -8,9 +8,9 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from .hypervolume import *
-from .sorting import *
 from .bm_decors import *
 from .constraints import *
+from .hypervolume import *
 from .initializers import *
 from .metrics import *
+from .sorting import *

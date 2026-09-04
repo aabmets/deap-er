@@ -9,6 +9,7 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from collections.abc import Iterable, MutableSequence
+from typing import override
 
 from .node import Node
 
@@ -30,6 +31,7 @@ class MultiList:
         self.sentinel.next = [self.sentinel] * dimensions
         self.sentinel.prev = [self.sentinel] * dimensions
 
+    @override
     def __str__(self) -> str:
         """Return a per-dimension listing of node cargo."""
         strings = list()
@@ -93,7 +95,7 @@ class MultiList:
             penultimate.next[index] = node
 
     @staticmethod
-    def remove(node: Node, index: int, bounds: MutableSequence) -> Node:
+    def remove(node: Node, index: int, bounds: MutableSequence[float]) -> Node:
         """Unlink ``node`` from lists in dimensions below ``index``.
 
         Tightens ``bounds`` when the removed cargo is smaller on a
@@ -117,7 +119,7 @@ class MultiList:
         return node
 
     @staticmethod
-    def reinsert(node: Node, index: int, bounds: MutableSequence) -> None:
+    def reinsert(node: Node, index: int, bounds: MutableSequence[float]) -> None:
         """Restore ``node`` into lists in dimensions below ``index``.
 
         Tightens ``bounds`` when the restored cargo is smaller on a

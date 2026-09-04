@@ -8,10 +8,12 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.base.dtypes import *
-from typing import Any
 from math import hypot, sqrt
+from typing import Any
+
 import numpy
+
+from deap_er.base.dtypes import *
 
 
 def nsga_diversity(population: list[Individual], first: Individual, last: Individual) -> float:
@@ -41,7 +43,7 @@ def nsga_diversity(population: list[Individual], first: Individual, last: Indivi
             f_.fitness.values[0] - s_.fitness.values[0], f_.fitness.values[1] - s_.fitness.values[1]
         )
 
-    zipper = zip(population[:-1], population[1:])
+    zipper = zip(population[:-1], population[1:], strict=False)
     dt = [fn(first, second) for first, second in zipper]
 
     if len(population) == 1:
@@ -77,7 +79,7 @@ def nsga_convergence(population: list[Individual], optimal: list[Individual]) ->
             if dist < distances[-1]:
                 distances[-1] = dist
         distances[-1] = sqrt(distances[-1])
-    return sum(distances) / len(distances)
+    return float(sum(distances) / len(distances))
 
 
 def inv_gen_dist(ind1: Individual, ind2: Individual) -> Any:
@@ -96,6 +98,6 @@ def inv_gen_dist(ind1: Individual, ind2: Individual) -> Any:
     """
     from scipy import spatial
 
-    distances = spatial.distance.cdist(ind1, ind2)
+    distances = spatial.distance.cdist(list(ind1), list(ind2))
     minima = numpy.min(distances, axis=0)
     return numpy.average(minima)

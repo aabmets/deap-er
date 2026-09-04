@@ -8,6 +8,6 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from .sort_non_dominated import *
 from .sort_log_non_dominated import *
+from .sort_non_dominated import *
 from .sorting_network import *

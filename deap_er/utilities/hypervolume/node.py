@@ -11,8 +11,8 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any
-from operator import gt, ge, le, lt, eq, ne
+from operator import eq, ge, gt, le, lt, ne
+from typing import Any, override
 
 
 class Node:
@@ -28,9 +28,9 @@ class Node:
 
     def __init__(self, dimensions: int, cargo: tuple[Any, ...] | None = None) -> None:
         """See the class docstring."""
-        self.cargo = cargo
-        self.next = [None] * dimensions
-        self.prev = [None] * dimensions
+        self.cargo: Any = cargo
+        self.next: list[Any] = [None] * dimensions
+        self.prev: list[Any] = [None] * dimensions
         self.ignore = 0
         self.area = [0.0] * dimensions
         self.volume = [0.0] * dimensions
@@ -49,7 +49,7 @@ class Node:
         """
         if self.cargo is None or other.cargo is None:
             return False
-        zipper = zip(self.cargo, other.cargo)
+        zipper = zip(self.cargo, other.cargo, strict=False)
         true = [op(a, b) for a, b in zipper]
         return all(true)
 
@@ -69,18 +69,26 @@ class Node:
         """Return whether every cargo coordinate is less than ``other``'s."""
         return self.compare(other, lt)
 
-    def __eq__(self, other: Node) -> bool:
+    @override
+    def __eq__(self, other: object) -> bool:
         """Return whether the cargo coordinates compare equal."""
+        if not isinstance(other, Node):
+            return NotImplemented
         return self.compare(other, eq)
 
-    def __ne__(self, other: Node) -> bool:
+    @override
+    def __ne__(self, other: object) -> bool:
         """Return whether the cargo coordinates compare unequal."""
+        if not isinstance(other, Node):
+            return NotImplemented
         return self.compare(other, ne)
 
+    @override
     def __str__(self) -> str:
         """Return the cargo as a string."""
         return str(self.cargo)
 
+    @override
     def __hash__(self) -> int:
         """Return the hash of the cargo."""
         return hash(self.cargo)

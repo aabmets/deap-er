@@ -8,10 +8,11 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from typing import Any
 from collections.abc import Callable, Iterable
-from itertools import repeat
 from functools import wraps
+from itertools import repeat
+from typing import Any
+
 import numpy
 
 __all__ = ["Translate", "Rotate", "Scale", "Noise", "bin2float"]
@@ -28,7 +29,7 @@ class Translate:
             individual.
     """
 
-    vector = None
+    vector: list[float]
 
     def __init__(self, vector: list[float]) -> None:
         """See the class docstring."""
@@ -47,11 +48,12 @@ class Translate:
 
         @wraps(func)
         def wrapper(individual: Any, *args: Any, **kwargs: Any) -> Any:
-            translated = [v - t for v, t in zip(individual, self.vector)]
+            translated = [v - t for v, t in zip(individual, self.vector, strict=False)]
             return func(translated, *args, **kwargs)
 
-        wrapper.translate = self.translate
-        return wrapper
+        decorated: Any = wrapper
+        decorated.translate = self.translate
+        return decorated
 
     def translate(self, vector: list[float]) -> None:
         """Update the translation vector.
@@ -76,7 +78,7 @@ class Rotate:
             length of the individual.
     """
 
-    matrix = None
+    matrix: numpy.ndarray
 
     def __init__(self, matrix: numpy.ndarray) -> None:
         """See the class docstring."""
@@ -98,8 +100,9 @@ class Rotate:
             rotated = numpy.dot(self.matrix, individual)
             return func(rotated, *args, **kwargs)
 
-        wrapper.rotate = self.rotate
-        return wrapper
+        decorated: Any = wrapper
+        decorated.rotate = self.rotate
+        return decorated
 
     def rotate(self, matrix: numpy.ndarray) -> None:
         """Update the rotation matrix.
@@ -124,7 +127,7 @@ class Scale:
             individual.
     """
 
-    factor = None
+    factor: tuple[float, ...]
 
     def __init__(self, factor: list[float]) -> None:
         """See the class docstring."""
@@ -143,11 +146,12 @@ class Scale:
 
         @wraps(func)
         def wrapper(individual: Any, *args: Any, **kwargs: Any) -> Any:
-            scaled = [v * f for v, f in zip(individual, self.factor)]
+            scaled = [v * f for v, f in zip(individual, self.factor, strict=False)]
             return func(scaled, *args, **kwargs)
 
-        wrapper.scale = self.scale
-        return wrapper
+        decorated: Any = wrapper
+        decorated.scale = self.scale
+        return decorated
 
     def scale(self, factor: list[float]) -> None:
         """Update the scale factors.
@@ -174,7 +178,7 @@ class Noise:
             unchanged.
     """
 
-    rand_funcs = None
+    rand_funcs: Iterable[Callable[..., Any] | None]
 
     def __init__(self, funcs: Callable[..., Any] | list[Callable[..., Any] | None]) -> None:
         """See the class docstring."""
@@ -197,15 +201,16 @@ class Noise:
             if not isinstance(result, Iterable):
                 result = (result,)
             noisy = list()
-            for r, f in zip(result, self.rand_funcs):
+            for r, f in zip(result, self.rand_funcs, strict=False):
                 if f is None:
                     noisy.append(r)
                 else:
                     noisy.append(r + f())
             return tuple(noisy)
 
-        wrapper.noise = self.noise
-        return wrapper
+        decorated: Any = wrapper
+        decorated.noise = self.noise
+        return decorated
 
     def noise(self, funcs: Callable[..., Any] | list[Callable[..., Any] | None]) -> None:
         """Update the noise generators.
@@ -216,8 +221,10 @@ class Noise:
         Args:
             funcs: The noise function or functions.
         """
-        if not isinstance(funcs, Iterable):
+        if callable(funcs) and not isinstance(funcs, list):
             self.rand_funcs = repeat(funcs)
+        else:
+            self.rand_funcs = funcs
 
 
 def bin2float(min_: float, max_: float, n_bits: int) -> Callable[..., Any]:
