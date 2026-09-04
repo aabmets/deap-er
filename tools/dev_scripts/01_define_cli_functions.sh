@@ -18,6 +18,7 @@ _deap_er_enable_prompt() {
     PS1="${_DEAP_ER_PROMPT_PREFIX}${PS1-}"
     export PS1
     _DEAP_ER_PROMPT_ACTIVE=1
+    return 0
 }
 
 _deap_er_disable_prompt() {
@@ -48,12 +49,14 @@ _run_allure() {
     fi
 
     "$allure_bin" "$@"
+    return $?
 }
 
 pycov() {
     local report_path="$(pwd)/reports/coverage-html/index.html"
     if [[ -f "$report_path" ]]; then
         cmd.exe /c start "" "$(wslpath -w "$report_path")" 2>/dev/null
+        return 0
     else
         >&2 echo "ERROR: Coverage report not found at '${report_path}'."
         return 1
@@ -64,6 +67,7 @@ rtfm() {
     local docs_path="$(pwd)/site/index.html"
     if [[ -f "$docs_path" ]]; then
         cmd.exe /c start "" "$(wslpath -w "$docs_path")" 2>/dev/null
+        return 0
     else
         >&2 echo "ERROR: Documentation site not found at '${docs_path}'."
         return 1
@@ -159,6 +163,7 @@ loadenv() {
     # shellcheck disable=SC1091
     source "$env_file"
     set +a
+    return 0
 }
 
 exitdev() {
@@ -175,4 +180,5 @@ exitdev() {
         >&2 echo "ERROR: Dev environment is not active."
         return 1
     fi
+    return 0
 }
