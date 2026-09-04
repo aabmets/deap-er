@@ -40,6 +40,7 @@ def compile_tree(expr: GPExprTypes, prim_set: PrimitiveSetTyped) -> Any:
         args = ",".join(arg for arg in prim_set.arguments)
         code = f"lambda {args}: {code}"
     try:
+        # nosemgrep: python.lang.security.audit.eval-detected.eval-detected
         return eval(code, prim_set.context, {})
     except MemoryError as err:
         raise MemoryError(

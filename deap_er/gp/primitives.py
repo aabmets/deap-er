@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import abc
+import ast
 import copy
 import re
 from collections import defaultdict, deque
@@ -511,9 +512,9 @@ class PrimitiveTree(list[Any]):
             A tree populated with the deserialized primitives.
 
         Raises:
-            TypeError: If a token cannot be evaluated, or if a
-                primitive or terminal type does not match the expected
-                type.
+            TypeError: If a token is not a registered primitive
+                and is not a Python literal, or if a primitive or
+                terminal type does not match the expected type.
         """
         tokens = re.split("[ \t\n\r\f\v(),]", string)
         expr = list()
@@ -535,8 +536,8 @@ class PrimitiveTree(list[Any]):
                     ret_types.extendleft(reversed(primitive.args))
             else:
                 try:
-                    token = eval(token)
-                except NameError as err:
+                    token = ast.literal_eval(token)
+                except (ValueError, SyntaxError) as err:
                     raise TypeError(f"Unable to evaluate terminal: {token}.") from err
                 if ret_type is None:
                     ret_type = type(token)

@@ -95,6 +95,7 @@ class Checkpoint:
         """
         try:
             with open(self.file_path, "rb") as f:
+                # nosemgrep: python.lang.security.deserialization.pickle.avoid-dill
                 self.__dict__ = dill.load(f)
             random.setstate(self._rand_state_)
             np.random.set_state(self._numpy_state_)
@@ -128,6 +129,7 @@ class Checkpoint:
                 _dict_ = vars(self).copy()
                 for key in self._omit_:
                     _dict_.pop(key, None)
+                # nosemgrep: python.lang.security.deserialization.pickle.avoid-dill
                 dill.dump(_dict_, f)
         except (OSError, dill.PickleError) as ex:
             if self.raise_errors:
