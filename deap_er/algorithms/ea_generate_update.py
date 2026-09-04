@@ -40,7 +40,7 @@ def ea_generate_update(
     logbook = _new_logbook(stats)
 
     population: list[Individual] = []
-    for gen in range(generations):
+    for gen in range(1, generations + 1):
         population = toolbox.generate()
 
         fitness = toolbox.map(toolbox.evaluate, population)
