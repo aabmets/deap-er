@@ -209,12 +209,12 @@ def bm_h1(individual: Individual) -> tuple[float]:
             - :math:`f(\mathbf{x}) = \frac{\sin(x_1 - \frac{x_2}{8})^2 +                \sin(x_2 + \frac{x_1}{8})^2}{\sqrt{(x_1 - 8.6998)^2 +                (x_2 - 6.7665)^2} + 1}`
     """
 
-    def compute_num():
+    def compute_num() -> float:
         var_1 = sin(individual[0] - individual[1] / 8) ** 2
         var_2 = sin(individual[1] + individual[0] / 8) ** 2
         return var_1 + var_2
 
-    def compute_denum():
+    def compute_denum() -> float:
         var_1 = (individual[0] - 8.6998) ** 2
         var_2 = (individual[1] - 6.7665) ** 2
         return (var_1 + var_2) ** 0.5 + 1

@@ -54,7 +54,7 @@ def bm_kursawe(individual: Individual) -> tuple[float, float]:
        Returns :math:`f_{1}(\mathbf{x})` and :math:`f_{2}(\mathbf{x})`.
     """
 
-    def fn(x, y):
+    def fn(x: float, y: float) -> float:
         return -10 * exp(-0.2 * sqrt(x * x + y * y))
 
     f1 = sum(fn(x, y) for x, y in zip(individual[:-1], individual[1:]))
@@ -321,7 +321,7 @@ def bm_zdt_6(individual: Individual) -> tuple[float, float]:
     return f1, f2
 
 
-def bm_dtlz_1(individual: Individual, count: int) -> list:
+def bm_dtlz_1(individual: Individual, count: int) -> list[float]:
     r"""Evaluate the DTLZ1 multi-objective function.
 
     Returns a list of size ``count``. The individual must have at
@@ -355,11 +355,11 @@ def bm_dtlz_1(individual: Individual, count: int) -> list:
        of the individual in :math:`n > m` dimensions.
     """
 
-    def fn_xi(xi):
+    def fn_xi(xi: float) -> float:
         _cos = cos(20 * pi * (xi - 0.5))
         return (xi - 0.5) ** 2 - _cos
 
-    def fn_m(m):
+    def fn_m(m: int) -> float:
         rdc = reduce(mul, individual[:m], 1)
         return 0.5 * rdc * (1 - individual[m]) * (1 + gval)
 
@@ -370,7 +370,7 @@ def bm_dtlz_1(individual: Individual, count: int) -> list:
     return fit
 
 
-def bm_dtlz_2(individual: Individual, count: int) -> list:
+def bm_dtlz_2(individual: Individual, count: int) -> list[float]:
     r"""Evaluate the DTLZ2 multi-objective function.
 
     Returns a list of size ``count``. The individual must have at
@@ -406,7 +406,7 @@ def bm_dtlz_2(individual: Individual, count: int) -> list:
     return _dtlz_helper_1(individual, count, gval)
 
 
-def bm_dtlz_3(individual: Individual, count: int) -> list:
+def bm_dtlz_3(individual: Individual, count: int) -> list[float]:
     r"""Evaluate the DTLZ3 multi-objective function.
 
     Returns a list of size ``count``. The individual must have at
@@ -438,7 +438,7 @@ def bm_dtlz_3(individual: Individual, count: int) -> list:
        of the individual in :math:`n > m` dimensions.
     """
 
-    def fn(xi):
+    def fn(xi: float) -> float:
         _cos = cos(20 * pi * (xi - 0.5))
         return (xi - 0.5) ** 2 - _cos
 
@@ -447,7 +447,7 @@ def bm_dtlz_3(individual: Individual, count: int) -> list:
     return _dtlz_helper_1(individual, count, gval)
 
 
-def bm_dtlz_4(individual: Individual, count: int, alpha: float) -> list:
+def bm_dtlz_4(individual: Individual, count: int, alpha: float) -> list[float]:
     r"""Evaluate the DTLZ4 multi-objective function.
 
     Returns a list of size ``count``. The individual must have at
@@ -484,7 +484,7 @@ def bm_dtlz_4(individual: Individual, count: int, alpha: float) -> list:
     return _dtlz_helper_1(individual, count, gval, alpha)
 
 
-def bm_dtlz_5(individual: Individual, count: int) -> list:
+def bm_dtlz_5(individual: Individual, count: int) -> list[float]:
     r"""Evaluate the DTLZ5 multi-objective function.
 
     Returns a list of size ``count``. The individual must have at
@@ -519,7 +519,7 @@ def bm_dtlz_5(individual: Individual, count: int) -> list:
     return _dtlz_helper_2(individual, count, gval)
 
 
-def bm_dtlz_6(individual: Individual, count: int) -> list:
+def bm_dtlz_6(individual: Individual, count: int) -> list[float]:
     r"""Evaluate the DTLZ6 multi-objective function.
 
     Returns a list of size ``count``. The individual must have at
@@ -554,7 +554,7 @@ def bm_dtlz_6(individual: Individual, count: int) -> list:
     return _dtlz_helper_2(individual, count, gval)
 
 
-def bm_dtlz_7(individual: Individual, count: int) -> list:
+def bm_dtlz_7(individual: Individual, count: int) -> list[float]:
     r"""Evaluate the DTLZ7 multi-objective function.
 
     Returns a list of size ``count``. The individual must have at
@@ -586,7 +586,7 @@ def bm_dtlz_7(individual: Individual, count: int) -> list:
        of the individual in :math:`n > m` dimensions.
     """
 
-    def fn(a):
+    def fn(a: float) -> float:
         return a / (1 + gval) * (1 + sin(3 * pi * a))
 
     gval = sum([a for a in individual[count - 1 :]])
@@ -599,7 +599,9 @@ def bm_dtlz_7(individual: Individual, count: int) -> list:
     return fit
 
 
-def _dtlz_helper_1(individual, count, gval, alpha=1.0) -> list:
+def _dtlz_helper_1(
+    individual: Individual, count: int, gval: float, alpha: float = 1.0
+) -> list[float]:
     """Build DTLZ2-style cosine/sine objectives.
 
     Args:
@@ -612,7 +614,7 @@ def _dtlz_helper_1(individual, count, gval, alpha=1.0) -> list:
         Objective values of length ``count``.
     """
 
-    def fn(m):
+    def fn(m: int) -> float:
         vals_ = [cos(0.5 * xi**alpha * pi) for xi in xc[:m]]
         rdc = reduce(mul, vals_, 1)
         _sin = sin(0.5 * xc[m] ** alpha * pi)
@@ -626,7 +628,7 @@ def _dtlz_helper_1(individual, count, gval, alpha=1.0) -> list:
     return fit
 
 
-def _dtlz_helper_2(individual, count, gval) -> list:
+def _dtlz_helper_2(individual: Individual, count: int, gval: float) -> list[float]:
     """Build DTLZ5-style degenerate-front objectives.
 
     Args:
@@ -638,7 +640,7 @@ def _dtlz_helper_2(individual, count, gval) -> list:
         Objective values of length ``count``.
     """
 
-    def theta(x):
+    def theta(x: float) -> float:
         return pi / (4.0 * (1 + gval)) * (1 + 2 * gval * x)
 
     vals = [cos(theta(a)) for a in individual[1:]]

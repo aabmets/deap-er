@@ -10,7 +10,8 @@
 #
 from deap_er.base.dtypes import *
 from types import MappingProxyType
-from typing import Iterable, Optional
+from typing import Any
+from collections.abc import Iterable
 import itertools
 import random
 import math
@@ -54,7 +55,7 @@ class MovingPeaks:
        =================== ========== =================================================================================
     """
 
-    def __init__(self, dimensions: int, **kwargs: Optional):
+    def __init__(self, dimensions: int, **kwargs: Any) -> None:
         """Build a moving-peaks landscape.
 
         Args:
@@ -99,7 +100,7 @@ class MovingPeaks:
             self.peaks_height = [uniform_height for _ in range(n_peaks)]
         else:
 
-            def rand_height():
+            def rand_height() -> float:
                 return random.uniform(self.min_height, self.max_height)
 
             self.peaks_height = [rand_height() for _ in range(n_peaks)]
@@ -111,7 +112,7 @@ class MovingPeaks:
             self.peaks_width = [uniform_width for _ in range(n_peaks)]
         else:
 
-            def rand_width():
+            def rand_width() -> float:
                 return random.uniform(self.min_width, self.max_width)
 
             self.peaks_width = [rand_width() for _ in range(n_peaks)]
@@ -164,7 +165,7 @@ class MovingPeaks:
         return (fitness,)
 
     @property
-    def global_maximum(self) -> tuple:
+    def global_maximum(self) -> tuple[float, list[float]]:
         """Returns the value and position of the largest peak."""
         potential_max = list()
         zipper = zip(self.peaks_function, self.peaks_position, self.peaks_height, self.peaks_width)
@@ -175,7 +176,7 @@ class MovingPeaks:
         return max(potential_max)
 
     @property
-    def sorted_maxima(self) -> list:
+    def sorted_maxima(self) -> list[tuple[float, list[float]]]:
         """Return visible peak values and positions, largest first."""
         maximums = list()
         zipper = zip(self.peaks_function, self.peaks_position, self.peaks_height, self.peaks_width)
@@ -192,11 +193,11 @@ class MovingPeaks:
         return self._offline_error / self.nevals
 
     @property
-    def current_error(self) -> Optional[float]:
+    def current_error(self) -> float | None:
         """Returns the current error of the landscape."""
         return self._error
 
-    def change_peaks(self):
+    def change_peaks(self) -> None:
         """Changes the position, the height, the width and the number of peaks."""
         self._optimum = None
 
@@ -272,7 +273,9 @@ class MovingPeaks:
             self.peaks_position[i] = new_position
             self.last_change_vector[i] = final_shift
 
-            def change_shape(axis, axis_min, axis_max, sev):
+            def change_shape(
+                axis: list[float], axis_min: float, axis_max: float, sev: float
+            ) -> None:
                 change = random.gauss(0, 1) * sev
                 new_value = change + axis[i]
                 if new_value < axis_min:
@@ -290,7 +293,9 @@ class MPFuncs:
     """Peak functions for Moving Peaks custom presets."""
 
     @staticmethod
-    def pf1(individual: Individual, positions: Iterable, height: float, width: float) -> float:
+    def pf1(
+        individual: Individual, positions: Iterable[float], height: float, width: float
+    ) -> float:
         """The peak function of the :data:`DEFAULT` preset.
 
         Args:
@@ -308,7 +313,9 @@ class MPFuncs:
         return height / (1 + width * value)
 
     @staticmethod
-    def pf2(individual: Individual, positions: Iterable, height: float, width: float) -> float:
+    def pf2(
+        individual: Individual, positions: Iterable[float], height: float, width: float
+    ) -> float:
         """The peak function of the :data:`ALT1` and :data:`ALT2` presets.
 
         Args:
@@ -326,7 +333,7 @@ class MPFuncs:
         return height - width * math.sqrt(value)
 
     @staticmethod
-    def pf3(individual: Individual, positions: Iterable, height: float, *_) -> float:
+    def pf3(individual: Individual, positions: Iterable[float], height: float, *_: Any) -> float:
         """An optional peak function.
 
         Args:
