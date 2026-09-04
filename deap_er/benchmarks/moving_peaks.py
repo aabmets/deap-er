@@ -77,7 +77,8 @@ class MovingPeaks:
         self.number_severity: float = 0.0
         if isinstance(n_peaks_val, Sequence) and not isinstance(n_peaks_val, (str, bytes)):
             self.min_peaks, n_peaks, self.max_peaks = n_peaks_val
-            self.number_severity = float(sc["number_severity"])
+            severity = sc["change_severity"]
+            self.number_severity = 0.0 if severity is None else float(severity)
         else:
             n_peaks = int(n_peaks_val)
 
@@ -212,7 +213,9 @@ class MovingPeaks:
 
     @property
     def offline_error(self) -> float:
-        """Returns the offline error of the landscape."""
+        """Returns the offline error of the landscape, or 0.0 before the first evaluation."""
+        if not self.nevals:
+            return 0.0
         return float(self._offline_error / self.nevals)
 
     @property
