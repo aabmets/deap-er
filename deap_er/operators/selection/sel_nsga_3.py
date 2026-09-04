@@ -9,6 +9,7 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.utilities.sorting import *
+from deap_er.base.dtypes import Individual
 from itertools import chain
 from numpy import ndarray
 import numpy
@@ -28,7 +29,7 @@ class SelNSGA3WithMemory:
             or ``'standard'``.
     """
 
-    def __init__(self, ref_points: ndarray, sorting: str = "log"):
+    def __init__(self, ref_points: ndarray, sorting: str = "log") -> None:
         """See the class docstring."""
         self.ref_points = ref_points
         self.sorting = sorting
@@ -36,7 +37,7 @@ class SelNSGA3WithMemory:
         self.worst_point = numpy.full((1, ref_points.shape[1]), -numpy.inf)
         self.extreme_points = None
 
-    def __call__(self, individuals: list, sel_count: int) -> list:
+    def __call__(self, individuals: list[Individual], sel_count: int) -> list[Individual]:
         """Select individuals for the next generation.
 
         Args:
@@ -60,15 +61,15 @@ class SelNSGA3WithMemory:
 
 
 def sel_nsga_3(
-    individuals: list,
+    individuals: list[Individual],
     sel_count: int,
     ref_points: ndarray,
     sorting: str = "log",
-    best_point: ndarray = None,
-    worst_point: ndarray = None,
-    extreme_points: ndarray = None,
-    _memory: SelNSGA3WithMemory = None,
-) -> list:
+    best_point: ndarray | None = None,
+    worst_point: ndarray | None = None,
+    extreme_points: ndarray | None = None,
+    _memory: SelNSGA3WithMemory | None = None,
+) -> list[Individual]:
     """Select the next generation with NSGA-III.
 
     Args:
@@ -137,7 +138,7 @@ def sel_nsga_3(
 
 
 def _find_extreme_points(
-    fitness: ndarray, best_point: ndarray, extreme_points: ndarray = None
+    fitness: ndarray, best_point: ndarray, extreme_points: ndarray | None = None
 ) -> ndarray:
     """Find one extreme point per objective.
 
@@ -205,7 +206,7 @@ def _find_intercepts(
 
 def _associate_to_niche(
     fitness: ndarray, reference_points: ndarray, best_point: ndarray, intercepts: ndarray
-) -> tuple:
+) -> tuple[ndarray, ndarray]:
     """Assign each individual to the nearest reference-point niche.
 
     Args:
@@ -234,8 +235,12 @@ def _associate_to_niche(
 
 
 def _select_from_niche(
-    individuals: list, count: int, niches: ndarray, distances: ndarray, niche_counts: ndarray
-) -> list:
+    individuals: list[Individual],
+    count: int,
+    niches: ndarray,
+    distances: ndarray,
+    niche_counts: ndarray,
+) -> list[Individual]:
     """Fill the remaining slots from the last front by niche.
 
     Prefers under-represented niches. An empty niche takes its closest

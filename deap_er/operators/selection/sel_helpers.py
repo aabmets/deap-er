@@ -8,13 +8,14 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from deap_er.base.dtypes import Individual
 import numpy
 
 
 __all__ = ["assign_crowding_dist", "uniform_reference_points"]
 
 
-def assign_crowding_dist(individuals: list) -> None:
+def assign_crowding_dist(individuals: list[Individual]) -> None:
     """Assign a crowding distance to each individual's fitness.
 
     The distance is stored on the ``crowding_dist`` attribute of each
@@ -45,7 +46,7 @@ def assign_crowding_dist(individuals: list) -> None:
 
 
 def uniform_reference_points(
-    objectives: int, ref_ppo: int = 4, scaling: float = None
+    objectives: int, ref_ppo: int = 4, scaling: float | None = None
 ) -> numpy.ndarray:
     """Generate reference points uniformly on the unit simplex.
 
@@ -62,7 +63,9 @@ def uniform_reference_points(
         Uniform reference points.
     """
 
-    def _recursive(ref, ovs, left, total, depth) -> list:
+    def _recursive(
+        ref: numpy.ndarray, ovs: int, left: int, total: int, depth: int
+    ) -> list[numpy.ndarray]:
         """Fill remaining objectives of one Das-Dennis reference point.
 
         Args:

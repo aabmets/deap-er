@@ -8,6 +8,7 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from deap_er.base.dtypes import Individual
 import random
 import math
 
@@ -15,7 +16,7 @@ import math
 __all__ = ["sel_spea_2"]
 
 
-def sel_spea_2(individuals: list, sel_count: int) -> list:
+def sel_spea_2(individuals: list[Individual], sel_count: int) -> list[Individual]:
     """Select the next generation with SPEA-II.
 
     The pool is usually larger than ``sel_count``. If the two sizes
@@ -127,7 +128,7 @@ def sel_spea_2(individuals: list, sel_count: int) -> list:
     return [individuals[i] for i in chosen]
 
 
-def _partition(array: list, begin: int, end: int) -> int:
+def _partition(array: list[Individual], begin: int, end: int) -> int:
     """Partition a slice of ``array`` around the value at ``begin``.
 
     The slice ``array[begin:end + 1]`` is modified in place.
@@ -156,7 +157,7 @@ def _partition(array: list, begin: int, end: int) -> int:
             return j
 
 
-def _randomized_partition(array: list, begin: int, end: int) -> int:
+def _randomized_partition(array: list[Individual], begin: int, end: int) -> int:
     """Partition a slice of ``array`` around a randomly chosen pivot.
 
     The slice ``array[begin:end + 1]`` is modified in place.
@@ -174,7 +175,7 @@ def _randomized_partition(array: list, begin: int, end: int) -> int:
     return _partition(array, begin, end)
 
 
-def _randomized_select(array: list, begin: int, end: int, i: float) -> int:
+def _randomized_select(array: list[Individual], begin: int, end: int, i: float) -> int:
     """Return the element of rank ``i`` in a slice of ``array``.
 
     The slice ``array[begin:end + 1]`` is modified in place. ``i``

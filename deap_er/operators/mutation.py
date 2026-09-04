@@ -25,7 +25,7 @@ __all__ = [
 ]
 
 
-def _pre_process(name: str, var: NumOrSeq, size: int) -> Sequence:
+def _pre_process(name: str, var: NumOrSeq, size: int) -> Sequence[int] | Sequence[float]:
     """Broadcast a scalar parameter or validate a per-gene sequence.
 
     Args:

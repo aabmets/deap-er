@@ -8,6 +8,7 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from deap_er.base.dtypes import Individual
 from operator import attrgetter
 import random
 
@@ -21,7 +22,7 @@ __all__ = [
 ]
 
 
-def sel_random(individuals: list, sel_count: int) -> list:
+def sel_random(individuals: list[Individual], sel_count: int) -> list[Individual]:
     """Select ``sel_count`` individuals uniformly at random.
 
     Args:
@@ -34,7 +35,9 @@ def sel_random(individuals: list, sel_count: int) -> list:
     return [random.choice(individuals) for _ in range(sel_count)]
 
 
-def sel_best(individuals: list, sel_count: int, fit_attr: str = "fitness") -> list:
+def sel_best(
+    individuals: list[Individual], sel_count: int, fit_attr: str = "fitness"
+) -> list[Individual]:
     """Select the ``sel_count`` best individuals.
 
     Args:
@@ -49,7 +52,9 @@ def sel_best(individuals: list, sel_count: int, fit_attr: str = "fitness") -> li
     return sorted(individuals, key=key, reverse=True)[:sel_count]
 
 
-def sel_worst(individuals: list, sel_count: int, fit_attr: str = "fitness") -> list:
+def sel_worst(
+    individuals: list[Individual], sel_count: int, fit_attr: str = "fitness"
+) -> list[Individual]:
     """Select the ``sel_count`` worst individuals.
 
     Args:
@@ -64,7 +69,9 @@ def sel_worst(individuals: list, sel_count: int, fit_attr: str = "fitness") -> l
     return sorted(individuals, key=key)[:sel_count]
 
 
-def sel_roulette(individuals: list, sel_count: int, fit_attr: str = "fitness") -> list:
+def sel_roulette(
+    individuals: list[Individual], sel_count: int, fit_attr: str = "fitness"
+) -> list[Individual]:
     """Select ``sel_count`` individuals by roulette-wheel sampling.
 
     Each draw uses only the first objective of ``fit_attr``. The
@@ -95,8 +102,8 @@ def sel_roulette(individuals: list, sel_count: int, fit_attr: str = "fitness") -
 
 
 def sel_stochastic_universal_sampling(
-    individuals: list, sel_count: int, fit_attr: str = "fitness"
-) -> list:
+    individuals: list[Individual], sel_count: int, fit_attr: str = "fitness"
+) -> list[Individual]:
     """Select ``sel_count`` individuals by stochastic universal sampling.
 
     A single random offset samples the wheel at evenly spaced

@@ -8,6 +8,9 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from deap_er.base.dtypes import Individual
+from collections.abc import Callable
+from typing import Any
 from .sel_various import sel_random
 from operator import attrgetter
 from functools import partial
@@ -18,8 +21,8 @@ __all__ = ["sel_tournament", "sel_double_tournament", "sel_tournament_dcd"]
 
 
 def sel_tournament(
-    individuals: list, rounds: int, contestants: int, fit_attr: str = "fitness"
-) -> list:
+    individuals: list[Individual], rounds: int, contestants: int, fit_attr: str = "fitness"
+) -> list[Individual]:
     """Select the best of ``contestants`` random individuals, ``rounds`` times.
 
     Args:
@@ -39,13 +42,13 @@ def sel_tournament(
 
 
 def sel_double_tournament(
-    individuals: list,
+    individuals: list[Individual],
     rounds: int,
     fitness_size: int,
     parsimony_size: int,
     fitness_first: bool,
     fit_attr: str = "fitness",
-) -> list:
+) -> list[Individual]:
     """Select with a fitness tournament and a size tournament.
 
     The size contest can be used in genetic programming as a bloat
@@ -69,7 +72,7 @@ def sel_double_tournament(
     if not (1 <= parsimony_size <= 2):
         raise ValueError("Parsimony tournament size has to be in the range of [1, 2].")
 
-    def _size_tourney(select):
+    def _size_tourney(select: Callable[..., Any]) -> list[Individual]:
         """Run the parsimony (size) half of the double tournament.
 
         Args:
@@ -89,7 +92,7 @@ def sel_double_tournament(
             chosen.append(ind1 if random.random() < prob else ind2)
         return chosen
 
-    def _fit_tourney(select):
+    def _fit_tourney(select: Callable[..., Any]) -> list[Individual]:
         """Run the fitness half of the double tournament.
 
         Args:
@@ -112,7 +115,7 @@ def sel_double_tournament(
         return _fit_tourney(t_size)
 
 
-def sel_tournament_dcd(individuals: list, sel_count: int) -> list:
+def sel_tournament_dcd(individuals: list[Individual], sel_count: int) -> list[Individual]:
     """Select by pairwise dominance, breaking ties with crowding distance.
 
     If ``sel_count`` equals the pool size, that size must be a multiple
@@ -142,7 +145,7 @@ def sel_tournament_dcd(individuals: list, sel_count: int) -> list:
             "by four if sel_count == len(individuals)"
         )
 
-    def tourney(ind1, ind2):
+    def tourney(ind1: Individual, ind2: Individual) -> Individual:
         """Return the better of two individuals by dominance, then crowding.
 
         Args:

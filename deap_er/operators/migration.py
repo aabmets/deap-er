@@ -8,18 +8,20 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from typing import Callable
+from collections.abc import Callable
+from typing import Any
+from deap_er.base.dtypes import Individual
 
 
 __all__ = ["mig_ring"]
 
 
 def mig_ring(
-    populations: list,
+    populations: list[list[Individual]],
     mig_count: int,
-    selection: Callable,
-    replacement: Callable = None,
-    mig_indices: list = None,
+    selection: Callable[..., Any],
+    replacement: Callable[..., Any] | None = None,
+    mig_indices: list[int] | None = None,
 ) -> None:
     """Move emigrants between populations along a ring (or custom map).
 

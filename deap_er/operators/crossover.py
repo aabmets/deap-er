@@ -34,7 +34,7 @@ __all__ = [
 
 
 def _slicer(
-    ind1: Individual, ind2: Individual, start: int, stop: int = None, copy: bool = False
+    ind1: Individual, ind2: Individual, start: int, stop: int | None = None, copy: bool = False
 ) -> Mates:
     """Swap a segment of two individuals.
 
@@ -69,7 +69,7 @@ def _slicer(
 
 def _two_point(
     ind1: Individual, ind2: Individual, copy: bool = False, strategy: bool = False
-) -> tuple:
+) -> Mates:
     """Execute a two-point crossover on two individuals.
 
     Both individuals are modified in place.
@@ -97,7 +97,7 @@ def _two_point(
     return ind1, ind2
 
 
-def _match(ind1: Individual, ind2: Individual, p1: list, p2: list, i: int) -> None:
+def _match(ind1: Individual, ind2: Individual, p1: list[int], p2: list[int], i: int) -> None:
     """Swap the alleles at one locus and keep the PMX position maps valid.
 
     Both individuals and both maps are modified in place.
@@ -386,7 +386,7 @@ def cx_simulated_binary_bounded(
             individual.
     """
 
-    def check_bounds(name: str, var: NumOrSeq) -> Sequence:
+    def check_bounds(name: str, var: NumOrSeq) -> Sequence[int] | Sequence[float]:
         """Broadcast a scalar bound or validate a per-gene sequence.
 
         Args:

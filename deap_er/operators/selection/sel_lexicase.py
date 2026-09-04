@@ -8,6 +8,7 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from deap_er.base.dtypes import Individual
 import numpy as np
 import random
 
@@ -15,7 +16,7 @@ import random
 __all__ = ["sel_lexicase", "sel_epsilon_lexicase"]
 
 
-def sel_lexicase(individuals: list, sel_count: int) -> list:
+def sel_lexicase(individuals: list[Individual], sel_count: int) -> list[Individual]:
     """Select individuals by lexicase filtering of fitness cases.
 
     Each selected individual is the last remaining candidate after
@@ -47,7 +48,9 @@ def sel_lexicase(individuals: list, sel_count: int) -> list:
     return selected
 
 
-def sel_epsilon_lexicase(individuals: list, sel_count: int, epsilon: float = None) -> list:
+def sel_epsilon_lexicase(
+    individuals: list[Individual], sel_count: int, epsilon: float | None = None
+) -> list[Individual]:
     """Select individuals by epsilon-lexicase filtering of fitness cases.
 
     Each selected individual is the last remaining candidate after
