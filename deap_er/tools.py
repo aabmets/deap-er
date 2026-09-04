@@ -16,6 +16,7 @@ from .algorithms import (
     var_and,
     var_or,
 )
+from .base import clone_individual
 from .benchmarks import (
     MovingPeaks,
     MPConfigs,
@@ -199,6 +200,7 @@ __all__ = [
     "bm_zdt_3",
     "bm_zdt_4",
     "bm_zdt_6",
+    "clone_individual",
     "cx_blend",
     "cx_es_blend",
     "cx_es_two_point",

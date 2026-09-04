@@ -8,10 +8,11 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from math import hypot, sqrt
+from math import hypot
 from typing import Any
 
 import numpy
+from scipy import spatial
 
 from deap_er.base.typedefs import Individual
 
@@ -71,17 +72,10 @@ def nsga_convergence(population: list[Individual], optimal: list[Individual]) ->
     Returns:
         The convergence metric of the front.
     """
-    distances = []
-    for ind in population:
-        distances.append(float("inf"))
-        for opt_ind in optimal:
-            dist = 0.0
-            for i in range(len(opt_ind)):
-                dist += (ind.fitness.values[i] - opt_ind[i]) ** 2
-            if dist < distances[-1]:
-                distances[-1] = dist
-        distances[-1] = sqrt(distances[-1])
-    return float(sum(distances) / len(distances))
+    front = numpy.asarray([ind.fitness.values for ind in population], dtype=float)
+    truth = numpy.asarray([tuple(opt) for opt in optimal], dtype=float)
+    minima = numpy.min(spatial.distance.cdist(front, truth), axis=1)
+    return float(numpy.mean(minima))
 
 
 def inv_gen_dist(ind1: Individual, ind2: Individual) -> Any:
@@ -98,8 +92,6 @@ def inv_gen_dist(ind1: Individual, ind2: Individual) -> Any:
         The average distance from each point in ``ind2`` to the
         nearest point in ``ind1``.
     """
-    from scipy import spatial
-
     distances = spatial.distance.cdist(list(ind1), list(ind2))
     minima = numpy.min(distances, axis=0)
     return numpy.average(minima)

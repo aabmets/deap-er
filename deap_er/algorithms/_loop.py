@@ -8,6 +8,9 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from collections.abc import Sequence
+from typing import Any
+
 from deap_er.base import Toolbox
 from deap_er.records import Logbook
 from deap_er.records.typedefs import Hof, Individual, Stats
@@ -30,7 +33,7 @@ def _new_logbook(stats: Stats | None) -> Logbook:
     return logbook
 
 
-def _evaluate_invalid(toolbox: Toolbox, individuals: list[Individual]) -> int:
+def _evaluate_invalid(toolbox: Toolbox, individuals: Sequence[Any]) -> int:
     """Evaluate the individuals whose fitness is invalid.
 
     Args:

@@ -206,18 +206,14 @@ def _associate_to_niche(
         Niche index and distance to that niche for each individual.
     """
     fn = (fitness - best_point) / (intercepts - best_point)
-    fn = numpy.repeat(numpy.expand_dims(fn, axis=1), len(reference_points), axis=1)
+    fn = fn[:, numpy.newaxis, :]
     norm = numpy.linalg.norm(reference_points, axis=1)
-
     distances = numpy.sum(fn * reference_points, axis=2) / norm.reshape(1, -1)
-    dist_1 = distances[:, :, numpy.newaxis]
-    dist_2 = reference_points[numpy.newaxis, :, :]
-    dist_3 = norm[numpy.newaxis, :, numpy.newaxis]
-    distances = dist_1 * dist_2 / dist_3
-    distances = numpy.linalg.norm(distances - fn, axis=2)
+    unit = reference_points / norm[:, numpy.newaxis]
+    distances = numpy.linalg.norm(distances[:, :, numpy.newaxis] * unit - fn, axis=2)
 
     niches = numpy.argmin(distances, axis=1)
-    distances = distances[list(range(niches.shape[0])), niches]
+    distances = distances[numpy.arange(niches.shape[0]), niches]
     return niches, distances
 
 

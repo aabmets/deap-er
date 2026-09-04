@@ -46,6 +46,17 @@ def ea_simple(
         The final population and the logbook.
     """
     logbook = _new_logbook(stats)
+    nevals = _evaluate_invalid(toolbox, population)
+    _record_generation(
+        logbook,
+        0,
+        nevals,
+        population=population,
+        offspring=population,
+        hof=hof,
+        stats=stats,
+        verbose=verbose,
+    )
 
     for gen in range(1, generations + 1):
         offspring = toolbox.select(population, len(population))

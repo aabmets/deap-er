@@ -10,6 +10,8 @@
 #
 import math
 
+import numpy
+
 from deap_er.base.typedefs import Individual
 from deap_er.rng import rng
 
@@ -70,25 +72,15 @@ def _raw_fitness(individuals: list[Individual]) -> list[float]:
     Returns:
         One raw fitness value per individual, in input order.
     """
-    big_n = len(individuals)
-    strength_fits = [0.0] * big_n
-    fits = [0.0] * big_n
-    dominating_individuals = [[] for _ in range(big_n)]
-
-    for i, ind_i in enumerate(individuals):
-        for j, ind_j in enumerate(individuals[i + 1 :], i + 1):
-            if ind_i.fitness.dominates(ind_j.fitness):
-                strength_fits[i] += 1
-                dominating_individuals[j].append(i)
-            elif ind_j.fitness.dominates(ind_i.fitness):
-                strength_fits[j] += 1
-                dominating_individuals[i].append(j)
-
-    for i in range(big_n):
-        for j in dominating_individuals[i]:
-            fits[i] += strength_fits[j]
-
-    return fits
+    if not individuals:
+        return []
+    wvals = numpy.array([ind.fitness.wvalues for ind in individuals], dtype=float)
+    ge = wvals[:, numpy.newaxis, :] >= wvals[numpy.newaxis, :, :]
+    gt = wvals[:, numpy.newaxis, :] > wvals[numpy.newaxis, :, :]
+    dominates = ge.all(axis=2) & gt.any(axis=2)
+    strength = dominates.sum(axis=1, dtype=float)
+    fits = (strength @ dominates).tolist()
+    return [float(value) for value in fits]
 
 
 def _fill_from_density(
@@ -108,18 +100,21 @@ def _fill_from_density(
     Returns:
         The chosen indices, extended to ``sel_count`` entries.
     """
-    big_l = len(individuals[0].fitness.values)
     big_n = len(individuals)
     big_k = math.sqrt(big_n)
+    vals = numpy.array([ind.fitness.values for ind in individuals], dtype=float)
+    delta = vals[:, numpy.newaxis, :] - vals[numpy.newaxis, :, :]
+    sq_dist = numpy.einsum("ijk,ijk->ij", delta, delta)
 
     for i in range(big_n):
         distances = [0.0] * big_n
-        for j in range(i + 1, big_n):
-            distances[j] = _sq_distance(individuals[i], individuals[j], big_l)
+        if i + 1 < big_n:
+            distances[i + 1 :] = sq_dist[i, i + 1 :].tolist()
         kth_dist = _randomized_select(distances, 0, big_n - 1, big_k)
         fits[i] += 1.0 / (kth_dist + 2.0)
 
-    next_indices = [(fits[i], i) for i in range(big_n) if i not in chosen]
+    chosen_set = set(chosen)
+    next_indices = [(fits[i], i) for i in range(big_n) if i not in chosen_set]
     next_indices.sort()
     return chosen + [i for _, i in next_indices[: sel_count - len(chosen)]]
 

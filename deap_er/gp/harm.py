@@ -12,6 +12,7 @@ import math
 from collections.abc import Callable
 from typing import Any
 
+from deap_er.algorithms._loop import _evaluate_invalid
 from deap_er.base import Toolbox
 from deap_er.records import Logbook
 from deap_er.records.typedefs import AlgoResult, Hof, Stats
@@ -300,23 +301,6 @@ def _produce(
         )
 
     return produced_pop, produced_pop_sizes
-
-
-def _evaluate_invalid(toolbox: Toolbox, individuals: list[GPIndividual]) -> int:
-    """Evaluate the individuals whose fitness is invalid.
-
-    Args:
-        toolbox: Toolbox with the evaluate and map operators.
-        individuals: Individuals to scan for invalid fitness.
-
-    Returns:
-        The number of individuals that were evaluated.
-    """
-    invalid_ind = [ind for ind in individuals if not ind.fitness.is_valid()]
-    fitness = toolbox.map(toolbox.evaluate, invalid_ind)
-    for ind, fit in zip(invalid_ind, fitness, strict=False):
-        ind.fitness.values = fit
-    return len(invalid_ind)
 
 
 def harm(

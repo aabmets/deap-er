@@ -8,10 +8,12 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from array import array
 from copy import deepcopy
 from functools import partial
 
-from deap_er.base.toolbox import Toolbox
+from deap_er import base, creator
+from deap_er.base.toolbox import Toolbox, clone_individual
 
 
 class TestToolbox:
@@ -49,3 +51,53 @@ class TestToolbox:
         tb.register("__test__", str, 1)
         tb.decorate("__test__", test_deco)
         assert tb.__test__() == "111"
+
+
+def test_clone_individual_copies_list_genes_and_fitness():
+    creator.create("CLONE_FIT", base.Fitness, weights=(1.0,))
+    creator.create("CLONE_IND", list, fitness=creator.__dict__["CLONE_FIT"])
+    try:
+        original = creator.__dict__["CLONE_IND"]([1, 0, 1])
+        original.fitness.values = (3.0,)
+        cloned = clone_individual(original)
+        cloned[0] = 9
+        del cloned.fitness.values
+        assert list(original) == [1, 0, 1]
+        assert original.fitness.values == (3.0,)
+        assert cloned is not original
+        assert cloned.fitness is not original.fitness
+    finally:
+        del creator.__dict__["CLONE_FIT"]
+        del creator.__dict__["CLONE_IND"]
+
+
+def test_clone_individual_copies_array_genes():
+    creator.create("CLONE_ARR_FIT", base.Fitness, weights=(1.0,))
+    creator.create("CLONE_ARR_IND", array, typecode="b", fitness=creator.__dict__["CLONE_ARR_FIT"])
+    try:
+        original = creator.__dict__["CLONE_ARR_IND"]([1, 0, 1])
+        original.fitness.values = (2.0,)
+        cloned = clone_individual(original)
+        cloned[1] = 7
+        assert list(original) == [1, 0, 1]
+        assert cloned.fitness.values == (2.0,)
+    finally:
+        del creator.__dict__["CLONE_ARR_FIT"]
+        del creator.__dict__["CLONE_ARR_IND"]
+
+
+def test_clone_individual_falls_back_when_strategy_is_set():
+    creator.create("CLONE_ES_FIT", base.Fitness, weights=(1.0,))
+    creator.create("CLONE_ES_IND", list, fitness=creator.__dict__["CLONE_ES_FIT"])
+    try:
+        original = creator.__dict__["CLONE_ES_IND"]([1.0, 2.0])
+        original.fitness.values = (1.0,)
+        original.strategy = [0.1, 0.2]
+        cloned = clone_individual(original)
+        cloned.strategy[0] = 9.0
+        assert original.strategy == [0.1, 0.2]
+        assert cloned.strategy == [9.0, 0.2]
+        assert cloned is not original
+    finally:
+        del creator.__dict__["CLONE_ES_FIT"]
+        del creator.__dict__["CLONE_ES_IND"]

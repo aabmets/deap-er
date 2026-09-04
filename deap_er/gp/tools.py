@@ -23,6 +23,9 @@ from .typedefs import GPExprTypes, GPGraph, GPTypedSets
 
 __all__ = ["compile_tree", "compile_adf_tree", "build_tree_graph", "static_limit"]
 
+_COMPILE_CACHE_MAX = 1024
+_compile_cache: dict[tuple[str, tuple[tuple[str, int], ...]], Any] = {}
+
 
 def compile_tree(expr: GPExprTypes, prim_set: PrimitiveSetTyped) -> Any:
     """Evaluate ``expr`` against ``prim_set``.
@@ -43,13 +46,22 @@ def compile_tree(expr: GPExprTypes, prim_set: PrimitiveSetTyped) -> Any:
     if len(prim_set.arguments) > 0:
         args = ",".join(prim_set.arguments)
         code = f"lambda {args}: {code}"
+    ctx_key = tuple(sorted((name, id(value)) for name, value in prim_set.context.items()))
+    cache_key = (code, ctx_key)
+    cached = _compile_cache.get(cache_key)
+    if cached is not None:
+        return cached
     try:
         # nosemgrep: python.lang.security.audit.eval-detected.eval-detected
-        return eval(code, prim_set.context, {})
+        compiled = eval(code, prim_set.context, {})
     except MemoryError as err:
         raise MemoryError(
             "Recursion depth of 90 exceeded. Use bloat control on your operators.\n"
         ) from err
+    if len(_compile_cache) >= _COMPILE_CACHE_MAX:
+        _compile_cache.clear()
+    _compile_cache[cache_key] = compiled
+    return compiled
 
 
 def compile_adf_tree(expr: GPExprTypes, prim_sets: GPTypedSets) -> Any:

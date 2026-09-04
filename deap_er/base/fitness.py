@@ -41,6 +41,7 @@ class Fitness:
 
     weights: Sequence[int | float] = ()
     wvalues: tuple[float, ...] = ()
+    _values: tuple[float, ...] = ()
     crowding_dist: float = 0.0
 
     def __init__(self, values: FitnessValues | None = None) -> None:
@@ -66,9 +67,7 @@ class Fitness:
                 ``weights``.
         """
         if self.is_valid():
-            return tuple(
-                wvalue / weight for wvalue, weight in zip(self.wvalues, self.weights, strict=True)
-            )
+            return self._values
         return ()
 
     @values.setter
@@ -82,12 +81,14 @@ class Fitness:
                 "The assigned values must have the same length as "
                 "the 'weights' attribute of the 'Fitness' class."
             )
+        self._values = seq
         self.wvalues = tuple(
             value * weight for value, weight in zip(seq, self.weights, strict=True)
         )
 
     @values.deleter
     def values(self) -> None:
+        self._values = ()
         self.wvalues = ()
 
     def dominates(self, other: Fitness, slc: slice | None = None) -> bool:
@@ -107,7 +108,13 @@ class Fitness:
         """
         slc = slice(None) if slc is None else slc
         compared = list(zip(self.wvalues, other.wvalues, strict=False))[slc]
-        return not (any(a < b for a, b in compared) or all(a == b for a, b in compared))
+        better = False
+        for a, b in compared:
+            if a < b:
+                return False
+            if a > b:
+                better = True
+        return better
 
     def is_valid(self) -> bool:
         """Return whether this fitness has a complete set of values.
@@ -173,4 +180,5 @@ class Fitness:
         """Return a new Fitness with the same weighted values."""
         copy = self.__class__()
         copy.wvalues = self.wvalues
+        copy._values = self._values
         return copy

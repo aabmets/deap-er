@@ -9,9 +9,10 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from .fitness import Fitness
-from .toolbox import Toolbox
+from .toolbox import Toolbox, clone_individual
 
 __all__ = [
     "Fitness",
     "Toolbox",
+    "clone_individual",
 ]
