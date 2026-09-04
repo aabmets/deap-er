@@ -9,13 +9,12 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from collections.abc import MutableSequence, Sequence
-from typing import Any, TypeVar, overload
+from typing import Any, overload
 
 import numpy
 
 __all__ = ["RNG", "rng", "seed"]
 
-_T = TypeVar("_T")
 _BUFSIZE = 1024
 
 
@@ -134,7 +133,7 @@ class RNG:
             raise ValueError("empty range for randrange()")
         return values[int(self._gen.integers(0, n))]
 
-    def choice(self, seq: Sequence[_T]) -> _T:
+    def choice[T](self, seq: Sequence[T]) -> T:
         """Return one element of ``seq``.
 
         Args:
@@ -151,7 +150,7 @@ class RNG:
             raise IndexError("Cannot choose from an empty sequence")
         return seq[int(self._gen.integers(0, n))]
 
-    def sample(self, population: Sequence[_T], k: int) -> list[_T]:
+    def sample[T](self, population: Sequence[T], k: int) -> list[T]:
         """Return ``k`` unique elements from ``population``.
 
         Args:
