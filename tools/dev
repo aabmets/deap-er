@@ -12,6 +12,7 @@ devhelp() {
     echo ""
     echo -e "\033[1mFunctions:\033[0m"
     echo -e "  \033[32magent\033[0m       Activate interactive Cursor CLI in current terminal session"
+    echo -e "  \033[32mloadenv\033[0m     Ensure repo .env exists and source it into this session"
     echo -e "  \033[32mpycov\033[0m       Open the latest Python coverage report in the browser"
     echo -e "  \033[32mallure\033[0m      Open the latest Allure report for the current directory"
     echo -e "  \033[32mcodegraph\033[0m   Open the codebase-memory-mcp graph visualization"
@@ -53,5 +54,6 @@ source "${SCRIPTS}/06_enable_autosource.sh"
 
 source .venv/bin/activate
 _deap_er_enable_prompt
+loadenv
 
 devhelp

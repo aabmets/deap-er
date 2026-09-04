@@ -64,7 +64,7 @@ Follow the typing already used in the file you are editing (`deap_er.base.dtypes
 ### Tool Usage
 
 - **Hooks:** project `preToolUse` rewrites supported Shell commands via RTK (`.cursor/hooks.json` → `.cursor/hooks/rtk-pretooluse.sh`). Fails open until `.bin/rtk` exists. Never run `rtk init -g`. If the binary is missing, `source tools/dev`.
-- **MCP:** `.cursor/mcp.json` points at **this** repo’s `.bin/codebase-memory-mcp`. Do not use another project’s server. Graph tools are unavailable until that binary exists. If the binary is missing, `source tools/dev`.
+- **MCP:** `.cursor/mcp.json` registers **this** repo’s `.bin/codebase-memory-mcp` and the SonarCloud-hosted MCP (`https://api.sonarcloud.io/mcp`). Do not use another project’s codebase-memory server. Graph tools need `source tools/dev` if the binary is missing. SonarCloud tools need `SONARQUBE_TOKEN` and `SONARQUBE_ORG` in the shell that runs `agent` (`source tools/dev` calls `loadenv`; skill `sonarqube-mcp` creates `.env` keys for the user to fill in).
 - **Structured tools first:** Use Read, Grep, Write, and StrReplace when they fit; Shell is for commands that need a real terminal environment.
 
 ## 3. Task Skills (Read Before Doing)
@@ -80,6 +80,7 @@ This is required for every Python touch — including narrow one-function fixes,
 | Skill | Path | Read when |
 |:------|:-----|:----------|
 | **Codebase Memory MCP** | [`.cursor/skills/codebase-memory-mcp/SKILL.md`](.cursor/skills/codebase-memory-mcp/SKILL.md) | Exploring code structure, tracing calls, finding symbols, impact analysis |
+| **SonarQube MCP** | [`.cursor/skills/sonarqube-mcp/SKILL.md`](.cursor/skills/sonarqube-mcp/SKILL.md) | Fetching SonarCloud issues or iteratively fixing findings |
 | **Python architecture** | [`.cursor/skills/python-architecture/SKILL.md`](.cursor/skills/python-architecture/SKILL.md) | **Required** — any Python work under `deap_er/`, `tests/`, or `examples/` |
 | **Pytest** | [`.cursor/skills/python-pytest/SKILL.md`](.cursor/skills/python-pytest/SKILL.md) | Writing or fixing tests — **only when tests are in scope** (see Scope Discipline) |
 | **MkDocs docs** | [`.cursor/skills/mkdocs-docs/SKILL.md`](.cursor/skills/mkdocs-docs/SKILL.md) | Updating `docs/`, `mkdocs.yml`, or README — **only when docs are in scope** |
@@ -92,6 +93,7 @@ This is required for every Python touch — including narrow one-function fixes,
 | User task | Skills to read (in order) |
 |:----------|:--------------------------|
 | Find how an operator or algorithm works | codebase-memory-mcp |
+| Fix SonarQube / SonarCloud issues | sonarqube-mcp → **python-architecture** (if Python) → python-validation (if Python) |
 | Implement a library feature (full request) | codebase-memory-mcp → **python-architecture** → python-pytest (if tests requested) → mkdocs-docs (if docs requested) → python-validation |
 | Fix a bug with tests requested | codebase-memory-mcp → **python-architecture** → python-pytest → python-validation |
 | Any Python edit (narrow or broad) | **python-architecture** (always) → other skills only when in scope for that task |

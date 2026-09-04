@@ -8,7 +8,7 @@ description: >-
 
 # codebase-memory MCP
 
-Graph of **this** repo (`deap_er`, `tests`, `examples`, `docs`). Binary: `.bin/codebase-memory-mcp` (gitignored). Cursor config: `.cursor/mcp.json` (absolute `command` and `cwd`). Bootstrap: `source tools/dev`. Tool catalog: [reference.md](reference.md).
+Graph of **this** repo (`deap_er`, `tests`, `examples`, `docs`). Binary: `.bin/codebase-memory-mcp` (gitignored). Cursor config: `.cursor/mcp.json` (workspace-relative `command` and `cwd`). Bootstrap: `source tools/dev`. Tool catalog: [reference.md](reference.md).
 
 If the binary is missing, `source tools/dev` or use Grep / Read / Glob. Do not call another project's server.
 

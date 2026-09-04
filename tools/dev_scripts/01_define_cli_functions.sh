@@ -142,6 +142,23 @@ codegraph() {
     (cd /mnt/c && cmd.exe /c start "http://localhost:9749")
 }
 
+loadenv() {
+    local env_file="${PROJECT_DIR}/.env"
+
+    if [[ ! -f "$env_file" ]]; then
+        printf '%s\n' \
+            'SONARQUBE_TOKEN=' \
+            'SONARQUBE_ORG=' \
+            > "$env_file"
+        >&2 echo "Created ${env_file} — fill in SONARQUBE_TOKEN and SONARQUBE_ORG."
+    fi
+
+    set -a
+    # shellcheck disable=SC1091
+    source "$env_file"
+    set +a
+}
+
 exitdev() {
     local active=0
     if declare -F deactivate >/dev/null 2>&1; then

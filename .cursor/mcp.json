@@ -1,8 +1,16 @@
 {
   "mcpServers": {
     "codebase-memory": {
-      "command": "/mnt/projects/private/deap-er/.bin/codebase-memory-mcp",
-      "cwd": "/mnt/projects/private/deap-er"
+      "command": ".bin/codebase-memory-mcp",
+      "cwd": "."
+    },
+    "sonarqube": {
+      "type": "http",
+      "url": "https://api.sonarcloud.io/mcp",
+      "headers": {
+        "Authorization": "Bearer ${env:SONARQUBE_TOKEN}",
+        "SONARQUBE_ORG": "${env:SONARQUBE_ORG}"
+      }
     }
   }
 }
