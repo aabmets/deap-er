@@ -80,7 +80,7 @@ addopts = [
     "--no-cov-on-fail",
     "--alluredir=reports/allure-results",
     "--clean-alluredir",
-    "--cov-report=html:.htmlcov",
+    "--cov-report=html:reports/.htmlcov",
     "--cov-report=json:reports/coverage.json",
     "--cov-report=markdown:reports/coverage.md",
     "--import-mode=importlib",
