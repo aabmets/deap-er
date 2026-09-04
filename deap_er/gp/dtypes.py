@@ -9,26 +9,26 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from .primitives import *
-from typing import Tuple, Union
+from typing import Any
 
 
 __all__ = ["GPIndividual", "GPMates", "GPMutant", "GPExprTypes", "GPTypedSets", "GPGraph"]
 
 
-GPIndividual = Union[list, PrimitiveTree]
+type GPIndividual = list[Any] | PrimitiveTree
 """:meta private:"""
 
-GPMates = Tuple[GPIndividual, GPIndividual]
+type GPMates = tuple[GPIndividual, GPIndividual]
 """:meta private:"""
 
-GPMutant = Tuple[GPIndividual]
+type GPMutant = tuple[GPIndividual]
 """:meta private:"""
 
-GPExprTypes = Union[str, PrimitiveTree]
+type GPExprTypes = str | PrimitiveTree
 """:meta private:"""
 
-GPTypedSets = list[PrimitiveSetTyped]
+type GPTypedSets = list[PrimitiveSetTyped]
 """:meta private:"""
 
-GPGraph = tuple[list, list, dict]
+type GPGraph = tuple[list[Any], list[Any], dict[Any, Any]]
 """:meta private:"""

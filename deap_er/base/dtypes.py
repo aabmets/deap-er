@@ -9,7 +9,7 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from collections.abc import Sequence
-from typing import Union, Tuple
+from typing import Any
 import numpy
 import array
 
@@ -17,14 +17,14 @@ import array
 __all__ = ["Individual", "Mates", "Mutant", "NumOrSeq"]
 
 
-Individual = Union[list, array.array, numpy.ndarray]
+type Individual = list[Any] | array.array[Any] | numpy.ndarray
 """:meta private:"""
 
-Mates = Tuple[Individual, Individual]
+type Mates = tuple[Individual, Individual]
 """:meta private:"""
 
-Mutant = Tuple[Individual]
+type Mutant = tuple[Individual]
 """:meta private:"""
 
-NumOrSeq = Union[int, float, Sequence[int], Sequence[float]]
+type NumOrSeq = int | float | Sequence[int] | Sequence[float]
 """:meta private:"""

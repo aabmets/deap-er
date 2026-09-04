@@ -11,17 +11,17 @@
 from .hall_of_fame import *
 from .statistics import *
 from .logbook import *
-from typing import Union, Tuple
+from deap_er.base.dtypes import Individual
 
 
-__all__ = ["Hof", "Stats", "AlgoResult"]
+__all__ = ["Hof", "Stats", "AlgoResult", "Individual"]
 
 
-Hof = Union[HallOfFame, ParetoFront]
+type Hof = HallOfFame | ParetoFront
 """:meta private:"""
 
-Stats = Union[Statistics, MultiStatistics]
+type Stats = Statistics | MultiStatistics
 """:meta private:"""
 
-AlgoResult = Tuple[list, Logbook]
+type AlgoResult = tuple[list[Individual], Logbook]
 """:meta private:"""
