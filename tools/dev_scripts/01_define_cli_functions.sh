@@ -50,7 +50,7 @@ _run_allure() {
 }
 
 pycov() {
-    local report_path="$(pwd)/.htmlcov/index.html"
+    local report_path="$(pwd)/reports/coverage-html/index.html"
     if [[ -f "$report_path" ]]; then
         cmd.exe /c start "" "$(wslpath -w "$report_path")" 2>/dev/null
     else

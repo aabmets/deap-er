@@ -75,10 +75,9 @@ timeout_method = "thread"
 addopts = [
     "--cov=deap_er",
     "--cov-report=html",
-    "--no-cov-on-fail",
     "--alluredir=reports/allure-results",
     "--clean-alluredir",
-    "--cov-report=html:reports/.htmlcov",
+    "--cov-report=html:reports/coverage-html",
     "--cov-report=json:reports/coverage.json",
     "--cov-report=markdown:reports/coverage.md",
     "--import-mode=importlib",
@@ -106,4 +105,4 @@ exclude_lines = [
 ]
 
 [tool.coverage.html]
-directory = ".htmlcov"
+directory = "reports/coverage-html"
