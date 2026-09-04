@@ -8,9 +8,9 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.base.dtypes import *
-from math import exp, sin, cos
+from math import cos, exp, sin
 
+from deap_er.base.dtypes import *
 
 __all__ = [
     "bm_ripple",
@@ -49,7 +49,7 @@ def bm_ripple(individual: Individual) -> float:
     j = individual[1]
     a = (i - 3) * (j - 3)
     b = 2 * sin((i - 4) * (j - 4))
-    return a + b
+    return float(a + b)
 
 
 def bm_sin_cos(individual: Individual) -> float:
@@ -100,7 +100,7 @@ def bm_unwrapped_ball(individual: Individual) -> float:
             - :math:`f(\mathbf{x}) = \frac{10}{5 +                \sum_{i=1}^n (x_i - 3)^2}`
     """
     s = sum((d - 3) ** 2 for d in individual)
-    return 10 / (5 + s)
+    return float(10 / (5 + s))
 
 
 def bm_kotanchek(individual: Individual) -> float:
@@ -128,7 +128,7 @@ def bm_kotanchek(individual: Individual) -> float:
     j = individual[1]
     numer = exp(-((i - 1) ** 2))
     de_nom = 3.2 + (j - 2.5) ** 2
-    return numer / de_nom
+    return float(numer / de_nom)
 
 
 def bm_salustowicz_1d(individual: Individual) -> float:
@@ -155,7 +155,7 @@ def bm_salustowicz_1d(individual: Individual) -> float:
     i = individual[0]
     a = exp(-i) * i**3 * cos(i)
     b = sin(i) * (cos(i) * sin(i) ** 2 - 1)
-    return a * b
+    return float(a * b)
 
 
 def bm_salustowicz_2d(individual: Individual) -> float:
@@ -183,7 +183,7 @@ def bm_salustowicz_2d(individual: Individual) -> float:
     j = individual[1]
     a = exp(-i) * i**3 * cos(i) * sin(i)
     b = (cos(i) * sin(i) ** 2 - 1) * (j - 5)
-    return a * b
+    return float(a * b)
 
 
 def bm_rational_polynomial_1(individual: Individual) -> float:
@@ -212,7 +212,7 @@ def bm_rational_polynomial_1(individual: Individual) -> float:
     k = individual[2]
     numer = 30 * (i - 1) * (k - 1)
     de_nom = j**2 * (i - 10)
-    return numer / de_nom
+    return float(numer / de_nom)
 
 
 def bm_rational_polynomial_2(individual: Individual) -> float:
@@ -240,4 +240,4 @@ def bm_rational_polynomial_2(individual: Individual) -> float:
     j = individual[1]
     numer = (i - 3) ** 4 + (j - 3) ** 3 - (j - 3)
     de_nom = (j - 2) ** 4 + 10
-    return numer / de_nom
+    return float(numer / de_nom)

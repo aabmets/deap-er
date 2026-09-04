@@ -8,11 +8,11 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.base.dtypes import *
-from math import sin, cos, pi, exp, sqrt
 from functools import reduce
+from math import cos, exp, pi, sin, sqrt
 from operator import mul
 
+from deap_er.base.dtypes import *
 
 __all__ = [
     "bm_kursawe",
@@ -57,9 +57,9 @@ def bm_kursawe(individual: Individual) -> tuple[float, float]:
     def fn(x: float, y: float) -> float:
         return -10 * exp(-0.2 * sqrt(x * x + y * y))
 
-    f1 = sum(fn(x, y) for x, y in zip(individual[:-1], individual[1:]))
+    f1 = sum(fn(x, y) for x, y in zip(individual[:-1], individual[1:], strict=False))
     f2 = sum(abs(x) ** 0.8 + 5 * sin(x * x * x) for x in individual)
-    return f1, f2
+    return float(f1), float(f2)
 
 
 def bm_schaffer_mo(individual: Individual) -> tuple[float, float]:
@@ -82,7 +82,7 @@ def bm_schaffer_mo(individual: Individual) -> tuple[float, float]:
     """
     f1 = individual[0] ** 2
     f2 = (individual[0] - 2) ** 2
-    return f1, f2
+    return float(f1), float(f2)
 
 
 def bm_fonseca(individual: Individual) -> tuple[float, float]:
@@ -105,7 +105,7 @@ def bm_fonseca(individual: Individual) -> tuple[float, float]:
     """
     f1 = 1 - exp(-sum((xi - 1 / sqrt(3)) ** 2 for xi in individual[:3]))
     f2 = 1 - exp(-sum((xi + 1 / sqrt(3)) ** 2 for xi in individual[:3]))
-    return f1, f2
+    return float(f1), float(f2)
 
 
 def bm_poloni(individual: Individual) -> tuple[float, float]:
@@ -142,7 +142,7 @@ def bm_poloni(individual: Individual) -> tuple[float, float]:
     b_2 = 1.5 * sin(x_1) - cos(x_1) + 2 * sin(x_2) - 0.5 * cos(x_2)
     f1 = 1 + (a_1 - b_1) ** 2 + (a_2 - b_2) ** 2
     f2 = (x_1 + 3) ** 2 + (x_2 + 1) ** 2
-    return f1, f2
+    return float(f1), float(f2)
 
 
 def bm_dent(individual: Individual, dent_size: float = 0.85) -> tuple[float, float]:
@@ -187,7 +187,7 @@ def bm_dent(individual: Individual, dent_size: float = 0.85) -> tuple[float, flo
         )
         + d
     )
-    return f1, f2
+    return float(f1), float(f2)
 
 
 def bm_zdt_1(individual: Individual) -> tuple[float, float]:
@@ -213,7 +213,7 @@ def bm_zdt_1(individual: Individual) -> tuple[float, float]:
     g = 1.0 + 9.0 * sum(individual[1:]) / (len(individual) - 1)
     f1 = individual[0]
     f2 = g * (1 - sqrt(f1 / g))
-    return f1, f2
+    return float(f1), float(f2)
 
 
 def bm_zdt_2(individual: Individual) -> tuple[float, float]:
@@ -239,7 +239,7 @@ def bm_zdt_2(individual: Individual) -> tuple[float, float]:
     g = 1.0 + 9.0 * sum(individual[1:]) / (len(individual) - 1)
     f1 = individual[0]
     f2 = g * (1 - (f1 / g) ** 2)
-    return f1, f2
+    return float(f1), float(f2)
 
 
 def bm_zdt_3(individual: Individual) -> tuple[float, float]:
@@ -265,7 +265,7 @@ def bm_zdt_3(individual: Individual) -> tuple[float, float]:
     g = 1.0 + 9.0 * sum(individual[1:]) / (len(individual) - 1)
     f1 = individual[0]
     f2 = g * (1 - sqrt(f1 / g) - f1 / g * sin(10 * pi * f1))
-    return f1, f2
+    return float(f1), float(f2)
 
 
 def bm_zdt_4(individual: Individual) -> tuple[float, float]:
@@ -292,7 +292,7 @@ def bm_zdt_4(individual: Individual) -> tuple[float, float]:
     g = 1 + 10 * (len(individual) - 1) + var
     f1 = individual[0]
     f2 = g * (1 - sqrt(f1 / g))
-    return f1, f2
+    return float(f1), float(f2)
 
 
 def bm_zdt_6(individual: Individual) -> tuple[float, float]:
@@ -318,7 +318,7 @@ def bm_zdt_6(individual: Individual) -> tuple[float, float]:
     g = 1 + 9 * (sum(individual[1:]) / (len(individual) - 1)) ** 0.25
     f1 = 1 - exp(-4 * individual[0]) * sin(6 * pi * individual[0]) ** 6
     f2 = g * (1 - (f1 / g) ** 2)
-    return f1, f2
+    return float(f1), float(f2)
 
 
 def bm_dtlz_1(individual: Individual, count: int) -> list[float]:
@@ -357,17 +357,17 @@ def bm_dtlz_1(individual: Individual, count: int) -> list[float]:
 
     def fn_xi(xi: float) -> float:
         _cos = cos(20 * pi * (xi - 0.5))
-        return (xi - 0.5) ** 2 - _cos
+        return float((xi - 0.5) ** 2 - _cos)
 
     def fn_m(m: int) -> float:
         rdc = reduce(mul, individual[:m], 1)
-        return 0.5 * rdc * (1 - individual[m]) * (1 + gval)
+        return float(0.5 * rdc * (1 - individual[m]) * (1 + gval))
 
     _sum = sum(fn_xi(xi) for xi in individual[count - 1 :])
     gval = 100 * (len(individual[count - 1 :]) + _sum)
     fit = [0.5 * reduce(mul, individual[: count - 1], 1) * (1 + gval)]
     fit.extend(fn_m(m) for m in reversed(range(count - 1)))
-    return fit
+    return [float(value) for value in fit]
 
 
 def bm_dtlz_2(individual: Individual, count: int) -> list[float]:
@@ -440,7 +440,7 @@ def bm_dtlz_3(individual: Individual, count: int) -> list[float]:
 
     def fn(xi: float) -> float:
         _cos = cos(20 * pi * (xi - 0.5))
-        return (xi - 0.5) ** 2 - _cos
+        return float((xi - 0.5) ** 2 - _cos)
 
     xm = individual[count - 1 :]
     gval = 100 * (len(xm) + sum(fn(xi) for xi in xm))
@@ -587,7 +587,7 @@ def bm_dtlz_7(individual: Individual, count: int) -> list[float]:
     """
 
     def fn(a: float) -> float:
-        return a / (1 + gval) * (1 + sin(3 * pi * a))
+        return float(a / (1 + gval) * (1 + sin(3 * pi * a)))
 
     gval = sum([a for a in individual[count - 1 :]])
     gval = 1 + 9 / len(individual[count - 1 :]) * gval
@@ -596,7 +596,7 @@ def bm_dtlz_7(individual: Individual, count: int) -> list[float]:
     vals = [fn(a) for a in individual[: count - 1]]
     res = (1 + gval) * (count - sum(vals))
     fit.append(res)
-    return fit
+    return [float(value) for value in fit]
 
 
 def _dtlz_helper_1(
@@ -618,14 +618,14 @@ def _dtlz_helper_1(
         vals_ = [cos(0.5 * xi**alpha * pi) for xi in xc[:m]]
         rdc = reduce(mul, vals_, 1)
         _sin = sin(0.5 * xc[m] ** alpha * pi)
-        return (1 + gval) * rdc * _sin
+        return float((1 + gval) * rdc * _sin)
 
     xc = individual[: count - 1]
     vals = (cos(0.5 * xi**alpha * pi) for xi in xc)
     fit = [(1 + gval) * reduce(mul, vals, 1)]
     vals = [fn(m) for m in range(count - 2, -1, -1)]
     fit.extend(vals)
-    return fit
+    return [float(value) for value in fit]
 
 
 def _dtlz_helper_2(individual: Individual, count: int, gval: float) -> list[float]:
@@ -657,4 +657,4 @@ def _dtlz_helper_2(individual: Individual, count: int, gval: float) -> list[floa
             _sin = sin(theta(individual[m - 1]))
             res = (1 + gval) * _cos * rdc * _sin
         fit.append(res)
-    return fit
+    return [float(value) for value in fit]

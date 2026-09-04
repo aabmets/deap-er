@@ -8,8 +8,8 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from .moving_peaks import *
-from .single_obj import *
-from .multi_obj import *
-from .symb_regr import *
 from .binary import *
+from .moving_peaks import *
+from .multi_obj import *
+from .single_obj import *
+from .symb_regr import *

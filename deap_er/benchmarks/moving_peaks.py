@@ -8,16 +8,18 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.base.dtypes import *
-from types import MappingProxyType
-from typing import Any
-from collections.abc import Iterable
 import itertools
-import random
 import math
+import random
+from collections.abc import Callable, Iterable, Sequence
+from types import MappingProxyType
+from typing import Any, cast
 
+from deap_er.base.dtypes import *
 
 __all__ = ["MovingPeaks", "MPConfigs", "MPFuncs"]
+
+type PeakFunc = Callable[[Sequence[float], Iterable[float], float, float], float]
 
 
 class MovingPeaks:
@@ -64,71 +66,73 @@ class MovingPeaks:
                 docstring table of kwargs.
         """
         self.dim = dimensions
-        sc = MPConfigs.DEFAULT.copy()  # default config
+        sc: dict[str, Any] = dict(MPConfigs.DEFAULT)
         sc.update(kwargs)
 
-        n_peaks = sc.get("npeaks")
-        pfunc = sc.get("pfunc")
+        n_peaks_val = cast(int | Sequence[int], sc["npeaks"])
+        pfunc = cast(PeakFunc | Sequence[PeakFunc], sc["pfunc"])
 
-        self.min_peaks, self.max_peaks = None, None
-        if hasattr(n_peaks, "__getitem__"):
-            self.min_peaks, n_peaks, self.max_peaks = n_peaks
-            self.number_severity = sc.get("number_severity")
-        try:
-            if len(pfunc) == n_peaks:
-                self.peaks_function = pfunc
+        self.min_peaks: int | None = None
+        self.max_peaks: int | None = None
+        self.number_severity: float = 0.0
+        if isinstance(n_peaks_val, Sequence) and not isinstance(n_peaks_val, (str, bytes)):
+            self.min_peaks, n_peaks, self.max_peaks = n_peaks_val
+            self.number_severity = float(sc["number_severity"])
+        else:
+            n_peaks = int(n_peaks_val)
+
+        if isinstance(pfunc, Sequence):
+            funcs = list(pfunc)
+            if len(funcs) == n_peaks:
+                self.peaks_function = funcs
             else:
-                self.peaks_function = random.sample(pfunc, n_peaks)
-            self.pfunc_pool = tuple(pfunc)
-        except TypeError:
+                self.peaks_function = random.sample(funcs, n_peaks)
+            self.pfunc_pool: tuple[PeakFunc, ...] = tuple(funcs)
+        else:
             self.peaks_function = list(itertools.repeat(pfunc, n_peaks))
             self.pfunc_pool = (pfunc,)
 
         self.last_change_vector = [
             [random.random() - 0.5 for _ in range(dimensions)] for _ in range(n_peaks)
         ]
-        self.min_coord = sc.get("min_coord")
-        self.max_coord = sc.get("max_coord")
+        self.min_coord = float(sc["min_coord"])
+        self.max_coord = float(sc["max_coord"])
         self.peaks_position = [
             [random.uniform(self.min_coord, self.max_coord) for _ in range(dimensions)]
             for _ in range(n_peaks)
         ]
-        uniform_height = sc.get("uniform_height")
-        self.min_height = sc.get("min_height")
-        self.max_height = sc.get("max_height")
+        uniform_height = float(sc["uniform_height"])
+        self.min_height = float(sc["min_height"])
+        self.max_height = float(sc["max_height"])
         if uniform_height != 0:
             self.peaks_height = [uniform_height for _ in range(n_peaks)]
         else:
+            self.peaks_height = [
+                random.uniform(self.min_height, self.max_height) for _ in range(n_peaks)
+            ]
 
-            def rand_height() -> float:
-                return random.uniform(self.min_height, self.max_height)
-
-            self.peaks_height = [rand_height() for _ in range(n_peaks)]
-
-        uniform_width = sc.get("uniform_width")
-        self.min_width = sc.get("min_width")
-        self.max_width = sc.get("max_width")
+        uniform_width = float(sc["uniform_width"])
+        self.min_width = float(sc["min_width"])
+        self.max_width = float(sc["max_width"])
         if uniform_width != 0:
             self.peaks_width = [uniform_width for _ in range(n_peaks)]
         else:
+            self.peaks_width = [
+                random.uniform(self.min_width, self.max_width) for _ in range(n_peaks)
+            ]
 
-            def rand_width() -> float:
-                return random.uniform(self.min_width, self.max_width)
-
-            self.peaks_width = [rand_width() for _ in range(n_peaks)]
-
-        self.basis_function = sc.get("bfunc")
-        self.move_severity = sc.get("move_severity")
-        self.height_severity = sc.get("height_severity")
-        self.width_severity = sc.get("width_severity")
-        self.period = sc.get("period")
-        self.lamb = sc.get("lambda_")
-        self._optimum = None
-        self._error = None
-        self._offline_error = 0
+        self.basis_function: Callable[[Sequence[float]], float] | None = sc.get("bfunc")
+        self.move_severity = float(sc["move_severity"])
+        self.height_severity = float(sc["height_severity"])
+        self.width_severity = float(sc["width_severity"])
+        self.period = int(sc["period"])
+        self.lamb = float(sc["lambda_"])
+        self._optimum: float | None = None
+        self._error: float | None = None
+        self._offline_error = 0.0
         self.nevals = 0
 
-    def __call__(self, individual: Individual, count: bool = True) -> tuple[float]:
+    def __call__(self, individual: Sequence[float], count: bool = True) -> tuple[float]:
         """Evaluate the given **individual** in the context of the current configuration.
 
         Args:
@@ -140,7 +144,13 @@ class MovingPeaks:
             The fitness of the individual.
         """
         possible_values = []
-        zipper = zip(self.peaks_function, self.peaks_position, self.peaks_height, self.peaks_width)
+        zipper = zip(
+            self.peaks_function,
+            self.peaks_position,
+            self.peaks_height,
+            self.peaks_width,
+            strict=False,
+        )
         for func, pos, height, width in zipper:
             result = func(individual, pos, height, width)
             possible_values.append(result)
@@ -153,25 +163,32 @@ class MovingPeaks:
 
         if count:
             self.nevals += 1
-            if self._optimum is None:
+            if self._optimum is None or self._error is None:
                 self._optimum = self.global_maximum[0]
                 self._error = abs(fitness - self._optimum)
-            self._error = min(self._error, abs(fitness - self._optimum))
+            else:
+                self._error = min(self._error, abs(fitness - self._optimum))
             self._offline_error += self._error
 
             if self.period > 0 and self.nevals % self.period == 0:
                 self.change_peaks()
 
-        return (fitness,)
+        return (float(fitness),)
 
     @property
     def global_maximum(self) -> tuple[float, list[float]]:
         """Returns the value and position of the largest peak."""
         potential_max = list()
-        zipper = zip(self.peaks_function, self.peaks_position, self.peaks_height, self.peaks_width)
+        zipper = zip(
+            self.peaks_function,
+            self.peaks_position,
+            self.peaks_height,
+            self.peaks_width,
+            strict=False,
+        )
         for func, pos, height, width in zipper:
             result = func(pos, pos, height, width)
-            value: tuple = (result, pos)
+            value: tuple[float, list[float]] = (float(result), pos)
             potential_max.append(value)
         return max(potential_max)
 
@@ -179,18 +196,24 @@ class MovingPeaks:
     def sorted_maxima(self) -> list[tuple[float, list[float]]]:
         """Return visible peak values and positions, largest first."""
         maximums = list()
-        zipper = zip(self.peaks_function, self.peaks_position, self.peaks_height, self.peaks_width)
+        zipper = zip(
+            self.peaks_function,
+            self.peaks_position,
+            self.peaks_height,
+            self.peaks_width,
+            strict=False,
+        )
         for func, pos, height, width in zipper:
             result = func(pos, pos, height, width)
             if result >= self.__call__(pos, count=False)[0]:
-                value: tuple = (result, pos)
+                value: tuple[float, list[float]] = (float(result), pos)
                 maximums.append(value)
         return sorted(maximums, reverse=True)
 
     @property
     def offline_error(self) -> float:
         """Returns the offline error of the landscape."""
-        return self._offline_error / self.nevals
+        return float(self._offline_error / self.nevals)
 
     @property
     def current_error(self) -> float | None:
@@ -209,7 +232,7 @@ class MovingPeaks:
                 u = random.random()
                 runs = int(round(r * u * self.number_severity))
                 n = min(n_peaks - self.min_peaks, runs)
-                for i in range(n):
+                for _ in range(n):
                     len_ = len(self.peaks_function)
                     idx = random.randrange(len_)
                     self.peaks_function.pop(idx)
@@ -221,7 +244,7 @@ class MovingPeaks:
                 u = random.random()
                 runs = int(round(r * u * self.number_severity))
                 n = min(self.max_peaks - n_peaks, runs)
-                for i in range(n):
+                for _ in range(n):
                     rand = random.choice(self.pfunc_pool)
                     self.peaks_function.append(rand)
                     rand = [random.uniform(self.min_coord, self.max_coord) for _ in range(self.dim)]
@@ -234,31 +257,21 @@ class MovingPeaks:
                     self.last_change_vector.append(rand)
 
         for i in range(len(self.peaks_function)):
-
-            def fn_shift(s, c):
-                return shift_length * (1.0 - self.lamb) * s + self.lamb * c
-
             len_ = len(self.peaks_position[i])
             shift = [random.random() - 0.5 for _ in range(len_)]
             shift_length = sum(s**2 for s in shift)
-            if shift_length > 0:
-                shift_length = self.move_severity / math.sqrt(shift_length)
-            else:
-                shift_length = 0
+            shift_length = self.move_severity / math.sqrt(shift_length) if shift_length > 0 else 0
 
-            zipper = zip(shift, self.last_change_vector[i])
-            shift = [fn_shift(s, c) for s, c in zipper]
+            zipper = zip(shift, self.last_change_vector[i], strict=False)
+            shift = [shift_length * (1.0 - self.lamb) * s + self.lamb * c for s, c in zipper]
             shift_length = sum(s**2 for s in shift)
-            if shift_length > 0:
-                shift_length = self.move_severity / math.sqrt(shift_length)
-            else:
-                shift_length = 0
+            shift_length = self.move_severity / math.sqrt(shift_length) if shift_length > 0 else 0
 
             shift = [s * shift_length for s in shift]
 
             new_position = []
             final_shift = []
-            for pp, s in zip(self.peaks_position[i], shift):
+            for pp, s in zip(self.peaks_position[i], shift, strict=False):
                 new_coord = pp + s
                 if new_coord < self.min_coord:
                     new_position.append(2.0 * self.min_coord - pp - s)
@@ -274,19 +287,25 @@ class MovingPeaks:
             self.last_change_vector[i] = final_shift
 
             def change_shape(
-                axis: list[float], axis_min: float, axis_max: float, sev: float
+                axis: list[float],
+                axis_min: float,
+                axis_max: float,
+                sev: float,
+                idx: int,
             ) -> None:
                 change = random.gauss(0, 1) * sev
-                new_value = change + axis[i]
+                new_value = change + axis[idx]
                 if new_value < axis_min:
-                    axis[i] = 2.0 * axis_min - axis[i] - change
+                    axis[idx] = 2.0 * axis_min - axis[idx] - change
                 elif new_value > axis_max:
-                    axis[i] = 2.0 * axis_max - axis[i] - change
+                    axis[idx] = 2.0 * axis_max - axis[idx] - change
                 else:
-                    axis[i] = new_value
+                    axis[idx] = new_value
 
-            change_shape(self.peaks_height, self.min_height, self.max_height, self.height_severity)
-            change_shape(self.peaks_width, self.min_width, self.max_width, self.width_severity)
+            change_shape(
+                self.peaks_height, self.min_height, self.max_height, self.height_severity, i
+            )
+            change_shape(self.peaks_width, self.min_width, self.max_width, self.width_severity, i)
 
 
 class MPFuncs:
@@ -294,7 +313,7 @@ class MPFuncs:
 
     @staticmethod
     def pf1(
-        individual: Individual, positions: Iterable[float], height: float, width: float
+        individual: Sequence[float], positions: Iterable[float], height: float, width: float
     ) -> float:
         """The peak function of the :data:`DEFAULT` preset.
 
@@ -308,13 +327,13 @@ class MPFuncs:
             The fitness of the individual.
         """
         value = 0.0
-        for x, p in zip(individual, positions):
+        for x, p in zip(individual, positions, strict=False):
             value += (x - p) ** 2
-        return height / (1 + width * value)
+        return float(height / (1 + width * value))
 
     @staticmethod
     def pf2(
-        individual: Individual, positions: Iterable[float], height: float, width: float
+        individual: Sequence[float], positions: Iterable[float], height: float, width: float
     ) -> float:
         """The peak function of the :data:`ALT1` and :data:`ALT2` presets.
 
@@ -328,12 +347,14 @@ class MPFuncs:
             The fitness of the individual.
         """
         value = 0.0
-        for x, p in zip(individual, positions):
+        for x, p in zip(individual, positions, strict=False):
             value += (x - p) ** 2
-        return height - width * math.sqrt(value)
+        return float(height - width * math.sqrt(value))
 
     @staticmethod
-    def pf3(individual: Individual, positions: Iterable[float], height: float, *_: Any) -> float:
+    def pf3(
+        individual: Sequence[float], positions: Iterable[float], height: float, *_: Any
+    ) -> float:
         """An optional peak function.
 
         Args:
@@ -345,9 +366,9 @@ class MPFuncs:
             The fitness of the individual.
         """
         value = 0.0
-        for x, p in zip(individual, positions):
+        for x, p in zip(individual, positions, strict=False):
             value += (x - p) ** 2
-        return height * value
+        return float(height * value)
 
 
 class MPConfigs:

@@ -8,9 +8,7 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from __future__ import division
 from deap_er.base.dtypes import *
-
 
 __all__ = ["bm_royal_road_1", "bm_royal_road_2", "bm_chuang_f1", "bm_chuang_f2", "bm_chuang_f3"]
 
@@ -57,7 +55,7 @@ def bm_royal_road_2(individual: Individual, order: int) -> tuple[int]:
     total = 0
     n_order = order
     while n_order < order**2:
-        total += bm_royal_road_1(individual, n_order)
+        total += bm_royal_road_1(individual, n_order)[0]
         n_order *= 2
     return (total,)
 
@@ -149,7 +147,7 @@ def _trap(individual: Individual) -> int:
     """
     u = sum(individual)
     k = len(individual)
-    return k if u == k else k - 1 - u
+    return int(k if u == k else k - 1 - u)
 
 
 def _inv_trap(individual: Individual) -> int:
@@ -163,4 +161,4 @@ def _inv_trap(individual: Individual) -> int:
     """
     u = sum(individual)
     k = len(individual)
-    return k if u == 0 else u - 1
+    return int(k if u == 0 else u - 1)
