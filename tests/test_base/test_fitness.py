@@ -15,6 +15,9 @@ from deap_er.base.fitness import Fitness
 
 
 class TestFitness:
+    def setup_method(self):
+        Fitness.weights = ()
+
     def test_instantiation(self):
         with pytest.raises(TypeError):
             Fitness()

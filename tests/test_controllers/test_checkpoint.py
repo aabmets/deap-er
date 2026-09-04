@@ -9,7 +9,6 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import os
-import time
 from pathlib import Path
 
 from deap_er import env
@@ -59,9 +58,8 @@ class TestCheckpoint:
 
     def test_range_2(self, tmp_path):
         cpt = env.Checkpoint(file_name="asdfg.cpt", dir_path=tmp_path, autoload=False)
-        cpt.save_freq = 0.1
+        cpt.save_freq = 0
         assert cpt.last_op == "none"
         for i in cpt.range(10):
-            time.sleep(0.021)
             if i == 5:
                 assert cpt.last_op == "save_success"

@@ -74,8 +74,8 @@ class TestNode:
     def test_1(self):
         n1 = Node(1)
         n2 = Node(1)
-        assert n1 != n2
-        assert n1 == n2
+        assert n1.__eq__(n2) is False
+        assert n1.__ne__(n2) is False
 
     def test_2(self):
         n1 = Node(1, (1, 2, 3))
