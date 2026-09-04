@@ -10,6 +10,7 @@
 #
 from copy import deepcopy
 
+import numpy
 import pytest
 from deap_er.base.fitness import Fitness
 
@@ -81,3 +82,37 @@ class TestFitness:
         assert hash(ft1) != hash(ft2)
         assert ft1.__str__() == "(2.0, 2.0, 2.0)"
         assert ft1 == deepcopy(ft1)
+
+    @pytest.mark.parametrize("zero", [0, 0.0])
+    def test_zero_is_a_real_objective_value(self, zero):
+        Fitness.weights = [-1]
+
+        ft = Fitness(zero)
+
+        assert ft.is_valid() is True
+        assert ft.values == (0.0,)
+
+    def test_no_values_stays_invalid(self):
+        Fitness.weights = [-1]
+
+        assert Fitness().is_valid() is False
+
+    @pytest.mark.parametrize(
+        "scalar",
+        [numpy.float32(3.0), numpy.float64(3.0), numpy.int32(3), numpy.int64(3)],
+    )
+    def test_numpy_scalars_are_accepted(self, scalar):
+        Fitness.weights = [1]
+
+        ft = Fitness()
+        ft.values = scalar
+
+        assert ft.values == (3.0,)
+
+    def test_numpy_array_of_values_is_accepted(self):
+        Fitness.weights = [1, 1, 1]
+
+        ft = Fitness()
+        ft.values = numpy.array([1.0, 2.0, 3.0])
+
+        assert ft.values == (1.0, 2.0, 3.0)

@@ -10,12 +10,16 @@
 #
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import Any, override
-
-from .dtypes import NumOrSeq
+from collections.abc import Iterable, Sequence
+from typing import Any, SupportsFloat, override
 
 __all__ = ["Fitness"]
+
+type FitnessValues = SupportsFloat | Iterable[SupportsFloat]
+"""A single objective value or an iterable of them, including NumPy scalars and arrays.
+
+:meta private:
+"""
 
 
 class Fitness:
@@ -39,13 +43,13 @@ class Fitness:
     wvalues: tuple[float, ...] = ()
     crowding_dist: float = 0.0
 
-    def __init__(self, values: NumOrSeq | None = None) -> None:
+    def __init__(self, values: FitnessValues | None = None) -> None:
         """See the class docstring."""
         if not self.weights:
             raise TypeError(
                 "Can't instantiate 'Fitness', when class attribute 'weights' tuple is not set."
             )
-        if values:
+        if values is not None:
             self.values = values
 
     @property
@@ -68,11 +72,11 @@ class Fitness:
         return ()
 
     @values.setter
-    def values(self, values: NumOrSeq) -> None:
-        if isinstance(values, int | float):
-            seq: tuple[float, ...] = (float(values),)
+    def values(self, values: FitnessValues) -> None:
+        if isinstance(values, Iterable):
+            seq: tuple[float, ...] = tuple(float(value) for value in values)
         else:
-            seq = tuple(float(value) for value in values)
+            seq = (float(values),)
         if len(seq) != len(self.weights):
             raise TypeError(
                 "The assigned values must have the same length as "
