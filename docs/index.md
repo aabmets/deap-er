@@ -1,7 +1,7 @@
 # DEAP-ER documentation
 
 **DEAP-ER** is a complete rewrite of the original [DEAP](https://github.com/DEAP/deap)
-library for Python 3.10 and up.
+library for Python 3.12 and up.
 
 - [Introduction](overview/introduction.md)
 - [Important differences](overview/differences.md)
