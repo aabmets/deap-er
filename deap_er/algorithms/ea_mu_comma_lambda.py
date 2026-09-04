@@ -48,9 +48,14 @@ def ea_mu_comma_lambda(
 
     Returns:
         The final population and the logbook.
+
+    Raises:
+        ValueError: If ``survivors`` is greater than ``offsprings``.
     """
-    if survivors > offsprings:  # pragma: no cover
-        offsprings, survivors = survivors, offsprings
+    if survivors > offsprings:
+        raise ValueError(
+            "The number of survivors must be less than or equal to the number of offsprings."
+        )
 
     logbook = _new_logbook(stats)
 

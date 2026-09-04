@@ -78,3 +78,16 @@ def test_all_drivers_agree_on_generation_numbering(toolbox, driver):
     _, logbook = driver(toolbox, _population())
 
     assert logbook.select("gen") == [1, 2, 3, 4]
+
+
+def test_mu_comma_lambda_rejects_more_survivors_than_offsprings(toolbox):
+    # (mu, lambda) requires lambda >= mu, so this is a caller mistake
+    # rather than something to silently correct.
+    with pytest.raises(ValueError, match="less than or equal"):
+        tools.ea_mu_comma_lambda(toolbox, _population(), 2, 4, 8, 0.5, 0.2)
+
+
+def test_mu_comma_lambda_accepts_equal_counts(toolbox):
+    _, logbook = tools.ea_mu_comma_lambda(toolbox, _population(), 2, 6, 6, 0.5, 0.2)
+
+    assert logbook.select("gen") == [1, 2]
