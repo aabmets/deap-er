@@ -9,7 +9,8 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.base.dtypes import *
-from typing import Callable, Optional
+from collections.abc import Callable, Iterator
+from typing import Any
 from bisect import bisect_right
 from copy import deepcopy
 from operator import eq
@@ -21,7 +22,7 @@ __all__ = ["HallOfFame", "ParetoFront"]
 class _BaseClass:
     """Shared storage and ordering for HallOfFame and ParetoFront."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Create empty item and key lists."""
         self.keys = list()
         self.items = list()
@@ -53,23 +54,23 @@ class _BaseClass:
         del self.items[:]
         del self.keys[:]
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Return the number of stored individuals."""
         return len(self.items)
 
-    def __getitem__(self, i):
+    def __getitem__(self, i: int | slice) -> Individual | list[Individual]:
         """Return the individual at position ``i``."""
         return self.items[i]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Individual]:
         """Iterate over individuals from best to worst."""
         return iter(self.items)
 
-    def __reversed__(self):
+    def __reversed__(self) -> Iterator[Individual]:
         """Iterate over individuals from worst to best."""
         return reversed(self.items)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Return the stored individuals as a string."""
         return str(self.items)
 
@@ -86,13 +87,13 @@ class HallOfFame(_BaseClass):
             ``operator.eq``.
     """
 
-    def __init__(self, maxsize: int, similar: Optional[Callable] = eq):
+    def __init__(self, maxsize: int, similar: Callable[..., Any] = eq) -> None:
         """See the class docstring."""
         self.maxsize = maxsize
         self.similar = similar
         super().__init__()
 
-    def update(self, population: list) -> None:
+    def update(self, population: list[Individual]) -> None:
         """Update the archive from ``population``.
 
         Better individuals replace the worst members. The archive stays
@@ -126,12 +127,12 @@ class ParetoFront(_BaseClass):
             ``operator.eq``.
     """
 
-    def __init__(self, similar: Optional[Callable] = eq):
+    def __init__(self, similar: Callable[..., Any] = eq) -> None:
         """See the class docstring."""
         self.similar = similar
         super().__init__()
 
-    def update(self, population: list) -> None:
+    def update(self, population: list[Individual]) -> None:
         """Add non-dominated individuals from ``population``.
 
         Members dominated by a new individual are removed. Similar

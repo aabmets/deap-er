@@ -9,7 +9,8 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.base.dtypes import *
-from typing import Optional, Callable
+from typing import Any
+from collections.abc import Callable
 from math import sqrt, exp
 import numpy
 import copy
@@ -55,7 +56,7 @@ class StrategyOnePlusLambda:
           * *Default:* ``2.0 / (len(parent) ** 2 + 6.0)``
     """
 
-    def __init__(self, parent: Individual, sigma: float, **kwargs: Optional):
+    def __init__(self, parent: Individual, sigma: float, **kwargs: Any) -> None:
         """See the class docstring."""
         if not hasattr(parent, "fitness"):
             raise TypeError("The parent must have a fitness attribute.")
@@ -79,7 +80,7 @@ class StrategyOnePlusLambda:
 
         self.compute_params(**kwargs)
 
-    def compute_params(self, **kwargs: Optional) -> None:
+    def compute_params(self, **kwargs: Any) -> None:
         """Recompute strategy parameters from ``kwargs``.
 
         Called from the constructor. Call again if ``offsprings``
@@ -109,7 +110,7 @@ class StrategyOnePlusLambda:
 
         self.psucc = self.tgt_sr
 
-    def generate(self, ind_init: Callable) -> list:
+    def generate(self, ind_init: Callable[..., Individual]) -> list[Individual]:
         """Sample ``offsprings`` individuals around the current parent.
 
         Args:
@@ -123,7 +124,7 @@ class StrategyOnePlusLambda:
         arz = self.parent + self.sigma * numpy.dot(arz, self.big_a.T)
         return list(map(ind_init, arz))
 
-    def update(self, population: list) -> None:
+    def update(self, population: list[Individual]) -> None:
         """Update parent, step-size, and covariance from ``population``.
 
         The parent is replaced when a better offspring exists. Success

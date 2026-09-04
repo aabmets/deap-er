@@ -8,7 +8,8 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from typing import Callable, Optional, Iterable
+from typing import Any
+from collections.abc import Callable, Iterable
 from functools import partial
 
 
@@ -28,13 +29,13 @@ class Statistics:
             to the identity function.
     """
 
-    def __init__(self, key: Optional[Callable] = None):
+    def __init__(self, key: Callable[..., Any] | None = None) -> None:
         """See the class docstring."""
         self.key = key if key else lambda obj: obj
         self.functions = dict()
         self.fields = list()
 
-    def register(self, name: str, func: Callable, *args: Optional, **kwargs: Optional) -> None:
+    def register(self, name: str, func: Callable[..., Any], *args: Any, **kwargs: Any) -> None:
         """Register a statistic computed by ``compile``.
 
         Extra positional and keyword arguments are bound into ``func``.
@@ -48,7 +49,7 @@ class Statistics:
         self.functions[name] = partial(func, *args, **kwargs)
         self.fields.append(name)
 
-    def compile(self, data: Iterable) -> dict:
+    def compile(self, data: Iterable[Any]) -> dict[str, Any]:
         """Compute every registered statistic on ``data``.
 
         Args:
@@ -74,11 +75,11 @@ class MultiStatistics(dict):
     """
 
     @property
-    def fields(self):
+    def fields(self) -> list[str]:
         """Sorted names of the contained ``Statistics`` objects."""
         return sorted(self.keys())
 
-    def register(self, name: str, func: Callable, *args: Optional, **kwargs: Optional) -> None:
+    def register(self, name: str, func: Callable[..., Any], *args: Any, **kwargs: Any) -> None:
         """Register ``func`` on every contained ``Statistics`` object.
 
         Args:
@@ -90,7 +91,7 @@ class MultiStatistics(dict):
         for stats in self.values():
             stats.register(name, func, *args, **kwargs)
 
-    def compile(self, data: Iterable) -> dict:
+    def compile(self, data: Iterable[Any]) -> dict[str, Any]:
         """Compile every contained ``Statistics`` object on ``data``.
 
         Args:

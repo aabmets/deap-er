@@ -10,6 +10,7 @@
 #
 from collections import defaultdict
 from itertools import chain
+from typing import Any
 
 
 __all__ = ["Logbook"]
@@ -23,13 +24,13 @@ class Logbook(list):
     order when printing.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Create an empty logbook."""
         self.chapters = defaultdict(Logbook)
         self.buff_index: int = 0
         self.log_header: bool = True
-        self.columns_len: list = list()
-        self.header: list = list()
+        self.columns_len: list[int] = list()
+        self.header: list[str] = list()
         super().__init__()
 
     @property
@@ -38,7 +39,7 @@ class Logbook(list):
         start_index, self.buff_index = self.buff_index, len(self)
         return self.__str__(start_index)
 
-    def record(self, **data) -> None:
+    def record(self, **data: Any) -> None:
         """Append one chronological entry.
 
         Nested dict values are recorded into named chapters. Remaining
@@ -57,7 +58,7 @@ class Logbook(list):
                 del data[key]
         self.append(data)
 
-    def select(self, *names) -> list:
+    def select(self, *names: str) -> list[Any]:
         """Return recorded values for one or more field names.
 
         A missing name yields ``None`` in that column. One name
@@ -73,7 +74,7 @@ class Logbook(list):
             return [entry.get(names[0], None) for entry in self]
         return [[entry.get(name, None) for entry in self] for name in names]
 
-    def pop(self, index: int = 0) -> dict:
+    def pop(self, index: int = 0) -> dict[str, Any]:
         """Remove and return the entry at ``index``.
 
         The stream cursor is moved back when the removed entry has
@@ -89,7 +90,7 @@ class Logbook(list):
             self.buff_index -= 1
         return super(self.__class__, self).pop(index)
 
-    def __delitem__(self, key) -> None:
+    def __delitem__(self, key: int | slice) -> None:
         """Delete an entry and the same index from every chapter."""
         if isinstance(key, slice):
             for (i,) in range(*key.indices(len(self))):
@@ -101,7 +102,7 @@ class Logbook(list):
             for chapter in self.chapters.values():
                 chapter.pop(key)
 
-    def __txt__(self, start_index: int) -> list:
+    def __txt__(self, start_index: int) -> list[str]:
         """Format rows from ``start_index`` as aligned column strings.
 
         Args:
@@ -117,7 +118,7 @@ class Logbook(list):
         if not columns:
             columns = sorted(self[0].keys()) + sorted(self.chapters.keys())
         if not self.columns_len or len(self.columns_len) != len(columns):
-            self.columns_len: list = list(map(len, columns))
+            self.columns_len: list[int] = list(map(len, columns))
 
         chapters_txt = {}
         offsets = defaultdict(int)

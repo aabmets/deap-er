@@ -9,7 +9,9 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er import utilities as utils
-from typing import Optional, Callable
+from deap_er.base.dtypes import Individual
+from typing import Any
+from collections.abc import Callable
 from math import sqrt, exp
 import numpy
 
@@ -57,7 +59,7 @@ class StrategyMultiObjective:
           * *Default:* None
     """
 
-    def __init__(self, population: list, sigma: float, **kwargs: Optional):
+    def __init__(self, population: list[Individual], sigma: float, **kwargs: Any) -> None:
         """See the class docstring."""
         self.parents = population
         self.dim = len(self.parents[0])
@@ -79,7 +81,7 @@ class StrategyMultiObjective:
         self.pc = [numpy.zeros(self.dim) for _ in range(pop_size)]
         self.psucc = [self.tgt_sr] * pop_size
 
-    def _select(self, candidates):
+    def _select(self, candidates: list[Individual]) -> tuple[list[Individual], list[Individual]]:
         """Split candidates into ``survivors`` chosen and the remainder.
 
         Uses non-dominated sorting. When a front would overflow
@@ -131,7 +133,13 @@ class StrategyMultiObjective:
         return chosen, not_chosen
 
     @staticmethod
-    def _rank_one_update(inv_cholesky, big_a, alpha, beta, v):
+    def _rank_one_update(
+        inv_cholesky: numpy.ndarray,
+        big_a: numpy.ndarray,
+        alpha: float,
+        beta: float,
+        v: numpy.ndarray,
+    ) -> tuple[numpy.ndarray, numpy.ndarray]:
         """Apply a rank-one covariance update to the Cholesky factors.
 
         Args:
@@ -158,7 +166,7 @@ class StrategyMultiObjective:
 
         return inv_cholesky, big_a
 
-    def update(self, population: list) -> None:
+    def update(self, population: list[Individual]) -> None:
         """Select new parents and update each parent's CMA parameters.
 
         Offspring are merged with the current parents, then reduced to
@@ -242,7 +250,7 @@ class StrategyMultiObjective:
 
         self.parents = chosen
 
-    def generate(self, ind_init: Callable) -> list:
+    def generate(self, ind_init: Callable[..., Individual]) -> list[Individual]:
         """Sample ``offsprings`` individuals from the current parents.
 
         When ``offsprings`` equals the parent count, each parent

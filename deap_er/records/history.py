@@ -9,7 +9,8 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from deap_er.base.dtypes import *
-from typing import Callable
+from collections.abc import Callable
+from typing import Any
 from copy import deepcopy
 
 
@@ -23,18 +24,18 @@ class History:
     or wrap variation operators with ``decorator``.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Create an empty genealogy."""
         self.genealogy_index = int()
         self.genealogy_history = dict()
         self.genealogy_tree = dict()
 
     @property
-    def decorator(self) -> Callable:
+    def decorator(self) -> Callable[..., Any]:
         """Decorator that records a variation operator's returned individuals."""
 
-        def wrapper(func):
-            def wrapped(*args, **kwargs):
+        def wrapper(func: Callable[..., Any]) -> Callable[..., Any]:
+            def wrapped(*args: Any, **kwargs: Any) -> Any:
                 individuals = func(*args, **kwargs)
                 self.update(individuals)
                 return individuals
@@ -43,7 +44,7 @@ class History:
 
         return wrapper
 
-    def update(self, individuals: list) -> None:
+    def update(self, individuals: list[Individual]) -> None:
         """Record ``individuals`` in the genealogy.
 
         Call this on the initial population and after each variation.
@@ -65,7 +66,9 @@ class History:
             self.genealogy_history[self.genealogy_index] = deepcopy(ind)
             self.genealogy_tree[self.genealogy_index] = parent_indices
 
-    def get_genealogy(self, individual: Individual, max_depth: float = float("inf")) -> dict:
+    def get_genealogy(
+        self, individual: Individual, max_depth: float = float("inf")
+    ) -> dict[int, Any]:
         """Return the ancestor graph of an individual.
 
         The individual must have a ``history_index`` set by ``update``.
@@ -84,7 +87,7 @@ class History:
             AttributeError: If the individual has no ``history_index``.
         """
 
-        def _recursive(index, depth):
+        def _recursive(index: int, depth: int) -> None:
             if index not in self.genealogy_tree:
                 return
             depth += 1

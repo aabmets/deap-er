@@ -8,7 +8,9 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from typing import Optional, Iterable, Callable
+from typing import Any
+from collections.abc import Iterable, Callable
+from deap_er.base.dtypes import Individual
 from math import sqrt, log
 import numpy
 
@@ -57,7 +59,7 @@ class Strategy:
           * *Default:* ``2 * (mueff - 2 + 1 / mueff) / ((len(centroid) + 2) ** 2 + mueff)``
     """
 
-    def __init__(self, centroid: Iterable, sigma: float, **kwargs: Optional):
+    def __init__(self, centroid: Iterable[float], sigma: float, **kwargs: Any) -> None:
         """See the class docstring."""
         self.update_count = 0
         self.centroid = numpy.array(centroid)
@@ -87,7 +89,7 @@ class Strategy:
 
         self.compute_params(**kwargs)
 
-    def compute_params(self, **kwargs: Optional) -> None:
+    def compute_params(self, **kwargs: Any) -> None:
         """Recompute strategy parameters from ``kwargs``.
 
         Called from the constructor. Call again if ``offsprings``
@@ -151,7 +153,7 @@ class Strategy:
         self.big_bd = self.big_b * self.diagD
         self.cond = self.diagD[indx[-1]] / self.diagD[indx[0]]
 
-    def generate(self, ind_init: Callable) -> list:
+    def generate(self, ind_init: Callable[..., Individual]) -> list[Individual]:
         """Sample ``offsprings`` individuals from the current distribution.
 
         Args:
@@ -165,7 +167,7 @@ class Strategy:
         arz = self.centroid + self.sigma * numpy.dot(arz, self.big_bd.T)
         return list(map(ind_init, arz))
 
-    def update(self, population: list) -> None:
+    def update(self, population: list[Individual]) -> None:
         """Update centroid, step-size, and covariance from ``population``.
 
         Individuals are ranked by fitness. The best ``survivors``
