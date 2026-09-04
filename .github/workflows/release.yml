@@ -25,7 +25,7 @@ jobs:
         env:
           NEW_VERSION: ${{ inputs.version }}
         run: |
-          uv run --with packaging python <<'PY'
+          uv run python <<'PY'  # NOSONAR --no-build would skip this package
           import os
           import sys
           from pathlib import Path
