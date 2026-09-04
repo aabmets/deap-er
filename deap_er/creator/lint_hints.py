@@ -10,7 +10,6 @@
 #
 from typing import Any
 
-
 __all__ = [
     "Fitness",
     "FitnessMax",

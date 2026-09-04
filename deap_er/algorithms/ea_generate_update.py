@@ -8,10 +8,9 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.records.dtypes import *
-from deap_er.records import Logbook
 from deap_er.base import Toolbox
-
+from deap_er.records import Logbook
+from deap_er.records.dtypes import *
 
 __all__ = ["ea_generate_update"]
 
@@ -40,12 +39,12 @@ def ea_generate_update(
     logbook = Logbook()
     logbook.header = ["gen", "nevals"] + (stats.fields if stats else [])
 
-    population = None
+    population: list[Individual] = []
     for gen in range(generations):
         population = toolbox.generate()
 
         fitness = toolbox.map(toolbox.evaluate, population)
-        for ind, fit in zip(population, fitness):
+        for ind, fit in zip(population, fitness, strict=False):
             ind.fitness.values = fit
 
         toolbox.update(population)

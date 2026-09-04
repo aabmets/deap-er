@@ -8,6 +8,6 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from . import creator
 from .creator import create
 from .lint_hints import *
-from . import creator

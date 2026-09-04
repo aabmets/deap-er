@@ -8,10 +8,10 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from .overrides import *
-from typing import Any
 import warnings
+from typing import Any, cast
 
+from .overrides import *
 
 __all__ = ["create"]
 
@@ -40,7 +40,7 @@ def create(name: str, base: type | object, **kwargs: Any) -> None:
             f"which already exists. The old definition will "
             f"be overwritten by the new one."
         )
-        warnings.warn(message=msg, category=RuntimeWarning)
+        warnings.warn(stacklevel=2, message=msg, category=RuntimeWarning)
 
     # set base to class if base is an instance
     if not hasattr(base, "__module__"):
@@ -64,7 +64,7 @@ def create(name: str, base: type | object, **kwargs: Any) -> None:
         for attr_name, attr_obj in inst_attr.items():
             setattr(self, attr_name, attr_obj())
         if base.__init__ is not object.__init__:
-            base.__init__(self, *args_, **kwargs_)
+            cast(Any, base.__init__)(self, *args_, **kwargs_)
 
     # override the init func and set the global name
     new_class.__init__ = new_init_func

@@ -8,7 +8,6 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from .creator import creator
+from . import base, gp
 from . import persistence as env
-from . import base
-from . import gp
+from .creator import creator

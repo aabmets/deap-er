@@ -9,8 +9,8 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from .algorithms import *
-from .strategies import *
-from .operators import *
 from .benchmarks import *
-from .utilities import *
+from .operators import *
 from .records import *
+from .strategies import *
+from .utilities import *

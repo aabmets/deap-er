@@ -9,5 +9,5 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from .base.dtypes import *
-from .records.dtypes import *
 from .gp.dtypes import *
+from .records.dtypes import *

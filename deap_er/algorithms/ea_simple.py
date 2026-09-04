@@ -8,11 +8,11 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.records.dtypes import *
-from deap_er.records import Logbook
 from deap_er.base import Toolbox
-from .variation import *
+from deap_er.records import Logbook
+from deap_er.records.dtypes import *
 
+from .variation import *
 
 __all__ = ["ea_simple"]
 
@@ -54,7 +54,7 @@ def ea_simple(
 
         invalids = [ind for ind in offspring if not ind.fitness.is_valid()]
         fitness = toolbox.map(toolbox.evaluate, invalids)
-        for ind, fit in zip(invalids, fitness):
+        for ind, fit in zip(invalids, fitness, strict=False):
             ind.fitness.values = fit
 
         population[:] = offspring

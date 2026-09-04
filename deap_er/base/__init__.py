@@ -8,5 +8,5 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from .toolbox import *
 from .fitness import *
+from .toolbox import *

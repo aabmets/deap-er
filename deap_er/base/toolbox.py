@@ -8,12 +8,12 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from .lint_hints import LintHints
-from typing import Any
 from collections.abc import Callable
-from functools import partial
 from copy import deepcopy
+from functools import partial
+from typing import Any
 
+from .lint_hints import LintHints
 
 __all__ = ["Toolbox"]
 
