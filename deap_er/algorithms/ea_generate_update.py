@@ -19,20 +19,19 @@ __all__ = ["ea_generate_update"]
 def ea_generate_update(
     toolbox: Toolbox, generations: int, hof: Hof = None, stats: Stats = None, verbose: bool = False
 ) -> AlgoResult:
-    """
-    An evolutionary algorithm. This function expects the *'generate'*,
-    *'update'*, and *'evaluate'* operators to be registered in the toolbox.
+    """Evolve a strategy that generates and updates a population.
 
-    :param toolbox: A Toolbox which contains the evolution operators.
-    :param generations: The number of generations to compute.
-    :param hof: A HallOfFame or a ParetoFront object, optional.
-    :param stats: A Statistics or a MultiStatistics object, optional.
-    :param verbose: Whether to print debug messages, optional.
-    :return: The final population and the logbook.
+    Requires ``generate``, ``update``, and ``evaluate`` on ``toolbox``.
 
-    :type hof: :ref:`Hof <datatypes>`
-    :type stats: :ref:`Stats <datatypes>`
-    :rtype: :ref:`AlgoResult <datatypes>`
+    Args:
+        toolbox: Toolbox with the generate, update, and evaluate operators.
+        generations: Number of generations to run.
+        hof: Optional HallOfFame or ParetoFront to update.
+        stats: Optional Statistics or MultiStatistics to compile.
+        verbose: If True, print the logbook stream each generation.
+
+    Returns:
+        The final population and the logbook.
     """
     logbook = Logbook()
     logbook.header = ["gen", "nevals"] + (stats.fields if stats else [])

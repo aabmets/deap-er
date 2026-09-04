@@ -16,18 +16,24 @@ __all__ = ["var_and", "var_or"]
 
 
 def var_and(toolbox: Toolbox, population: list, cx_prob: float, mut_prob: float) -> list:
-    """
-    A subcomponent for evolutionary algorithms, which mates AND
-    mutates each individual in the given population according to the
-    given probabilities. Each of the two probabilities must be in
-    the range of [0, 1]. The returned population is independent of
-    the input population and has their fitness invalidated.
+    """Clone a population, then apply crossover and mutation independently.
 
-    :param toolbox: A Toolbox which contains the evolution operators.
-    :param population: A list of individuals to evolve.
-    :param cx_prob: The probability of mating two individuals.
-    :param mut_prob: The probability of mutating an individual.
-    :return: A list of evolved individuals.
+    Each of ``cx_prob`` and ``mut_prob`` must be in ``[0, 1]``. The
+    result is a new list; fitnesses of varied individuals are cleared.
+
+    Requires ``clone``, ``mate``, and ``mutate`` on ``toolbox``.
+
+    Args:
+        toolbox: Toolbox with the variation operators.
+        population: Individuals to vary.
+        cx_prob: Probability of mating each consecutive pair.
+        mut_prob: Probability of mutating each individual.
+
+    Returns:
+        A new list of varied individuals.
+
+    Raises:
+        ValueError: If either probability is outside ``[0, 1]``.
     """
     err = "The {0} probability must be in the range of [0, 1]."
     if not (0 <= cx_prob <= 1):
@@ -53,19 +59,26 @@ def var_and(toolbox: Toolbox, population: list, cx_prob: float, mut_prob: float)
 def var_or(
     toolbox: Toolbox, population: list, offsprings: int, cx_prob: float, mut_prob: float
 ) -> list:
-    """
-    A subcomponent for evolutionary algorithms, which mates OR
-    mutates each individual in the given population according to the
-    given probabilities. The sum of the two probabilities must be in
-    the range of [0, 1]. The returned population is independent of
-    the input population and has their fitness invalidated.
+    """Build offspring by applying crossover *or* mutation *or* copy.
 
-    :param toolbox: A Toolbox which contains the evolution operators.
-    :param population: A list of individuals to evolve.
-    :param offsprings: The number of individuals to produce.
-    :param cx_prob: The probability of mating two individuals.
-    :param mut_prob: The probability of mutating an individual.
-    :return: A list of evolved individuals.
+    The sum of ``cx_prob`` and ``mut_prob`` must be in ``[0, 1]``. The
+    remaining probability copies an unmodified parent. The result is a
+    new list; fitnesses of varied individuals are cleared.
+
+    Requires ``clone``, ``mate``, and ``mutate`` on ``toolbox``.
+
+    Args:
+        toolbox: Toolbox with the variation operators.
+        population: Individuals to sample from.
+        offsprings: Number of individuals to produce.
+        cx_prob: Probability of producing a child by crossover.
+        mut_prob: Probability of producing a child by mutation.
+
+    Returns:
+        A new list of offspring.
+
+    Raises:
+        ValueError: If ``cx_prob + mut_prob`` is greater than 1.
     """
     evolve_prob = cx_prob + mut_prob
     if evolve_prob > 1.0:

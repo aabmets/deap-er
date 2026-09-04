@@ -29,26 +29,25 @@ def ea_mu_comma_lambda(
     stats: Stats = None,
     verbose: bool = False,
 ) -> AlgoResult:
-    """
-    An evolutionary algorithm. This function expects the *'mate'*, *'mutate'*,
-    *'select'* and *'evaluate'* operators to be registered in the toolbox.
-    The survivors are selected only from the offspring population.
+    """Evolve a population with mu-comma-lambda selection.
 
-    :param toolbox: A Toolbox which contains the evolution operators.
-    :param population: A list of individuals to evolve.
-    :param generations: The number of generations to compute.
-    :param offsprings: The number of individuals to produce at each generation.
-    :param survivors: The number of individuals to select from the offspring.
-    :param cx_prob: The probability of mating two individuals.
-    :param mut_prob: The probability of mutating an individual.
-    :param hof: A HallOfFame or a ParetoFront object, optional.
-    :param stats: A Statistics or a MultiStatistics object, optional.
-    :param verbose: Whether to print debug messages, optional.
-    :return: The final population and the logbook.
+    Requires ``mate``, ``mutate``, ``select``, and ``evaluate`` on
+    ``toolbox``. Survivors are selected from the offspring only.
 
-    :type hof: :ref:`Hof <datatypes>`
-    :type stats: :ref:`Stats <datatypes>`
-    :rtype: :ref:`AlgoResult <datatypes>`
+    Args:
+        toolbox: Toolbox with the evolution operators.
+        population: Individuals to evolve. Replaced in place.
+        generations: Number of generations to run.
+        offsprings: Number of offspring to produce each generation.
+        survivors: Number of individuals to keep after selection.
+        cx_prob: Probability of mating two individuals.
+        mut_prob: Probability of mutating an individual.
+        hof: Optional HallOfFame or ParetoFront to update.
+        stats: Optional Statistics or MultiStatistics to compile.
+        verbose: If True, print the logbook stream each generation.
+
+    Returns:
+        The final population and the logbook.
     """
     if survivors > offsprings:  # pragma: no cover
         offsprings, survivors = survivors, offsprings
