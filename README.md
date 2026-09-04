@@ -1,5 +1,21 @@
 # DEAP-ER
 
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/deap-er)](https://pypi.org/project/deap-er/)
+[![GitHub License](https://img.shields.io/github/license/aabmets/deap-er)](https://github.com/aabmets/deap-er/blob/main/LICENSE)
+[![codecov](https://codecov.io/gh/aabmets/deap-er/branch/main/graph/badge.svg?token=hEELibzJvq)](https://codecov.io/gh/aabmets/deap-er)
+[![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/aabmets/deap-er/pytest-codecov.yml?label=tests)](https://github.com/aabmets/deap-er/actions/workflows/pytest-codecov.yml)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/deap-er)](https://pypistats.org/packages/deap-er)
+
+
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=aabmets_deap-er&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=aabmets_deap-er)
+[![Security Rating](https://sonarcloud.io/api/project_badges/measure?project=aabmets_deap-er&metric=security_rating)](https://sonarcloud.io/summary/new_code?id=aabmets_deap-er)
+[![Reliability Rating](https://sonarcloud.io/api/project_badges/measure?project=aabmets_deap-er&metric=reliability_rating)](https://sonarcloud.io/summary/new_code?id=aabmets_deap-er)
+[![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?project=aabmets_deap-er&metric=sqale_rating)](https://sonarcloud.io/summary/new_code?id=aabmets_deap-er)<br/>
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=aabmets_deap-er&metric=vulnerabilities)](https://sonarcloud.io/summary/new_code?id=aabmets_deap-er)
+[![Bugs](https://sonarcloud.io/api/project_badges/measure?project=aabmets_deap-er&metric=bugs)](https://sonarcloud.io/summary/new_code?id=aabmets_deap-er)
+[![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=aabmets_deap-er&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=aabmets_deap-er)
+[![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=aabmets_deap-er&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=aabmets_deap-er)
+
 DEAP-ER is a complete rewrite of the original DEAP library for Python 3.12 and up, which includes features such as:
 
   * Genetic algorithms using any imaginable containers like:
