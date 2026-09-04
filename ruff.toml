@@ -52,6 +52,8 @@ convention = "google"
 [lint.per-file-ignores]
 "**/__init__.py" = ["F401"]
 "tests/**" = ["D"]
+"examples/**" = ["D"]
+"deap_er/benchmarks/**" = ["E501"]
 "deap_er/base/lint_hints.py" = ["D", "UP035"]
 "deap_er/creator/lint_hints.py" = ["D"]
 "deap_er/tools.py" = ["D"]
