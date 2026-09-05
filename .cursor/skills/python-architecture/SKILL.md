@@ -104,7 +104,7 @@ This is a DEAP rewrite. Use snake_case prefixes: `cx_`, `mut_`, `sel_`, `ea_`, `
 - **Mutation** — in-place; return `Mutant` (a **1-tuple**). Callers unpack `(ind,) = toolbox.mutate(ind)`.
 - **Selection** — return `list[Individual]`.
 - **Benchmarks** — return a fitness tuple (symbolic regression may return `float`).
-- **Algorithms** — `toolbox` first; return `AlgoResult` `(population, logbook)`.
+- **Algorithms** — `toolbox` first; return `EvoAlgoResult` `(population, logbook)`.
 - **Toolbox aliases** algorithms expect: `mate`, `mutate`, `select`, `evaluate`, `clone`, `map`. Optional: `evaluate_batch`. Default `clone` is `deepcopy`; `clone_individual` is the fast path.
 - **Fitness** — `weights > 0` maximize, `< 0` minimize. Evaluate writes `ind.fitness.values`. Clear with `del ind.fitness.values`.
 - **RNG** — `from deap_er.rng import rng` then `rng.random()`, `rng.choice()`, … Never `import random` in library code. Seed with `seed()` / `tools.seed`. Checkpoint persists this generator.
