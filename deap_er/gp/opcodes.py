@@ -35,6 +35,8 @@ __all__ = [
 USER_BASE = 1000
 """First opcode value reserved for consumer-supplied kernels."""
 
+_STACK_UNDERFLOW = "The tape is malformed and underflows the evaluation stack."
+
 
 class Opcode(IntEnum):
     """Instruction set of the tree stack machine.
@@ -478,7 +480,7 @@ def _peek(stack: list[Any]) -> Any:
         ValueError: If the stack is empty.
     """
     if not stack:
-        raise ValueError("The tape is malformed and underflows the evaluation stack.")
+        raise ValueError(_STACK_UNDERFLOW)
     return stack[-1]
 
 
@@ -493,7 +495,7 @@ def _replace(stack: list[Any], value: Any) -> None:
         ValueError: If the stack is empty.
     """
     if not stack:
-        raise ValueError("The tape is malformed and underflows the evaluation stack.")
+        raise ValueError(_STACK_UNDERFLOW)
     stack[-1] = value
 
 
@@ -510,7 +512,7 @@ def _pop(stack: list[Any]) -> Any:
         ValueError: If the stack is empty.
     """
     if not stack:
-        raise ValueError("The tape is malformed and underflows the evaluation stack.")
+        raise ValueError(_STACK_UNDERFLOW)
     return stack.pop()
 
 

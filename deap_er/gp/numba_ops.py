@@ -79,6 +79,7 @@ _MISSING = (
     "The numba backend needs the optional 'numba' dependency. "
     "Install it with: pip install deap-er[numba]"
 )
+_UNKNOWN_OPCODE = "The tape holds an opcode the interpreter does not know."
 
 _built: dict[str, Any] = {}
 _workspace: dict[str, numpy.ndarray] = {}
@@ -173,7 +174,7 @@ def _apply_numeric(  # pragma: no cover
         return _apply_log(rows, sp, stack, fill)
     if op == _SQRT:
         return _apply_sqrt(rows, sp, stack, fill)
-    raise ValueError("The tape holds an opcode the interpreter does not know.")
+    raise ValueError(_UNKNOWN_OPCODE)
 
 
 def _apply_load(  # pragma: no cover
@@ -242,7 +243,7 @@ def _apply_arith(op: int, rows: int, sp: int, stack: Any, fill: float) -> int:  
         return sp
     if op == _DIV:
         return _apply_div(rows, sp, stack, fill)
-    raise ValueError("The tape holds an opcode the interpreter does not know.")
+    raise ValueError(_UNKNOWN_OPCODE)
 
 
 def _apply_unary(op: int, rows: int, sp: int, stack: Any) -> int:  # pragma: no cover
@@ -276,7 +277,7 @@ def _apply_unary(op: int, rows: int, sp: int, stack: Any) -> int:  # pragma: no 
         for t in range(rows):
             stack[sp - 1, t] = math.cos(stack[sp - 1, t])
         return sp
-    raise ValueError("The tape holds an opcode the interpreter does not know.")
+    raise ValueError(_UNKNOWN_OPCODE)
 
 
 def _apply_div(rows: int, sp: int, stack: Any, fill: float) -> int:  # pragma: no cover
@@ -373,7 +374,7 @@ def _apply_predicate(op: int, rows: int, sp: int, stack: Any) -> int:  # pragma:
         return _apply_and_or(op, rows, sp, stack)
     if op <= _WHERE:
         return _apply_not_where(op, rows, sp, stack)
-    raise ValueError("The tape holds an opcode the interpreter does not know.")
+    raise ValueError(_UNKNOWN_OPCODE)
 
 
 def _apply_gt_lt(op: int, rows: int, sp: int, stack: Any) -> int:  # pragma: no cover
@@ -506,7 +507,8 @@ def _apply_window(  # pragma: no cover
         ValueError: If ``op`` is not a window opcode.
     """
     if op in (_DELAY, _DIFF):
-        return _apply_shift(op, rows, sp, stack, arg)
+        _apply_shift(op, rows, sp, stack, arg)
+        return sp
     if op in (_ROLL_SUM, _ROLL_MEAN, _ROLL_STD):
         _roll_stats(op, rows, sp, stack, scratch, arg)
         return sp
@@ -516,10 +518,10 @@ def _apply_window(  # pragma: no cover
     if op == _EMA:
         _roll_ema(rows, sp, stack, scratch, arg)
         return sp
-    raise ValueError("The tape holds an opcode the interpreter does not know.")
+    raise ValueError(_UNKNOWN_OPCODE)
 
 
-def _apply_shift(op: int, rows: int, sp: int, stack: Any, arg: int) -> int:  # pragma: no cover
+def _apply_shift(op: int, rows: int, sp: int, stack: Any, arg: int) -> None:  # pragma: no cover
     """Apply a causal delay or difference.
 
     Args:
@@ -528,20 +530,16 @@ def _apply_shift(op: int, rows: int, sp: int, stack: Any, arg: int) -> int:  # p
         sp: Current stack pointer.
         stack: Column-length workspace.
         arg: Shift length.
-
-    Returns:
-        The updated stack pointer.
     """
     if op == _DELAY:
         for t in range(rows - 1, -1, -1):
             stack[sp - 1, t] = stack[sp - 1, t - arg] if t >= arg else math.nan
-        return sp
-    for t in range(rows - 1, -1, -1):
-        if t >= arg:
-            stack[sp - 1, t] = stack[sp - 1, t] - stack[sp - 1, t - arg]
-        else:
-            stack[sp - 1, t] = math.nan
-    return sp
+    else:
+        for t in range(rows - 1, -1, -1):
+            if t >= arg:
+                stack[sp - 1, t] = stack[sp - 1, t] - stack[sp - 1, t - arg]
+            else:
+                stack[sp - 1, t] = math.nan
 
 
 def _roll_stats(  # pragma: no cover
@@ -741,27 +739,22 @@ def _interpret(  # pragma: no cover
         elif op >= _BASE:
             sp = int(dispatch(op, sp, stack, columns, constants, scratch))
         else:
-            raise ValueError("The tape holds an opcode the interpreter does not know.")
+            raise ValueError(_UNKNOWN_OPCODE)
     return sp
 
 
 def _idle(  # pragma: no cover
-    op: int,
-    sp: int,
-    stack: Any,
-    columns: Any,
-    constants: Any,
-    scratch: Any,
+    _op: int,
+    _sp: int,
+    _stack: Any,
+    _columns: Any,
+    _constants: Any,
+    _scratch: Any,
 ) -> int:
     """Reject an unexpected consumer opcode.
 
-    Args:
-        op: Unused opcode.
-        sp: Unused stack pointer.
-        stack: Unused workspace.
-        columns: Unused columns.
-        constants: Unused constant pool.
-        scratch: Unused scratch row.
+    The parameter names are unused; they exist so the fallback kernel
+    matches ``USER_DISPATCH_SIGNATURE``.
 
     Returns:
         ``-1``, which is not a valid stack pointer.
