@@ -197,6 +197,31 @@ def test_roulette_returns_requested_count(single_obj):
     assert all(ind in population for ind in chosen)
 
 
+def test_roulette_all_zero_fitness_returns_requested_count(single_obj):
+    population = [_make(single_obj, [i], (0.0,)) for i in range(5)]
+
+    tools.seed(12)
+    chosen = tools.sel_roulette(population, 3)
+
+    assert len(chosen) == 3
+    assert all(ind in population for ind in chosen)
+
+
+def test_tournament_dcd_returns_exact_count_and_rejects_non_multiple_of_four(multi_obj):
+    population = [_make(multi_obj, [i], (float(i), float(10 - i))) for i in range(10)]
+    tools.assign_crowding_dist(population)
+
+    tools.seed(3)
+    chosen = tools.sel_tournament_dcd(population, 4)
+    assert len(chosen) == 4
+
+    with pytest.raises(ValueError, match="divisible"):
+        tools.sel_tournament_dcd(population, 1)
+
+    with pytest.raises(ValueError, match="divisible"):
+        tools.sel_tournament_dcd(population, 9)
+
+
 def test_nsga3_with_memory_updates_reference_points(multi_obj):
     ref_points = tools.uniform_reference_points(2, 4)
     select = tools.SelNSGA3WithMemory(ref_points)

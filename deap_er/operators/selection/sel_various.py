@@ -88,6 +88,8 @@ def sel_roulette(
     key = attrgetter(fit_attr)
     sorted_ = sorted(individuals, key=key, reverse=True)
     sum_fits = sum(getattr(ind, fit_attr).values[0] for ind in individuals)
+    if sum_fits == 0:
+        return [rng.choice(individuals) for _ in range(sel_count)]
     chosen = []
     for _ in range(sel_count):
         u = rng.random() * sum_fits

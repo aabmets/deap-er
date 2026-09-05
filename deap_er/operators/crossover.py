@@ -60,8 +60,8 @@ def _slicer(
         s1 = slice(start, stop)
         s2 = slice(start, stop)
 
-    temp_1 = ind1[s1] if not copy else ind1[s1].copy()
-    temp_2 = ind2[s2] if not copy else ind2[s2].copy()
+    temp_1 = ind1[s1].copy() if copy or hasattr(ind1[s1], "copy") else list(ind1[s1])
+    temp_2 = ind2[s2].copy() if copy or hasattr(ind2[s2], "copy") else list(ind2[s2])
     ind1[s1] = temp_2
     ind2[s2] = temp_1
     return ind1, ind2
@@ -93,7 +93,7 @@ def _two_point(
         cxp1, cxp2 = cxp2, cxp1
     ind1, ind2 = _slicer(ind1, ind2, cxp1, cxp2, copy)
     if strategy:
-        _slicer(ind1.strategy, ind2.strategy, cxp1, cxp2)
+        _slicer(ind1.strategy, ind2.strategy, cxp1, cxp2, copy)
     return ind1, ind2
 
 
@@ -149,7 +149,7 @@ def cx_messy_one_point(ind1: Individual, ind2: Individual) -> Mates:
     """
     cxp1 = rng.randint(0, len(ind1))
     cxp2 = rng.randint(0, len(ind2))
-    ind1, ind2 = _slicer(ind1, ind2, cxp1, cxp2)
+    ind1[cxp1:], ind2[cxp2:] = list(ind2[cxp2:]), list(ind1[cxp1:])
     return ind1, ind2
 
 
@@ -383,11 +383,12 @@ def cx_simulated_binary_bounded(
             individual.
     """
 
-    def calc_c(diff: float) -> float:
+    def calc_c(diff: float, side: float) -> float:
         """Map a gap to the bound into one bounded SBX child value.
 
         Args:
             diff: Distance from the nearer parent to the active bound.
+            side: ``-1`` for the lower child, ``+1`` for the upper child.
 
         Returns:
             One child coordinate for the current parent pair.
@@ -398,7 +399,7 @@ def cx_simulated_binary_bounded(
             beta_q = (rand * alpha) ** (1.0 / (eta + 1))
         else:
             beta_q = (1.0 / (2.0 - rand * alpha)) ** (1.0 / (eta + 1))
-        c = 0.5 * (x1 + x2 - beta_q * (x2 - x1))
+        c = 0.5 * (x1 + x2 + side * beta_q * (x2 - x1))
         return float(c)
 
     size = min(len(ind1), len(ind2))
@@ -411,10 +412,10 @@ def cx_simulated_binary_bounded(
             x2 = max(ind1[i], ind2[i])
             rand = rng.random()
 
-            c1 = calc_c(x1 - xl)
+            c1 = calc_c(x1 - xl, -1.0)
             c1 = min(max(c1, xl), xu)
 
-            c2 = calc_c(xu - x2)
+            c2 = calc_c(xu - x2, 1.0)
             c2 = min(max(c2, xl), xu)
 
             if rng.random() <= 0.5:

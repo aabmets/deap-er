@@ -126,9 +126,9 @@ def sel_double_tournament(
 def sel_tournament_dcd(individuals: list[Individual], sel_count: int) -> list[Individual]:
     """Select by pairwise dominance, breaking ties with crowding distance.
 
-    If ``sel_count`` equals the pool size, that size must be a multiple
-    of four. Each individual must already have a ``crowding_dist``
-    attribute, which ``assign_crowding_dist`` can set.
+    ``sel_count`` must be a multiple of four. Each individual must
+    already have a ``crowding_dist`` attribute, which
+    ``assign_crowding_dist`` can set.
 
     Args:
         individuals: Individuals to select from.
@@ -139,19 +139,15 @@ def sel_tournament_dcd(individuals: list[Individual], sel_count: int) -> list[In
 
     Raises:
         ValueError: If ``sel_count`` is larger than the pool, or if
-            ``sel_count`` equals the pool size and is not divisible
-            by four.
+            ``sel_count`` is not divisible by four.
     """
     if sel_count > len(individuals):
         raise ValueError(
             "sel_tournament_dcd: count must be less than or equal to individuals length."
         )
 
-    if sel_count == len(individuals) and sel_count % 4 != 0:
-        raise ValueError(
-            "sel_tournament_dcd: sel_count must be divisible "
-            "by four if sel_count == len(individuals)"
-        )
+    if sel_count % 4 != 0:
+        raise ValueError("sel_tournament_dcd: sel_count must be divisible by four")
 
     def tourney(ind1: Individual, ind2: Individual) -> Individual:
         """Return the better of two individuals by dominance, then crowding.

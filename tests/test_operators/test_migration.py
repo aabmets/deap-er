@@ -59,6 +59,32 @@ def test_mig_ring_with_replacement(ind_cls):
     assert sorted(ind[0] for ind in demes[2]) == [12, 13, 22, 23]
 
 
+def test_mig_ring_replaces_by_identity_not_genotype(ind_cls):
+    weak = ind_cls([5])
+    weak.fitness.values = (1.0,)
+    strong = ind_cls([5])
+    strong.fitness.values = (50.0,)
+    other = ind_cls([1])
+    other.fitness.values = (0.0,)
+    extra = ind_cls([2])
+    extra.fitness.values = (0.0,)
+    dest_a = ind_cls([9])
+    dest_a.fitness.values = (0.0,)
+    dest_b = ind_cls([8])
+    dest_b.fitness.values = (0.0,)
+    dest_c = ind_cls([7])
+    dest_c.fitness.values = (0.0,)
+    dest_d = ind_cls([6])
+    dest_d.fitness.values = (0.0,)
+    demes = [[weak, strong, other, extra], [dest_a, dest_b, dest_c, dest_d]]
+
+    tools.mig_ring(demes, 1, tools.sel_best)
+
+    assert all(member is not strong for member in demes[0])
+    assert any(member is weak for member in demes[0])
+    assert any(member is strong for member in demes[1])
+
+
 def test_mig_ring_preserves_deme_sizes(ind_cls):
     demes = _demes(ind_cls, nbr_demes=4, size=5)
 

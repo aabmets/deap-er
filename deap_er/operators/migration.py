@@ -56,5 +56,5 @@ def mig_ring(
 
     for from_deme, to_deme in enumerate(mig_indices):
         for i, immigrant in enumerate(immigrants[to_deme]):
-            indx = populations[to_deme].index(immigrant)
+            indx = next(j for j, member in enumerate(populations[to_deme]) if member is immigrant)
             populations[to_deme][indx] = emigrants[from_deme][i]
