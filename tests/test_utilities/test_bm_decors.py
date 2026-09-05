@@ -55,3 +55,11 @@ def test_bin2float_decodes_bit_blocks():
     decoded: Any = tools.bin2float(0.0, 1.0, 2)(evaluate)
     # 11 -> 1.0, 00 -> 0.0
     assert decoded([1, 1, 0, 0]) == (1.0, 0.0)
+
+
+def test_bin2float_decodes_boolean_bits_like_integers():
+    def evaluate(individual):
+        return tuple(individual)
+
+    decoded: Any = tools.bin2float(0.0, 1.0, 2)(evaluate)
+    assert decoded([True, True, False, False]) == (1.0, 0.0)

@@ -34,23 +34,20 @@ def nsga_diversity(population: list[Individual], first: Individual, last: Indivi
     Returns:
         The diversity metric of the front.
     """
-    df = hypot(
-        population[0].fitness.values[0] - first[0], population[0].fitness.values[1] - first[1]
-    )
-    dl = hypot(
-        population[-1].fitness.values[0] - last[0], population[-1].fitness.values[1] - last[1]
-    )
+    ordered = sorted(population, key=lambda ind: ind.fitness.values[0])
+    df = hypot(ordered[0].fitness.values[0] - first[0], ordered[0].fitness.values[1] - first[1])
+    dl = hypot(ordered[-1].fitness.values[0] - last[0], ordered[-1].fitness.values[1] - last[1])
 
     def fn(f_: Individual, s_: Individual) -> float:
         return hypot(
             f_.fitness.values[0] - s_.fitness.values[0], f_.fitness.values[1] - s_.fitness.values[1]
         )
 
-    zipper = zip(population[:-1], population[1:], strict=False)
+    zipper = zip(ordered[:-1], ordered[1:], strict=False)
     dt = [fn(first, second) for first, second in zipper]
 
-    if len(population) == 1:
-        return df + dl
+    if len(ordered) == 1:
+        return 1.0
 
     dm = sum(dt) / len(dt)
     di = sum(abs(d_i - dm) for d_i in dt)

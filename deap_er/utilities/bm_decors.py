@@ -252,7 +252,7 @@ def bin2float(min_: float, max_: float, n_bits: int) -> Callable[..., Any]:
                 start = i * n_bits
                 stop = i * n_bits + n_bits
                 values = individual[start:stop]
-                mapper = map(str, values)
+                mapper = map(lambda bit: str(int(bool(bit))), values)
                 gene = int("".join(mapper), 2)
                 div = 2**n_bits - 1
                 decoded[i] = min_ + ((gene / div) * (max_ - min_))

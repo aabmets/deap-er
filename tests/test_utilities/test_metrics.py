@@ -48,6 +48,33 @@ def test_nsga_diversity_for_one_and_many_points():
     assert many >= 0.0
 
 
+def test_nsga_diversity_is_invariant_to_front_order():
+    _setup()
+    try:
+        first: Any = (0.0, 1.0)
+        last: Any = (1.0, 0.0)
+        ordered = [_ind((0.0, 1.0)), _ind((0.5, 0.5)), _ind((1.0, 0.0))]
+        permuted = [_ind((0.5, 0.5)), _ind((1.0, 0.0)), _ind((0.0, 1.0))]
+        sorted_delta = tools.nsga_diversity(ordered, first, last)
+        shuffled_delta = tools.nsga_diversity(permuted, first, last)
+    finally:
+        _teardown()
+    assert sorted_delta == pytest.approx(0.0, abs=1e-12)
+    assert shuffled_delta == pytest.approx(0.0, abs=1e-12)
+
+
+def test_nsga_diversity_for_a_single_point_is_one():
+    _setup()
+    try:
+        first: Any = (0.0, 1.0)
+        last: Any = (1.0, 0.0)
+        alone = [_ind((0.5, 0.5))]
+        delta = tools.nsga_diversity(alone, first, last)
+    finally:
+        _teardown()
+    assert delta == pytest.approx(1.0)
+
+
 def test_nsga_convergence_and_inverted_generational_distance():
     _setup()
     try:

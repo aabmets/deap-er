@@ -8,6 +8,9 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from typing import Any
+
+import numpy
 import pytest
 from deap_er import base, creator, tools
 
@@ -59,6 +62,26 @@ def test_delta_penalty_keeps_valid_and_penalizes_invalid():
         assert penalize(individual) == (4.0, 2.0)
     finally:
         _teardown()
+
+
+def test_delta_penalty_accepts_ndarray_delta_and_distance():
+    _setup((-1.0, 1.0))
+    try:
+        individual = _ind([1.0])
+        delta: Any = numpy.array([3.0, 4.0])
+
+        def ndarray_distance(_ind):
+            return numpy.array([1.0, 2.0])
+
+        penalize = tools.DeltaPenalty(lambda _ind: False, delta, distance=ndarray_distance)(
+            lambda _ind: (0.0, 0.0)
+        )
+        result = penalize(individual)
+        individual.fitness.values = result
+    finally:
+        _teardown()
+    assert result == (4.0, 2.0)
+    assert all(isinstance(value, float) for value in result)
 
 
 def test_closest_valid_penalty_and_weight_mismatch():

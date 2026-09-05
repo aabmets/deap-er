@@ -13,6 +13,8 @@ from functools import wraps
 from itertools import repeat
 from typing import Any
 
+import numpy
+
 from deap_er.base.typedefs import Individual, NumOrSeq
 
 __all__ = ["DeltaPenalty", "ClosestValidPenalty"]
@@ -41,10 +43,8 @@ class DeltaPenalty:
     ) -> None:
         """See the class docstring."""
         self.fea_func = feasibility
-        if not isinstance(delta, Sequence):
-            self.delta = repeat(delta)
-        else:
-            self.delta = delta
+        delta_arr = numpy.asarray(delta)
+        self.delta: Any = repeat(delta) if delta_arr.ndim == 0 else delta_arr
         self.dist_fct = distance
 
     def __call__(self, func: Callable[..., Any]) -> Callable[..., Any]:
@@ -67,12 +67,12 @@ class DeltaPenalty:
 
             dists = [0 for _ in individual.fitness.weights]
             if self.dist_fct is not None:
-                dists = self.dist_fct(individual)
-                if not isinstance(dists, Sequence):
-                    dists = repeat(dists)
+                measured = self.dist_fct(individual)
+                dist_arr = numpy.asarray(measured)
+                dists = repeat(measured) if dist_arr.ndim == 0 else dist_arr
 
             return tuple(
-                d - w * dist for d, w, dist in zip(self.delta, weights, dists, strict=False)
+                float(d - w * dist) for d, w, dist in zip(self.delta, weights, dists, strict=False)
             )
 
         return wrapper
