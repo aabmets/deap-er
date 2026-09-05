@@ -10,7 +10,7 @@
 #
 from collections.abc import Callable
 
-import numpy as np
+import numpy
 
 from deap_er.base.typedefs import Individual
 from deap_er.rng import rng
@@ -98,8 +98,8 @@ def sel_epsilon_lexicase(
     def keep(candidates: list[Individual], case: int, maximize: bool) -> list[Individual]:
         errors = [x.fitness.values[case] for x in candidates]
         if epsilon is None:
-            median = float(np.median(errors))
-            slack = float(np.median([abs(x - median) for x in errors]))
+            median = float(numpy.median(errors))
+            slack = float(numpy.median([abs(x - median) for x in errors]))
         else:
             slack = epsilon
         if maximize:
