@@ -8,18 +8,10 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-import numpy
 from deap_er import Fitness, creator, tools
 
-SO_FIT = "CMA_BND_FIT"
-SO_IND = "CMA_BND_IND"
-MO_FIT = "CMA_BND_MO_FIT"
-MO_IND = "CMA_BND_MO_IND"
-
-
-def _teardown(*names: str) -> None:
-    for name in names:
-        del creator.__dict__[name]
+SO_FIT = "CMA_STD_FIT"
+SO_IND = "CMA_STD_IND"
 
 
 def test_strategy_clip_keeps_genes_in_box():
@@ -33,7 +25,8 @@ def test_strategy_clip_keeps_genes_in_box():
         for individual in population:
             assert all(0.0 <= gene <= 1.0 for gene in individual)
     finally:
-        _teardown(SO_FIT, SO_IND)
+        del creator.__dict__[SO_FIT]
+        del creator.__dict__[SO_IND]
 
 
 def test_strategy_resample_falls_back_and_compute_params_keeps_bounds():
@@ -59,24 +52,5 @@ def test_strategy_resample_falls_back_and_compute_params_keeps_bounds():
         assert strategy.up == 0.1
         assert strategy.bound_mode == "resample"
     finally:
-        _teardown(SO_FIT, SO_IND)
-
-
-def test_multi_objective_generate_respects_box_bounds():
-    creator.create_type(MO_FIT, Fitness, weights=(-1.0, -1.0))
-    creator.create_type(MO_IND, numpy.ndarray, fitness=creator.__dict__[MO_FIT])
-    try:
-        tools.rng.seed(3)
-        parents = [creator.__dict__[MO_IND]([0.2, 0.3, 0.4]) for _ in range(4)]
-        for parent in parents:
-            parent.fitness.values = tools.bm_zdt_1(parent)
-        strategy = tools.StrategyMultiObjective(
-            parents, sigma=8.0, survivors=4, offsprings=4, low=0.0, up=1.0
-        )
-        children = strategy.generate(creator.__dict__[MO_IND])
-        assert len(children) == 4
-        for child in children:
-            genes = numpy.asarray(child)
-            assert numpy.all(genes >= 0.0) and numpy.all(genes <= 1.0)
-    finally:
-        _teardown(MO_FIT, MO_IND)
+        del creator.__dict__[SO_FIT]
+        del creator.__dict__[SO_IND]

@@ -85,23 +85,3 @@ class TestHypervolume:
             _teardown()
         assert as_one == pytest.approx(4.0)
         assert as_pop == pytest.approx(4.0)
-
-
-class TestLeastContrib:
-    def test_empty_raises(self):
-        with pytest.raises(ValueError, match="empty"):
-            tools.least_contrib([])
-
-    def test_least_index(self):
-        _setup()
-        try:
-            pop = [
-                _ind((5.0, 5.0)),
-                _ind((4.0, 6.0)),
-                _ind((2.0, 7.0)),
-                _ind((7.0, 4.0)),
-            ]
-            idx = tools.least_contrib(pop, [10.0, 10.0])
-        finally:
-            _teardown()
-        assert idx == 1

@@ -10,7 +10,7 @@
 #
 import numpy
 import pytest
-from deap_er import Fitness, creator, tools
+from deap_er import Fitness, Toolbox, creator, tools
 
 MO_FIT = "MOCMA_FIT"
 MO_IND = "MOCMA_IND"
@@ -102,3 +102,95 @@ def test_generate_tags_offspring_with_their_parent(population):
     assert len(offspring) == 6
     assert all(ind.ps_[0] == "o" for ind in offspring)
     assert all(0 <= ind.ps_[1] < len(population) for ind in offspring)
+
+
+def test_generate_respects_box_bounds():
+    creator.create_type(MO_FIT, Fitness, weights=(-1.0, -1.0))
+    creator.create_type(MO_IND, numpy.ndarray, fitness=creator.__dict__[MO_FIT])
+    try:
+        tools.rng.seed(3)
+        parents = [creator.__dict__[MO_IND]([0.2, 0.3, 0.4]) for _ in range(4)]
+        for parent in parents:
+            parent.fitness.values = tools.bm_zdt_1(parent)
+        strategy = tools.StrategyMultiObjective(
+            parents, sigma=8.0, survivors=4, offsprings=4, low=0.0, up=1.0
+        )
+        children = strategy.generate(creator.__dict__[MO_IND])
+        assert len(children) == 4
+        for child in children:
+            genes = numpy.asarray(child)
+            assert numpy.all(genes >= 0.0) and numpy.all(genes <= 1.0)
+    finally:
+        del creator.__dict__[MO_FIT]
+        del creator.__dict__[MO_IND]
+
+
+def test_mo_cma_es():
+    smoke_fit = "MOCMA_SMOKE_FIT"
+    smoke_ind = "MOCMA_SMOKE_IND"
+    creator.create_type(smoke_fit, Fitness, weights=(-1.0, -1.0))
+    creator.create_type(smoke_ind, numpy.ndarray, fitness=creator.__dict__[smoke_fit])
+    try:
+
+        def distance(feasible_ind, original_ind):
+            return sum((f - o) ** 2 for f, o in zip(feasible_ind, original_ind, strict=False))
+
+        def closest_feasible(individual):
+            feasible_ind = numpy.array(individual)
+            feasible_ind = numpy.maximum(bound_low, feasible_ind)
+            feasible_ind = numpy.minimum(bound_up, feasible_ind)
+            return feasible_ind
+
+        def valid(individual):
+            return not (any(individual < bound_low) or any(individual > bound_up))
+
+        dimensions = 5
+        bound_low, bound_up = 0.0, 1.0
+        offsprings = 10
+        survivors = 10
+        generations = 500
+
+        tools.rng.seed(128)
+
+        toolbox = Toolbox()
+        toolbox.register("evaluate", tools.bm_zdt_1)
+        toolbox.decorate(
+            "evaluate", tools.ClosestValidPenalty(valid, closest_feasible, 1.0e6, distance)
+        )
+
+        population = [
+            creator.__dict__[smoke_ind](
+                [tools.rng.uniform(bound_low, bound_up) for _ in range(dimensions)]
+            )
+            for _ in range(survivors)
+        ]
+        for ind in population:
+            ind.fitness.values = toolbox.evaluate(ind)
+
+        strategy = tools.StrategyMultiObjective(
+            population, sigma=1.0, survivors=survivors, offsprings=offsprings
+        )
+        toolbox.register("generate", strategy.generate, creator.__dict__[smoke_ind])
+        toolbox.register("update", strategy.update)
+
+        for _gen in range(generations):
+            population = toolbox.generate()
+
+            fitness = toolbox.map(toolbox.evaluate, population)
+            for ind, fit in zip(population, fitness, strict=False):
+                ind.fitness.values = fit
+
+            toolbox.update(population)
+
+        num_valid = 0
+        for ind in strategy.parents:
+            dist = distance(closest_feasible(ind), ind)
+            if numpy.isclose(dist, 0.0, rtol=1.0e-5, atol=1.0e-5):
+                num_valid += 1
+        assert num_valid >= len(strategy.parents)
+
+        hv = tools.hypervolume(strategy.parents, [11.0, 11.0])
+        assert hv > 116.0
+    finally:
+        del creator.__dict__[smoke_fit]
+        del creator.__dict__[smoke_ind]

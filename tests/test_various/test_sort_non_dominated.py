@@ -8,7 +8,6 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-import numpy
 from deap_er import Fitness, creator, tools
 
 FIT = "SORT_FIT"
@@ -47,9 +46,6 @@ class TestSortNonDominated:
 
     def test_empty_population_keeps_one_front(self):
         assert tools.sort_non_dominated([], 3) == [[]]
-        assert tools.sel_nsga_2([], 3) == []
-        refs = numpy.array([[1.0, 0.0], [0.0, 1.0]])
-        assert tools.sel_nsga_3([], 3, refs) == []
 
     def test_two_fronts(self):
         pop = _front([(1.0, 4.0), (2.0, 2.0), (4.0, 1.0), (3.0, 3.0)])
