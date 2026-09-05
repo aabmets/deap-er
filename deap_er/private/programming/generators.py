@@ -16,9 +16,36 @@ from deap_er.private.various.rng import rng
 
 from .primitives.primitive_set_typed import PrimitiveSetTyped
 
-__all__: list[str] = ["generate", "gen_full", "gen_grow", "gen_half_and_half"]
+__all__: list[str] = ["choose_weighted", "generate", "gen_full", "gen_grow", "gen_half_and_half"]
 
 _ERR_MSG = "The gp.generate function tried to add a {0} of type '{1}', but there is none available."
+
+
+def choose_weighted(seq: list[Any]) -> Any:
+    """Pick one item from ``seq``, using ``weight`` when it varies.
+
+    Equal weights, including the default ``1.0``, use ``rng.choice``
+    so the unweighted RNG stream stays unchanged.
+
+    Args:
+        seq: Non-empty sequence of nodes. Each may have a ``weight``.
+
+    Returns:
+        One element of ``seq``.
+    """
+    weights = [getattr(item, "weight", 1.0) for item in seq]
+    if all(weight == weights[0] for weight in weights):
+        return rng.choice(seq)
+    total = sum(weights)
+    pick = rng.random() * total
+    acc = 0.0
+    chosen = seq[-1]
+    for item, weight in zip(seq, weights, strict=True):
+        acc += weight
+        if pick < acc:
+            chosen = item
+            break
+    return chosen
 
 
 def _choose_terminal(prim_set: PrimitiveSetTyped, ret_type: Any) -> Any:
@@ -57,7 +84,7 @@ def _choose_primitive(prim_set: PrimitiveSetTyped, ret_type: Any) -> Any:
         IndexError: If no primitive of ``ret_type`` is registered.
     """
     try:
-        return rng.choice(prim_set.primitives[ret_type])
+        return choose_weighted(prim_set.primitives[ret_type])
     except IndexError as err:
         raise IndexError(_ERR_MSG.format("primitive", ret_type)) from err
 

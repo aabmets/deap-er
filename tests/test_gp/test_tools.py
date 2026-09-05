@@ -80,6 +80,26 @@ def test_static_limit_does_not_alias_two_oversized_children():
         assert 99 not in second
 
 
+def test_zero_arity_callable_terminal_formats_as_call():
+    def seven() -> int:
+        return 7
+
+    pset = gp.PrimitiveSet("main", 0)
+    pset.add_terminal(seven)
+    pset.add_primitive(operator.add, 2)
+    tree = gp.PrimitiveTree.from_string("add(seven, seven)", pset)
+    assert "seven()" in str(tree)
+    assert gp.compile_tree(tree, pset) == 14
+    assert gp.tree_to_infix(tree) == "(seven() + seven())"
+
+
+def test_argument_terminals_are_not_wrapped_as_calls():
+    pset = gp.PrimitiveSet("main", 1)
+    tree = gp.PrimitiveTree.from_string("ARG0", pset)
+    assert str(tree) == "ARG0"
+    assert gp.compile_tree(tree, pset)(9) == 9
+
+
 def test_static_limit_replaces_oversized_offspring():
     def grow(individual: list[int]) -> tuple[list[int]]:
         return (individual + [9],)

@@ -37,7 +37,13 @@ class PrimitiveSet(PrimitiveSetTyped):
 
     @override
     def add_primitive(  # type: ignore[override]
-        self, primitive: Callable[..., Any], arity: int, name: str | None = None, *_: Any, **__: Any
+        self,
+        primitive: Callable[..., Any],
+        arity: int,
+        name: str | None = None,
+        *_: Any,
+        weight: float = 1.0,
+        **__: Any,
     ) -> None:
         """Add an untyped primitive of the given arity.
 
@@ -45,15 +51,17 @@ class PrimitiveSet(PrimitiveSetTyped):
             primitive: Callable to register.
             arity: Number of arguments. Must be at least 1.
             name: Optional name. Defaults to ``primitive.__name__``.
+            weight: Relative sampling weight. Must be greater than 0.
 
         Raises:
-            ValueError: If ``arity`` is less than 1, or if ``name`` is
-                already registered.
+            ValueError: If ``arity`` is less than 1, if ``name`` is
+                already registered, or if ``weight`` is not greater
+                than 0.
         """
         if arity < 1:
             raise ValueError("arity should be >= 1")
         args: list[type] = [object] * arity
-        super().add_primitive(primitive, args, object, name)
+        super().add_primitive(primitive, args, object, name, weight=weight)
 
     @override
     def add_terminal(  # type: ignore[override]

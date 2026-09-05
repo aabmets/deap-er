@@ -18,6 +18,7 @@ from .private.programming.compilers import (
 from .private.programming.crossover import cx_one_point, cx_one_point_leaf_biased
 from .private.programming.generators import gen_full, gen_grow, gen_half_and_half, generate
 from .private.programming.harm.harm import harm
+from .private.programming.infix import tree_to_infix
 from .private.programming.mutation import (
     mut_ephemeral,
     mut_insert,
@@ -92,6 +93,7 @@ __all__ = [
     "gen_grow",
     "gen_half_and_half",
     "harm",
+    "tree_to_infix",
     "mut_uniform",
     "mut_node_replacement",
     "mut_ephemeral",

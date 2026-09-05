@@ -28,14 +28,24 @@ class Terminal:
         ret_type: Return type of the terminal.
     """
 
-    __slots__ = ("name", "value", "ret", "conv_fct")
+    __slots__ = ("name", "value", "ret", "conv_fct", "call_zero")
 
-    def __init__(self, terminal: Any, symbolic: bool, ret_type: type) -> None:
-        """Store ``terminal`` as a named leaf of ``ret_type``."""
+    def __init__(
+        self, terminal: Any, symbolic: bool, ret_type: type, call_zero: bool = False
+    ) -> None:
+        """Store ``terminal`` as a named leaf of ``ret_type``.
+
+        Args:
+            terminal: Value or name stored in the leaf.
+            symbolic: If True, format the value with ``str``.
+            ret_type: Return type of the terminal.
+            call_zero: If True, format as a zero-arity call ``name()``.
+        """
         self.ret = ret_type
         self.value = terminal
         self.name = str(terminal)
         self.conv_fct = str if symbolic else repr
+        self.call_zero = call_zero
 
     @property
     def arity(self) -> int:
@@ -47,7 +57,10 @@ class Terminal:
 
     def format(self) -> str:
         """Return the string form of the terminal value."""
-        return self.conv_fct(self.value)
+        text = self.conv_fct(self.value)
+        if self.call_zero:
+            return f"{text}()"
+        return text
 
     @override
     def __eq__(self, other: object) -> bool:
@@ -91,16 +104,18 @@ class Primitive:
         name: Name of the primitive.
         args: Argument types of the primitive.
         ret_type: Return type of the primitive.
+        weight: Relative sampling weight. Must be greater than 0.
     """
 
-    __slots__ = ("name", "arity", "args", "ret", "seq")
+    __slots__ = ("name", "arity", "args", "ret", "seq", "weight")
 
-    def __init__(self, name: str, args: list[type], ret_type: type) -> None:
+    def __init__(self, name: str, args: list[type], ret_type: type, weight: float = 1.0) -> None:
         """Store the primitive name, argument types, and return type."""
         self.name = name
         self.arity = len(args)
         self.args = args
         self.ret = ret_type
+        self.weight = weight
         placeholders = ", ".join(map("{{{0}}}".format, list(range(self.arity))))
         self.seq = f"{self.name}({placeholders})"
 

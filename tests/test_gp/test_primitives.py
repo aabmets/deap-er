@@ -149,3 +149,9 @@ def test_add_primitive_requires_a_name():
     nameless: Any = object()
     with pytest.raises(TypeError, match="__name__"):
         pset.add_primitive(nameless, [float], float)
+
+
+def test_add_primitive_rejects_non_positive_weight():
+    pset = gp.PrimitiveSet("main", 1)
+    with pytest.raises(ValueError, match="weight"):
+        pset.add_primitive(operator.add, 2, weight=0.0)

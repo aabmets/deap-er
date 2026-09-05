@@ -104,6 +104,7 @@ class PrimitiveSetTyped:
         in_types: list[type],
         ret_type: type,
         name: str | None = None,
+        weight: float = 1.0,
     ) -> None:
         """Add a primitive to the set.
 
@@ -112,10 +113,14 @@ class PrimitiveSetTyped:
             in_types: Argument types of the primitive.
             ret_type: Type returned by the primitive.
             name: Optional name. Defaults to ``primitive.__name__``.
+            weight: Relative sampling weight. Must be greater than 0.
 
         Raises:
-            ValueError: If ``name`` is already registered in the set.
+            ValueError: If ``name`` is already registered, or if
+                ``weight`` is not greater than 0.
         """
+        if weight <= 0:
+            raise ValueError("Primitive weight must be greater than 0.")
         if name is None:
             raw_name = getattr(primitive, "__name__", None)
             if not isinstance(raw_name, str):
@@ -128,7 +133,7 @@ class PrimitiveSetTyped:
                 f"Consider using the argument 'name' to "
                 f"rename your second '{name}' primitive."
             )
-        prim = Primitive(name, in_types, ret_type)
+        prim = Primitive(name, in_types, ret_type, weight=weight)
 
         self._add_prim(prim)
         self.context[prim.name] = primitive
@@ -158,14 +163,16 @@ class PrimitiveSetTyped:
                 f"rename your second '{name}' terminal."
             )
 
+        call_zero = False
         if name is not None:
+            call_zero = callable(terminal)
             self.context[name] = terminal
             terminal = name
             symbolic = True
         elif terminal in (True, False):
             self.context[str(terminal)] = terminal
 
-        prim = Terminal(terminal, symbolic, ret_type)
+        prim = Terminal(terminal, symbolic, ret_type, call_zero=call_zero)
         self._add_prim(prim)
         self.terms_count += 1
 

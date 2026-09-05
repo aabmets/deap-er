@@ -18,6 +18,7 @@ if TYPE_CHECKING:
     from deap_er.private.typedefs import GPIndividual, GPMutant
 from deap_er.private.various.rng import rng
 
+from .generators import choose_weighted
 from .primitives.primitive_nodes import Ephemeral, Primitive
 from .primitives.primitive_set_typed import PrimitiveSetTyped
 
@@ -74,7 +75,7 @@ def mut_node_replacement(individual: GPIndividual, prim_set: PrimitiveSetTyped) 
     else:
         node_ret = prim_set.primitives[node.ret]
         prims = [p for p in node_ret if p.args == node.args]
-        individual[index] = rng.choice(prims)
+        individual[index] = choose_weighted(prims)
 
     return (individual,)
 
@@ -124,7 +125,6 @@ def mut_insert(individual: GPIndividual, prim_set: PrimitiveSetTyped) -> GPMutan
     index = rng.randrange(len(individual))
     node = individual[index]
     slice_ = individual.search_subtree(index)
-    choice = rng.choice
 
     primitives = []
     for p in prim_set.primitives[node.ret]:
@@ -134,18 +134,18 @@ def mut_insert(individual: GPIndividual, prim_set: PrimitiveSetTyped) -> GPMutan
     if len(primitives) == 0:
         return (individual,)
 
-    new_node = choice(primitives)
+    new_node = choose_weighted(primitives)
     new_subtree = [None] * len(new_node.args)
 
     choices = []
     for i, a in enumerate(new_node.args):
         if a == node.ret:
             choices.append(i)
-    position = choice(choices)
+    position = rng.choice(choices)
 
     for i, arg_type in enumerate(new_node.args):
         if i != position:
-            term = choice(prim_set.terminals[arg_type])
+            term = rng.choice(prim_set.terminals[arg_type])
             if isclass(term):
                 term = term()
             new_subtree[i] = term
