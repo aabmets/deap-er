@@ -46,7 +46,7 @@ This repo is `deap_er/` + `tests/` + `examples/` + MkDocs `docs/`. `tools/dev` i
 - Do not invent `backend/`, `frontend/`, `services/`, a second installable package, or a `tools/` app tree.
 - Do not impose service/DI/Pydantic patterns. Operators and algorithms are **module-level functions**. Package `__init__.py` star-exports are the public surface.
 - `creator.create` mutates types at runtime; `env.Checkpoint` serializes with **dill**. Do not "fix" either.
-- Runtime dependencies are `numpy`, `scipy`, and `dill` unless the user asks to add one.
+- Runtime dependencies are `numpy`, `scipy`, `dill`, and `moocore` unless the user asks to add one.
 
 Full layout: read the [`python-architecture` skill](.cursor/skills/python-architecture/SKILL.md) before any Python edit under `deap_er/`, `tests/`, or `examples/` (mandatory — see [§3](#library-python-mandatory)).
 
