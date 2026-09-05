@@ -64,14 +64,77 @@ pycov() {
 }
 
 rtfm() {
-    local docs_path="$(pwd)/site/index.html"
-    if [[ -f "$docs_path" ]]; then
-        cmd.exe /c start "" "$(wslpath -w "$docs_path")" 2>/dev/null
+    local port=8000
+    local url="http://localhost:${port}"  # NOSONAR local mkdocs preview
+    local check_url="http://127.0.0.1:${port}"  # NOSONAR local mkdocs preview
+    local pid=""
+    local i=0
+
+    _rtfm_cleanup() {
+        local child
+        trap - INT TERM
+        if [[ -n "$pid" ]]; then
+            for child in $(pgrep -P "$pid" 2>/dev/null); do
+                kill "$child" 2>/dev/null || true
+            done
+            kill "$pid" 2>/dev/null || true
+            wait "$pid" 2>/dev/null || true
+        fi
+        fuser -k "${port}/tcp" >/dev/null 2>&1 || true
+        unset -f _rtfm_cleanup
+    }
+
+    if curl -sf "$check_url" >/dev/null 2>&1; then  # NOSONAR local mkdocs preview
+        (cd /mnt/c && cmd.exe /c start "$url")  # NOSONAR local mkdocs preview
+        echo "MkDocs serving at ${url} (Ctrl+C to stop)"  # NOSONAR local mkdocs preview
+        trap '_rtfm_cleanup; return 130' INT TERM
+        while curl -sf "$check_url" >/dev/null 2>&1; do  # NOSONAR local mkdocs preview
+            sleep 0.5
+        done
+        trap - INT TERM
+        unset -f _rtfm_cleanup
         return 0
-    else
-        >&2 echo "ERROR: Documentation site not found at '${docs_path}'."
+    fi
+
+    if ! command -v uv >/dev/null 2>&1 && ! command -v mkdocs >/dev/null 2>&1; then
+        >&2 echo "ERROR: mkdocs not found. Re-source 'tools/dev'."
         return 1
     fi
+
+    (
+        cd "$PROJECT_DIR"
+        if command -v uv >/dev/null 2>&1; then
+            uv run mkdocs serve --dev-addr "127.0.0.1:${port}"
+        else
+            mkdocs serve --dev-addr "127.0.0.1:${port}"
+        fi
+    ) &
+    pid=$!
+
+    trap '_rtfm_cleanup; return 130' INT TERM
+
+    while (( i < 240 )); do
+        if ! kill -0 "$pid" 2>/dev/null; then
+            trap - INT TERM
+            unset -f _rtfm_cleanup
+            >&2 echo "ERROR: MkDocs server failed to start on ${url}."  # NOSONAR local mkdocs preview
+            return 1
+        fi
+        if curl -sf "$check_url" >/dev/null 2>&1; then  # NOSONAR local mkdocs preview
+            (cd /mnt/c && cmd.exe /c start "$url")  # NOSONAR local mkdocs preview
+            echo "MkDocs serving at ${url} (Ctrl+C to stop)"  # NOSONAR local mkdocs preview
+            wait "$pid"
+            trap - INT TERM
+            unset -f _rtfm_cleanup
+            return 0
+        fi
+        sleep 0.25
+        i=$((i + 1))
+    done
+
+    _rtfm_cleanup
+    >&2 echo "ERROR: MkDocs server did not become ready on ${url}."  # NOSONAR local mkdocs preview
+    return 1
 }
 
 allure() {
