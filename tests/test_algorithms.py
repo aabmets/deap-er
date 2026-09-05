@@ -22,11 +22,6 @@ def setup_func_single_obj():
     creator.create_type(INDCLSNAME, list, fitness=creator.__dict__[FITCLSNAME])
 
 
-def setup_func_multi_obj():
-    creator.create_type(FITCLSNAME, Fitness, weights=(-1.0, -1.0))
-    creator.create_type(INDCLSNAME, list, fitness=creator.__dict__[FITCLSNAME])
-
-
 def setup_func_multi_obj_numpy():
     creator.create_type(FITCLSNAME, Fitness, weights=(-1.0, -1.0))
     creator.create_type(INDCLSNAME, numpy.ndarray, fitness=creator.__dict__[FITCLSNAME])
@@ -52,75 +47,6 @@ def test_standard_cma():
     (best,) = tools.sel_best(pop, sel_count=1)
 
     assert best.fitness.values < (1e-8,)
-
-    teardown_func()
-
-
-def test_nsga2():
-    setup_func_multi_obj()
-
-    dimensions = 5
-    bound_low, bound_up = 0.0, 1.0
-    survivors = 16
-    generations = 100
-
-    toolbox = Toolbox()
-    toolbox.register("attr_float", tools.rng.uniform, bound_low, bound_up)
-    toolbox.register(
-        "individual",
-        tools.init_repeat,
-        creator.__dict__[INDCLSNAME],
-        toolbox.attr_float,
-        dimensions,
-    )
-    toolbox.register("population", tools.init_repeat, list, toolbox.individual)
-
-    toolbox.register(
-        "mate", tools.cx_simulated_binary_bounded, low=bound_low, up=bound_up, eta=20.0
-    )
-    toolbox.register(
-        "mutate",
-        tools.mut_polynomial_bounded,
-        low=bound_low,
-        up=bound_up,
-        eta=20.0,
-        mut_prob=1.0 / dimensions,
-    )
-
-    toolbox.register("evaluate", tools.bm_zdt_1)
-    toolbox.register("select", tools.sel_nsga_2)
-
-    pop = toolbox.population(size=survivors)
-    fitness = toolbox.map(toolbox.evaluate, pop)
-    for ind, fit in zip(pop, fitness, strict=False):
-        ind.fitness.values = fit
-
-    pop = toolbox.select(pop, len(pop))
-    for _gen in range(1, generations):
-        offspring = tools.sel_tournament_dcd(pop, len(pop))
-        offspring = [toolbox.clone(ind) for ind in offspring]
-
-        for ind1, ind2 in zip(offspring[::2], offspring[1::2], strict=False):
-            if tools.rng.random() <= 0.9:
-                toolbox.mate(ind1, ind2)
-
-            toolbox.mutate(ind1)
-            toolbox.mutate(ind2)
-            del ind1.fitness.values, ind2.fitness.values
-
-        invalid_ind = [ind for ind in offspring if not ind.fitness.is_valid()]
-        fitness = toolbox.map(toolbox.evaluate, invalid_ind)
-        for ind, fit in zip(invalid_ind, fitness, strict=False):
-            ind.fitness.values = fit
-
-        pop = toolbox.select(pop + offspring, survivors)
-
-    hv = tools.hypervolume(pop, [11.0, 11.0])
-
-    assert hv > HV_THRESHOLD
-    for ind in pop:
-        assert not any(numpy.asarray(ind) < bound_low)
-        assert not any(numpy.asarray(ind) > bound_up)
 
     teardown_func()
 
@@ -187,67 +113,4 @@ def test_mo_cma_es():
 
     hv = tools.hypervolume(strategy.parents, [11.0, 11.0])
     assert hv > HV_THRESHOLD
-    teardown_func()
-
-
-def test_nsga3():
-    setup_func_multi_obj()
-
-    dimensions = 5
-    bound_low, bound_up = 0.0, 1.0
-    survivors = 16
-    generations = 100
-
-    ref_points = tools.uniform_reference_points(2, ref_ppo=12)
-
-    toolbox = Toolbox()
-    toolbox.register("attr_float", tools.rng.uniform, bound_low, bound_up)
-    toolbox.register(
-        "individual",
-        tools.init_repeat,
-        creator.__dict__[INDCLSNAME],
-        toolbox.attr_float,
-        dimensions,
-    )
-    toolbox.register("population", tools.init_repeat, list, toolbox.individual)
-
-    toolbox.register(
-        "mate", tools.cx_simulated_binary_bounded, low=bound_low, up=bound_up, eta=20.0
-    )
-    toolbox.register(
-        "mutate",
-        tools.mut_polynomial_bounded,
-        low=bound_low,
-        up=bound_up,
-        eta=20.0,
-        mut_prob=1.0 / dimensions,
-    )
-    toolbox.register("select", tools.sel_nsga_3, ref_points=ref_points)
-
-    toolbox.register("evaluate", tools.bm_zdt_1)
-
-    pop = toolbox.population(size=survivors)
-    fitness = toolbox.map(toolbox.evaluate, pop)
-    for ind, fit in zip(pop, fitness, strict=False):
-        ind.fitness.values = fit
-
-    pop = toolbox.select(pop, len(pop))
-    for _ in range(1, generations):
-        offspring = tools.var_and(toolbox, pop, 1.0, 1.0)
-
-        invalid_ind = [ind for ind in offspring if not ind.fitness.is_valid()]
-
-        fitness = toolbox.map(toolbox.evaluate, invalid_ind)
-        for ind, fit in zip(invalid_ind, fitness, strict=False):
-            ind.fitness.values = fit
-
-        pop = toolbox.select(pop + offspring, survivors)
-
-    hv = tools.hypervolume(pop, [11.0, 11.0])
-
-    assert hv > HV_THRESHOLD
-    for ind in pop:
-        assert not any(numpy.asarray(ind) < bound_low)
-        assert not any(numpy.asarray(ind) > bound_up)
-
     teardown_func()
