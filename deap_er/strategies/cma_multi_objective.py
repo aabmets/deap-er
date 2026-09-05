@@ -9,7 +9,6 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from collections.abc import Callable
-from math import sqrt
 from typing import Any
 
 import numpy
@@ -18,7 +17,14 @@ from deap_er import utilities as utils
 from deap_er.base.typedefs import Individual
 from deap_er.rng import rng
 
-from ._common import _step_size_multiplier
+from ._mo_update import (
+    _commit_parent_params,
+    _copy_offspring_state,
+    _decay_rejected_offspring,
+    _rank_one_update,
+    _select,
+    _update_chosen_offspring,
+)
 
 __all__ = ["StrategyMultiObjective"]
 
@@ -83,6 +89,9 @@ class StrategyMultiObjective:
         self.pc = [numpy.zeros(self.dim) for _ in range(pop_size)]
         self.psucc = [self.tgt_sr] * pop_size
 
+    _update_chosen_offspring = _update_chosen_offspring
+    _rank_one_update = staticmethod(_rank_one_update)
+
     def compute_params(self, **kwargs: Any) -> None:
         """Recompute strategy parameters from ``kwargs``.
 
@@ -102,219 +111,6 @@ class StrategyMultiObjective:
         self.cm_learn_rate = kwargs.get("cm_learn_rate", 2.0 / (self.dim**2 + 6.0))
         self.thresh_sr = kwargs.get("thresh_sr", 0.44)
 
-    def _select(self, candidates: list[Individual]) -> tuple[list[Individual], list[Individual]]:
-        """Split candidates into ``survivors`` chosen and the remainder.
-
-        Uses non-dominated sorting. When a front would overflow
-        ``survivors``, extra members are dropped by least hypervolume
-        contribution.
-
-        Args:
-            candidates: Individuals to rank.
-
-        Returns:
-            Chosen individuals and those not selected.
-        """
-        if len(candidates) <= self.mu:
-            return candidates, []
-
-        pareto_fronts = utils.sort_non_dominated(candidates, len(candidates))
-
-        chosen: list[Individual] = []
-        mid_front: list[Individual] = []
-        not_chosen: list[Individual] = []
-
-        full = False
-        for front in pareto_fronts:
-            if len(chosen) + len(front) <= self.mu and not full:
-                chosen += front
-            elif not mid_front and len(chosen) < self.mu:
-                mid_front = front
-                full = True
-            else:
-                not_chosen += front
-
-        k = self.mu - len(chosen)
-        if k > 0 and mid_front:
-            ref = (
-                numpy.max(numpy.array([ind.fitness.wvalues for ind in candidates]) * -1, axis=0) + 1
-            )
-
-            for _ in range(len(mid_front) - k):
-                idx = utils.least_contrib(mid_front, ref)
-                not_chosen.append(mid_front.pop(idx))
-
-            chosen += mid_front
-
-        return chosen, not_chosen
-
-    @staticmethod
-    def _rank_one_update(
-        inv_cholesky: numpy.ndarray,
-        big_a: numpy.ndarray,
-        alpha: float,
-        beta: float,
-        v: numpy.ndarray,
-    ) -> tuple[numpy.ndarray, numpy.ndarray]:
-        """Apply a rank-one covariance update to the Cholesky factors.
-
-        Args:
-            inv_cholesky: Inverse of the current Cholesky factor.
-            big_a: Current Cholesky factor of the covariance.
-            alpha: Weight of the existing covariance.
-            beta: Weight of the rank-one term.
-            v: Evolution-path vector used in the update.
-
-        Returns:
-            Updated inverse Cholesky factor and Cholesky factor.
-        """
-        w = numpy.dot(inv_cholesky, v)
-
-        if float(numpy.max(numpy.abs(w))) > 1e-20:
-            w_inv = numpy.dot(w, inv_cholesky)
-            norm_w2 = numpy.sum(w**2)
-            a = sqrt(alpha)
-            root = numpy.sqrt(1 + beta / alpha * norm_w2)
-            b = a / norm_w2 * (root - 1)
-            big_a = a * big_a + b * numpy.outer(v, w)
-            part = a**2 + a * b * norm_w2
-            inv_cholesky = 1.0 / a * inv_cholesky - b / part * numpy.outer(w, w_inv)
-
-        return inv_cholesky, big_a
-
-    def _copy_offspring_state(
-        self, chosen: list[Individual]
-    ) -> tuple[list[Any], list[Any], list[Any], list[Any], list[Any], list[Any]]:
-        """Copy CMA state from each chosen individual's parent.
-
-        Offspring rows copy the parent at ``ps_[1]``. Surviving
-        parents leave a None placeholder.
-
-        Args:
-            chosen: Individuals kept as the next parent set.
-
-        Returns:
-            Parallel lists of last step-size, sigma, inverse
-            Cholesky, Cholesky factor, evolution path, and success
-            rate.
-        """
-        last_steps: list[Any] = []
-        sigmas: list[Any] = []
-        inv_cholesky: list[Any] = []
-        big_a: list[Any] = []
-        pc: list[Any] = []
-        psucc: list[Any] = []
-        bags = (last_steps, sigmas, inv_cholesky, big_a, pc, psucc)
-        for ind in chosen:
-            if ind.ps_[0] != "o":
-                for bag in bags:
-                    bag.append(None)
-                continue
-            idx = ind.ps_[1]
-            last_steps.append(self.sigmas[idx])
-            sigmas.append(self.sigmas[idx])
-            inv_cholesky.append(self.inv_cholesky[idx].copy())
-            big_a.append(self.big_a[idx].copy())
-            pc.append(self.pc[idx].copy())
-            psucc.append(self.psucc[idx])
-        return last_steps, sigmas, inv_cholesky, big_a, pc, psucc
-
-    def _update_chosen_offspring(
-        self,
-        chosen: list[Individual],
-        last_steps: list[Any],
-        sigmas: list[Any],
-        inv_cholesky: list[Any],
-        big_a: list[Any],
-        pc: list[Any],
-        psucc: list[Any],
-    ) -> None:
-        """Update copied CMA state for each successful offspring.
-
-        Args:
-            chosen: Individuals kept as the next parent set.
-            last_steps: Parent step-size at birth, per chosen slot.
-            sigmas: Step-size accumulator, updated in place.
-            inv_cholesky: Inverse Cholesky accumulator.
-            big_a: Cholesky-factor accumulator.
-            pc: Evolution-path accumulator.
-            psucc: Success-rate accumulator.
-        """
-        cp, cc, c_cov = self.ss_learn_rate, self.th_cum, self.cm_learn_rate
-        d, pt_arg, p_thresh = self.ss_dmp, self.tgt_sr, self.thresh_sr
-        for i, ind in enumerate(chosen):
-            t, p_idx = ind.ps_
-            if t != "o":
-                continue
-            psucc[i] = (1.0 - cp) * psucc[i] + cp
-            sigmas[i] = sigmas[i] * _step_size_multiplier(psucc[i], pt_arg, d)
-            if psucc[i] < p_thresh:
-                xp = numpy.array(ind)
-                x = numpy.array(self.parents[p_idx])
-                pc[i] = (1.0 - cc) * pc[i] + sqrt(cc * (2.0 - cc)) * (xp - x) / last_steps[i]
-                alpha = 1 - c_cov
-            else:
-                pc[i] = (1.0 - cc) * pc[i]
-                alpha = 1 - c_cov + c_cov * cc * (2.0 - cc)
-            inv_cholesky[i], big_a[i] = self._rank_one_update(
-                inv_cholesky[i], big_a[i], alpha, c_cov, pc[i]
-            )
-            self.psucc[p_idx] = (1.0 - cp) * self.psucc[p_idx] + cp
-            self.sigmas[p_idx] *= _step_size_multiplier(self.psucc[p_idx], pt_arg, d)
-
-    def _decay_rejected_offspring(self, not_chosen: list[Individual]) -> None:
-        """Shrink step-size on parents whose offspring were discarded.
-
-        Args:
-            not_chosen: Individuals dropped by selection.
-        """
-        cp, d, pt_arg = self.ss_learn_rate, self.ss_dmp, self.tgt_sr
-        for ind in not_chosen:
-            t, p_idx = ind.ps_
-            if t != "o":
-                continue
-            self.psucc[p_idx] = (1.0 - cp) * self.psucc[p_idx]
-            self.sigmas[p_idx] *= _step_size_multiplier(self.psucc[p_idx], pt_arg, d)
-
-    def _commit_parent_params(
-        self,
-        chosen: list[Individual],
-        sigmas: list[Any],
-        inv_cholesky: list[Any],
-        big_a: list[Any],
-        pc: list[Any],
-        psucc: list[Any],
-    ) -> None:
-        """Write merged CMA parameters onto this strategy.
-
-        Offspring slots take the updated copy. Surviving parents keep
-        their existing parameter rows.
-
-        Args:
-            chosen: Individuals kept as the next parent set.
-            sigmas: Updated step sizes for offspring slots.
-            inv_cholesky: Updated inverse Cholesky factors.
-            big_a: Updated Cholesky factors.
-            pc: Updated evolution paths.
-            psucc: Updated success rates.
-        """
-        sources = {
-            "inv_cholesky": inv_cholesky,
-            "sigmas": sigmas,
-            "big_a": big_a,
-            "psucc": psucc,
-            "pc": pc,
-        }
-        for name, var in sources.items():
-            attr = getattr(self, name)
-            merged = []
-            for i, ind in enumerate(chosen):
-                if ind.ps_[0] == "o":
-                    merged.append(var[i])
-                else:
-                    merged.append(attr[ind.ps_[1]])
-            setattr(self, name, merged)
-
     def update(self, population: list[Individual]) -> None:
         """Select new parents and update each parent's CMA parameters.
 
@@ -325,11 +121,11 @@ class StrategyMultiObjective:
         Args:
             population: Evaluated individuals from ``generate``.
         """
-        chosen, not_chosen = self._select(population + self.parents)
-        last_steps, sigmas, inv_cholesky, big_a, pc, psucc = self._copy_offspring_state(chosen)
-        self._update_chosen_offspring(chosen, last_steps, sigmas, inv_cholesky, big_a, pc, psucc)
-        self._decay_rejected_offspring(not_chosen)
-        self._commit_parent_params(chosen, sigmas, inv_cholesky, big_a, pc, psucc)
+        chosen, not_chosen = _select(self, population + self.parents)
+        last_steps, sigmas, inv_cholesky, big_a, pc, psucc = _copy_offspring_state(self, chosen)
+        _update_chosen_offspring(self, chosen, last_steps, sigmas, inv_cholesky, big_a, pc, psucc)
+        _decay_rejected_offspring(self, not_chosen)
+        _commit_parent_params(self, chosen, sigmas, inv_cholesky, big_a, pc, psucc)
         self.parents = chosen
 
     def generate(self, ind_init: Callable[..., Individual]) -> list[Individual]:

@@ -13,6 +13,17 @@ from typing import Any, overload
 
 import numpy
 
+from deap_er._rng_draws import (
+    _choice,
+    _gauss,
+    _integers,
+    _randint,
+    _randrange,
+    _sample,
+    _shuffle,
+    _standard_normal,
+)
+
 __all__ = ["RNG", "rng", "seed"]
 
 _BUFSIZE = 1024
@@ -109,7 +120,7 @@ class RNG:
         Raises:
             ValueError: If the interval is empty.
         """
-        return int(self._gen.integers(a, b, endpoint=True))
+        return _randint(self._gen, a, b)
 
     def randrange(self, start: int, stop: int | None = None, step: int = 1) -> int:
         """Return a random element from ``range(start, stop, step)``.
@@ -125,13 +136,7 @@ class RNG:
         Raises:
             ValueError: If the range is empty.
         """
-        if stop is None:
-            start, stop = 0, start
-        values = range(start, stop, step)
-        n = len(values)
-        if n == 0:
-            raise ValueError("empty range for randrange()")
-        return values[int(self._gen.integers(0, n))]
+        return _randrange(self._gen, start, stop, step)
 
     def choice[T](self, seq: Sequence[T]) -> T:
         """Return one element of ``seq``.
@@ -145,10 +150,7 @@ class RNG:
         Raises:
             IndexError: If ``seq`` is empty.
         """
-        n = len(seq)
-        if n == 0:
-            raise IndexError("Cannot choose from an empty sequence")
-        return seq[int(self._gen.integers(0, n))]
+        return _choice(self._gen, seq)
 
     def sample[T](self, population: Sequence[T], k: int) -> list[T]:
         """Return ``k`` unique elements from ``population``.
@@ -164,13 +166,7 @@ class RNG:
             ValueError: If ``k`` is negative or larger than
                 ``len(population)``.
         """
-        n = len(population)
-        if k < 0 or k > n:
-            raise ValueError("Sample larger than population or is negative")
-        if k == 0:
-            return []
-        indices = self._gen.choice(n, size=k, replace=False)
-        return [population[int(i)] for i in indices]
+        return _sample(self._gen, population, k)
 
     def shuffle(self, x: MutableSequence[Any] | numpy.ndarray) -> None:
         """Shuffle ``x`` in place.
@@ -181,15 +177,7 @@ class RNG:
         Args:
             x: Mutable sequence or ndarray to shuffle.
         """
-        if isinstance(x, numpy.ndarray):
-            self._gen.shuffle(x)
-            return
-        n = len(x)
-        if n < 2:
-            return
-        order = self._gen.permutation(n)
-        shuffled = [x[int(i)] for i in order]
-        x[:] = shuffled
+        _shuffle(self._gen, x)
 
     def gauss(self, mu: float, sigma: float) -> float:
         """Return a sample from a Gaussian distribution.
@@ -201,7 +189,7 @@ class RNG:
         Returns:
             A Python float from the normal distribution.
         """
-        return float(self._gen.normal(mu, sigma))
+        return _gauss(self._gen, mu, sigma)
 
     @overload
     def standard_normal(self, size: None = None) -> float: ...
@@ -219,9 +207,7 @@ class RNG:
         Returns:
             A float, or an ndarray when ``size`` is given.
         """
-        if size is None:
-            return float(self._gen.standard_normal())
-        return self._gen.standard_normal(size)
+        return _standard_normal(self._gen, size)
 
     @overload
     def integers(
@@ -261,7 +247,7 @@ class RNG:
         Returns:
             An int, or an ndarray when ``size`` is given.
         """
-        return self._gen.integers(low, high, size=size, endpoint=endpoint)
+        return _integers(self._gen, low, high, size, endpoint)
 
 
 rng = RNG()
