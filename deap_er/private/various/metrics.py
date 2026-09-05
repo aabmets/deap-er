@@ -8,15 +8,18 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from __future__ import annotations
+
 from math import hypot
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy
 from scipy import spatial
 
-from deap_er.base.typedefs import Individual
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual
 
-__all__ = ["nsga_diversity", "nsga_convergence", "inv_gen_dist"]
+__all__: list[str] = ["nsga_diversity", "nsga_convergence", "inv_gen_dist"]
 
 
 def nsga_diversity(population: list[Individual], first: Individual, last: Individual) -> float:

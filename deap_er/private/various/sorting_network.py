@@ -8,11 +8,13 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from __future__ import annotations
+
 from collections.abc import Iterable, Iterator
 from itertools import product
 from typing import Any
 
-__all__ = ["SortingNetwork"]
+__all__: list[str] = ["SortingNetwork"]
 
 
 class SortingNetwork:

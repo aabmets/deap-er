@@ -8,14 +8,18 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from __future__ import annotations
+
 from collections import defaultdict
+from typing import TYPE_CHECKING
 
 import moocore
 import numpy
 
-from deap_er.base.typedefs import Individual
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual
 
-__all__ = ["sort_non_dominated"]
+__all__: list[str] = ["sort_non_dominated"]
 
 
 def sort_non_dominated(individuals: list[Individual], sel_count: int) -> list[list[Individual]]:

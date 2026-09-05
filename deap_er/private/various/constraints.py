@@ -8,16 +8,19 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from __future__ import annotations
+
 from collections.abc import Callable, Sequence
 from functools import wraps
 from itertools import repeat
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy
 
-from deap_er.base.typedefs import Individual, NumOrSeq
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual, NumOrSeq
 
-__all__ = ["DeltaPenalty", "ClosestValidPenalty"]
+__all__: list[str] = ["DeltaPenalty", "ClosestValidPenalty"]
 
 
 class DeltaPenalty:

@@ -8,14 +8,19 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import moocore
 import numpy
 
-from deap_er.base.typedefs import Individual
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual
 
-from .hypervolume import _minimized_points
+from .hypervolume import minimized_points
 
-__all__ = ["least_contrib"]
+__all__: list[str] = ["least_contrib"]
 
 
 def least_contrib(
@@ -43,7 +48,7 @@ def least_contrib(
     """
     if not population:
         raise ValueError("population must not be empty")
-    wvals = _minimized_points(population)
+    wvals = minimized_points(population)
     point = numpy.max(wvals, axis=0) + 1 if ref_point is None else numpy.asarray(ref_point)
     contrib = moocore.hv_contributions(wvals, ref=point, maximise=False)
     return int(numpy.argmin(contrib))

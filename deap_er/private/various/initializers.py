@@ -11,7 +11,7 @@
 from collections.abc import Callable, Iterable
 from typing import Any
 
-__all__ = ["init_repeat", "init_iterate", "init_cycle"]
+__all__: list[str] = ["init_repeat", "init_iterate", "init_cycle"]
 
 
 def init_repeat(container: Callable[..., Any], func: Callable[..., Any], size: int) -> Any:

@@ -15,7 +15,7 @@ from typing import Any
 
 import numpy
 
-__all__ = ["Translation", "Rotation", "Scaling", "Noise", "bin2float"]
+__all__: list[str] = ["Translation", "Rotation", "Scaling", "Noise", "bin2float"]
 
 
 class Translation:

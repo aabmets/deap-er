@@ -8,17 +8,20 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from typing import Any
+from __future__ import annotations
+
+from typing import TYPE_CHECKING, Any
 
 import moocore
 import numpy
 
-from deap_er.base.typedefs import Individual
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual
 
-__all__ = ["hypervolume"]
+__all__: list[str] = ["minimized_points", "has_fitness", "hypervolume"]
 
 
-def _minimized_points(population: list[Any]) -> numpy.ndarray:
+def minimized_points(population: list[Any]) -> numpy.ndarray:
     """Return objective rows in minimization space (``-wvalues``).
 
     Args:
@@ -33,7 +36,7 @@ def _minimized_points(population: list[Any]) -> numpy.ndarray:
     return numpy.array([ind.fitness.wvalues for ind in population], dtype=float) * -1
 
 
-def _has_fitness(obj: object) -> bool:
+def has_fitness(obj: object) -> bool:
     """Return whether ``obj`` looks like an individual with Fitness.
 
     Args:
@@ -65,10 +68,10 @@ def hypervolume(
     Returns:
         The hypervolume of the point set.
     """
-    if _has_fitness(points):
-        arr = _minimized_points([points])
-    elif not isinstance(points, numpy.ndarray) and points and _has_fitness(points[0]):
-        arr = _minimized_points(list(points))
+    if has_fitness(points):
+        arr = minimized_points([points])
+    elif not isinstance(points, numpy.ndarray) and points and has_fitness(points[0]):
+        arr = minimized_points(list(points))
     else:
         arr = numpy.asarray(points, dtype=float)
     if arr.size == 0:
