@@ -8,8 +8,9 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from . import base, gp
-from .creator import creator
-from .private import persistence as env
+from .private import creator
+from .private.checkpoint import Checkpoint
+from .private.fitness import Fitness
+from .private.toolbox import Toolbox, clone_individual
 
-__all__ = ["base", "gp", "env", "creator"]
+__all__ = ["creator", "Checkpoint", "Fitness", "clone_individual", "Toolbox"]

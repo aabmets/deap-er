@@ -13,7 +13,7 @@ from __future__ import annotations
 from collections.abc import Iterable, Sequence
 from typing import Any, SupportsFloat, override
 
-__all__ = ["Fitness"]
+__all__: list[str] = ["FitnessValues", "Fitness"]
 
 type FitnessValues = SupportsFloat | Iterable[SupportsFloat]
 """A single objective value or an iterable of them, including NumPy scalars and arrays.

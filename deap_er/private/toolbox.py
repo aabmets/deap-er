@@ -8,17 +8,20 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from __future__ import annotations
+
 from array import array
 from collections.abc import Callable
 from copy import deepcopy
 from functools import partial
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy
 
-from deap_er.base.typedefs import Individual
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual
 
-__all__ = ["Toolbox", "clone_individual"]
+__all__ = ["clone_individual", "Toolbox"]
 
 
 def clone_individual(individual: Individual) -> Individual:

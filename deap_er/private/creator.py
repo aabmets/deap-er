@@ -12,12 +12,12 @@ import array
 import warnings
 from typing import Any, cast
 
-from .overrides import _ArrayOverride, _NumpyOverride
+from .overrides import ArrayOverride, NumpyOverride
 
-__all__ = ["create"]
+__all__: list[str] = ["create_type"]
 
 
-def create(name: str, base: type | object, **kwargs: Any) -> None:
+def create_type(name: str, base: type | object, **kwargs: Any) -> None:
     """Create a class named ``name`` and register it on the ``creator`` module.
 
     The new class inherits from ``base``. Each keyword argument becomes
@@ -53,7 +53,7 @@ def create(name: str, base: type | object, **kwargs: Any) -> None:
         base = base.__class__
 
     # override numpy and array classes
-    base = {"array": _ArrayOverride, "numpy": _NumpyOverride}.get(base.__module__, base)
+    base = {"array": ArrayOverride, "numpy": NumpyOverride}.get(base.__module__, base)
 
     # separate kwargs by their type
     inst_attr, cls_attr = {}, {}

@@ -8,6 +8,8 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from __future__ import annotations
+
 import array
 from collections.abc import Sequence
 from copy import deepcopy
@@ -15,10 +17,10 @@ from typing import Any, cast, override
 
 import numpy
 
-__all__ = ["_NumpyOverride", "_ArrayOverride"]
+__all__: list[str] = ["NumpyOverride", "ArrayOverride"]
 
 
-class _NumpyOverride(numpy.ndarray):
+class NumpyOverride(numpy.ndarray):
     """``numpy.ndarray`` subclass used by ``creator.create`` for array individuals."""
 
     @staticmethod
@@ -27,7 +29,7 @@ class _NumpyOverride(numpy.ndarray):
         return numpy.array(list(seq)).view(cls)
 
     @override
-    def __copy__(self) -> "_NumpyOverride":
+    def __copy__(self) -> NumpyOverride:
         """Shallow-copy the buffer and rebind ``fitness`` like ``__deepcopy__``."""
         clone = numpy.ndarray.copy(self)
         state = dict(self.__dict__)
@@ -37,7 +39,7 @@ class _NumpyOverride(numpy.ndarray):
         return clone
 
     @override
-    def __deepcopy__(self, memo: dict[int, Any], *_: Any, **__: Any) -> "_NumpyOverride":
+    def __deepcopy__(self, memo: dict[int, Any], *_: Any, **__: Any) -> NumpyOverride:
         """Copy the array and its instance ``__dict__``."""
         copy = numpy.ndarray.copy(self)
         dc = deepcopy(self.__dict__, memo)
@@ -55,7 +57,7 @@ class _NumpyOverride(numpy.ndarray):
         return self.__class__, (list(self),), self.__dict__
 
 
-class _ArrayOverride(array.array[Any]):
+class ArrayOverride(array.array[Any]):
     """``array.array`` subclass used by ``creator.create`` for array individuals."""
 
     typecode: Any = "b"
@@ -65,10 +67,10 @@ class _ArrayOverride(array.array[Any]):
         return super().__new__(cls, str(cls.typecode), seq)
 
     @override
-    def __copy__(self) -> "_ArrayOverride":
+    def __copy__(self) -> ArrayOverride:
         """Shallow-copy the buffer and rebind ``fitness`` like ``__deepcopy__``."""
         cls = self.__class__
-        clone = cast(_ArrayOverride, cls.__new__(cls, self))
+        clone = cast(ArrayOverride, cls.__new__(cls, self))
         state = dict(self.__dict__)
         if "fitness" in state:
             state["fitness"] = deepcopy(state["fitness"])
@@ -76,10 +78,10 @@ class _ArrayOverride(array.array[Any]):
         return clone
 
     @override
-    def __deepcopy__(self, memo: dict[int, Any]) -> "_ArrayOverride":
+    def __deepcopy__(self, memo: dict[int, Any]) -> ArrayOverride:
         """Copy the array and its instance ``__dict__``."""
         cls = self.__class__
-        copy = cast(_ArrayOverride, cls.__new__(cls, self))
+        copy = cast(ArrayOverride, cls.__new__(cls, self))
         memo[id(self)] = copy
         dc = deepcopy(self.__dict__, memo)
         copy.__dict__.update(dc)
