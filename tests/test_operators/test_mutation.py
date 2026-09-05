@@ -10,6 +10,7 @@
 #
 from typing import Any
 
+import pytest
 from deap_er import tools
 
 
@@ -49,3 +50,22 @@ def test_es_log_normal_skips_individuals_without_strategy():
     tools.rng.seed(4)
     (mutant,) = tools.mut_es_log_normal(individual, 1.0, 1.0)
     assert mutant == [1.0, 2.0]
+
+
+def test_polynomial_bounded_out_of_box_stays_finite():
+    tools.rng.seed(5)
+    individual: Any = [10.0, -5.0]
+    (mutant,) = tools.mut_polynomial_bounded(individual, 2.0, 0.0, 1.0, 1.0)
+    assert all(0.0 <= gene <= 1.0 for gene in mutant)
+    assert all(gene == gene for gene in mutant)
+
+
+def test_mut_heterogeneous_applies_one_callable_per_gene():
+    tools.rng.seed(6)
+    individual: Any = [1, 2, 3]
+    mutators = [lambda x: x + 1, lambda x: x * 2, lambda x: 0]
+    (mutant,) = tools.mut_heterogeneous(individual, mutators, 1.0)
+    assert mutant == [2, 4, 0]
+    short: Any = [1, 2]
+    with pytest.raises(ValueError, match="same length"):
+        tools.mut_heterogeneous(short, [lambda x: x], 1.0)

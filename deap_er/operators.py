@@ -23,12 +23,14 @@ from .private.operators.cx_point import (
 )
 from .private.operators.cx_real import (
     cx_blend,
+    cx_blend_bounded,
     cx_es_blend,
     cx_simulated_binary,
     cx_simulated_binary_bounded,
     cx_uniform,
 )
 from .private.operators.mig_ring import mig_ring
+from .private.operators.mut_hetero import mut_heterogeneous
 from .private.operators.mut_various import (
     mut_es_log_normal,
     mut_flip_bit,
@@ -66,6 +68,7 @@ __all__: list[str] = [
     "cx_two_point",
     "cx_two_point_copy",
     "cx_blend",
+    "cx_blend_bounded",
     "cx_es_blend",
     "cx_simulated_binary",
     "cx_simulated_binary_bounded",
@@ -74,6 +77,7 @@ __all__: list[str] = [
     "mut_es_log_normal",
     "mut_flip_bit",
     "mut_gaussian",
+    "mut_heterogeneous",
     "mut_polynomial_bounded",
     "mut_shuffle_indexes",
     "mut_uniform_int",

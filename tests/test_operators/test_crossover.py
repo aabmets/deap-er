@@ -216,3 +216,44 @@ def test_uniform_and_ordered():
     first, second = tools.cx_ordered(order_left, order_right)
     assert sorted(first) == list(range(5))
     assert sorted(second) == list(range(5))
+
+
+def test_blend_bounded_and_sbx_out_of_box_stay_finite():
+    tools.rng.seed(12)
+    blend_left: Any = [0.0, 1.0]
+    blend_right: Any = [1.0, 0.0]
+    first, second = tools.cx_blend_bounded(blend_left, blend_right, 0.5, 0.0, 1.0)
+    assert all(0.0 <= gene <= 1.0 for gene in list(first) + list(second))
+
+    for seed in range(20):
+        tools.rng.seed(seed)
+        sbx_left: Any = [10.0]
+        sbx_right: Any = [-5.0]
+        first, second = tools.cx_simulated_binary_bounded(sbx_left, sbx_right, 2.0, 0.0, 1.0)
+        kids = list(first) + list(second)
+        assert all(numpy.isfinite(gene) for gene in kids)
+        assert all(not isinstance(gene, complex) for gene in kids)
+        for gene in kids:
+            if gene not in (10.0, -5.0):
+                assert 0.0 <= gene <= 1.0
+
+
+def test_pmx_and_ordered_accept_letter_permutations():
+    letters = list("abc")
+    tools.rng.seed(14)
+    pmx_left: Any = list(letters)
+    pmx_right: Any = list("cba")
+    first, second = tools.cx_partially_matched(pmx_left, pmx_right)
+    assert sorted(first) == letters and sorted(second) == letters
+
+    tools.rng.seed(15)
+    upmx_left: Any = list(letters)
+    upmx_right: Any = list("cba")
+    first, second = tools.cx_uniform_partially_matched(upmx_left, upmx_right, 0.5)
+    assert sorted(first) == letters and sorted(second) == letters
+
+    tools.rng.seed(16)
+    order_left: Any = list(letters)
+    order_right: Any = list("cba")
+    first, second = tools.cx_ordered(order_left, order_right)
+    assert sorted(first) == letters and sorted(second) == letters
