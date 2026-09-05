@@ -12,14 +12,13 @@ from collections.abc import Callable
 from math import exp
 
 import numpy
-
 from deap_er.base.typedefs import Individual
 from deap_er.rng import rng
 
-__all__: list[str] = []
+__all__: list[str] = ["sample_offspring", "step_size_multiplier"]
 
 
-def _sample_offspring(
+def sample_offspring(
     center: numpy.ndarray | Individual,
     sigma: float,
     transform: numpy.ndarray,
@@ -50,7 +49,7 @@ def _sample_offspring(
     return list(map(ind_init, arz))
 
 
-def _step_size_multiplier(psucc: float, tgt_sr: float, ss_dmp: float) -> float:
+def step_size_multiplier(psucc: float, tgt_sr: float, ss_dmp: float) -> float:
     """Return the step-size factor implied by a success rate.
 
     The step-size grows while the success rate is above ``tgt_sr`` and

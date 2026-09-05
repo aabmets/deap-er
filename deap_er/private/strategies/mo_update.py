@@ -12,16 +12,22 @@ from math import sqrt
 from typing import Any
 
 import numpy
-
 from deap_er import utilities as utils
 from deap_er.base.typedefs import Individual
 
-from ._common import _step_size_multiplier
+from .common import step_size_multiplier
 
-__all__: list[str] = []
+__all__: list[str] = [
+    "select",
+    "rank_one_update",
+    "copy_offspring_state",
+    "update_chosen_offspring",
+    "decay_rejected_offspring",
+    "commit_parent_params",
+]
 
 
-def _select(
+def select(
     strategy: Any, candidates: list[Individual]
 ) -> tuple[list[Individual], list[Individual]]:
     """Split candidates into ``survivors`` chosen and the remainder.
@@ -69,7 +75,7 @@ def _select(
     return chosen, not_chosen
 
 
-def _rank_one_update(
+def rank_one_update(
     inv_cholesky: numpy.ndarray,
     big_a: numpy.ndarray,
     alpha: float,
@@ -103,7 +109,7 @@ def _rank_one_update(
     return inv_cholesky, big_a
 
 
-def _copy_offspring_state(
+def copy_offspring_state(
     strategy: Any, chosen: list[Individual]
 ) -> tuple[list[Any], list[Any], list[Any], list[Any], list[Any], list[Any]]:
     """Copy CMA state from each chosen individual's parent.
@@ -142,7 +148,7 @@ def _copy_offspring_state(
     return last_steps, sigmas, inv_cholesky, big_a, pc, psucc
 
 
-def _update_chosen_offspring(
+def update_chosen_offspring(
     strategy: Any,
     chosen: list[Individual],
     last_steps: list[Any],
@@ -171,7 +177,7 @@ def _update_chosen_offspring(
         if t != "o":
             continue
         psucc[i] = (1.0 - cp) * psucc[i] + cp
-        sigmas[i] = sigmas[i] * _step_size_multiplier(psucc[i], pt_arg, d)
+        sigmas[i] = sigmas[i] * step_size_multiplier(psucc[i], pt_arg, d)
         if psucc[i] < p_thresh:
             xp = numpy.array(ind)
             x = numpy.array(strategy.parents[p_idx])
@@ -180,12 +186,12 @@ def _update_chosen_offspring(
         else:
             pc[i] = (1.0 - cc) * pc[i]
             alpha = 1 - c_cov + c_cov * cc * (2.0 - cc)
-        inv_cholesky[i], big_a[i] = _rank_one_update(inv_cholesky[i], big_a[i], alpha, c_cov, pc[i])
+        inv_cholesky[i], big_a[i] = rank_one_update(inv_cholesky[i], big_a[i], alpha, c_cov, pc[i])
         strategy.psucc[p_idx] = (1.0 - cp) * strategy.psucc[p_idx] + cp
-        strategy.sigmas[p_idx] *= _step_size_multiplier(strategy.psucc[p_idx], pt_arg, d)
+        strategy.sigmas[p_idx] *= step_size_multiplier(strategy.psucc[p_idx], pt_arg, d)
 
 
-def _decay_rejected_offspring(strategy: Any, not_chosen: list[Individual]) -> None:
+def decay_rejected_offspring(strategy: Any, not_chosen: list[Individual]) -> None:
     """Shrink step-size on parents whose offspring were discarded.
 
     Args:
@@ -198,10 +204,10 @@ def _decay_rejected_offspring(strategy: Any, not_chosen: list[Individual]) -> No
         if t != "o":
             continue
         strategy.psucc[p_idx] = (1.0 - cp) * strategy.psucc[p_idx]
-        strategy.sigmas[p_idx] *= _step_size_multiplier(strategy.psucc[p_idx], pt_arg, d)
+        strategy.sigmas[p_idx] *= step_size_multiplier(strategy.psucc[p_idx], pt_arg, d)
 
 
-def _commit_parent_params(
+def commit_parent_params(
     strategy: Any,
     chosen: list[Individual],
     sigmas: list[Any],

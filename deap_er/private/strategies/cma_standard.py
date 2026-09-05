@@ -13,10 +13,9 @@ from math import log, sqrt
 from typing import Any
 
 import numpy
-
 from deap_er.base.typedefs import Individual
 
-from ._common import _sample_offspring
+from .common import sample_offspring
 
 __all__ = ["Strategy"]
 
@@ -173,7 +172,7 @@ class Strategy:
         Returns:
             Newly sampled individuals.
         """
-        return _sample_offspring(
+        return sample_offspring(
             self.centroid, self.sigma, self.big_bd, self.lamb, self.dim, ind_init
         )
 

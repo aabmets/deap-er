@@ -14,10 +14,9 @@ from math import exp, sqrt
 from typing import Any
 
 import numpy
-
 from deap_er.base.typedefs import Individual
 
-from ._common import _sample_offspring
+from .common import sample_offspring
 
 __all__ = ["StrategyOnePlusLambda"]
 
@@ -123,7 +122,7 @@ class StrategyOnePlusLambda:
         Returns:
             Newly sampled individuals.
         """
-        return _sample_offspring(self.parent, self.sigma, self.big_a, self.lamb, self.dim, ind_init)
+        return sample_offspring(self.parent, self.sigma, self.big_a, self.lamb, self.dim, ind_init)
 
     def update(self, population: list[Individual]) -> None:
         """Update parent, step-size, and covariance from ``population``.

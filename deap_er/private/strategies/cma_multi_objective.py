@@ -12,18 +12,17 @@ from collections.abc import Callable
 from typing import Any
 
 import numpy
-
 from deap_er import utilities as utils
 from deap_er.base.typedefs import Individual
 from deap_er.rng import rng
 
-from ._mo_update import (
-    _commit_parent_params,
-    _copy_offspring_state,
-    _decay_rejected_offspring,
-    _rank_one_update,
-    _select,
-    _update_chosen_offspring,
+from .mo_update import (
+    commit_parent_params,
+    copy_offspring_state,
+    decay_rejected_offspring,
+    rank_one_update,
+    select,
+    update_chosen_offspring,
 )
 
 __all__ = ["StrategyMultiObjective"]
@@ -89,8 +88,8 @@ class StrategyMultiObjective:
         self.pc = [numpy.zeros(self.dim) for _ in range(pop_size)]
         self.psucc = [self.tgt_sr] * pop_size
 
-    _update_chosen_offspring = _update_chosen_offspring
-    _rank_one_update = staticmethod(_rank_one_update)
+    update_chosen_offspring = update_chosen_offspring
+    rank_one_update = staticmethod(rank_one_update)
 
     def compute_params(self, **kwargs: Any) -> None:
         """Recompute strategy parameters from ``kwargs``.
@@ -121,11 +120,11 @@ class StrategyMultiObjective:
         Args:
             population: Evaluated individuals from ``generate``.
         """
-        chosen, not_chosen = _select(self, population + self.parents)
-        last_steps, sigmas, inv_cholesky, big_a, pc, psucc = _copy_offspring_state(self, chosen)
-        _update_chosen_offspring(self, chosen, last_steps, sigmas, inv_cholesky, big_a, pc, psucc)
-        _decay_rejected_offspring(self, not_chosen)
-        _commit_parent_params(self, chosen, sigmas, inv_cholesky, big_a, pc, psucc)
+        chosen, not_chosen = select(self, population + self.parents)
+        last_steps, sigmas, inv_cholesky, big_a, pc, psucc = copy_offspring_state(self, chosen)
+        update_chosen_offspring(self, chosen, last_steps, sigmas, inv_cholesky, big_a, pc, psucc)
+        decay_rejected_offspring(self, not_chosen)
+        commit_parent_params(self, chosen, sigmas, inv_cholesky, big_a, pc, psucc)
         self.parents = chosen
 
     def generate(self, ind_init: Callable[..., Individual]) -> list[Individual]:

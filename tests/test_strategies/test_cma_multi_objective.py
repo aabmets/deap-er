@@ -73,9 +73,9 @@ def test_stall_alpha_includes_covariance_learning_rate(population):
     path = numpy.ones(dim)
     big = [identity.copy()]
     inv = [identity.copy()]
-    strategy._update_chosen_offspring([child], [1.0], [1.0], inv, big, [path.copy()], [1.0])
+    strategy.update_chosen_offspring([child], [1.0], [1.0], inv, big, [path.copy()], [1.0])
     decayed = (1.0 - cc) * path
-    _, expected = strategy._rank_one_update(
+    _, expected = strategy.rank_one_update(
         identity.copy(), identity.copy(), published, c_cov, decayed
     )
     assert big[0] == pytest.approx(expected)
@@ -84,10 +84,10 @@ def test_stall_alpha_includes_covariance_learning_rate(population):
 def test_rank_one_update_runs_for_all_negative_path(population):
     strategy = tools.StrategyMultiObjective(population, sigma=1.0)
     identity = numpy.eye(2)
-    _, negative = strategy._rank_one_update(
+    _, negative = strategy.rank_one_update(
         identity.copy(), identity.copy(), 0.9, 0.05, numpy.array([-1.0, -1.0])
     )
-    _, positive = strategy._rank_one_update(
+    _, positive = strategy.rank_one_update(
         identity.copy(), identity.copy(), 0.9, 0.05, numpy.array([1.0, 1.0])
     )
     assert not numpy.allclose(negative, identity)
