@@ -170,7 +170,7 @@ class StrategyMultiObjective:
         """
         w = numpy.dot(inv_cholesky, v)
 
-        if w.max(initial=None) > 1e-20:
+        if float(numpy.max(numpy.abs(w))) > 1e-20:
             w_inv = numpy.dot(w, inv_cholesky)
             norm_w2 = numpy.sum(w**2)
             a = sqrt(alpha)
@@ -255,7 +255,7 @@ class StrategyMultiObjective:
                 alpha = 1 - c_cov
             else:
                 pc[i] = (1.0 - cc) * pc[i]
-                alpha = 1 - c_cov + cc * (2.0 - cc)
+                alpha = 1 - c_cov + c_cov * cc * (2.0 - cc)
             inv_cholesky[i], big_a[i] = self._rank_one_update(
                 inv_cholesky[i], big_a[i], alpha, c_cov, pc[i]
             )
