@@ -51,6 +51,73 @@ executor.shutdown()
     It is also suggested to take a look at the
     [full multiprocessing example](../examples/genetic_algorithms/onemax.md#using-multiprocessing).
 
+## Sharing a large dataset
+
+Every item a parallel `map` hands to a worker has to be pickled. When
+the evaluation reads a large array, the way that array reaches the
+worker decides whether parallelism helps at all.
+
+!!! attention
+    Do not bind the dataset into the evaluation operator:
+
+    ```python
+    toolbox.register("evaluate", fitness, data=huge_array)  # anti-pattern
+    ```
+
+    The array becomes part of the registered callable, so it is pickled
+    and sent again for **every individual**. On a dataset of any real
+    size that cost dwarfs the evaluation itself.
+
+Build the arrays once, before the pool starts, and let the evaluation
+read them from the enclosing scope. The individual then stays the only
+thing that travels:
+
+```python
+columns = load_columns()  # built before the pool exists
+
+def evaluate(individual):
+    func = toolbox.compile(expr=individual)
+    return (score(func(*columns)),)
+
+toolbox.register("evaluate", evaluate)
+
+with multiprocessing.Pool() as pool:
+    toolbox.register("map", pool.map)
+    # Execute the evolution
+```
+
+On platforms that start workers by forking, which is the default on
+Linux, the child inherits those pages copy-on-write and never copies the
+data at all. On platforms that start workers by spawning, which is the
+default on Windows and macOS, place the arrays in
+[shared memory](https://docs.python.org/3/library/multiprocessing.shared_memory.html)
+or a `numpy.memmap` and have each worker attach to them once at import.
+
+## Evaluating a whole generation at once
+
+Some evaluations are faster when the entire generation is handed over
+in a single call, for instance when the work is dispatched to a GPU or
+to a vectorized kernel that amortizes its setup.
+
+Register an `evaluate_batch` operator for that. It takes the list of
+individuals whose fitness is invalid and returns their fitness values
+in the same order. When it is present, `ea_simple`, `ea_mu_plus_lambda`,
+`ea_mu_comma_lambda`, and `harm` call it instead of going through `map`
+and `evaluate`.
+
+```python
+def evaluate_batch(individuals):
+    programs = [toolbox.compile(expr=ind) for ind in individuals]
+    return [(score(program(*columns)),) for program in programs]
+
+toolbox.register("evaluate_batch", evaluate_batch)
+```
+
+!!! note
+    `evaluate_batch` replaces `map` for evaluation, so a batch operator
+    is responsible for its own parallelism. Leave it unregistered to
+    keep the ordinary per-individual path.
+
 !!! attention
     When using multiprocessing on Windows, the main function needs to be guarded
     with the `if __name__ == '__main__'` statement.

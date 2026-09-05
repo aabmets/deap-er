@@ -76,6 +76,7 @@ nav:
       - Using the Toolbox: tutorials/using_the_toolbox.md
       - Creating Individuals: tutorials/creating_individuals.md
       - Operators and Algorithms: tutorials/operators_and_algorithms.md
+      - Columnar Programs: tutorials/columnar_gp.md
       - Logging Statistics: tutorials/logging_statistics.md
       - Multiprocessing: tutorials/multiprocessing.md
       - Using Checkpoints: tutorials/using_checkpoints.md
@@ -90,6 +91,7 @@ nav:
           - Even-Parity: examples/genetic_programming/even_parity.md
           - Artificial Ant: examples/genetic_programming/art_ant.md
           - Symbolic Regression: examples/genetic_programming/symb_regr.md
+          - Columnar Programs: examples/genetic_programming/columnar_gp.md
       - Evolution Strategies:
           - Standard CMA: examples/evolution_strategies/cma_strat.md
           - Multi-Objective CMA: examples/evolution_strategies/mo_cma_strat.md
