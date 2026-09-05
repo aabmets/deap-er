@@ -8,8 +8,6 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from typing import TYPE_CHECKING
-
 from .algorithms import *
 from .benchmarks import *
 from .operators import *
@@ -25,6 +23,3 @@ from .private.various.sort_non_dominated import *
 from .private.various.sorting_network import *
 from .records import *
 from .strategies import *
-
-if TYPE_CHECKING:
-    __all__: list[str] = [k for k in globals()]
