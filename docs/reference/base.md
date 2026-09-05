@@ -1,5 +1,7 @@
 # Base
 
-::: deap_er.base
-    options:
-      show_submodules: true
+::: deap_er.Toolbox
+
+::: deap_er.Fitness
+
+::: deap_er.clone_individual

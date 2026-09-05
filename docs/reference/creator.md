@@ -1,5 +1,5 @@
 # Creator
 
-::: deap_er.creator
+::: deap_er.private.creator
     options:
-      show_submodules: true
+      show_root_full_path: false

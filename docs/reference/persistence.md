@@ -1,5 +1,3 @@
 # Persistence
 
-::: deap_er.persistence
-    options:
-      show_submodules: true
+::: deap_er.Checkpoint
