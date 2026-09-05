@@ -13,7 +13,7 @@ from typing import Any
 
 from deap_er.base.typedefs import Individual
 
-__all__ = ["mig_ring"]
+__all__: list[str] = ["mig_ring"]
 
 
 def mig_ring(

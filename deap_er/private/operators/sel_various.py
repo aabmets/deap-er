@@ -13,7 +13,7 @@ from operator import attrgetter
 from deap_er.base.typedefs import Individual
 from deap_er.rng import rng
 
-__all__ = [
+__all__: list[str] = [
     "sel_random",
     "sel_best",
     "sel_worst",

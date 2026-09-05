@@ -9,15 +9,19 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import numpy
-from numpy import ndarray
-
 from deap_er.base.typedefs import Individual
 from deap_er.rng import rng
+from numpy import ndarray
 
-__all__: list[str] = []
+__all__: list[str] = [
+    "find_extreme_points",
+    "find_intercepts",
+    "associate_to_niche",
+    "select_from_niche",
+]
 
 
-def _find_extreme_points(
+def find_extreme_points(
     fitness: ndarray, best_point: ndarray, extreme_points: ndarray | None = None
 ) -> ndarray:
     """Find one extreme point per objective.
@@ -45,7 +49,7 @@ def _find_extreme_points(
     return fitness[min_asf_idx, :]
 
 
-def _find_intercepts(
+def find_intercepts(
     extreme_points: ndarray, best_point: ndarray, current_worst: ndarray, front_worst: ndarray
 ) -> ndarray:
     """Compute axis intercepts of the hyperplane through the extreme points.
@@ -84,7 +88,7 @@ def _find_intercepts(
     return intercepts
 
 
-def _associate_to_niche(
+def associate_to_niche(
     fitness: ndarray, reference_points: ndarray, best_point: ndarray, intercepts: ndarray
 ) -> tuple[ndarray, ndarray]:
     """Assign each individual to the nearest reference-point niche.
@@ -110,7 +114,7 @@ def _associate_to_niche(
     return niches, distances
 
 
-def _select_from_niche(
+def select_from_niche(
     individuals: list[Individual],
     count: int,
     niches: ndarray,

@@ -11,10 +11,16 @@
 from deap_er.base.typedefs import Individual, Mates, NumOrSeq
 from deap_er.rng import rng
 
-from ._bounds import _broadcast_param
-from ._cx_point import _slicer
+from .bounds import broadcast_param
+from .cx_point import slicer
 
-__all__: list[str] = []
+__all__: list[str] = [
+    "cx_blend",
+    "cx_es_blend",
+    "cx_simulated_binary",
+    "cx_simulated_binary_bounded",
+    "cx_uniform",
+]
 
 
 def cx_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
@@ -139,8 +145,8 @@ def cx_simulated_binary_bounded(
         return float(c)
 
     size = min(len(ind1), len(ind2))
-    low = _broadcast_param("low", low, size, "the shorter individual")
-    up = _broadcast_param("up", up, size, "the shorter individual")
+    low = broadcast_param("low", low, size, "the shorter individual")
+    up = broadcast_param("up", up, size, "the shorter individual")
 
     for i, xl, xu in zip(list(range(size)), low, up, strict=False):
         if rng.random() <= 0.5 and abs(ind1[i] - ind2[i]) > 1e-14:
@@ -180,5 +186,5 @@ def cx_uniform(ind1: Individual, ind2: Individual, cx_prob: float) -> Mates:
     size = min(len(ind1), len(ind2))
     for i in range(size):
         if rng.random() < cx_prob:
-            _slicer(ind1, ind2, i, i + 1)
+            slicer(ind1, ind2, i, i + 1)
     return ind1, ind2

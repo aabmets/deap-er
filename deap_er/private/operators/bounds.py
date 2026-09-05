@@ -12,10 +12,10 @@ from collections.abc import Sequence
 
 from deap_er.base.typedefs import NumOrSeq
 
-__all__: list[str] = []
+__all__: list[str] = ["broadcast_param"]
 
 
-def _broadcast_param(
+def broadcast_param(
     name: str, var: NumOrSeq, size: int, subject: str = "the individual"
 ) -> Sequence[int] | Sequence[float]:
     """Broadcast a scalar parameter or validate a per-gene sequence.

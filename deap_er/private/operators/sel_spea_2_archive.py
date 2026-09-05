@@ -10,12 +10,19 @@
 #
 from deap_er.base.typedefs import Individual
 
-from ._spea_2 import _sq_distance
+from .sel_spea_2_helpers import sq_distance
 
-__all__: list[str] = []
+__all__: list[str] = [
+    "archive_distance_tables",
+    "sort_neighbours",
+    "drop_crowded",
+    "invalidate_slot",
+    "truncate_archive",
+    "most_crowded",
+]
 
 
-def _archive_distance_tables(
+def archive_distance_tables(
     individuals: list[Individual], chosen: list[int]
 ) -> tuple[list[list[float]], list[list[int]], int]:
     """Build pairwise distances and nearest-neighbour orders.
@@ -34,16 +41,16 @@ def _archive_distance_tables(
     sorted_indices = [[0] * big_n for _ in range(big_n)]
     for i in range(big_n):
         for j in range(i + 1, big_n):
-            dist = _sq_distance(individuals[chosen[i]], individuals[chosen[j]], big_l)
+            dist = sq_distance(individuals[chosen[i]], individuals[chosen[j]], big_l)
             distances[i][j] = dist
             distances[j][i] = dist
         distances[i][i] = -1
     for i in range(big_n):
-        _sort_neighbours(distances[i], sorted_indices[i], big_n)
+        sort_neighbours(distances[i], sorted_indices[i], big_n)
     return distances, sorted_indices, big_n
 
 
-def _sort_neighbours(row: list[float], order: list[int], big_n: int) -> None:
+def sort_neighbours(row: list[float], order: list[int], big_n: int) -> None:
     """Insertion-sort neighbour indices of one archive member.
 
     Args:
@@ -59,7 +66,7 @@ def _sort_neighbours(row: list[float], order: list[int], big_n: int) -> None:
         order[small_l] = j
 
 
-def _drop_crowded(
+def drop_crowded(
     distances: list[list[float]], sorted_indices: list[list[int]], big_n: int, sel_count: int
 ) -> list[int]:
     """Return archive positions to drop until ``sel_count`` remain.
@@ -76,14 +83,14 @@ def _drop_crowded(
     size = big_n
     to_remove = []
     while size > sel_count:
-        min_pos = _most_crowded(distances, sorted_indices, big_n, size)
-        _invalidate_slot(distances, sorted_indices, min_pos, big_n, size)
+        min_pos = most_crowded(distances, sorted_indices, big_n, size)
+        invalidate_slot(distances, sorted_indices, min_pos, big_n, size)
         to_remove.append(min_pos)
         size -= 1
     return to_remove
 
 
-def _invalidate_slot(
+def invalidate_slot(
     distances: list[list[float]],
     sorted_indices: list[list[int]],
     min_pos: int,
@@ -108,9 +115,7 @@ def _invalidate_slot(
                 sorted_indices[i][j + 1] = min_pos
 
 
-def _truncate_archive(
-    individuals: list[Individual], chosen: list[int], sel_count: int
-) -> list[int]:
+def truncate_archive(individuals: list[Individual], chosen: list[int], sel_count: int) -> list[int]:
     """Shrink an oversized archive to ``sel_count`` entries.
 
     Repeatedly drops the individual with the closest neighbour, using
@@ -124,15 +129,15 @@ def _truncate_archive(
     Returns:
         The chosen indices, reduced to ``sel_count`` entries.
     """
-    distances, sorted_indices, big_n = _archive_distance_tables(individuals, chosen)
-    to_remove = _drop_crowded(distances, sorted_indices, big_n, sel_count)
+    distances, sorted_indices, big_n = archive_distance_tables(individuals, chosen)
+    to_remove = drop_crowded(distances, sorted_indices, big_n, sel_count)
     chosen = list(chosen)
     for index in sorted(to_remove, reverse=True):
         del chosen[index]
     return chosen
 
 
-def _most_crowded(
+def most_crowded(
     distances: list[list[float]], sorted_indices: list[list[int]], big_n: int, size: int
 ) -> int:
     """Return the archive position with the closest neighbours.

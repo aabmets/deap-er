@@ -12,6 +12,7 @@ from typing import Any
 
 import numpy
 from deap_er import tools
+from deap_er.private.operators.cx_point import slicer
 
 
 class _ESList(list[Any]):
@@ -36,9 +37,8 @@ def test_one_point_swaps_tails():
 def test_slicer_and_uniform_swap_numpy_without_aliasing():
     left: Any = numpy.array([0, 1, 2, 3, 4])
     right: Any = numpy.array([9, 8, 7, 6, 5])
-    from deap_er.operators.crossover import _slicer
 
-    first, second = _slicer(left.copy(), right.copy(), 2)
+    first, second = slicer(left.copy(), right.copy(), 2)
     assert list(first) == [0, 1, 7, 6, 5]
     assert list(second) == [9, 8, 2, 3, 4]
 

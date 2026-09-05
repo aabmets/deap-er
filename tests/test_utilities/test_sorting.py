@@ -11,8 +11,8 @@
 import numpy
 from deap_er import creator
 from deap_er.base import Fitness
-from deap_er.operators.selection.sel_nsga_2 import sel_nsga_2
-from deap_er.operators.selection.sel_nsga_3 import sel_nsga_3
+from deap_er.private.operators.sel_nsga_2 import sel_nsga_2
+from deap_er.private.operators.sel_nsga_3 import sel_nsga_3
 from deap_er.utilities.sorting import sort_non_dominated
 
 FIT = "SORT_FIT"

@@ -18,7 +18,7 @@ from deap_er.rng import rng
 
 from .sel_various import sel_random
 
-__all__ = ["sel_tournament", "sel_double_tournament", "sel_tournament_dcd"]
+__all__: list[str] = ["sel_tournament", "sel_double_tournament", "sel_tournament_dcd"]
 
 
 def sel_tournament(

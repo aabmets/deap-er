@@ -9,10 +9,9 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import numpy
-
 from deap_er.base.typedefs import Individual
 
-__all__ = ["assign_crowding_dist", "uniform_reference_points"]
+__all__: list[str] = ["assign_crowding_dist", "uniform_reference_points"]
 
 
 def assign_crowding_dist(individuals: list[Individual]) -> None:

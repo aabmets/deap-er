@@ -10,10 +10,10 @@
 #
 from deap_er.base.typedefs import Individual
 
-from ._spea_2 import _fill_from_density, _raw_fitness
-from ._spea_2_archive import _truncate_archive
+from .sel_spea_2_archive import truncate_archive
+from .sel_spea_2_helpers import fill_from_density, raw_fitness
 
-__all__ = ["sel_spea_2"]
+__all__: list[str] = ["sel_spea_2"]
 
 
 def sel_spea_2(individuals: list[Individual], sel_count: int) -> list[Individual]:
@@ -29,12 +29,12 @@ def sel_spea_2(individuals: list[Individual], sel_count: int) -> list[Individual
     Returns:
         The selected individuals.
     """
-    fits = _raw_fitness(individuals)
+    fits = raw_fitness(individuals)
 
     chosen = [i for i in range(len(individuals)) if fits[i] < 1]
     if len(chosen) < sel_count:
-        chosen = _fill_from_density(individuals, chosen, fits, sel_count)
+        chosen = fill_from_density(individuals, chosen, fits, sel_count)
     elif len(chosen) > sel_count:
-        chosen = _truncate_archive(individuals, chosen, sel_count)
+        chosen = truncate_archive(individuals, chosen, sel_count)
 
     return [individuals[i] for i in chosen]

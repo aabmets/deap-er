@@ -11,7 +11,7 @@
 import numpy
 import pytest
 from deap_er import base, creator, tools
-from deap_er.operators.selection.sel_nsga_3 import _associate_to_niche
+from deap_er.private.operators.sel_nsga_3_helpers import associate_to_niche
 
 SO_FIT = "SEL_SO_FIT"
 SO_IND = "SEL_SO_IND"
@@ -261,7 +261,7 @@ def test_nsga3_associates_points_to_the_nearest_niche():
     best_point = numpy.zeros(2, dtype=float)
     intercepts = numpy.ones(2, dtype=float)
 
-    niches, distances = _associate_to_niche(fitness, ref_points, best_point, intercepts)
+    niches, distances = associate_to_niche(fitness, ref_points, best_point, intercepts)
 
     assert niches.tolist() == [2, 1, 0, 2, 0]
     assert distances == pytest.approx([0.0, 0.0, 0.0, 0.2, 0.2], abs=1e-15)

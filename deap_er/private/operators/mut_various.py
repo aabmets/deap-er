@@ -13,9 +13,9 @@ import math
 from deap_er.base.typedefs import Individual, Mutant, NumOrSeq
 from deap_er.rng import rng
 
-from ._bounds import _broadcast_param
+from .bounds import broadcast_param
 
-__all__ = [
+__all__: list[str] = [
     "mut_gaussian",
     "mut_polynomial_bounded",
     "mut_shuffle_indexes",
@@ -45,8 +45,8 @@ def mut_gaussian(individual: Individual, mu: NumOrSeq, sigma: NumOrSeq, mut_prob
             the individual.
     """
     size = len(individual)
-    mu = _broadcast_param("mu", mu, size)
-    sigma = _broadcast_param("sigma", sigma, size)
+    mu = broadcast_param("mu", mu, size)
+    sigma = broadcast_param("sigma", sigma, size)
 
     idx = list(range(size))
     for i, m, s in zip(idx, mu, sigma, strict=False):
@@ -81,8 +81,8 @@ def mut_polynomial_bounded(
             the individual.
     """
     size = len(individual)
-    low = _broadcast_param("low", low, size)
-    up = _broadcast_param("up", up, size)
+    low = broadcast_param("low", low, size)
+    up = broadcast_param("up", up, size)
 
     idx = list(range(size))
     for i, xl, xu in zip(idx, low, up, strict=False):
@@ -170,8 +170,8 @@ def mut_uniform_int(individual: Individual, low: int, up: int, mut_prob: float) 
             the individual.
     """
     size = len(individual)
-    lows = _broadcast_param("low", low, size)
-    ups = _broadcast_param("up", up, size)
+    lows = broadcast_param("low", low, size)
+    ups = broadcast_param("up", up, size)
 
     idx = list(range(size))
     for i, xl, xu in zip(idx, lows, ups, strict=False):

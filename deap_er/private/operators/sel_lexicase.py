@@ -11,14 +11,13 @@
 from collections.abc import Callable
 
 import numpy
-
 from deap_er.base.typedefs import Individual
 from deap_er.rng import rng
 
-__all__ = ["sel_lexicase", "sel_epsilon_lexicase"]
+__all__: list[str] = ["lexicase_select", "sel_lexicase", "sel_epsilon_lexicase"]
 
 
-def _lexicase_select(
+def lexicase_select(
     individuals: list[Individual],
     sel_count: int,
     keep: Callable[[list[Individual], int, bool], list[Individual]],
@@ -72,7 +71,7 @@ def sel_lexicase(individuals: list[Individual], sel_count: int) -> list[Individu
         best_val = fn(f_vals)
         return [x for x in candidates if x.fitness.values[case] == best_val]
 
-    return _lexicase_select(individuals, sel_count, keep)
+    return lexicase_select(individuals, sel_count, keep)
 
 
 def sel_epsilon_lexicase(
@@ -108,4 +107,4 @@ def sel_epsilon_lexicase(
         max_val = min(errors) + slack
         return [x for x in candidates if x.fitness.values[case] <= max_val]
 
-    return _lexicase_select(individuals, sel_count, keep)
+    return lexicase_select(individuals, sel_count, keep)

@@ -11,19 +11,18 @@
 from itertools import chain
 
 import numpy
-from numpy import ndarray
-
 from deap_er.base.typedefs import Individual
 from deap_er.utilities.sorting import sort_non_dominated
+from numpy import ndarray
 
-from ._nsga_3 import (
-    _associate_to_niche,
-    _find_extreme_points,
-    _find_intercepts,
-    _select_from_niche,
+from .sel_nsga_3_helpers import (
+    associate_to_niche,
+    find_extreme_points,
+    find_intercepts,
+    select_from_niche,
 )
 
-__all__ = ["sel_nsga_3", "SelNSGA3WithMemory"]
+__all__: list[str] = ["sel_nsga_3", "SelNSGA3WithMemory"]
 
 
 class SelNSGA3WithMemory:
@@ -106,10 +105,10 @@ def sel_nsga_3(
         best_point = numpy.min(fitness, axis=0)
         worst_point = numpy.max(fitness, axis=0)
 
-    extreme_points = _find_extreme_points(fitness, best_point, extreme_points)
+    extreme_points = find_extreme_points(fitness, best_point, extreme_points)
     front_worst = numpy.max(fitness[: sum(len(f) for f in pareto_fronts), :], axis=0)
-    intercepts = _find_intercepts(extreme_points, best_point, worst_point, front_worst)
-    niches, dist = _associate_to_niche(fitness, ref_points, best_point, intercepts)
+    intercepts = find_intercepts(extreme_points, best_point, worst_point, front_worst)
+    niches, dist = associate_to_niche(fitness, ref_points, best_point, intercepts)
 
     niche_counts = numpy.zeros(len(ref_points), dtype=numpy.int64)
     index, counts = numpy.unique(niches[: -len(pareto_fronts[-1])], return_counts=True)
@@ -117,7 +116,7 @@ def sel_nsga_3(
 
     chosen = list(chain(*pareto_fronts[:-1]))
     selected = len(chosen)
-    selected = _select_from_niche(
+    selected = select_from_niche(
         pareto_fronts[-1], sel_count - selected, niches[selected:], dist[selected:], niche_counts
     )
     chosen.extend(selected)

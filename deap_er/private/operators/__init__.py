@@ -8,24 +8,24 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from .crossover import (
-    cx_blend,
-    cx_es_blend,
+from .cx_permutation import cx_ordered, cx_partially_matched, cx_uniform_partially_matched
+from .cx_point import (
     cx_es_two_point,
     cx_es_two_point_copy,
     cx_messy_one_point,
     cx_one_point,
-    cx_ordered,
-    cx_partially_matched,
-    cx_simulated_binary,
-    cx_simulated_binary_bounded,
     cx_two_point,
     cx_two_point_copy,
-    cx_uniform,
-    cx_uniform_partially_matched,
 )
-from .migration import mig_ring
-from .mutation import (
+from .cx_real import (
+    cx_blend,
+    cx_es_blend,
+    cx_simulated_binary,
+    cx_simulated_binary_bounded,
+    cx_uniform,
+)
+from .mig_ring import mig_ring
+from .mut_various import (
     mut_es_log_normal,
     mut_flip_bit,
     mut_gaussian,
@@ -33,42 +33,35 @@ from .mutation import (
     mut_shuffle_indexes,
     mut_uniform_int,
 )
-from .selection import (
-    SelNSGA3WithMemory,
-    assign_crowding_dist,
+from .sel_helpers import assign_crowding_dist, uniform_reference_points
+from .sel_lexicase import sel_epsilon_lexicase, sel_lexicase
+from .sel_nsga_2 import sel_nsga_2
+from .sel_nsga_3 import SelNSGA3WithMemory, sel_nsga_3
+from .sel_spea_2 import sel_spea_2
+from .sel_tournament import sel_double_tournament, sel_tournament, sel_tournament_dcd
+from .sel_various import (
     sel_best,
-    sel_double_tournament,
-    sel_epsilon_lexicase,
-    sel_lexicase,
-    sel_nsga_2,
-    sel_nsga_3,
     sel_random,
     sel_roulette,
-    sel_spea_2,
     sel_stochastic_universal_sampling,
-    sel_tournament,
-    sel_tournament_dcd,
     sel_worst,
-    uniform_reference_points,
 )
 
-__all__ = [
-    "SelNSGA3WithMemory",
-    "assign_crowding_dist",
-    "cx_blend",
-    "cx_es_blend",
+__all__: list[str] = [
+    "cx_ordered",
+    "cx_partially_matched",
+    "cx_uniform_partially_matched",
     "cx_es_two_point",
     "cx_es_two_point_copy",
     "cx_messy_one_point",
     "cx_one_point",
-    "cx_ordered",
-    "cx_partially_matched",
-    "cx_simulated_binary",
-    "cx_simulated_binary_bounded",
     "cx_two_point",
     "cx_two_point_copy",
+    "cx_blend",
+    "cx_es_blend",
+    "cx_simulated_binary",
+    "cx_simulated_binary_bounded",
     "cx_uniform",
-    "cx_uniform_partially_matched",
     "mig_ring",
     "mut_es_log_normal",
     "mut_flip_bit",
@@ -76,18 +69,20 @@ __all__ = [
     "mut_polynomial_bounded",
     "mut_shuffle_indexes",
     "mut_uniform_int",
-    "sel_best",
-    "sel_double_tournament",
+    "assign_crowding_dist",
+    "uniform_reference_points",
     "sel_epsilon_lexicase",
     "sel_lexicase",
     "sel_nsga_2",
+    "SelNSGA3WithMemory",
     "sel_nsga_3",
-    "sel_random",
-    "sel_roulette",
     "sel_spea_2",
-    "sel_stochastic_universal_sampling",
+    "sel_double_tournament",
     "sel_tournament",
     "sel_tournament_dcd",
+    "sel_best",
+    "sel_random",
+    "sel_roulette",
+    "sel_stochastic_universal_sampling",
     "sel_worst",
-    "uniform_reference_points",
 ]

@@ -11,10 +11,19 @@
 from deap_er.base.typedefs import Individual, Mates
 from deap_er.rng import rng
 
-__all__: list[str] = []
+__all__: list[str] = [
+    "slicer",
+    "two_point",
+    "cx_one_point",
+    "cx_messy_one_point",
+    "cx_two_point",
+    "cx_two_point_copy",
+    "cx_es_two_point",
+    "cx_es_two_point_copy",
+]
 
 
-def _slicer(
+def slicer(
     ind1: Individual, ind2: Individual, start: int, stop: int | None = None, copy: bool = False
 ) -> Mates:
     """Swap a segment of two individuals.
@@ -48,7 +57,7 @@ def _slicer(
     return ind1, ind2
 
 
-def _two_point(
+def two_point(
     ind1: Individual, ind2: Individual, copy: bool = False, strategy: bool = False
 ) -> Mates:
     """Execute a two-point crossover on two individuals.
@@ -72,9 +81,9 @@ def _two_point(
         cxp2 += 1
     else:
         cxp1, cxp2 = cxp2, cxp1
-    ind1, ind2 = _slicer(ind1, ind2, cxp1, cxp2, copy)
+    ind1, ind2 = slicer(ind1, ind2, cxp1, cxp2, copy)
     if strategy:
-        _slicer(ind1.strategy, ind2.strategy, cxp1, cxp2, copy)
+        slicer(ind1.strategy, ind2.strategy, cxp1, cxp2, copy)
     return ind1, ind2
 
 
@@ -92,7 +101,7 @@ def cx_one_point(ind1: Individual, ind2: Individual) -> Mates:
     """
     size = min(len(ind1), len(ind2))
     cxp = rng.randint(1, size - 1)
-    ind1, ind2 = _slicer(ind1, ind2, cxp)
+    ind1, ind2 = slicer(ind1, ind2, cxp)
     return ind1, ind2
 
 
@@ -127,7 +136,7 @@ def cx_two_point(ind1: Individual, ind2: Individual) -> Mates:
     Returns:
         The two individuals after crossover.
     """
-    ind1, ind2 = _two_point(ind1, ind2)
+    ind1, ind2 = two_point(ind1, ind2)
     return ind1, ind2
 
 
@@ -145,7 +154,7 @@ def cx_two_point_copy(ind1: Individual, ind2: Individual) -> Mates:
     Returns:
         The two individuals after crossover.
     """
-    ind1, ind2 = _two_point(ind1, ind2, copy=True)
+    ind1, ind2 = two_point(ind1, ind2, copy=True)
     return ind1, ind2
 
 
@@ -161,7 +170,7 @@ def cx_es_two_point(ind1: Individual, ind2: Individual) -> Mates:
     Returns:
         The two individuals after crossover.
     """
-    ind1, ind2 = _two_point(ind1, ind2, strategy=True)
+    ind1, ind2 = two_point(ind1, ind2, strategy=True)
     return ind1, ind2
 
 
@@ -179,5 +188,5 @@ def cx_es_two_point_copy(ind1: Individual, ind2: Individual) -> Mates:
     Returns:
         The two individuals after crossover.
     """
-    ind1, ind2 = _two_point(ind1, ind2, copy=True, strategy=True)
+    ind1, ind2 = two_point(ind1, ind2, copy=True, strategy=True)
     return ind1, ind2

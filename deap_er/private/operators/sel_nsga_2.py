@@ -16,7 +16,7 @@ from deap_er.utilities.sorting import sort_non_dominated
 
 from .sel_helpers import assign_crowding_dist
 
-__all__ = ["sel_nsga_2"]
+__all__: list[str] = ["sel_nsga_2"]
 
 
 def sel_nsga_2(individuals: list[Individual], sel_count: int) -> list[Individual]:
