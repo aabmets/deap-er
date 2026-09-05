@@ -18,8 +18,7 @@ uv add deap-er
 
 The functionality of this library is divided into the following namespaces:
 
-- **deap_er** — `Toolbox`, `Fitness`, `Checkpoint`, `clone_individual`,
-  and the `creator` module.
+- **deap_er** — `Toolbox`, `Fitness`, `Checkpoint`, and the `creator` module.
 - **tools** — Essential evolution components:
     - algorithms
     - operators
@@ -32,5 +31,5 @@ The functionality of this library is divided into the following namespaces:
 These namespaces can be imported with:
 
 ```python
-from deap_er import Checkpoint, Fitness, Toolbox, clone_individual, creator, gp, tools
+from deap_er import Checkpoint, Fitness, Toolbox, creator, gp, tools
 ```

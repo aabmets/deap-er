@@ -12,7 +12,7 @@ from array import array
 from copy import deepcopy
 from functools import partial
 
-from deap_er import Fitness, Toolbox, clone_individual, creator, gp
+from deap_er import Fitness, Toolbox, creator, gp, tools
 
 
 class TestToolbox:
@@ -58,7 +58,7 @@ def test_clone_individual_copies_list_genes_and_fitness():
     try:
         original = creator.__dict__["CLONE_IND"]([1, 0, 1])
         original.fitness.values = (3.0,)
-        cloned = clone_individual(original)
+        cloned = tools.clone_individual(original)
         cloned[0] = 9
         del cloned.fitness.values
         assert list(original) == [1, 0, 1]
@@ -78,7 +78,7 @@ def test_clone_individual_copies_array_genes():
     try:
         original = creator.__dict__["CLONE_ARR_IND"]([1, 0, 1])
         original.fitness.values = (2.0,)
-        cloned = clone_individual(original)
+        cloned = tools.clone_individual(original)
         cloned[1] = 7
         assert list(original) == [1, 0, 1]
         assert cloned.fitness.values == (2.0,)
@@ -99,7 +99,7 @@ def test_clone_individual_shares_gp_tree_nodes_and_splits_fitness():
         original = creator.__dict__["CLONE_GP_IND"](gp.gen_full(pset, 2, 3))
         original.fitness.values = (4.0,)
 
-        cloned = clone_individual(original)
+        cloned = tools.clone_individual(original)
         del cloned.fitness.values
 
         assert cloned is not original
@@ -120,7 +120,7 @@ def test_clone_individual_falls_back_when_strategy_is_set():
         original = creator.__dict__["CLONE_ES_IND"]([1.0, 2.0])
         original.fitness.values = (1.0,)
         original.strategy = [0.1, 0.2]
-        cloned = clone_individual(original)
+        cloned = tools.clone_individual(original)
         cloned.strategy[0] = 9.0
         assert original.strategy == [0.1, 0.2]
         assert cloned.strategy == [9.0, 0.2]

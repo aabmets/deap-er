@@ -11,6 +11,6 @@
 from .private import creator
 from .private.checkpoint import Checkpoint
 from .private.fitness import Fitness
-from .private.toolbox import Toolbox, clone_individual
+from .private.toolbox import Toolbox
 
-__all__ = ["creator", "Checkpoint", "Fitness", "clone_individual", "Toolbox"]
+__all__ = ["creator", "Checkpoint", "Fitness", "Toolbox"]
