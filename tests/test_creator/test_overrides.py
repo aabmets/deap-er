@@ -10,9 +10,10 @@
 #
 import array
 import pickle
-from copy import deepcopy
+from copy import copy, deepcopy
 
 import numpy
+from deap_er import base, creator
 from deap_er.creator import overrides as ovr
 
 
@@ -80,3 +81,29 @@ class TestArrayOverrideClass:
         assert cls == ovr._ArrayOverride
         assert isinstance(args, tuple)
         assert isinstance(state, dict)
+
+
+def test_copy_copy_keeps_type_and_fitness_on_array_individuals():
+    fit_name = "OVR_COPY_FIT"
+    np_name = "OVR_COPY_NP"
+    ar_name = "OVR_COPY_AR"
+    creator.create(fit_name, base.Fitness, weights=(1.0,))
+    creator.create(np_name, numpy.ndarray, fitness=creator.__dict__[fit_name])
+    creator.create(ar_name, array.array, typecode="i", fitness=creator.__dict__[fit_name])
+    try:
+        np_ind = creator.__dict__[np_name]([1, 2, 3])
+        np_ind.fitness.values = (1.5,)
+        ar_ind = creator.__dict__[ar_name]([1, 2, 3])
+        ar_ind.fitness.values = (2.5,)
+        for original in (np_ind, ar_ind):
+            shallow = copy(original)
+            deep = deepcopy(original)
+            assert type(shallow) is type(original)
+            assert type(deep) is type(original)
+            assert shallow.fitness.values == original.fitness.values
+            assert deep.fitness.values == original.fitness.values
+            assert hasattr(shallow, "fitness")
+    finally:
+        del creator.__dict__[np_name]
+        del creator.__dict__[ar_name]
+        del creator.__dict__[fit_name]

@@ -8,6 +8,7 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+import array
 import warnings
 from typing import Any, cast
 
@@ -42,6 +43,11 @@ def create(name: str, base: type | object, **kwargs: Any) -> None:
         )
         warnings.warn(stacklevel=2, message=msg, category=RuntimeWarning)
 
+    array_typecode = None
+    if type(base) is array.array:
+        array_typecode = base.typecode
+        base = type(base)
+
     # set base to class if base is an instance
     if not hasattr(base, "__module__"):
         base = base.__class__
@@ -55,6 +61,8 @@ def create(name: str, base: type | object, **kwargs: Any) -> None:
         condition = type(value) is type
         _dict = inst_attr if condition else cls_attr
         _dict[key] = value
+    if array_typecode is not None:
+        cls_attr.setdefault("typecode", array_typecode)
 
     # create the new class
     new_class = type(name, (cast(Any, base),), cls_attr)

@@ -27,6 +27,16 @@ class _NumpyOverride(numpy.ndarray):
         return numpy.array(list(seq)).view(cls)
 
     @override
+    def __copy__(self) -> "_NumpyOverride":
+        """Shallow-copy the buffer and rebind ``fitness`` like ``__deepcopy__``."""
+        clone = numpy.ndarray.copy(self)
+        state = dict(self.__dict__)
+        if "fitness" in state:
+            state["fitness"] = deepcopy(state["fitness"])
+        clone.__dict__.update(state)
+        return clone
+
+    @override
     def __deepcopy__(self, memo: dict[int, Any], *_: Any, **__: Any) -> "_NumpyOverride":
         """Copy the array and its instance ``__dict__``."""
         copy = numpy.ndarray.copy(self)
@@ -53,6 +63,17 @@ class _ArrayOverride(array.array[Any]):
     def __new__(cls, seq: Sequence[Any]) -> array.array[Any]:
         """Build an instance from ``seq`` using the subclass typecode."""
         return super().__new__(cls, str(cls.typecode), seq)
+
+    @override
+    def __copy__(self) -> "_ArrayOverride":
+        """Shallow-copy the buffer and rebind ``fitness`` like ``__deepcopy__``."""
+        cls = self.__class__
+        clone = cast(_ArrayOverride, cls.__new__(cls, self))
+        state = dict(self.__dict__)
+        if "fitness" in state:
+            state["fitness"] = deepcopy(state["fitness"])
+        clone.__dict__.update(state)
+        return clone
 
     @override
     def __deepcopy__(self, memo: dict[int, Any]) -> "_ArrayOverride":

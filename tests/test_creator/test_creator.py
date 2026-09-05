@@ -151,3 +151,13 @@ class TestCreatorBuiltinsArray:
         assert a == ta
         assert b == tb
         creator.__dict__.pop(CNAME)
+
+    def test_array_instance_keeps_typecode(self):
+        creator.create(CNAME, array.array("d"))
+        cls = creator.__dict__[CNAME]
+        obj = cls([1.5])
+        try:
+            assert obj.typecode == "d"
+            assert obj[0] == 1.5
+        finally:
+            creator.__dict__.pop(CNAME)
