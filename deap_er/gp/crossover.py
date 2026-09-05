@@ -90,17 +90,9 @@ def cx_one_point(ind1: GPIndividual, ind2: GPIndividual) -> GPMates:
     if len(ind1) < 2 or len(ind2) < 2:
         return ind1, ind2
 
-    common_types: Collection[type]
-    if ind1.root.ret is object:
-        types1: defaultdict[type, list[int]] = defaultdict(list)
-        types2: defaultdict[type, list[int]] = defaultdict(list)
-        types1[object] = list(range(1, len(ind1)))
-        types2[object] = list(range(1, len(ind2)))
-        common_types = [object]
-    else:
-        types1 = _collect_indices(ind1)
-        types2 = _collect_indices(ind2)
-        common_types = set(types1.keys()).intersection(set(types2.keys()))
+    types1 = _collect_indices(ind1)
+    types2 = _collect_indices(ind2)
+    common_types = set(types1.keys()).intersection(set(types2.keys()))
 
     _swap_subtrees(ind1, ind2, types1, types2, common_types)
 

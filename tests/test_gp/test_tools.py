@@ -68,6 +68,21 @@ def test_build_tree_graph_returns_nodes_edges_and_labels():
     assert 1 in labels
 
 
+def test_static_limit_does_not_alias_two_oversized_children():
+    from deap_er.rng import rng
+
+    def bloating(_first: list[int], _second: list[int]) -> tuple[list[int], list[int]]:
+        return [0] * 20, [1] * 20
+
+    limited = static_limit(len, 5)(bloating)
+    for seed in range(40):
+        rng.seed(seed)
+        first, second = limited([3], [4])
+        assert first is not second
+        first.append(99)
+        assert 99 not in second
+
+
 def test_static_limit_replaces_oversized_offspring():
     def grow(individual: list[int]) -> tuple[list[int]]:
         return (individual + [9],)

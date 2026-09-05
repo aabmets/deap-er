@@ -122,6 +122,39 @@ def test_harm_updates_the_hall_of_fame(toolbox):
     assert hof[0].fitness.values == (0.0,)
 
 
+def test_target_prob_half_life_scales_with_cutoff_not_size():
+    import math
+
+    from deap_er.gp.harm import _target_prob
+
+    alpha, beta, gamma, pop_len, cutoff = 0.05, 10.0, 0.25, 100, 20
+    tau = cutoff * alpha + beta
+
+    def expected(size: int) -> float:
+        amplitude = gamma * pop_len * math.log(2) / tau
+        decay = math.exp(-math.log(2) * (size - cutoff) / tau)
+        return amplitude * decay
+
+    assert _target_prob(30, alpha, beta, gamma, pop_len, cutoff) == pytest.approx(expected(30))
+    assert _target_prob(40, alpha, beta, gamma, pop_len, cutoff) == pytest.approx(expected(40))
+
+
+def test_harm_cutoff_uses_evaluated_population_and_survives_small_model(toolbox):
+    population = toolbox.population(size=30)
+    for individual in population:
+        individual.fitness.values = toolbox.evaluate(individual)
+    gp.harm(
+        toolbox=toolbox,
+        population=population,
+        generations=1,
+        cx_prob=0.5,
+        mut_prob=0.1,
+        nb_model=10,
+        min_cutoff=1,
+        rho=0.9,
+    )
+
+
 def test_harm_compiles_statistics_into_the_logbook(toolbox):
     population = _seeded_population(toolbox)
     stats = tools.Statistics(len)

@@ -36,6 +36,25 @@ def test_semantic_crossover():
     assert ctr == len(ind2)
 
 
+def test_semantic_crossover_second_child_uses_original_first_parent():
+    pset = PrimitiveSet("main", 1)
+    pset.add_primitive(operator.add, 2)
+    pset.add_primitive(operator.mul, 2)
+    pset.add_primitive(operator.sub, 2)
+    pset.add_primitive(lf, 1, name="lf")
+    pset.add_terminal(1.0)
+    ind1 = gen_grow(pset, 1, 2)
+    ind2 = gen_grow(pset, 1, 2)
+    offspring1, offspring2 = cx_semantic(list(ind1), list(ind2), pset, min_depth=1, max_depth=1)
+    first_offspring_names = [node.name for node in offspring1]
+    second_names = [node.name for node in offspring2]
+    embedded = any(
+        second_names[i : i + len(first_offspring_names)] == first_offspring_names
+        for i in range(len(second_names))
+    )
+    assert not embedded
+
+
 def test_semantic_mutation():
     pset = PrimitiveSet("main", 2)
     pset.add_primitive(operator.sub, 2)

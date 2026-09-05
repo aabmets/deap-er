@@ -50,7 +50,7 @@ def _target_prob(
     """Return the target acceptance probability for a given tree size.
 
     The probability decays exponentially past ``cutoff_size``, with a
-    half-life that grows linearly with the size.
+    half-life that grows linearly with the cutoff.
 
     Args:
         size: Tree size to score.
@@ -63,7 +63,7 @@ def _target_prob(
     Returns:
         The target probability for that size.
     """
-    half_life = size * float(alpha) + beta
+    half_life = cutoff_size * float(alpha) + beta
     hl_1 = gamma * pop_len * math.log(2) / half_life
     hl_2 = math.exp(-math.log(2) * (size - cutoff_size) / half_life)
     return hl_1 * hl_2
@@ -106,8 +106,15 @@ def _cutoff_size(natural_pop: list[GPIndividual], pop_len: int, rho: float, min_
     Returns:
         The cutoff size.
     """
-    sorted_natural = sorted(natural_pop, key=lambda ind: ind.fitness)
-    cutoff_candidates = sorted_natural[int(pop_len * rho - 1) :]
+    source = [ind for ind in natural_pop if ind.fitness.is_valid()]
+    if not source:
+        return min_cutoff
+    _ = pop_len
+    sorted_natural = sorted(source, key=lambda ind: ind.fitness)
+    start = max(0, int(len(sorted_natural) * rho - 1))
+    cutoff_candidates = sorted_natural[start:]
+    if not cutoff_candidates:
+        return min_cutoff
     return max(min_cutoff, len(min(cutoff_candidates, key=len)))
 
 
@@ -388,7 +395,7 @@ def harm(
         pop_len = len(population)
         natural_pop, natural_pop_sizes = _produce(toolbox, population, nb_model, cx_prob, mut_prob)
         natural_hist = _natural_histogram(natural_pop_sizes, pop_len, nb_model)
-        cutoff_size = _cutoff_size(natural_pop, pop_len, rho, min_cutoff)
+        cutoff_size = _cutoff_size(population, pop_len, rho, min_cutoff)
 
         def target_prob(size: int, cutoff: int = cutoff_size, length: int = pop_len) -> float:
             return _target_prob(size, alpha, beta, gamma, length, cutoff)

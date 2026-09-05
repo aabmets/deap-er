@@ -107,8 +107,10 @@ def cx_semantic(
         new_ind.extend(ind_ext)
         return new_ind
 
-    new_ind1 = create_ind(ind1, ind2)
-    new_ind2 = create_ind(ind2, ind1)
+    parent1 = list(ind1)
+    parent2 = list(ind2)
+    new_ind1 = create_ind(ind1, parent2)
+    new_ind2 = create_ind(ind2, parent1)
     return new_ind1, new_ind2
 
 
