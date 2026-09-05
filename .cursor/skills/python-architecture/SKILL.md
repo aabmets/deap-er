@@ -53,6 +53,20 @@ Match the existing package. Do not add `utils/`, `config/`, `models/`, `services
 
 Do not "clean up" star imports, flatten operators into classes, or forbid module-level `_` names.
 
+## Imports
+
+**Every import goes at the top of the module.** Ruff does not enforce this (`PLC0415` is not in the selected rulesets), so it is on you.
+
+A function-level import is allowed only when a top-level one would not work or would cost every user something they did not ask for:
+
+- **Circular imports** — a top-level import that Python cannot resolve. Prefer splitting the module (see [When adding files](#when-adding-files)); defer the import only when splitting is worse.
+- **Optional dependencies** — anything outside the runtime set (`numpy`, `scipy`, `dill`, `moocore`) that lives behind a `[project.optional-dependencies]` extra. Importing it at module level would make the extra mandatory. Example: `import numba` in `gp/numba_ops.py`.
+- **Import-time cost the package does not otherwise pay** — a heavy module used by one function, where hoisting it would slow `import deap_er` for everyone. Example: `from scipy.signal import ...` in `gp/window_ops.py`; `deap_er/__init__.py` imports `gp`, and nothing else in the package needs `scipy.signal`.
+
+"It felt tidier", "it is only used once", and "it keeps the header short" are not reasons. Neither is a circular import you introduced by putting a helper in the wrong module.
+
+Every deferred import carries a short comment saying which of the three reasons applies. Without that comment, hoist it.
+
 ## Creator and checkpoints
 
 - `creator.create(...)` mutates the `creator` module at runtime. Tests create types and delete them in teardown. Do not replace this with Pydantic or static dataclasses.
