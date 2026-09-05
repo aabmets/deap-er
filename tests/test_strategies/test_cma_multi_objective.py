@@ -119,7 +119,8 @@ def test_generate_respects_box_bounds():
         assert len(children) == 4
         for child in children:
             genes = numpy.asarray(child)
-            assert numpy.all(genes >= 0.0) and numpy.all(genes <= 1.0)
+            assert numpy.all(genes >= 0.0)
+            assert numpy.all(genes <= 1.0)
     finally:
         del creator.__dict__[MO_FIT]
         del creator.__dict__[MO_IND]

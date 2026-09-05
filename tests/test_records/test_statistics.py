@@ -51,5 +51,7 @@ class TestStatistics:
         ms.register("mean", numpy.mean, chapters="length")
         ms.register("max", numpy.max, chapters=["item"])
         res = ms.compile([[0.0, 1.0], [2.0]])
-        assert "mean" in res["length"] and "max" not in res["length"]
-        assert "max" in res["item"] and "mean" not in res["item"]
+        assert "mean" in res["length"]
+        assert "max" not in res["length"]
+        assert "max" in res["item"]
+        assert "mean" not in res["item"]

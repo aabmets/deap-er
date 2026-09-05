@@ -44,16 +44,19 @@ def test_pmx_and_ordered_accept_letter_permutations():
     pmx_left: Any = list(letters)
     pmx_right: Any = list("cba")
     first, second = tools.cx_partially_matched(pmx_left, pmx_right)
-    assert sorted(first) == letters and sorted(second) == letters
+    assert sorted(first) == letters
+    assert sorted(second) == letters
 
     tools.rng.seed(15)
     upmx_left: Any = list(letters)
     upmx_right: Any = list("cba")
     first, second = tools.cx_uniform_partially_matched(upmx_left, upmx_right, 0.5)
-    assert sorted(first) == letters and sorted(second) == letters
+    assert sorted(first) == letters
+    assert sorted(second) == letters
 
     tools.rng.seed(16)
     order_left: Any = list(letters)
     order_right: Any = list("cba")
     first, second = tools.cx_ordered(order_left, order_right)
-    assert sorted(first) == letters and sorted(second) == letters
+    assert sorted(first) == letters
+    assert sorted(second) == letters

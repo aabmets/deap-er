@@ -28,6 +28,8 @@ __all__: list[str] = [
     "cx_uniform",
 ]
 
+_SHORTER_INDIVIDUAL = "the shorter individual"
+
 
 def cx_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
     """Execute a blend crossover on two individuals.
@@ -77,8 +79,8 @@ def cx_blend_bounded(
             individual.
     """
     size = min(len(ind1), len(ind2))
-    low = broadcast_param("low", low, size, "the shorter individual")
-    up = broadcast_param("up", up, size, "the shorter individual")
+    low = broadcast_param("low", low, size, _SHORTER_INDIVIDUAL)
+    up = broadcast_param("up", up, size, _SHORTER_INDIVIDUAL)
 
     for i, xl, xu in zip(list(range(size)), low, up, strict=False):
         if xu <= xl:
@@ -191,8 +193,8 @@ def cx_simulated_binary_bounded(
         return float(c)
 
     size = min(len(ind1), len(ind2))
-    low = broadcast_param("low", low, size, "the shorter individual")
-    up = broadcast_param("up", up, size, "the shorter individual")
+    low = broadcast_param("low", low, size, _SHORTER_INDIVIDUAL)
+    up = broadcast_param("up", up, size, _SHORTER_INDIVIDUAL)
 
     for i, xl, xu in zip(list(range(size)), low, up, strict=False):
         if xu <= xl:
@@ -211,11 +213,9 @@ def cx_simulated_binary_bounded(
             c2 = min(max(c2, xl), xu)
 
             if rng.random() <= 0.5:
-                ind1[i] = c2
-                ind2[i] = c1
-            else:
-                ind1[i] = c1
-                ind2[i] = c2
+                c1, c2 = c2, c1
+            ind1[i] = c1
+            ind2[i] = c2
 
     return ind1, ind2
 

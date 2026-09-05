@@ -126,6 +126,29 @@ def sel_double_tournament(
     return _fit_tourney(individuals, rounds, t_size)
 
 
+def _dcd_tourney(ind1: Individual, ind2: Individual) -> Individual:
+    """Return the better of two individuals by dominance, then crowding.
+
+    Args:
+        ind1: First contestant.
+        ind2: Second contestant.
+
+    Returns:
+        The winning individual.
+    """
+    if ind1.fitness.dominates(ind2.fitness):
+        return ind1
+    elif ind2.fitness.dominates(ind1.fitness):
+        return ind2
+    if ind1.fitness.crowding_dist < ind2.fitness.crowding_dist:
+        return ind2
+    elif ind1.fitness.crowding_dist > ind2.fitness.crowding_dist:
+        return ind1
+    if rng.random() <= 0.5:
+        return ind1
+    return ind2
+
+
 def sel_tournament_dcd(individuals: list[Individual], sel_count: int) -> list[Individual]:
     """Select by pairwise dominance, breaking ties with crowding distance.
 
@@ -152,38 +175,16 @@ def sel_tournament_dcd(individuals: list[Individual], sel_count: int) -> list[In
             "sel_tournament_dcd: count must be less than or equal to individuals length."
         )
 
-    def tourney(ind1: Individual, ind2: Individual) -> Individual:
-        """Return the better of two individuals by dominance, then crowding.
-
-        Args:
-            ind1: First contestant.
-            ind2: Second contestant.
-
-        Returns:
-            The winning individual.
-        """
-        if ind1.fitness.dominates(ind2.fitness):
-            return ind1
-        elif ind2.fitness.dominates(ind1.fitness):
-            return ind2
-        if ind1.fitness.crowding_dist < ind2.fitness.crowding_dist:
-            return ind2
-        elif ind1.fitness.crowding_dist > ind2.fitness.crowding_dist:
-            return ind1
-        if rng.random() <= 0.5:
-            return ind1
-        return ind2
-
     if sel_count % 4 == 0:
         individuals_1 = rng.sample(individuals, len(individuals))
         individuals_2 = rng.sample(individuals, len(individuals))
 
         chosen = []
         for i in range(0, sel_count, 4):
-            chosen.append(tourney(individuals_1[i], individuals_1[i + 1]))
-            chosen.append(tourney(individuals_1[i + 2], individuals_1[i + 3]))
-            chosen.append(tourney(individuals_2[i], individuals_2[i + 1]))
-            chosen.append(tourney(individuals_2[i + 2], individuals_2[i + 3]))
+            chosen.append(_dcd_tourney(individuals_1[i], individuals_1[i + 1]))
+            chosen.append(_dcd_tourney(individuals_1[i + 2], individuals_1[i + 3]))
+            chosen.append(_dcd_tourney(individuals_2[i], individuals_2[i + 1]))
+            chosen.append(_dcd_tourney(individuals_2[i + 2], individuals_2[i + 3]))
         return chosen
 
     if sel_count == 1 and len(individuals) == 1:
@@ -194,7 +195,7 @@ def sel_tournament_dcd(individuals: list[Individual], sel_count: int) -> list[In
     while len(chosen) < sel_count:
         rng.shuffle(pool)
         for i in range(0, len(pool) - 1, 2):
-            chosen.append(tourney(pool[i], pool[i + 1]))
+            chosen.append(_dcd_tourney(pool[i], pool[i + 1]))
             if len(chosen) >= sel_count:
                 break
     return chosen

@@ -76,6 +76,57 @@ def build_rows(
     return str_matrix
 
 
+def _chapter_header_cells(
+    name: str,
+    chapter_lines: list[str],
+    offset: int,
+    n_lines: int,
+    header: list[list[str]],
+) -> None:
+    """Fill header rows for a chapter column.
+
+    Args:
+        name: Chapter name, centred on the banner row.
+        chapter_lines: Rendered lines of the chapter.
+        offset: Header offset of the chapter.
+        n_lines: Total number of banner rows.
+        header: Banner rows to append cells to.
+    """
+    length = max(len(line.expandtabs()) for line in chapter_lines)
+    blanks = n_lines - 2 - offset
+    for i in range(blanks):
+        header[i].append(" " * length)
+    header[blanks].append(name.center(length))
+    header[blanks + 1].append("-" * length)
+    for i in range(offset):
+        header[blanks + 2 + i].append(chapter_lines[i])
+
+
+def _plain_header_cells(
+    name: str,
+    column_index: int,
+    logbook: Any,
+    str_matrix: list[list[str]],
+    header: list[list[str]],
+) -> None:
+    """Fill header rows for a plain (non-chapter) column.
+
+    Args:
+        name: Column name, placed on the last banner row.
+        column_index: Index of the column in each data row.
+        logbook: Logbook used to size empty columns.
+        str_matrix: Rendered data rows, used to size the column.
+        header: Banner rows to append cells to.
+    """
+    if str_matrix:
+        length = max(len(line[column_index].expandtabs()) for line in str_matrix)
+    else:
+        length = max(len(name), logbook.columns_len[column_index] if logbook.columns_len else 0)
+    for line in header[:-1]:
+        line.append(" " * length)
+    header[-1].append(name)
+
+
 def build_header(
     logbook: Any,
     columns: list[str],
@@ -104,22 +155,9 @@ def build_header(
     header: list[list[str]] = [[] for _ in range(n_lines)]
     for j, name in enumerate(columns):
         if name in chapters_txt:
-            length = max(len(line.expandtabs()) for line in chapters_txt[name])
-            blanks = n_lines - 2 - offsets[name]
-            for i in range(blanks):
-                header[i].append(" " * length)
-            header[blanks].append(name.center(length))
-            header[blanks + 1].append("-" * length)
-            for i in range(offsets[name]):
-                header[blanks + 2 + i].append(chapters_txt[name][i])
+            _chapter_header_cells(name, chapters_txt[name], offsets[name], n_lines, header)
         else:
-            if str_matrix:
-                length = max(len(line[j].expandtabs()) for line in str_matrix)
-            else:
-                length = max(len(name), logbook.columns_len[j] if logbook.columns_len else 0)
-            for line in header[:-1]:
-                line.append(" " * length)
-            header[-1].append(name)
+            _plain_header_cells(name, j, logbook, str_matrix, header)
     return header
 
 
