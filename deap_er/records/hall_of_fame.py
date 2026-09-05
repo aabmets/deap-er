@@ -104,16 +104,41 @@ class HallOfFame(_BaseClass):
         self.similar = similar
         super().__init__()
 
-    def _has_similar(self, individual: Any) -> bool:
-        """Return whether ``individual`` is already in the archive.
+    def _similar_index(self, individual: Any) -> int | None:
+        """Return the index of a stored member similar to ``individual``.
 
         Args:
             individual: Candidate to compare against stored members.
 
         Returns:
-            True if ``similar`` matches a stored member.
+            Index of the first similar member, or None.
         """
-        return any(self.similar(individual, hof_member) for hof_member in self)
+        return next(
+            (i for i, member in enumerate(self) if self.similar(individual, member)),
+            None,
+        )
+
+    def _update_one(self, individual: Any) -> None:
+        """Insert or replace ``individual`` if it belongs in the archive.
+
+        Args:
+            individual: Candidate with or without a fitness attribute.
+        """
+        if not hasattr(individual, "fitness"):
+            return
+        if len(self) == 0:
+            self.insert(individual)
+            return
+        similar_index = self._similar_index(individual)
+        if similar_index is not None:
+            if individual.fitness > self[similar_index].fitness:
+                self.remove(similar_index)
+                self.insert(individual)
+            return
+        if individual.fitness > self[-1].fitness or len(self) < self.maxsize:
+            if len(self) >= self.maxsize:
+                self.remove(-1)
+            self.insert(individual)
 
     def update(self, population: Sequence[Any]) -> None:
         """Update the archive from ``population``.
@@ -128,24 +153,7 @@ class HallOfFame(_BaseClass):
         if self.maxsize == 0:
             return
         for ind in population:
-            if not hasattr(ind, "fitness"):
-                continue
-            if len(self) == 0:
-                self.insert(ind)
-                continue
-            similar_index = next(
-                (i for i, member in enumerate(self) if self.similar(ind, member)),
-                None,
-            )
-            if similar_index is not None:
-                if ind.fitness > self[similar_index].fitness:
-                    self.remove(similar_index)
-                    self.insert(ind)
-                continue
-            if ind.fitness > self[-1].fitness or len(self) < self.maxsize:
-                if len(self) >= self.maxsize:
-                    self.remove(-1)
-                self.insert(ind)
+            self._update_one(ind)
 
 
 class ParetoFront(_BaseClass):

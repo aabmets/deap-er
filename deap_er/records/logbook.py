@@ -94,34 +94,60 @@ class Logbook(list[dict[str, Any]]):
             self.buff_index -= 1
         return super().pop(idx)
 
+    def _delete_slice(self, key: slice) -> None:
+        """Delete a slice of entries and the same indexes from every chapter.
+
+        Args:
+            key: Slice of entries to remove.
+        """
+        for i in sorted(range(*key.indices(len(self))), reverse=True):
+            self.pop(i)
+            for chapter in self.chapters.values():
+                chapter.pop(i)
+
+    def _chapter_index_for_generation(self, chapter: "Logbook", generation: Any) -> int | None:
+        """Return the chapter row that shares ``generation``.
+
+        Args:
+            chapter: Nested logbook to search.
+            generation: Generation value from the parent entry.
+
+        Returns:
+            Matching chapter index, or None.
+        """
+        if generation is None:
+            return None
+        return next(
+            (i for i, entry in enumerate(chapter) if entry.get("gen") == generation),
+            None,
+        )
+
+    def _delete_index(self, key: SupportsIndex) -> None:
+        """Delete one entry and the matching generation from every chapter.
+
+        Args:
+            key: Position of the entry to remove.
+        """
+        idx = int(key)
+        if idx < 0:
+            idx += len(self)
+        record = self[idx] if 0 <= idx < len(self) else {}
+        generation = record.get("gen")
+        self.pop(key)
+        for chapter in self.chapters.values():
+            if not chapter:
+                continue
+            match = self._chapter_index_for_generation(chapter, generation)
+            if match is not None:
+                chapter.pop(match)
+
     @override
     def __delitem__(self, key: SupportsIndex | slice, /) -> None:
         """Delete an entry and the same index from every chapter."""
         if isinstance(key, slice):
-            for i in sorted(range(*key.indices(len(self))), reverse=True):
-                self.pop(i)
-                for chapter in self.chapters.values():
-                    chapter.pop(i)
+            self._delete_slice(key)
         else:
-            idx = int(key)
-            if idx < 0:
-                idx += len(self)
-            record = self[idx] if 0 <= idx < len(self) else {}
-            generation = record.get("gen")
-            self.pop(key)
-            for chapter in self.chapters.values():
-                if not chapter:
-                    continue
-                match = next(
-                    (
-                        i
-                        for i, entry in enumerate(chapter)
-                        if generation is not None and entry.get("gen") == generation
-                    ),
-                    None,
-                )
-                if match is not None:
-                    chapter.pop(match)
+            self._delete_index(key)
 
     def _chapter_blocks(
         self, start_index: int
