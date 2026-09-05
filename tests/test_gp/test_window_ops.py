@@ -178,8 +178,9 @@ def test_window_ephemeral_rejects_a_reused_name_with_other_bounds():
     pset = gp.make_column_pset(["value"])
     gp.add_window_ephemeral(pset, "WINDOW_OPS_CLASH", 2, 4)
 
+    other = gp.make_column_pset(["value"])
     with pytest.raises(ValueError, match="already registered"):
-        gp.add_window_ephemeral(gp.make_column_pset(["value"]), "WINDOW_OPS_CLASH", 5, 9)
+        gp.add_window_ephemeral(other, "WINDOW_OPS_CLASH", 5, 9)
 
 
 @pytest.mark.parametrize(("low", "high"), [(0, 4), (-1, 4), (6, 2)])

@@ -448,8 +448,9 @@ def interpret_tape(tape: Tape, columns: Sequence[Any]) -> Any:
         The result of the expression.
 
     Raises:
-        ValueError: If the column count does not match the tape, or if
-            the tape holds an instruction the interpreter does not know.
+        ValueError: If the column count does not match the tape, if
+            the tape holds an instruction the interpreter does not
+            know, or if the tape underflows or leaves no result.
     """
     if len(columns) != tape.columns:
         raise ValueError(f"The tape expects {tape.columns} columns, got {len(columns)}.")
@@ -458,31 +459,106 @@ def interpret_tape(tape: Tape, columns: Sequence[Any]) -> Any:
     for step in range(tape.opcodes.size):
         opcode = int(tape.opcodes[step])
         operand = int(tape.operands[step])
-
-        if opcode == Opcode.COL_LOAD:
-            stack.append(columns[operand])
-        elif opcode == Opcode.CONST:
-            stack.append(float(tape.constants[operand]))
-        elif opcode in _UNARY:
-            stack[-1] = _UNARY[opcode](stack[-1])
-        elif opcode in _UNARY_PROTECTED:
-            stack[-1] = _UNARY_PROTECTED[opcode](stack[-1], fill=tape.fill)
-        elif opcode in _WINDOWED:
-            stack[-1] = _WINDOWED[opcode](stack[-1], operand)
-        elif opcode in _BINARY:
-            right = stack.pop()
-            stack[-1] = _BINARY[opcode](stack[-1], right)
-        elif opcode in _BINARY_PROTECTED:
-            right = stack.pop()
-            stack[-1] = _BINARY_PROTECTED[opcode](stack[-1], right, fill=tape.fill)
-        elif opcode == Opcode.WHERE:
-            on_false = stack.pop()
-            on_true = stack.pop()
-            stack[-1] = numpy_ops.vwhere(stack[-1], on_true, on_false)
-        else:
-            raise ValueError(
-                f"Opcode {opcode} has no Python implementation. Consumer opcodes "
-                f"are only available on the Numba backend."
-            )
-
+        _apply_opcode(stack, columns, tape, opcode, operand)
+    if not stack:
+        raise ValueError("The tape is malformed and leaves no result.")
     return stack[-1]
+
+
+def _peek(stack: list[Any]) -> Any:
+    """Return the top stack value, or raise if the tape underflowed.
+
+    Args:
+        stack: Evaluation stack.
+
+    Returns:
+        The current top of the stack.
+
+    Raises:
+        ValueError: If the stack is empty.
+    """
+    if not stack:
+        raise ValueError("The tape is malformed and underflows the evaluation stack.")
+    return stack[-1]
+
+
+def _replace(stack: list[Any], value: Any) -> None:
+    """Overwrite the top stack value, or raise if the tape underflowed.
+
+    Args:
+        stack: Evaluation stack.
+        value: Replacement for the current top.
+
+    Raises:
+        ValueError: If the stack is empty.
+    """
+    if not stack:
+        raise ValueError("The tape is malformed and underflows the evaluation stack.")
+    stack[-1] = value
+
+
+def _pop(stack: list[Any]) -> Any:
+    """Pop the top stack value, or raise if the tape underflowed.
+
+    Args:
+        stack: Evaluation stack.
+
+    Returns:
+        The previous top of the stack.
+
+    Raises:
+        ValueError: If the stack is empty.
+    """
+    if not stack:
+        raise ValueError("The tape is malformed and underflows the evaluation stack.")
+    return stack.pop()
+
+
+def _apply_opcode(
+    stack: list[Any], columns: Sequence[Any], tape: Tape, opcode: int, operand: int
+) -> None:
+    """Apply one tape instruction to the evaluation stack.
+
+    Args:
+        stack: Evaluation stack.
+        columns: Column arrays aligned with the tape.
+        tape: Tape that produced ``opcode``.
+        opcode: Instruction to apply.
+        operand: Immediate operand of the instruction.
+
+    Raises:
+        ValueError: If the instruction is unknown or the stack
+            underflows.
+    """
+    if opcode == Opcode.COL_LOAD:
+        stack.append(columns[operand])
+        return
+    if opcode == Opcode.CONST:
+        stack.append(float(tape.constants[operand]))
+        return
+    if opcode in _UNARY:
+        _replace(stack, _UNARY[opcode](_peek(stack)))
+        return
+    if opcode in _UNARY_PROTECTED:
+        _replace(stack, _UNARY_PROTECTED[opcode](_peek(stack), fill=tape.fill))
+        return
+    if opcode in _WINDOWED:
+        _replace(stack, _WINDOWED[opcode](_peek(stack), operand))
+        return
+    if opcode in _BINARY:
+        right = _pop(stack)
+        _replace(stack, _BINARY[opcode](_peek(stack), right))
+        return
+    if opcode in _BINARY_PROTECTED:
+        right = _pop(stack)
+        _replace(stack, _BINARY_PROTECTED[opcode](_peek(stack), right, fill=tape.fill))
+        return
+    if opcode == Opcode.WHERE:
+        on_false = _pop(stack)
+        on_true = _pop(stack)
+        _replace(stack, numpy_ops.vwhere(_peek(stack), on_true, on_false))
+        return
+    raise ValueError(
+        f"Opcode {opcode} has no Python implementation. Consumer opcodes "
+        f"are only available on the Numba backend."
+    )

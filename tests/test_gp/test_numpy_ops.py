@@ -54,7 +54,8 @@ def test_protected_logarithm_and_root_guard_their_domain():
 
     numpy.testing.assert_allclose(logs[:3], [0.0, 1.0, 1.0])
     numpy.testing.assert_allclose(roots[:3], [1.0, 0.0, 1.0])
-    assert numpy.isnan(logs[3]) and numpy.isnan(roots[3])
+    assert numpy.isnan(logs[3])
+    assert numpy.isnan(roots[3])
 
 
 def test_comparisons_return_boolean_masks():

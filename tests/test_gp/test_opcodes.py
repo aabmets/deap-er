@@ -158,8 +158,9 @@ def test_lowering_rejects_a_terminal_that_is_not_a_column_or_a_number():
 def test_lowering_rejects_an_empty_expression():
     pset = gp.make_column_pset(COLUMNS)
 
+    empty = gp.PrimitiveTree([])
     with pytest.raises(ValueError, match="empty expression"):
-        gp.lower_tree(gp.PrimitiveTree([]), pset)
+        gp.lower_tree(empty, pset)
 
 
 def test_lowering_rejects_a_tree_with_unreachable_nodes():
@@ -207,8 +208,9 @@ def test_interpreting_rejects_an_opcode_it_cannot_run():
     tape = gp.lower_tree(gp.PrimitiveTree([pset.mapping["first"]]), pset)
     tape.opcodes[0] = gp.USER_BASE + 3
 
+    columns = _samples()
     with pytest.raises(ValueError, match="no Python implementation"):
-        gp.interpret_tape(tape, _samples())
+        gp.interpret_tape(tape, columns)
 
 
 @pytest.mark.parametrize(
@@ -235,8 +237,9 @@ def test_compile_tree_rejects_an_unknown_backend():
     pset = gp.make_column_pset(COLUMNS)
     gp.add_numpy_primitives(pset)
 
+    tree = gp.PrimitiveTree([pset.mapping["first"]])
     with pytest.raises(ValueError, match="Unknown compile backend"):
-        gp.compile_tree(gp.PrimitiveTree([pset.mapping["first"]]), pset, backend="rust")
+        gp.compile_tree(tree, pset, backend="rust")
 
 
 def test_builtin_opcodes_stay_below_the_consumer_range():
