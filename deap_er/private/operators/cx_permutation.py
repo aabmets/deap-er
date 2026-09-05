@@ -10,7 +10,7 @@
 #
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual, Mates
@@ -21,8 +21,49 @@ from .cx_point import slicer
 
 __all__: list[str] = ["match", "cx_partially_matched", "cx_uniform_partially_matched", "cx_ordered"]
 
+_PERM_DUP = (
+    "Partially matched and ordered crossover require individuals "
+    "to be permutations without duplicate alleles."
+)
+_PERM_SET = (
+    "Partially matched and ordered crossover require both "
+    "individuals to contain the same set of alleles."
+)
 
-def match(ind1: Individual, ind2: Individual, p1: list[int], p2: list[int], i: int) -> None:
+
+def _allele_maps(
+    ind1: Individual, ind2: Individual, size: int
+) -> tuple[dict[Any, int], dict[Any, int]]:
+    """Build allele-to-index maps and require a shared permutation.
+
+    Args:
+        ind1: The first individual.
+        ind2: The second individual.
+        size: Number of leading genes to map.
+
+    Returns:
+        Allele-to-index maps for ``ind1`` and ``ind2``.
+
+    Raises:
+        ValueError: If either individual has duplicate alleles or the
+            two gene sets differ.
+    """
+    p1: dict[Any, int] = {}
+    p2: dict[Any, int] = {}
+    for i in range(size):
+        a1, a2 = ind1[i], ind2[i]
+        if a1 in p1 or a2 in p2:
+            raise ValueError(_PERM_DUP)
+        p1[a1] = i
+        p2[a2] = i
+    if p1.keys() != p2.keys():
+        raise ValueError(_PERM_SET)
+    return p1, p2
+
+
+def match(
+    ind1: Individual, ind2: Individual, p1: dict[Any, int], p2: dict[Any, int], i: int
+) -> None:
     """Swap the alleles at one locus and keep the PMX position maps valid.
 
     Both individuals and both maps are modified in place.
@@ -44,7 +85,8 @@ def match(ind1: Individual, ind2: Individual, p1: list[int], p2: list[int], i: i
 def cx_partially_matched(ind1: Individual, ind2: Individual) -> Mates:
     """Execute a partially matched crossover on two individuals.
 
-    Both individuals are modified in place.
+    Both individuals are modified in place. Alleles may be any
+    hashable values that form a shared permutation.
 
     Args:
         ind1: The first individual.
@@ -52,9 +94,13 @@ def cx_partially_matched(ind1: Individual, ind2: Individual) -> Mates:
 
     Returns:
         The two individuals after crossover.
+
+    Raises:
+        ValueError: If the individuals are not permutations of the
+            same allele set.
     """
     size = min(len(ind1), len(ind2))
-    p1, p2 = [0] * size, [0] * size
+    p1, p2 = _allele_maps(ind1, ind2, size)
 
     cxp1 = rng.randint(0, size)
     cxp2 = rng.randint(0, size - 1)
@@ -63,10 +109,6 @@ def cx_partially_matched(ind1: Individual, ind2: Individual) -> Mates:
         cxp2 += 1
     else:
         cxp1, cxp2 = cxp2, cxp1
-
-    for i in range(size):
-        p1[ind1[i]] = i
-        p2[ind2[i]] = i
 
     for i in range(cxp1, cxp2):
         match(ind1, ind2, p1, p2, i)
@@ -77,7 +119,8 @@ def cx_partially_matched(ind1: Individual, ind2: Individual) -> Mates:
 def cx_uniform_partially_matched(ind1: Individual, ind2: Individual, cx_prob: float) -> Mates:
     """Execute a uniform partially matched crossover on two individuals.
 
-    Both individuals are modified in place.
+    Both individuals are modified in place. Alleles may be any
+    hashable values that form a shared permutation.
 
     Args:
         ind1: The first individual.
@@ -86,13 +129,13 @@ def cx_uniform_partially_matched(ind1: Individual, ind2: Individual, cx_prob: fl
 
     Returns:
         The two individuals after crossover.
+
+    Raises:
+        ValueError: If the individuals are not permutations of the
+            same allele set.
     """
     size = min(len(ind1), len(ind2))
-    p1, p2 = [0] * size, [0] * size
-
-    for i in range(size):
-        p1[ind1[i]] = i
-        p2[ind2[i]] = i
+    p1, p2 = _allele_maps(ind1, ind2, size)
 
     for i in range(size):
         if rng.random() < cx_prob:
@@ -104,7 +147,8 @@ def cx_uniform_partially_matched(ind1: Individual, ind2: Individual, cx_prob: fl
 def cx_ordered(ind1: Individual, ind2: Individual) -> Mates:
     """Execute an ordered crossover on two individuals.
 
-    Both individuals are modified in place.
+    Both individuals are modified in place. Alleles may be any
+    hashable values that form a shared permutation.
 
     Args:
         ind1: The first individual.
@@ -112,28 +156,32 @@ def cx_ordered(ind1: Individual, ind2: Individual) -> Mates:
 
     Returns:
         The two individuals after crossover.
+
+    Raises:
+        ValueError: If the individuals are not permutations of the
+            same allele set.
     """
     size = min(len(ind1), len(ind2))
+    _allele_maps(ind1, ind2, size)
     a, b = rng.sample(list(range(size)), 2)
     if a > b:
         a, b = b, a
 
-    holes1, holes2 = [True] * size, [True] * size
-    for i in range(size):
-        if i < a or i > b:
-            holes1[ind2[i]] = False
-            holes2[ind1[i]] = False
+    holes1 = {ind2[i] for i in range(a, b + 1)}
+    holes2 = {ind1[i] for i in range(a, b + 1)}
 
     temp1, temp2 = ind1, ind2
     k1, k2 = b + 1, b + 1
 
     for i in range(size):
-        if not holes1[temp1[(i + b + 1) % size]]:
-            ind1[k1 % size] = temp1[(i + b + 1) % size]
+        src1 = temp1[(i + b + 1) % size]
+        if src1 not in holes1:
+            ind1[k1 % size] = src1
             k1 += 1
 
-        if not holes2[temp2[(i + b + 1) % size]]:
-            ind2[k2 % size] = temp2[(i + b + 1) % size]
+        src2 = temp2[(i + b + 1) % size]
+        if src2 not in holes2:
+            ind2[k2 % size] = src2
             k2 += 1
 
     for i in range(a, b + 1):
