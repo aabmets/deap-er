@@ -8,6 +8,8 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from typing import Any
+
 import pytest
 from deap_er import base, creator, tools
 
@@ -65,6 +67,48 @@ def test_hall_of_fame_clear_reversed_and_str(ind_cls):
     assert str(hof)
     hof.clear()
     assert len(hof) == 0
+
+
+def test_update_replaces_similar_member_when_fitness_is_better(ind_cls):
+    hof = tools.HallOfFame(maxsize=2)
+    better_other = ind_cls([1])
+    better_other.fitness.values = (10.0,)
+    worse = ind_cls([0])
+    worse.fitness.values = (5.0,)
+    hof.update([better_other, worse])
+    improved = ind_cls([0])
+    improved.fitness.values = (8.0,)
+    hof.update([improved])
+    assert [(list(ind), ind.fitness.values[0]) for ind in hof] == [([1], 10.0), ([0], 8.0)]
+
+
+def test_update_skips_no_fitness_bootstrap_and_keeps_later_members(ind_cls):
+    class Bare(list[Any]):
+        pass
+
+    good = ind_cls([9])
+    good.fitness.values = (7.0,)
+    hof = tools.HallOfFame(maxsize=5)
+    hof.update([Bare([0]), good])
+    assert len(hof) == 1
+    assert list(hof[0]) == [9]
+    assert hof[0].fitness.values == (7.0,)
+
+
+def test_update_with_zero_maxsize_is_a_noop(ind_cls):
+    hof = tools.HallOfFame(maxsize=0)
+    ind = ind_cls([1])
+    ind.fitness.values = (1.0,)
+    hof.update([ind])
+    assert len(hof) == 0
+
+
+def test_remove_out_of_range_keeps_keys_aligned(ind_cls):
+    hof = tools.HallOfFame(maxsize=5)
+    hof.update(_population(ind_cls, count=3))
+    with pytest.raises(IndexError):
+        hof.remove(99)
+    assert len(hof.items) == len(hof.keys) == 3
 
 
 def test_pareto_front_keeps_non_dominated_and_drops_twins():

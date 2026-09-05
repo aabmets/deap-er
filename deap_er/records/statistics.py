@@ -99,7 +99,8 @@ class MultiStatistics(dict[str, Any]):
         Returns:
             Mapping of chapter name to that chapter's compiled record.
         """
+        materialized = list(data)
         record = {}
         for name, stats in self.items():
-            record[name] = stats.compile(data)
+            record[name] = stats.compile(materialized)
         return record

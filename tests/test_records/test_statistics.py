@@ -32,3 +32,14 @@ class TestStatistics:
         ms.register("max", numpy.max, axis=0)
         res = ms.compile([[0.0, 1.0, 1.0, 5.0], [2.0, 5.0]])
         assert res == dict(length={"mean": 3.0, "max": 4}, item={"mean": 1.0, "max": 2.0})
+
+    def test_multi_statistics_compile_consumes_generator_once(self):
+        first = Statistics()
+        second = Statistics()
+        first.register("sum", sum)
+        second.register("sum", sum)
+        multi = MultiStatistics(a=first, b=second)
+        generated = multi.compile(x for x in [1, 2, 3, 4])
+        listed = multi.compile([1, 2, 3, 4])
+        assert generated == listed
+        assert generated["a"]["sum"] == generated["b"]["sum"] == 10

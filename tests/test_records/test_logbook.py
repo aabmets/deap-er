@@ -53,6 +53,24 @@ def test_delitem_single_index():
     assert [entry["gen"] for entry in logbook] == [0, 2, 3, 4]
 
 
+def test_pop_negative_index_does_not_rewind_unstreamed_cursor():
+    logbook = _filled()
+    logbook.buff_index = 2
+    logbook.pop(-1)
+    assert logbook.buff_index == 2
+    streamed_gens = [int(token) for token in logbook.stream.split() if token.isdigit()]
+    assert 1 not in streamed_gens
+
+
+def test_delitem_does_not_drop_unrelated_chapter_row():
+    logbook = Logbook()
+    logbook.record(gen=0)
+    logbook.record(gen=1, size={"avg": 1})
+    del logbook[0]
+    assert [entry["gen"] for entry in logbook] == [1]
+    assert [entry["avg"] for entry in logbook.chapters["size"]] == [1]
+
+
 def test_str_of_empty_logbook():
     assert str(Logbook()) == "The Logbook is empty."
 

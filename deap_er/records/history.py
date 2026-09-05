@@ -55,10 +55,9 @@ class History:
         Args:
             individuals: Individuals to add to the genealogy.
         """
-        try:
-            parent_indices = tuple(ind.history_index for ind in individuals)
-        except AttributeError:
-            parent_indices = ()
+        parent_indices = tuple(
+            ind.history_index for ind in individuals if hasattr(ind, "history_index")
+        )
 
         for ind in individuals:
             self.genealogy_index += 1

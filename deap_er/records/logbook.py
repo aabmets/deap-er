@@ -88,6 +88,8 @@ class Logbook(list[dict[str, Any]]):
             The removed entry.
         """
         idx = int(index)
+        if idx < 0:
+            idx += len(self)
         if idx < self.buff_index:
             self.buff_index -= 1
         return super().pop(idx)
@@ -101,9 +103,25 @@ class Logbook(list[dict[str, Any]]):
                 for chapter in self.chapters.values():
                     chapter.pop(i)
         else:
+            idx = int(key)
+            if idx < 0:
+                idx += len(self)
+            record = self[idx] if 0 <= idx < len(self) else {}
+            generation = record.get("gen")
             self.pop(key)
             for chapter in self.chapters.values():
-                chapter.pop(key)
+                if not chapter:
+                    continue
+                match = next(
+                    (
+                        i
+                        for i, entry in enumerate(chapter)
+                        if generation is not None and entry.get("gen") == generation
+                    ),
+                    None,
+                )
+                if match is not None:
+                    chapter.pop(match)
 
     def _chapter_blocks(
         self, start_index: int

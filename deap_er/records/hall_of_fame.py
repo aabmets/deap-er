@@ -52,7 +52,11 @@ class _BaseClass:
         """
         if not len(self):
             raise IndexError("remove from empty HallOfFame")
-        del self.keys[len(self) - (index % len(self) + 1)]
+        if index < 0:
+            index += len(self)
+        if index < 0 or index >= len(self):
+            raise IndexError("HallOfFame index out of range")
+        del self.keys[len(self) - (index + 1)]
         del self.items[index]
 
     def clear(self) -> None:
@@ -121,13 +125,24 @@ class HallOfFame(_BaseClass):
         Args:
             population: Individuals with a fitness attribute.
         """
+        if self.maxsize == 0:
+            return
         for ind in population:
-            if len(self) == 0 and self.maxsize != 0:
-                self.insert(population[0])
+            if not hasattr(ind, "fitness"):
+                continue
+            if len(self) == 0:
+                self.insert(ind)
+                continue
+            similar_index = next(
+                (i for i, member in enumerate(self) if self.similar(ind, member)),
+                None,
+            )
+            if similar_index is not None:
+                if ind.fitness > self[similar_index].fitness:
+                    self.remove(similar_index)
+                    self.insert(ind)
                 continue
             if ind.fitness > self[-1].fitness or len(self) < self.maxsize:
-                if self._has_similar(ind):
-                    continue
                 if len(self) >= self.maxsize:
                     self.remove(-1)
                 self.insert(ind)

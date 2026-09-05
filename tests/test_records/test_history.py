@@ -40,6 +40,18 @@ def test_history_update_and_genealogy_walk():
     assert shallow == {}
 
 
+def test_update_keeps_parents_when_one_individual_lacks_history_index():
+    history = tools.History()
+    parents: Any = [_Ind([0]), _Ind([1])]
+    history.update(parents)
+    child_with: Any = _Ind([2])
+    child_with.history_index = parents[0].history_index
+    child_without: Any = _Ind([3])
+    history.update([child_with, child_without])
+    assert history.genealogy_tree[child_with.history_index] == (parents[0].history_index,)
+    assert history.genealogy_tree[child_without.history_index] == (parents[0].history_index,)
+
+
 def test_get_genealogy_requires_history_index():
     history = tools.History()
     missing: Any = _Ind([0])
