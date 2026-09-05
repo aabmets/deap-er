@@ -72,7 +72,9 @@ def test_clone_individual_copies_list_genes_and_fitness():
 
 def test_clone_individual_copies_array_genes():
     creator.create_type("CLONE_ARR_FIT", Fitness, weights=(1.0,))
-    creator.create_type("CLONE_ARR_IND", array, typecode="b", fitness=creator.__dict__["CLONE_ARR_FIT"])
+    creator.create_type(
+        "CLONE_ARR_IND", array, typecode="b", fitness=creator.__dict__["CLONE_ARR_FIT"]
+    )
     try:
         original = creator.__dict__["CLONE_ARR_IND"]([1, 0, 1])
         original.fitness.values = (2.0,)

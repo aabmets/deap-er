@@ -81,7 +81,9 @@ def golden_types() -> Iterator[SimpleNamespace]:
     creator.create_type("GOLDEN_FIT_MO", Fitness, weights=(-1.0, -1.0))
     creator.create_type("GOLDEN_IND_MO", numpy.ndarray, fitness=creator.__dict__["GOLDEN_FIT_MO"])
     creator.create_type("GOLDEN_FIT_GP", Fitness, weights=(-1.0,))
-    creator.create_type("GOLDEN_IND_GP", gp.PrimitiveTree, fitness=creator.__dict__["GOLDEN_FIT_GP"])
+    creator.create_type(
+        "GOLDEN_IND_GP", gp.PrimitiveTree, fitness=creator.__dict__["GOLDEN_FIT_GP"]
+    )
     try:
         yield SimpleNamespace(
             min_ind=creator.__dict__["GOLDEN_IND_MIN"],
