@@ -8,11 +8,15 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from __future__ import annotations
+
 from math import cos, exp, sin, sqrt
+from typing import TYPE_CHECKING
 
-from deap_er.base.typedefs import Individual
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual
 
-__all__: list[str] = []
+__all__: list[str] = ["bm_kursawe", "bm_schaffer_mo", "bm_fonseca", "bm_poloni", "bm_dent"]
 
 
 def bm_kursawe(individual: Individual) -> tuple[float, float]:

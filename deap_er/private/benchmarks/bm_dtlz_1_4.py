@@ -8,13 +8,17 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from __future__ import annotations
+
 from functools import reduce
 from math import cos, pi, sin
 from operator import mul
+from typing import TYPE_CHECKING
 
-from deap_er.base.typedefs import Individual
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual
 
-__all__: list[str] = []
+__all__: list[str] = ["bm_dtlz_1", "bm_dtlz_2", "bm_dtlz_3", "bm_dtlz_4"]
 
 
 def bm_dtlz_1(individual: Individual, count: int) -> list[float]:

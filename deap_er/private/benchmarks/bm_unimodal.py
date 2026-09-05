@@ -8,10 +8,16 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.base.typedefs import Individual
-from deap_er.rng import rng
+from __future__ import annotations
 
-__all__: list[str] = []
+from typing import TYPE_CHECKING
+
+from deap_er.private.various.rng import rng
+
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual
+
+__all__: list[str] = ["bm_rand", "bm_plane", "bm_sphere", "bm_cigar", "bm_rosenbrock"]
 
 
 def bm_rand(*_) -> tuple[float]:

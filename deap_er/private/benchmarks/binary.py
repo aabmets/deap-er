@@ -8,9 +8,20 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.base.typedefs import Individual
+from __future__ import annotations
 
-__all__ = ["bm_royal_road_1", "bm_royal_road_2", "bm_chuang_f1", "bm_chuang_f2", "bm_chuang_f3"]
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual
+
+__all__: list[str] = [
+    "bm_royal_road_1",
+    "bm_royal_road_2",
+    "bm_chuang_f1",
+    "bm_chuang_f2",
+    "bm_chuang_f3",
+]
 
 
 def bm_royal_road_1(individual: Individual, order: int) -> tuple[int]:

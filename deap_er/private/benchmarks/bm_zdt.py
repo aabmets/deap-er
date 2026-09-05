@@ -8,11 +8,15 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from __future__ import annotations
+
 from math import cos, exp, pi, sin, sqrt
+from typing import TYPE_CHECKING
 
-from deap_er.base.typedefs import Individual
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual
 
-__all__: list[str] = []
+__all__: list[str] = ["bm_zdt_1", "bm_zdt_2", "bm_zdt_3", "bm_zdt_4", "bm_zdt_6"]
 
 
 def _zdt_g(individual: Individual) -> float:

@@ -13,7 +13,7 @@ from collections.abc import Iterable, Sequence
 from types import MappingProxyType
 from typing import Any
 
-__all__: list[str] = []
+__all__: list[str] = ["MPFuncs", "MPConfigs"]
 
 
 class MPFuncs:

@@ -11,9 +11,9 @@
 import math
 from typing import Any
 
-from deap_er.rng import rng
+from deap_er.private.various.rng import rng
 
-__all__: list[str] = []
+__all__: list[str] = ["change_peaks"]
 
 
 def _change_shape(

@@ -12,10 +12,10 @@ import itertools
 from collections.abc import Callable, Iterable, Sequence
 from typing import Any, cast
 
-from deap_er.rng import rng
+from deap_er.private.various.rng import rng
 
-from ._moving_peaks_catalog import MPConfigs, MPFuncs
-from ._moving_peaks_shift import change_peaks as _change_peaks
+from .moving_peaks_catalog import MPConfigs, MPFuncs
+from .moving_peaks_shift import change_peaks as _change_peaks
 
 __all__ = ["MovingPeaks", "MPConfigs", "MPFuncs"]
 

@@ -8,13 +8,17 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from __future__ import annotations
+
 from math import cos, pi
+from typing import TYPE_CHECKING
 
 import numpy
 
-from deap_er.base.typedefs import Individual
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual
 
-__all__: list[str] = []
+__all__: list[str] = ["bm_rastrigin", "bm_rastrigin_scaled", "bm_rastrigin_skewed", "bm_shekel"]
 
 
 def bm_rastrigin(individual: Individual) -> tuple[float]:

@@ -8,11 +8,15 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from __future__ import annotations
+
 from math import cos, exp, sin
+from typing import TYPE_CHECKING
 
-from deap_er.base.typedefs import Individual
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual
 
-__all__ = [
+__all__: list[str] = [
     "bm_ripple",
     "bm_sin_cos",
     "bm_unwrapped_ball",
@@ -43,7 +47,7 @@ def bm_ripple(individual: Individual) -> float:
           * - Range
             - :math:`\mathbf{x} \in [-5, 5]^2`
           * - Function
-            - :math:`f(\mathbf{x}) = (x_1 - 3) (x_2 - 3)                + 2 \sin((x_1 - 4) (x_2 -4))`
+            - :math:`f(\mathbf{x}) = (x_1 - 3) (x_2 - 3) + 2 \sin((x_1 - 4) (x_2 -4))`
     """
     i = individual[0]
     j = individual[1]
@@ -97,7 +101,7 @@ def bm_unwrapped_ball(individual: Individual) -> float:
           * - Range
             - :math:`\mathbf{x} \in [-2, 8]^n`
           * - Function
-            - :math:`f(\mathbf{x}) = \frac{10}{5 +                \sum_{i=1}^n (x_i - 3)^2}`
+            - :math:`f(\mathbf{x}) = \frac{10}{5 + \sum_{i=1}^n (x_i - 3)^2}`
     """
     s = sum((d - 3) ** 2 for d in individual)
     return float(10 / (5 + s))
@@ -122,7 +126,7 @@ def bm_kotanchek(individual: Individual) -> float:
           * - Range
             - :math:`\mathbf{x} \in [-1, 7]^2`
           * - Function
-            - :math:`f(\mathbf{x}) = \frac{e^{-(x_1                 - 1)^2}}{3.2 + (x_2 - 2.5)^2}`
+            - :math:`f(\mathbf{x}) = \frac{e^{-(x_1 - 1)^2}}{3.2 + (x_2 - 2.5)^2}`
     """
     i = individual[0]
     j = individual[1]
@@ -150,7 +154,7 @@ def bm_salustowicz_1d(individual: Individual) -> float:
           * - Range
             - :math:`x \in [0, 10]`
           * - Function
-            - :math:`f(x) = e^{-x} x^3 \cos(x)                \sin(x) (\cos(x) \sin^2(x) - 1)`
+            - :math:`f(x) = e^{-x} x^3 \cos(x) \sin(x) (\cos(x) \sin^2(x) - 1)`
     """
     i = individual[0]
     a = exp(-i) * i**3 * cos(i)
@@ -177,7 +181,7 @@ def bm_salustowicz_2d(individual: Individual) -> float:
           * - Range
             - :math:`\mathbf{x} \in [0, 7]^2`
           * - Function
-            - :math:`f(\mathbf{x}) = e^{-x_1} x_1^3 \cos(x_1)                \sin(x_1) (\cos(x_1) \sin^2(x_1) - 1) (x_2 -5)`
+            - :math:`f(\mathbf{x}) = e^{-x_1} x_1^3 \cos(x_1) \sin(x_1) (\cos(x_1) \sin^2(x_1) - 1) (x_2 -5)`
     """
     i = individual[0]
     j = individual[1]
@@ -205,7 +209,7 @@ def bm_rational_polynomial_1(individual: Individual) -> float:
           * - Range
             - :math:`\mathbf{x} \in [0, 2]^3`
           * - Function
-            - :math:`f(\mathbf{x}) = \frac{30 * (x_1 - 1)                 (x_3 - 1)}{x_2^2 (x_1 - 10)}`
+            - :math:`f(\mathbf{x}) = \frac{30 * (x_1 - 1) (x_3 - 1)}{x_2^2 (x_1 - 10)}`
     """
     i = individual[0]
     j = individual[1]
@@ -234,7 +238,7 @@ def bm_rational_polynomial_2(individual: Individual) -> float:
           * - Range
             - :math:`\mathbf{x} \in [0, 6]^2`
           * - Function
-            - :math:`f(\mathbf{x}) = \frac{(x_1 - 3)^4 +                 (x_2 - 3)^3 - (x_2 - 3)}{(x_2 - 2)^4 + 10}`
+            - :math:`f(\mathbf{x}) = \frac{(x_1 - 3)^4 + (x_2 - 3)^3 - (x_2 - 3)}{(x_2 - 2)^4 + 10}`
     """
     i = individual[0]
     j = individual[1]
