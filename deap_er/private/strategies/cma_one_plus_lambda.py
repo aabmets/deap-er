@@ -20,7 +20,7 @@ import numpy
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 
-from .common import sample_offspring
+from .common import sample_offspring, update_bound_attrs
 
 __all__ = ["StrategyOnePlusLambda"]
 
@@ -60,6 +60,14 @@ class StrategyOnePlusLambda:
        * cm_learn_rate - *(float)*
           * Learning rate of the covariance matrix.
           * *Default:* ``2.0 / (len(parent) ** 2 + 6.0)``
+       * low, up - *(float or sequence)*
+          * Optional box bounds on generated individuals.
+       * bound_mode - *(str)*
+          * ``clip`` (default) or ``resample``. Both are
+            constraint-handling approximations; the update treats the
+            repaired point as the sample.
+       * resample_limit - *(int)*
+          * Failed redraws before clipping one sample. *Default:* ``100``
     """
 
     def __init__(self, parent: Individual, sigma: float, **kwargs: Any) -> None:
@@ -83,6 +91,10 @@ class StrategyOnePlusLambda:
         self.th_cum: float
         self.cm_learn_rate: float
         self.psucc: float
+        self.low: Any
+        self.up: Any
+        self.bound_mode: str
+        self.resample_limit: int
 
         self.compute_params(**kwargs)
 
@@ -115,6 +127,7 @@ class StrategyOnePlusLambda:
         self.cm_learn_rate = float(kwargs.get("cm_learn_rate", default))
 
         self.psucc = self.tgt_sr
+        update_bound_attrs(self, kwargs)
 
     def generate(self, ind_init: Callable[..., Individual]) -> list[Individual]:
         """Sample ``offsprings`` individuals around the current parent.
@@ -126,7 +139,18 @@ class StrategyOnePlusLambda:
         Returns:
             Newly sampled individuals.
         """
-        return sample_offspring(self.parent, self.sigma, self.big_a, self.lamb, self.dim, ind_init)
+        return sample_offspring(
+            self.parent,
+            self.sigma,
+            self.big_a,
+            self.lamb,
+            self.dim,
+            ind_init,
+            low=self.low,
+            up=self.up,
+            bound_mode=self.bound_mode,
+            resample_limit=self.resample_limit,
+        )
 
     def update(self, population: list[Individual]) -> None:
         """Update parent, step-size, and covariance from ``population``.

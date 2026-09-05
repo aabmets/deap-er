@@ -19,7 +19,7 @@ import numpy
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 
-from .common import sample_offspring
+from .common import sample_offspring, update_bound_attrs
 
 __all__ = ["Strategy"]
 
@@ -69,6 +69,14 @@ class Strategy:
        * rank_mu - *(float)*
           * Learning rate for rank-mu update.
           * *Default:* ``2 * (mueff - 2 + 1 / mueff) / ((len(centroid) + 2) ** 2 + mueff)``
+       * low, up - *(float or sequence)*
+          * Optional box bounds on generated individuals.
+       * bound_mode - *(str)*
+          * ``clip`` (default) or ``resample``. Both are
+            constraint-handling approximations; the update treats the
+            repaired point as the sample.
+       * resample_limit - *(int)*
+          * Failed redraws before clipping one sample. *Default:* ``100``
     """
 
     def __init__(self, centroid: Iterable[float], sigma: float, **kwargs: Any) -> None:
@@ -98,6 +106,10 @@ class Strategy:
         self.big_b: numpy.ndarray
         self.big_bd: numpy.ndarray
         self.cond: float
+        self.low: Any
+        self.up: Any
+        self.bound_mode: str
+        self.resample_limit: int
 
         self.compute_params(**kwargs)
 
@@ -165,6 +177,7 @@ class Strategy:
         self.big_b = self.big_b[:, indx]
         self.big_bd = self.big_b * self.diag_d
         self.cond = self.diag_d[indx[-1]] / self.diag_d[indx[0]]
+        update_bound_attrs(self, kwargs)
 
     def generate(self, ind_init: Callable[..., Individual]) -> list[Individual]:
         """Sample ``offsprings`` individuals from the current distribution.
@@ -177,7 +190,16 @@ class Strategy:
             Newly sampled individuals.
         """
         return sample_offspring(
-            self.centroid, self.sigma, self.big_bd, self.lamb, self.dim, ind_init
+            self.centroid,
+            self.sigma,
+            self.big_bd,
+            self.lamb,
+            self.dim,
+            ind_init,
+            low=self.low,
+            up=self.up,
+            bound_mode=self.bound_mode,
+            resample_limit=self.resample_limit,
         )
 
     def update(self, population: list[Individual]) -> None:

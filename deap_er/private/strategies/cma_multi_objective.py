@@ -21,6 +21,7 @@ from deap_er.private.various.sort_non_dominated import sort_non_dominated
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 
+from .common import apply_box_bounds, update_bound_attrs
 from .mo_update import (
     commit_parent_params,
     copy_offspring_state,
@@ -68,6 +69,14 @@ class StrategyMultiObjective:
        * cm_learn_rate - *(float)*
           * Learning rate of the covariance matrix.
           * *Default:* ``2.0 / (len(population[0]) ** 2 + 6.0)``
+       * low, up - *(float or sequence)*
+          * Optional box bounds on generated individuals.
+       * bound_mode - *(str)*
+          * ``clip`` (default) or ``resample``. Both are
+            constraint-handling approximations; the update treats the
+            repaired point as the sample.
+       * resample_limit - *(int)*
+          * Failed redraws before clipping one sample. *Default:* ``100``
     """
 
     def __init__(self, population: list[Individual], sigma: float, **kwargs: Any) -> None:
@@ -84,6 +93,10 @@ class StrategyMultiObjective:
         self.th_cum: float
         self.cm_learn_rate: float
         self.thresh_sr: float
+        self.low: Any
+        self.up: Any
+        self.bound_mode: str
+        self.resample_limit: int
 
         self.compute_params(**kwargs)
 
@@ -114,6 +127,7 @@ class StrategyMultiObjective:
         self.th_cum = kwargs.get("th_cum", 2.0 / (self.dim + 2.0))
         self.cm_learn_rate = kwargs.get("cm_learn_rate", 2.0 / (self.dim**2 + 6.0))
         self.thresh_sr = kwargs.get("thresh_sr", 0.44)
+        update_bound_attrs(self, kwargs)
 
     def update(self, population: list[Individual]) -> None:
         """Select new parents and update each parent's CMA parameters.
@@ -152,10 +166,23 @@ class StrategyMultiObjective:
         for i, p in enumerate(self.parents):
             p.ps_ = "p", i
 
+        def _raw(parent: Individual, sigma: float, big_a: numpy.ndarray, step: numpy.ndarray):
+            return numpy.asarray(parent + sigma * numpy.dot(big_a, step), dtype=float)
+
+        def _bound(raw: numpy.ndarray, parent: Individual, sigma: float, big_a: numpy.ndarray):
+            return apply_box_bounds(
+                raw,
+                self.low,
+                self.up,
+                self.bound_mode,
+                self.resample_limit,
+                lambda: _raw(parent, sigma, big_a, rng.standard_normal(self.dim)),
+            )
+
         if self.lamb == self.mu:
             for i in range(self.lamb):
-                dot = numpy.dot(self.big_a[i], arz[i])
-                init = ind_init(self.parents[i] + self.sigmas[i] * dot)
+                raw = _raw(self.parents[i], self.sigmas[i], self.big_a[i], arz[i])
+                init = ind_init(_bound(raw, self.parents[i], self.sigmas[i], self.big_a[i]))
                 individuals.append(init)
                 individuals[-1].ps_ = "o", i
 
@@ -165,8 +192,10 @@ class StrategyMultiObjective:
             for i in range(self.lamb):
                 j = rng.integers(0, len(n_dom))
                 _, p_idx = n_dom[j].ps_
-                dot = numpy.dot(self.big_a[p_idx], arz[i])
-                init = ind_init(self.parents[p_idx] + self.sigmas[p_idx] * dot)
+                raw = _raw(self.parents[p_idx], self.sigmas[p_idx], self.big_a[p_idx], arz[i])
+                init = ind_init(
+                    _bound(raw, self.parents[p_idx], self.sigmas[p_idx], self.big_a[p_idx])
+                )
                 individuals.append(init)
                 individuals[-1].ps_ = "o", p_idx
 
