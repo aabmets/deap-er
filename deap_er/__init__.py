@@ -9,7 +9,7 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from . import base, gp
-from . import persistence as env
 from .creator import creator
+from .private import persistence as env
 
 __all__ = ["base", "gp", "env", "creator"]

@@ -16,7 +16,6 @@ from pathlib import Path
 from typing import Any, override
 
 import dill
-
 from deap_er.rng import rng
 
 __all__ = ["Checkpoint"]
