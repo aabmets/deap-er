@@ -28,14 +28,13 @@ def bm_kursawe(individual: Individual) -> tuple[float, float]:
     Returns:
         Fitness values of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       :math:`f_{1}(\mathbf{x}) = \sum_{i=1}^{N-1} -10 e^{-0.2 \sqrt{x_i^2 + x_{i+1}^2} }`
+        $f_{1}(\mathbf{x}) = \sum_{i=1}^{N-1} -10 e^{-0.2 \sqrt{x_i^2 + x_{i+1}^2} }$
 
-       :math:`f_{2}(\mathbf{x}) = \sum_{i=1}^{N} |x_i|^{0.8} + 5 \sin(x_i^3)`
+        $f_{2}(\mathbf{x}) = \sum_{i=1}^{N} |x_i|^{0.8} + 5 \sin(x_i^3)$
 
-       Returns :math:`f_{1}(\mathbf{x})` and :math:`f_{2}(\mathbf{x})`.
+        Returns $f_{1}(\mathbf{x})$ and $f_{2}(\mathbf{x})$.
     """
 
     def fn(x: float, y: float) -> float:
@@ -55,14 +54,13 @@ def bm_schaffer_mo(individual: Individual) -> tuple[float, float]:
     Returns:
         Fitness values of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       :math:`f_{1}(\mathbf{x}) = x_1^2`
+        $f_{1}(\mathbf{x}) = x_1^2$
 
-       :math:`f_{2}(\mathbf{x}) = (x_1-2)^2`
+        $f_{2}(\mathbf{x}) = (x_1-2)^2$
 
-       Returns :math:`f_{1}(\mathbf{x})` and :math:`f_{2}(\mathbf{x})`.
+        Returns $f_{1}(\mathbf{x})$ and $f_{2}(\mathbf{x})$.
     """
     f1 = individual[0] ** 2
     f2 = (individual[0] - 2) ** 2
@@ -78,14 +76,13 @@ def bm_fonseca(individual: Individual) -> tuple[float, float]:
     Returns:
         Fitness values of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       :math:`f_{1}(\mathbf{x}) = 1 - e^{-\sum_{i=1}^{3}(x_i - \frac{1}{\sqrt{3}})^2}`
+        $f_{1}(\mathbf{x}) = 1 - e^{-\sum_{i=1}^{3}(x_i - \frac{1}{\sqrt{3}})^2}$
 
-       :math:`f_{2}(\mathbf{x}) = 1 - e^{-\sum_{i=1}^{3}(x_i + \frac{1}{\sqrt{3}})^2}`
+        $f_{2}(\mathbf{x}) = 1 - e^{-\sum_{i=1}^{3}(x_i + \frac{1}{\sqrt{3}})^2}$
 
-       Returns :math:`f_{1}(\mathbf{x})` and :math:`f_{2}(\mathbf{x})`.
+        Returns $f_{1}(\mathbf{x})$ and $f_{2}(\mathbf{x})$.
     """
     f1 = 1 - exp(-sum((xi - 1 / sqrt(3)) ** 2 for xi in individual[:3]))
     f2 = 1 - exp(-sum((xi + 1 / sqrt(3)) ** 2 for xi in individual[:3]))
@@ -101,22 +98,21 @@ def bm_poloni(individual: Individual) -> tuple[float, float]:
     Returns:
         Fitness values of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       :math:`A_1 = 0.5 \sin (1) - 2 \cos (1) + \sin (2) - 1.5 \cos (2)`
+        $A_1 = 0.5 \sin (1) - 2 \cos (1) + \sin (2) - 1.5 \cos (2)$
 
-       :math:`A_2 = 1.5 \sin (1) - \cos (1) + 2 \sin (2) - 0.5 \cos (2)`
+        $A_2 = 1.5 \sin (1) - \cos (1) + 2 \sin (2) - 0.5 \cos (2)$
 
-       :math:`B_1 = 0.5 \sin (x_1) - 2 \cos (x_1) + \sin (x_2) - 1.5 \cos (x_2)`
+        $B_1 = 0.5 \sin (x_1) - 2 \cos (x_1) + \sin (x_2) - 1.5 \cos (x_2)$
 
-       :math:`B_2 = 1.5 \sin (x_1) - cos(x_1) + 2 \sin (x_2) - 0.5 \cos (x_2)`
+        $B_2 = 1.5 \sin (x_1) - cos(x_1) + 2 \sin (x_2) - 0.5 \cos (x_2)$
 
-       :math:`f_{1}(\mathbf{x}) = 1 + (A_1 - B_1)^2 + (A_2 - B_2)^2`
+        $f_{1}(\mathbf{x}) = 1 + (A_1 - B_1)^2 + (A_2 - B_2)^2$
 
-       :math:`f_{2}(\mathbf{x}) = (x_1 + 3)^2 + (x_2 + 1)^2`
+        $f_{2}(\mathbf{x}) = (x_1 + 3)^2 + (x_2 + 1)^2$
 
-       Returns :math:`f_{1}(\mathbf{x})` and :math:`f_{2}(\mathbf{x})`.
+        Returns $f_{1}(\mathbf{x})$ and $f_{2}(\mathbf{x})$.
     """
     x_1 = individual[0]
     x_2 = individual[1]
@@ -141,14 +137,13 @@ def bm_dent(individual: Individual, dent_size: float = 0.85) -> tuple[float, flo
     Returns:
         Fitness values of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       :math:`f_{1}(\mathbf{x}) = \text{ ?}`
+        $f_{1}(\mathbf{x}) = \text{ ?}$
 
-       :math:`f_{2}(\mathbf{x}) = \text{ ?}`
+        $f_{2}(\mathbf{x}) = \text{ ?}$
 
-       Returns :math:`f_{1}(\mathbf{x})` and :math:`f_{2}(\mathbf{x})`.
+        Returns $f_{1}(\mathbf{x})$ and $f_{2}(\mathbf{x})$.
     """
     d = dent_size * exp(-((individual[0] - individual[1]) ** 2))
     f1 = (

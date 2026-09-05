@@ -26,21 +26,14 @@ def bm_rand(*_) -> tuple[float]:
     Returns:
         A uniformly random number in ``[0, 1)``.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       .. list-table::
-          :widths: 10 50
-          :stub-columns: 1
-
-          * - Type
-            - minimization or maximization
-          * - Range
-            - none
-          * - Global optima
-            - none
-          * - Function
-            - :math:`f(\mathbf{x}) = \text{random}(0,1)`
+        | | |
+        |---|---|
+        | Type | minimization or maximization |
+        | Range | none |
+        | Global optima | none |
+        | Function | $f(\mathbf{x}) = \text{random}(0,1)$ |
     """
     result = rng.random()
     return (float(result),)
@@ -55,21 +48,14 @@ def bm_plane(individual: Individual) -> tuple[float]:
     Returns:
         The first attribute of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       .. list-table::
-          :widths: 10 50
-          :stub-columns: 1
-
-          * - Type
-            - minimization
-          * - Range
-            - none
-          * - Global optima
-            - :math:`x_i = 0, \forall i \in \lbrace 1 \ldots                N\rbrace`, :math:`f(\mathbf{x}) = 0`
-          * - Function
-            - :math:`f(\mathbf{x}) = x_0`
+        | | |
+        |---|---|
+        | Type | minimization |
+        | Range | none |
+        | Global optima | $x_i = 0, \forall i \in \lbrace 1 \ldots N\rbrace$, $f(\mathbf{x}) = 0$ |
+        | Function | $f(\mathbf{x}) = x_0$ |
     """
     result = individual[0]
     return (float(result),)
@@ -84,21 +70,14 @@ def bm_sphere(individual: Individual) -> tuple[float]:
     Returns:
         Fitness value of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       .. list-table::
-          :widths: 10 50
-          :stub-columns: 1
-
-          * - Type
-            - minimization
-          * - Range
-            - none
-          * - Global optima
-            - :math:`x_i = 0, \forall i \in \lbrace 1 \ldots                N\rbrace`, :math:`f(\mathbf{x}) = 0`
-          * - Function
-            - :math:`f(\mathbf{x}) = \sum_{i=1}^Nx_i^2`
+        | | |
+        |---|---|
+        | Type | minimization |
+        | Range | none |
+        | Global optima | $x_i = 0, \forall i \in \lbrace 1 \ldots N\rbrace$, $f(\mathbf{x}) = 0$ |
+        | Function | $f(\mathbf{x}) = \sum_{i=1}^Nx_i^2$ |
     """
     result = sum(gene * gene for gene in individual)
     return (float(result),)
@@ -113,21 +92,14 @@ def bm_cigar(individual: Individual) -> tuple[float]:
     Returns:
         Fitness value of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       .. list-table::
-          :widths: 10 50
-          :stub-columns: 1
-
-          * - Type
-            - minimization
-          * - Range
-            - none
-          * - Global optima
-            - :math:`x_i = 0, \forall i \in \lbrace 1 \ldots                N\rbrace`, :math:`f(\mathbf{x}) = 0`
-          * - Function
-            - :math:`f(\mathbf{x}) = x_0^2 + 10^6\sum_{i=1}^N\,x_i^2`
+        | | |
+        |---|---|
+        | Type | minimization |
+        | Range | none |
+        | Global optima | $x_i = 0, \forall i \in \lbrace 1 \ldots N\rbrace$, $f(\mathbf{x}) = 0$ |
+        | Function | $f(\mathbf{x}) = x_0^2 + 10^6\sum_{i=1}^N\,x_i^2$ |
     """
     _sum = sum(gene * gene for gene in individual[1:])
     result = individual[0] ** 2 + 1e6 * _sum
@@ -143,21 +115,14 @@ def bm_rosenbrock(individual: Individual) -> tuple[float]:
     Returns:
         Fitness value of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       .. list-table::
-          :widths: 10 50
-          :stub-columns: 1
-
-          * - Type
-            - minimization
-          * - Range
-            - none
-          * - Global optima
-            - :math:`x_i = 1, \forall i \in \lbrace 1 \ldots                N\rbrace`, :math:`f(\mathbf{x}) = 0`
-          * - Function
-            - :math:`f(\mathbf{x}) = \sum_{i=1}^{N-1}                (1-x_i)^2 + 100 (x_{i+1} - x_i^2 )^2`
+        | | |
+        |---|---|
+        | Type | minimization |
+        | Range | none |
+        | Global optima | $x_i = 1, \forall i \in \lbrace 1 \ldots N\rbrace$, $f(\mathbf{x}) = 0$ |
+        | Function | $f(\mathbf{x}) = \sum_{i=1}^{N-1} (1-x_i)^2 + 100 (x_{i+1} - x_i^2 )^2$ |
     """
     results = []
     for x, y in zip(individual[:-1], individual[1:], strict=False):

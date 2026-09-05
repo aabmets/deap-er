@@ -60,7 +60,9 @@ Do not hand-copy API text into `docs/reference/`. Docstrings live on the Python 
 
 Python docstrings stay **Google-style** (`Args:`, `Returns:`). `mkdocs.yml` sets `docstring_style: google`.
 
-Admonitions use Material syntax (`!!! attention`, `!!! note`), not RST `.. attention::`.
+Admonitions use Material syntax (`!!! attention`, `!!! note`), not RST `.. attention::`. Collapsible equation blocks use `??? note "Equations"`.
+
+Math uses **Arithmatex + KaTeX** (`pymdownx.arithmatex` with `generic: true` in `mkdocs.yml`, plus `docs/javascripts/katex.js`). Write inline math as `$...$` and display math as `$$` blocks. Do not use Sphinx `:math:` roles or `.. math::` directives. After `inspect.cleandoc`, `???` and `$$` must sit at column 0 so Material and Arithmatex can parse them.
 
 ## When code changes (docs in scope)
 

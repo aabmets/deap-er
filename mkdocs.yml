@@ -52,6 +52,8 @@ markdown_extensions:
   - def_list
   - footnotes
   - md_in_html
+  - pymdownx.arithmatex:
+      generic: true
   - pymdownx.details
   - pymdownx.superfences
   - pymdownx.highlight:
@@ -62,6 +64,14 @@ markdown_extensions:
       check_paths: true
   - toc:
       permalink: true
+
+extra_javascript:
+  - javascripts/katex.js
+  - https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js
+  - https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js
+
+extra_css:
+  - https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css
 
 watch:
   - deap_er

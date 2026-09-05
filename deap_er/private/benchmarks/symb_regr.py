@@ -37,17 +37,12 @@ def bm_ripple(individual: Individual) -> float:
     Returns:
         The fitness of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       .. list-table::
-          :widths: 10 50
-          :stub-columns: 1
-
-          * - Range
-            - :math:`\mathbf{x} \in [-5, 5]^2`
-          * - Function
-            - :math:`f(\mathbf{x}) = (x_1 - 3) (x_2 - 3) + 2 \sin((x_1 - 4) (x_2 -4))`
+        | | |
+        |---|---|
+        | Range | $\mathbf{x} \in [-5, 5]^2$ |
+        | Function | $f(\mathbf{x}) = (x_1 - 3) (x_2 - 3) + 2 \sin((x_1 - 4) (x_2 -4))$ |
     """
     i = individual[0]
     j = individual[1]
@@ -65,17 +60,12 @@ def bm_sin_cos(individual: Individual) -> float:
     Returns:
         The fitness of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       .. list-table::
-          :widths: 10 50
-          :stub-columns: 1
-
-          * - Range
-            - :math:`\mathbf{x} \in [0, 6]^2`
-          * - Function
-            - :math:`f(\mathbf{x}) = 6\sin(x_1)\cos(x_2)`
+        | | |
+        |---|---|
+        | Range | $\mathbf{x} \in [0, 6]^2$ |
+        | Function | $f(\mathbf{x}) = 6\sin(x_1)\cos(x_2)$ |
     """
     i = individual[0]
     j = individual[1]
@@ -91,17 +81,12 @@ def bm_unwrapped_ball(individual: Individual) -> float:
     Returns:
         The fitness of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       .. list-table::
-          :widths: 10 50
-          :stub-columns: 1
-
-          * - Range
-            - :math:`\mathbf{x} \in [-2, 8]^n`
-          * - Function
-            - :math:`f(\mathbf{x}) = \frac{10}{5 + \sum_{i=1}^n (x_i - 3)^2}`
+        | | |
+        |---|---|
+        | Range | $\mathbf{x} \in [-2, 8]^n$ |
+        | Function | $f(\mathbf{x}) = \frac{10}{5 + \sum_{i=1}^n (x_i - 3)^2}$ |
     """
     s = sum((d - 3) ** 2 for d in individual)
     return float(10 / (5 + s))
@@ -116,17 +101,12 @@ def bm_kotanchek(individual: Individual) -> float:
     Returns:
         The fitness of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       .. list-table::
-          :widths: 10 50
-          :stub-columns: 1
-
-          * - Range
-            - :math:`\mathbf{x} \in [-1, 7]^2`
-          * - Function
-            - :math:`f(\mathbf{x}) = \frac{e^{-(x_1 - 1)^2}}{3.2 + (x_2 - 2.5)^2}`
+        | | |
+        |---|---|
+        | Range | $\mathbf{x} \in [-1, 7]^2$ |
+        | Function | $f(\mathbf{x}) = \frac{e^{-(x_1 - 1)^2}}{3.2 + (x_2 - 2.5)^2}$ |
     """
     i = individual[0]
     j = individual[1]
@@ -144,17 +124,12 @@ def bm_salustowicz_1d(individual: Individual) -> float:
     Returns:
         The fitness of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       .. list-table::
-          :widths: 10 50
-          :stub-columns: 1
-
-          * - Range
-            - :math:`x \in [0, 10]`
-          * - Function
-            - :math:`f(x) = e^{-x} x^3 \cos(x) \sin(x) (\cos(x) \sin^2(x) - 1)`
+        | | |
+        |---|---|
+        | Range | $x \in [0, 10]$ |
+        | Function | $f(x) = e^{-x} x^3 \cos(x) \sin(x) (\cos(x) \sin^2(x) - 1)$ |
     """
     i = individual[0]
     a = exp(-i) * i**3 * cos(i)
@@ -171,17 +146,17 @@ def bm_salustowicz_2d(individual: Individual) -> float:
     Returns:
         The fitness of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       .. list-table::
-          :widths: 10 50
-          :stub-columns: 1
+        | | |
+        |---|---|
+        | Range | $\mathbf{x} \in [0, 7]^2$ |
+        | Function | see below |
 
-          * - Range
-            - :math:`\mathbf{x} \in [0, 7]^2`
-          * - Function
-            - :math:`f(\mathbf{x}) = e^{-x_1} x_1^3 \cos(x_1) \sin(x_1) (\cos(x_1) \sin^2(x_1) - 1) (x_2 -5)`
+        $$
+        f(\mathbf{x})=e^{-x_1} x_1^3\cos(x_1)\sin(x_1)
+        (\cos(x_1)\sin^2(x_1)-1)(x_2-5)
+        $$
     """
     i = individual[0]
     j = individual[1]
@@ -199,17 +174,12 @@ def bm_rational_polynomial_1(individual: Individual) -> float:
     Returns:
         The fitness of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       .. list-table::
-          :widths: 10 50
-          :stub-columns: 1
-
-          * - Range
-            - :math:`\mathbf{x} \in [0, 2]^3`
-          * - Function
-            - :math:`f(\mathbf{x}) = \frac{30 * (x_1 - 1) (x_3 - 1)}{x_2^2 (x_1 - 10)}`
+        | | |
+        |---|---|
+        | Range | $\mathbf{x} \in [0, 2]^3$ |
+        | Function | $f(\mathbf{x}) = \frac{30 * (x_1 - 1) (x_3 - 1)}{x_2^2 (x_1 - 10)}$ |
     """
     i = individual[0]
     j = individual[1]
@@ -228,17 +198,17 @@ def bm_rational_polynomial_2(individual: Individual) -> float:
     Returns:
         The fitness of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       .. list-table::
-          :widths: 10 50
-          :stub-columns: 1
+        | | |
+        |---|---|
+        | Range | $\mathbf{x} \in [0, 6]^2$ |
+        | Function | see below |
 
-          * - Range
-            - :math:`\mathbf{x} \in [0, 6]^2`
-          * - Function
-            - :math:`f(\mathbf{x}) = \frac{(x_1 - 3)^4 + (x_2 - 3)^3 - (x_2 - 3)}{(x_2 - 2)^4 + 10}`
+        $$
+        f(\mathbf{x}) = \frac{(x_1 - 3)^4 + (x_2 - 3)^3
+        - (x_2 - 3)}{(x_2 - 2)^4 + 10}
+        $$
     """
     i = individual[0]
     j = individual[1]

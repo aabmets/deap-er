@@ -53,7 +53,6 @@ convention = "google"
 "**/__init__.py" = ["F401"]
 "tests/**" = ["D"]
 "examples/**" = ["D"]
-"deap_er/benchmarks/**" = ["E501"]
 "deap_er/tools.py" = ["D"]
 "deap_er/typedefs.py" = ["D"]
 "**/*typedefs.py" = ["D"]

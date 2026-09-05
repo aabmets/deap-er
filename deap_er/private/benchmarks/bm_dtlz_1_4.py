@@ -34,25 +34,30 @@ def bm_dtlz_1(individual: Individual, count: int) -> list[float]:
     Returns:
         Fitness values of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       :math:`g(\mathbf{x}_m) = 100\left(|\mathbf{x}_m| + \sum_{x_i             \in \mathbf{x}_m}\left((x_i - 0.5)^2 -             \cos(20\pi(x_i - 0.5))\right)\right)`
+        $$
+        g(\mathbf{x}_m) = 100\left(|\mathbf{x}_m| +
+        \sum_{x_i \in \mathbf{x}_m}\left((x_i - 0.5)^2 -
+        \cos(20\pi(x_i - 0.5))\right)\right)
+        $$
 
-       :math:`f_{1}(\mathbf{x}) = \frac{1}{2} (1 +             g(\mathbf{x}_m)) \prod_{i=1}^{m-1}x_i`
+        $f_{1}(\mathbf{x}) = \frac{1}{2} (1 + g(\mathbf{x}_m)) \prod_{i=1}^{m-1}x_i$
 
-       :math:`f_{2}(\mathbf{x}) = \frac{1}{2} (1 + g(\mathbf{x}_m))             (1-x_{m-1}) \prod_{i=1}^{m-2}x_i`
+        $$
+        f_{2}(\mathbf{x}) = \frac{1}{2} (1 + g(\mathbf{x}_m))
+        (1-x_{m-1}) \prod_{i=1}^{m-2}x_i
+        $$
 
-       :math:`f_{m-1}(\mathbf{x}) = \frac{1}{2} (1 +             g(\mathbf{x}_m)) (1 - x_2) x_1`
+        $f_{m-1}(\mathbf{x}) = \frac{1}{2} (1 + g(\mathbf{x}_m)) (1 - x_2) x_1$
 
-       :math:`\ldots`
+        $\ldots$
 
-       :math:`f_{m}(\mathbf{x}) = \frac{1}{2}             (1 - x_1)(1 + g(\mathbf{x}_m))`
+        $f_{m}(\mathbf{x}) = \frac{1}{2} (1 - x_1)(1 + g(\mathbf{x}_m))$
 
-
-       Where :math:`m` is the number of objectives and :math:`\mathbf{x}_m`
-       is a vector of the remaining attributes :math:`[x_m~\ldots~x_n]`
-       of the individual in :math:`n > m` dimensions.
+        Where $m$ is the number of objectives and $\mathbf{x}_m$
+        is a vector of the remaining attributes $[x_m~\ldots~x_n]$
+        of the individual in $n > m$ dimensions.
     """
 
     def fn_xi(xi: float) -> float:
@@ -83,23 +88,25 @@ def bm_dtlz_2(individual: Individual, count: int) -> list[float]:
     Returns:
         Fitness values of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       :math:`g(\mathbf{x}_m) = \sum_{x_i \in             \mathbf{x}_m} (x_i - 0.5)^2`
+        $g(\mathbf{x}_m) = \sum_{x_i \in \mathbf{x}_m} (x_i - 0.5)^2$
 
-       :math:`f_{1}(\mathbf{x}) = (1 + g(\mathbf{x}_m))             \prod_{i=1}^{m-1} \cos(0.5x_i\pi)`
+        $f_{1}(\mathbf{x}) = (1 + g(\mathbf{x}_m)) \prod_{i=1}^{m-1} \cos(0.5x_i\pi)$
 
-       :math:`f_{2}(\mathbf{x}) = (1 + g(\mathbf{x}_m))             \sin(0.5x_{m-1}\pi ) \prod_{i=1}^{m-2} \cos(0.5x_i\pi)`
+        $$
+        f_{2}(\mathbf{x}) = (1 + g(\mathbf{x}_m))
+        \sin(0.5x_{m-1}\pi) \prod_{i=1}^{m-2}
+        \cos(0.5x_i\pi)
+        $$
 
-       :math:`\ldots`
+        $\ldots$
 
-       :math:`f_{m}(\mathbf{x}) = (1 +             g(\mathbf{x}_m)) \sin(0.5x_{1}\pi )`
+        $f_{m}(\mathbf{x}) = (1 + g(\mathbf{x}_m)) \sin(0.5x_{1}\pi )$
 
-
-       Where :math:`m` is the number of objectives and :math:`\mathbf{x}_m`
-       is a vector of the remaining attributes :math:`[x_m~\ldots~x_n]`
-       of the individual in :math:`n > m` dimensions.
+        Where $m$ is the number of objectives and $\mathbf{x}_m$
+        is a vector of the remaining attributes $[x_m~\ldots~x_n]$
+        of the individual in $n > m$ dimensions.
     """
     xm = individual[count - 1 :]
     gval = sum((xi - 0.5) ** 2 for xi in xm)
@@ -119,23 +126,29 @@ def bm_dtlz_3(individual: Individual, count: int) -> list[float]:
     Returns:
         Fitness values of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       :math:`g(\mathbf{x}_m) = 100\left(|\mathbf{x}_m| +             \sum_{x_i \in \mathbf{x}_m}\left((x_i - 0.5)^2 -             \cos(20\pi(x_i - 0.5))\right)\right)`
+        $$
+        g(\mathbf{x}_m) = 100\left(|\mathbf{x}_m| +
+        \sum_{x_i \in \mathbf{x}_m}\left((x_i - 0.5)^2 -
+        \cos(20\pi(x_i - 0.5))\right)\right)
+        $$
 
-       :math:`f_{1}(\mathbf{x}) = (1 + g(\mathbf{x}_m))             \prod_{i=1}^{m-1} \cos(0.5x_i\pi)`
+        $f_{1}(\mathbf{x}) = (1 + g(\mathbf{x}_m)) \prod_{i=1}^{m-1} \cos(0.5x_i\pi)$
 
-       :math:`f_{2}(\mathbf{x}) = (1 + g(\mathbf{x}_m))             \sin(0.5x_{m-1}\pi ) \prod_{i=1}^{m-2} \cos(0.5x_i\pi)`
+        $$
+        f_{2}(\mathbf{x}) = (1 + g(\mathbf{x}_m))
+        \sin(0.5x_{m-1}\pi) \prod_{i=1}^{m-2}
+        \cos(0.5x_i\pi)
+        $$
 
-       :math:`\ldots`
+        $\ldots$
 
-       :math:`f_{m}(\mathbf{x}) = (1 + g(\mathbf{x}_m))             \sin(0.5x_{1}\pi )`
+        $f_{m}(\mathbf{x}) = (1 + g(\mathbf{x}_m)) \sin(0.5x_{1}\pi )$
 
-
-       Where :math:`m` is the number of objectives and :math:`\mathbf{x}_m`
-       is a vector of the remaining attributes :math:`[x_m~\ldots~x_n]`
-       of the individual in :math:`n > m` dimensions.
+        Where $m$ is the number of objectives and $\mathbf{x}_m$
+        is a vector of the remaining attributes $[x_m~\ldots~x_n]$
+        of the individual in $n > m$ dimensions.
     """
 
     def fn(xi: float) -> float:
@@ -161,23 +174,25 @@ def bm_dtlz_4(individual: Individual, count: int, alpha: float) -> list[float]:
     Returns:
         Fitness values of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       :math:`g(\mathbf{x}_m) = \sum_{x_i \in             \mathbf{x}_m} (x_i - 0.5)^2`
+        $g(\mathbf{x}_m) = \sum_{x_i \in \mathbf{x}_m} (x_i - 0.5)^2$
 
-       :math:`f_{1}(\mathbf{x}) = (1 + g(\mathbf{x}_m))             \prod_{i=1}^{m-1} \cos(0.5x_i^\alpha\pi)`
+        $f_{1}(\mathbf{x}) = (1 + g(\mathbf{x}_m)) \prod_{i=1}^{m-1} \cos(0.5x_i^\alpha\pi)$
 
-       :math:`f_{2}(\mathbf{x}) = (1 + g(\mathbf{x}_m))             \sin(0.5x_{m-1}^\alpha\pi ) \prod_{i=1}^{m-2}             \cos(0.5x_i^\alpha\pi)`
+        $$
+        f_{2}(\mathbf{x}) = (1 + g(\mathbf{x}_m))
+        \sin(0.5x_{m-1}^\alpha\pi)
+        \prod_{i=1}^{m-2} \cos(0.5x_i^\alpha\pi)
+        $$
 
-       :math:`\ldots`
+        $\ldots$
 
-       :math:`f_{m}(\mathbf{x}) = (1 + g(\mathbf{x}_m))             \sin(0.5x_{1}^\alpha\pi )`
+        $f_{m}(\mathbf{x}) = (1 + g(\mathbf{x}_m)) \sin(0.5x_{1}^\alpha\pi )$
 
-
-       Where :math:`m` is the number of objectives and :math:`\mathbf{x}_m`
-       is a vector of the remaining attributes :math:`[x_m~\ldots~x_n]`
-       of the individual in :math:`n > m` dimensions.
+        Where $m$ is the number of objectives and $\mathbf{x}_m$
+        is a vector of the remaining attributes $[x_m~\ldots~x_n]$
+        of the individual in $n > m$ dimensions.
     """
     xm = individual[count - 1 :]
     gval = sum((xi - 0.5) ** 2 for xi in xm)

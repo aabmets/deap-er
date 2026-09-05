@@ -28,7 +28,7 @@ def _zdt_g(individual: Individual) -> float:
         individual: Individual to evaluate.
 
     Returns:
-        The value of :math:`g(\mathbf{x})` for the individual.
+        The value of $g(\mathbf{x})$ for the individual.
     """
     return float(1.0 + 9.0 * sum(individual[1:]) / (len(individual) - 1))
 
@@ -42,16 +42,15 @@ def bm_zdt_1(individual: Individual) -> tuple[float, float]:
     Returns:
         Fitness values of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       :math:`g(\mathbf{x}) = 1 + \frac{9}{n-1}\sum_{i=2}^n x_i`
+        $g(\mathbf{x}) = 1 + \frac{9}{n-1}\sum_{i=2}^n x_i$
 
-       :math:`f_{1}(\mathbf{x}) = x_1`
+        $f_{1}(\mathbf{x}) = x_1$
 
-       :math:`f_{2}(\mathbf{x}) = g(\mathbf{x})\left[1 -             \sqrt{\frac{x_1}{g(\mathbf{x})}}\right]`
+        $f_{2}(\mathbf{x}) = g(\mathbf{x})\left[1 - \sqrt{\frac{x_1}{g(\mathbf{x})}}\right]$
 
-       Returns :math:`f_{1}(\mathbf{x})` and :math:`f_{2}(\mathbf{x})`.
+        Returns $f_{1}(\mathbf{x})$ and $f_{2}(\mathbf{x})$.
     """
     g = _zdt_g(individual)
     f1 = individual[0]
@@ -68,16 +67,18 @@ def bm_zdt_2(individual: Individual) -> tuple[float, float]:
     Returns:
         Fitness values of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       :math:`g(\mathbf{x}) = 1 + \frac{9}{n-1}\sum_{i=2}^n x_i`
+        $g(\mathbf{x}) = 1 + \frac{9}{n-1}\sum_{i=2}^n x_i$
 
-       :math:`f_{1}(\mathbf{x}) = x_1`
+        $f_{1}(\mathbf{x}) = x_1$
 
-       :math:`f_{2}(\mathbf{x}) = g(\mathbf{x})\left[1 -             \left(\frac{x_1}{g(\mathbf{x})}\right)^2\right]`
+        $$
+        f_{2}(\mathbf{x}) = g(\mathbf{x})\left[1 -
+        \left(\frac{x_1}{g(\mathbf{x})}\right)^2\right]
+        $$
 
-       Returns :math:`f_{1}(\mathbf{x})` and :math:`f_{2}(\mathbf{x})`.
+        Returns $f_{1}(\mathbf{x})$ and $f_{2}(\mathbf{x})$.
     """
     g = _zdt_g(individual)
     f1 = individual[0]
@@ -94,16 +95,19 @@ def bm_zdt_3(individual: Individual) -> tuple[float, float]:
     Returns:
         Fitness values of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       :math:`g(\mathbf{x}) = 1 + \frac{9}{n-1}\sum_{i=2}^n x_i`
+        $g(\mathbf{x}) = 1 + \frac{9}{n-1}\sum_{i=2}^n x_i$
 
-       :math:`f_{1}(\mathbf{x}) = x_1`
+        $f_{1}(\mathbf{x}) = x_1$
 
-       :math:`f_{2}(\mathbf{x}) = g(\mathbf{x})\left[1 -             \sqrt{\frac{x_1}{g(\mathbf{x})}} - \frac{x_1}{g(\mathbf{x})}             \sin(10\pi x_1)\right]`
+        $$
+        f_{2}(\mathbf{x}) = g(\mathbf{x})\left[1 -
+        \sqrt{\frac{x_1}{g(\mathbf{x})}} -
+        \frac{x_1}{g(\mathbf{x})} \sin(10\pi x_1)\right]
+        $$
 
-       Returns :math:`f_{1}(\mathbf{x})` and :math:`f_{2}(\mathbf{x})`.
+        Returns $f_{1}(\mathbf{x})$ and $f_{2}(\mathbf{x})$.
     """
     g = _zdt_g(individual)
     f1 = individual[0]
@@ -120,16 +124,18 @@ def bm_zdt_4(individual: Individual) -> tuple[float, float]:
     Returns:
         Fitness values of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       :math:`g(\mathbf{x}) = 1 + 10(n-1) + \sum_{i=2}^n             \left[ x_i^2 - 10\cos(4\pi x_i) \right]`
+        $g(\mathbf{x}) = 1 + 10(n-1) + \sum_{i=2}^n \left[ x_i^2 - 10\cos(4\pi x_i) \right]$
 
-       :math:`f_{1}(\mathbf{x}) = x_1`
+        $f_{1}(\mathbf{x}) = x_1$
 
-       :math:`f_{2}(\mathbf{x}) = g(\mathbf{x}) \left[ 1 -             \sqrt{ \frac{x_1}{g(\mathbf{x})}} \right]`
+        $$
+        f_{2}(\mathbf{x}) = g(\mathbf{x}) \left[ 1 -
+        \sqrt{ \frac{x_1}{g(\mathbf{x})}} \right]
+        $$
 
-       Returns :math:`f_{1}(\mathbf{x})` and :math:`f_{2}(\mathbf{x})`.
+        Returns $f_{1}(\mathbf{x})$ and $f_{2}(\mathbf{x})$.
     """
     var = sum(xi**2 - 10 * cos(4 * pi * xi) for xi in individual[1:])
     g = 1 + 10 * (len(individual) - 1) + var
@@ -147,16 +153,19 @@ def bm_zdt_6(individual: Individual) -> tuple[float, float]:
     Returns:
         Fitness values of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       :math:`g(\mathbf{x}) = 1 + 9 \left[ \left(\sum_{i=2}^n             x_i\right)/(n-1) \right]^{0.25}`
+        $g(\mathbf{x}) = 1 + 9 \left[ \left(\sum_{i=2}^n x_i\right)/(n-1) \right]^{0.25}$
 
-       :math:`f_{1}(\mathbf{x}) = 1 - \exp(-4x_1)\sin^6(6\pi x_1)`
+        $f_{1}(\mathbf{x}) = 1 - \exp(-4x_1)\sin^6(6\pi x_1)$
 
-       :math:`f_{2}(\mathbf{x}) = g(\mathbf{x}) \left[1 - \left(             \frac{f_{1}(\mathbf{x})}{g(\mathbf{x})}\right)^2 \right]`
+        $$
+        f_{2}(\mathbf{x}) = g(\mathbf{x}) \left[1 -
+        \left(\frac{f_{1}(\mathbf{x})}{g(\mathbf{x})}
+        \right)^2 \right]
+        $$
 
-       Returns :math:`f_{1}(\mathbf{x})` and :math:`f_{2}(\mathbf{x})`.
+        Returns $f_{1}(\mathbf{x})$ and $f_{2}(\mathbf{x})$.
     """
     g = 1 + 9 * (sum(individual[1:]) / (len(individual) - 1)) ** 0.25
     f1 = 1 - exp(-4 * individual[0]) * sin(6 * pi * individual[0]) ** 6

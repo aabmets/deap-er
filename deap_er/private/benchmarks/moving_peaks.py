@@ -34,27 +34,46 @@ class MovingPeaks:
     .. dropdown:: Table of Kwargs
        :margin: 0 5 0 0
 
-       =================== ========== =================================================================================
-       Parameter           Type       Details
-       =================== ========== =================================================================================
-       ``pfunc``           *Callable* The peak function or a list of peak functions.
-       ``bfunc``           *Callable* Basis function for static landscape.
-       ``npeaks``          *NumOrSeq* Number of peaks. An integer or a list of three integers [min, initial, max].
-       ``change_severity`` *float*    The fraction of the number of peaks that is allowed to change.
-       ``min_coord``       *float*    Minimum coordinate for the centre of the peaks.
-       ``max_coord``       *float*    Maximum coordinate for the centre of the peaks.
-       ``min_height``      *float*    Minimum height of the peaks.
-       ``max_height``      *float*    Maximum height of the peaks.
-       ``uniform_height``  *float*    Starting height of all peaks. Random, if ``uniform_height <= 0``.
-       ``min_width``       *float*    Minimum width of the peaks.
-       ``max_width``       *float*    Maximum width of the peaks
-       ``uniform_width``   *float*    Starting width of all peaks. Random, if ``uniform_width <= 0``.
-       ``lambda_``          *float*    Correlation between changes.
-       ``move_severity``   *float*    The distance a single peak moves when peaks change.
-       ``height_severity`` *float*    The standard deviation of the change to the height of a peak when peaks change.
-       ``width_severity``  *float*    The standard deviation of the change to the width of a peak when peaks change.
-       ``period``          *int*      Period between two changes.
-       =================== ========== =================================================================================
+       ``pfunc`` (*Callable*)
+          The peak function or a list of peak functions.
+       ``bfunc`` (*Callable*)
+          Basis function for static landscape.
+       ``npeaks`` (*NumOrSeq*)
+          Number of peaks. An integer or a list of three
+          integers [min, initial, max].
+       ``change_severity`` (*float*)
+          The fraction of the number of peaks that is
+          allowed to change.
+       ``min_coord`` (*float*)
+          Minimum coordinate for the centre of the peaks.
+       ``max_coord`` (*float*)
+          Maximum coordinate for the centre of the peaks.
+       ``min_height`` (*float*)
+          Minimum height of the peaks.
+       ``max_height`` (*float*)
+          Maximum height of the peaks.
+       ``uniform_height`` (*float*)
+          Starting height of all peaks. Random, if
+          ``uniform_height <= 0``.
+       ``min_width`` (*float*)
+          Minimum width of the peaks.
+       ``max_width`` (*float*)
+          Maximum width of the peaks
+       ``uniform_width`` (*float*)
+          Starting width of all peaks. Random, if
+          ``uniform_width <= 0``.
+       ``lambda_`` (*float*)
+          Correlation between changes.
+       ``move_severity`` (*float*)
+          The distance a single peak moves when peaks change.
+       ``height_severity`` (*float*)
+          The standard deviation of the change to the height
+          of a peak when peaks change.
+       ``width_severity`` (*float*)
+          The standard deviation of the change to the width
+          of a peak when peaks change.
+       ``period`` (*int*)
+          Period between two changes.
     """
 
     def __init__(self, dimensions: int, **kwargs: Any) -> None:

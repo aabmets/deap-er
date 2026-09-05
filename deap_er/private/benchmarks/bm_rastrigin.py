@@ -30,21 +30,14 @@ def bm_rastrigin(individual: Individual) -> tuple[float]:
     Returns:
         Fitness value of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       .. list-table::
-          :widths: 10 50
-          :stub-columns: 1
-
-          * - Type
-            - minimization
-          * - Range
-            - :math:`x_i \in [-5.12, 5.12]`
-          * - Global optima
-            - :math:`x_i = 0, \forall i \in \lbrace 1                \ldots N\rbrace`, :math:`f(\mathbf{x}) = 0`
-          * - Function
-            - :math:`f(\mathbf{x}) = 10N + \sum_{i=1}^N                x_i^2 - 10 \cos(2\pi x_i)`
+        | | |
+        |---|---|
+        | Type | minimization |
+        | Range | $x_i \in [-5.12, 5.12]$ |
+        | Global optima | $x_i = 0, \forall i \in \lbrace 1 \ldots N\rbrace$, $f(\mathbf{x}) = 0$ |
+        | Function | $f(\mathbf{x}) = 10N + \sum_{i=1}^N x_i^2 - 10 \cos(2\pi x_i)$ |
     """
     values = [gene * gene - 10 * cos(2 * pi * gene) for gene in individual]
     result = 10 * len(individual) + sum(values)
@@ -60,21 +53,22 @@ def bm_rastrigin_scaled(individual: Individual) -> tuple[float]:
     Returns:
         Fitness value of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       .. list-table::
-          :widths: 10 50
-          :stub-columns: 1
+        | | |
+        |---|---|
+        | Type | minimization |
+        | Range | $x_i \in [-5.12, 5.12]$ |
+        | Global optima | $x_i = 0, \forall i \in \lbrace 1 \ldots N\rbrace$, $f(\mathbf{x}) = 0$ |
+        | Function | see below |
 
-          * - Type
-            - minimization
-          * - Range
-            - :math:`x_i \in [-5.12, 5.12]`
-          * - Global optima
-            - :math:`x_i = 0, \forall i \in \lbrace 1                \ldots N\rbrace`, :math:`f(\mathbf{x}) = 0`
-          * - Function
-            - :math:`f(\mathbf{x}) = 10N + \sum_{i=1}^N                \left(10^{\left(\frac{i-1}{N-1}\right)}                x_i \right)^2 - 10\cos\left(2\pi 10^{\left(                \frac{i-1}{N-1}\right)} x_i \right)`
+        $$
+        f(\mathbf{x}) = 10N + \sum_{i=1}^N
+        \left(10^{\left(\frac{i-1}{N-1}\right)}
+        x_i \right)^2 - 10\cos\left(2\pi
+        10^{\left(\frac{i-1}{N-1}\right)} x_i
+        \right)
+        $$
     """
     results = []
     len_ind = len(individual)
@@ -95,23 +89,18 @@ def bm_rastrigin_skewed(individual: Individual) -> tuple[float]:
     Returns:
         Fitness value of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       .. list-table::
-          :widths: 10 50
-          :stub-columns: 1
+        | | |
+        |---|---|
+        | Type | minimization |
+        | Range | $x_i \in [-5.12, 5.12]$ |
+        | Global optima | $x_i = 0, \forall i \in \lbrace 1 \ldots N\rbrace$, $f(\mathbf{x}) = 0$ |
+        | Function | see below |
 
-          * - Type
-            - minimization
-          * - Range
-            - :math:`x_i \in [-5.12, 5.12]`
-          * - Global optima
-            - :math:`x_i = 0, \forall i \in \lbrace 1                \ldots N\rbrace`, :math:`f(\mathbf{x}) = 0`
-          * - Function
-            - :math:`f(\mathbf{x}) = 10N + \sum_{i=1}^N                \left(y_i^2 - 10 \cos(2\pi x_i)\right)`
+        $f(\mathbf{x}) = 10N + \sum_{i=1}^N \left(y_i^2 - 10 \cos(2\pi x_i)\right)$
 
-              :math:`\text{where } y_i = 10\cdot x_i                \text{ if } x_i > 0 \text{, else } x_i`
+        $\text{where } y_i = 10\cdot x_i \text{ if } x_i > 0 \text{, else } x_i$
     """
     results = []
     len_ind = len(individual)
@@ -130,30 +119,29 @@ def bm_shekel(individual: Individual, matrix: numpy.ndarray, vector: numpy.ndarr
 
     Args:
         individual: Individual to evaluate.
-        matrix: Matrix of size :math:`M\times N`,
-            where :math:`M` is the number of maxima and
-            :math:`N` is the number of dimensions.
-        vector: Vector of size :math:`M\times 1`,
-            where :math:`M` is the number of maxima.
+        matrix: Matrix of size $M\times N$,
+            where $M$ is the number of maxima and
+            $N$ is the number of dimensions.
+        vector: Vector of size $M\times 1$,
+            where $M$ is the number of maxima.
 
     Returns:
         Fitness value of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       .. list-table::
-          :widths: 10 50
-          :stub-columns: 1
+        | | |
+        |---|---|
+        | Type | maximization |
+        | Range | None |
+        | Global optima | None |
+        | Function | see below |
 
-          * - Type
-            - maximization
-          * - Range
-            - None
-          * - Global optima
-            - None
-          * - Function
-            - :math:`f(\mathbf{x}) = \sum_{i = 1}^{M}                \frac{1}{c_{i} + \sum_{j = 1}^{N}                (x_{j} - a_{ij})^2 }`
+        $$
+        f(\mathbf{x}) = \sum_{i = 1}^{M}
+        \frac{1}{c_{i} + \sum_{j = 1}^{N}
+        (x_{j} - a_{ij})^2 }
+        $$
     """
     results = []
     for i in range(len(vector)):

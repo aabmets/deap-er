@@ -33,23 +33,21 @@ def bm_dtlz_5(individual: Individual, count: int) -> list[float]:
     Returns:
         Fitness values of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       :math:`g(\mathbf{x}_m) = \text{ ?}`
+        $g(\mathbf{x}_m) = \text{ ?}$
 
-       :math:`f_{1}(\mathbf{x}) = \text{ ?}`
+        $f_{1}(\mathbf{x}) = \text{ ?}$
 
-       :math:`f_{2}(\mathbf{x}) = \text{ ?}`
+        $f_{2}(\mathbf{x}) = \text{ ?}$
 
-       :math:`\ldots`
+        $\ldots$
 
-       :math:`f_{m}(\mathbf{x}) = \text{ ?}`
+        $f_{m}(\mathbf{x}) = \text{ ?}$
 
-
-       Where :math:`m` is the number of objectives and :math:`\mathbf{x}_m`
-       is a vector of the remaining attributes :math:`[x_m~\ldots~x_n]`
-       of the individual in :math:`n > m` dimensions.
+        Where $m$ is the number of objectives and $\mathbf{x}_m$
+        is a vector of the remaining attributes $[x_m~\ldots~x_n]$
+        of the individual in $n > m$ dimensions.
     """
     gval = sum([(a - 0.5) ** 2 for a in individual[count - 1 :]])
     return _dtlz_helper_2(individual, count, gval)
@@ -68,23 +66,21 @@ def bm_dtlz_6(individual: Individual, count: int) -> list[float]:
     Returns:
         Fitness values of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       :math:`g(\mathbf{x}_m) = \text{ ?}`
+        $g(\mathbf{x}_m) = \text{ ?}$
 
-       :math:`f_{1}(\mathbf{x}) = \text{ ?}`
+        $f_{1}(\mathbf{x}) = \text{ ?}$
 
-       :math:`f_{2}(\mathbf{x}) = \text{ ?}`
+        $f_{2}(\mathbf{x}) = \text{ ?}$
 
-       :math:`\ldots`
+        $\ldots$
 
-       :math:`f_{m}(\mathbf{x}) = \text{ ?}`
+        $f_{m}(\mathbf{x}) = \text{ ?}$
 
-
-       Where :math:`m` is the number of objectives and :math:`\mathbf{x}_m`
-       is a vector of the remaining attributes :math:`[x_m~\ldots~x_n]`
-       of the individual in :math:`n > m` dimensions.
+        Where $m$ is the number of objectives and $\mathbf{x}_m$
+        is a vector of the remaining attributes $[x_m~\ldots~x_n]$
+        of the individual in $n > m$ dimensions.
     """
     gval = sum([a**0.1 for a in individual[count - 1 :]])
     return _dtlz_helper_2(individual, count, gval)
@@ -103,23 +99,21 @@ def bm_dtlz_7(individual: Individual, count: int) -> list[float]:
     Returns:
         Fitness values of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       :math:`g(\mathbf{x}_m) = \text{ ?}`
+        $g(\mathbf{x}_m) = \text{ ?}$
 
-       :math:`f_{1}(\mathbf{x}) = \text{ ?}`
+        $f_{1}(\mathbf{x}) = \text{ ?}$
 
-       :math:`f_{2}(\mathbf{x}) = \text{ ?}`
+        $f_{2}(\mathbf{x}) = \text{ ?}$
 
-       :math:`\ldots`
+        $\ldots$
 
-       :math:`f_{m}(\mathbf{x}) = \text{ ?}`
+        $f_{m}(\mathbf{x}) = \text{ ?}$
 
-
-       Where :math:`m` is the number of objectives and :math:`\mathbf{x}_m`
-       is a vector of the remaining attributes :math:`[x_m~\ldots~x_n]`
-       of the individual in :math:`n > m` dimensions.
+        Where $m$ is the number of objectives and $\mathbf{x}_m$
+        is a vector of the remaining attributes $[x_m~\ldots~x_n]$
+        of the individual in $n > m$ dimensions.
     """
 
     def fn(a: float) -> float:

@@ -30,22 +30,21 @@ def bm_h1(individual: Individual) -> tuple[float]:
     Returns:
         Fitness value of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       .. list-table::
-          :widths: 10 50
-          :stub-columns: 1
+        | | |
+        |---|---|
+        | Type | maximization |
+        | Range | $x_i \in [-100, 100]$ |
+        | Global optima | $\mathbf{x} = (8.6998, 6.7665)$, $f(\mathbf{x}) = 2$ |
+        | Function | see below |
 
-          * - Type
-            - maximization
-          * - Range
-            - :math:`x_i \in [-100, 100]`
-          * - Global optima
-            - :math:`\mathbf{x} = (8.6998, 6.7665)`, :math:`f(\mathbf{x}) = 2`
-
-          * - Function
-            - :math:`f(\mathbf{x}) = \frac{\sin(x_1 - \frac{x_2}{8})^2 +                \sin(x_2 + \frac{x_1}{8})^2}{\sqrt{(x_1 - 8.6998)^2 +                (x_2 - 6.7665)^2} + 1}`
+        $$
+        f(\mathbf{x}) = \frac{\sin(x_1 -
+        \frac{x_2}{8})^2 + \sin(x_2 +
+        \frac{x_1}{8})^2}{\sqrt{(x_1 - 8.6998)^2
+        + (x_2 - 6.7665)^2} + 1}
+        $$
     """
 
     def compute_num() -> float:
@@ -71,21 +70,21 @@ def bm_ackley(individual: Individual) -> tuple[float]:
     Returns:
         Fitness value of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       .. list-table::
-          :widths: 10 50
-          :stub-columns: 1
+        | | |
+        |---|---|
+        | Type | minimization |
+        | Range | $x_i \in [-15, 30]$ |
+        | Global optima | $x_i = 0, \forall i \in \lbrace 1 \ldots N\rbrace$, $f(\mathbf{x}) = 0$ |
+        | Function | see below |
 
-          * - Type
-            - minimization
-          * - Range
-            - :math:`x_i \in [-15, 30]`
-          * - Global optima
-            - :math:`x_i = 0, \forall i \in \lbrace 1 \ldots                N\rbrace`, :math:`f(\mathbf{x}) = 0`
-          * - Function
-            - :math:`f(\mathbf{x}) = 20 - 20\exp\left(-0.2                \sqrt{\frac{1}{N} \sum_{i=1}^N x_i^2}                \right) + e - \exp\left(\frac{1}{N}                \sum_{i=1}^N \cos(2\pi x_i) \right)`
+        $$
+        f(\mathbf{x}) = 20 - 20\exp\left(-0.2
+        \sqrt{\frac{1}{N} \sum_{i=1}^N x_i^2}
+        \right) + e - \exp\left(\frac{1}{N}
+        \sum_{i=1}^N \cos(2\pi x_i) \right)
+        $$
     """
     len_ind = len(individual)
     exp_1 = exp(-0.2 * sqrt(1 / len_ind * sum(x**2 for x in individual)))
@@ -103,21 +102,20 @@ def bm_bohachevsky(individual: Individual) -> tuple[float]:
     Returns:
         Fitness value of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       .. list-table::
-          :widths: 10 50
-          :stub-columns: 1
+        | | |
+        |---|---|
+        | Type | minimization |
+        | Range | $x_i \in [-100, 100]$ |
+        | Global optima | $x_i = 0, \forall i \in \lbrace 1 \ldots N\rbrace$, $f(\mathbf{x}) = 0$ |
+        | Function | see below |
 
-          * - Type
-            - minimization
-          * - Range
-            - :math:`x_i \in [-100, 100]`
-          * - Global optima
-            - :math:`x_i = 0, \forall i \in \lbrace 1 \ldots                N\rbrace`, :math:`f(\mathbf{x}) = 0`
-          * - Function
-            - :math:`f(\mathbf{x}) = \sum_{i=1}^{N-1}(x_i^2 +                2x_{i+1}^2 - 0.3\cos(3\pi x_i) - 0.4\cos(4                \pi x_{i+1}) + 0.7)`
+        $$
+        f(\mathbf{x}) = \sum_{i=1}^{N-1}(x_i^2 +
+        2x_{i+1}^2 - 0.3\cos(3\pi x_i) -
+        0.4\cos(4\pi x_{i+1}) + 0.7)
+        $$
     """
     results = []
     for x, x1 in zip(individual[:-1], individual[1:], strict=False):
@@ -138,21 +136,20 @@ def bm_griewank(individual: Individual) -> tuple[float]:
     Returns:
         Fitness value of the individual.
 
-    .. dropdown:: Equations
-       :margin: 0 5 5 5
+    ??? note "Equations"
 
-       .. list-table::
-          :widths: 10 50
-          :stub-columns: 1
+        | | |
+        |---|---|
+        | Type | minimization |
+        | Range | $x_i \in [-600, 600]$ |
+        | Global optima | $x_i = 0, \forall i \in \lbrace 1 \ldots N\rbrace$, $f(\mathbf{x}) = 0$ |
+        | Function | see below |
 
-          * - Type
-            - minimization
-          * - Range
-            - :math:`x_i \in [-600, 600]`
-          * - Global optima
-            - :math:`x_i = 0, \forall i \in \lbrace 1 \ldots                N\rbrace`, :math:`f(\mathbf{x}) = 0`
-          * - Function
-            - :math:`f(\mathbf{x}) = \frac{1}{4000}\sum_{i=1}^N                \,x_i^2 - \prod_{i=1}^N\cos\left(                \frac{x_i}{\sqrt{i}}\right) + 1`
+        $$
+        f(\mathbf{x}) = \frac{1}{4000}\sum_{i=1}^N
+        x_i^2 - \prod_{i=1}^N\cos\left(
+        \frac{x_i}{\sqrt{i}}\right) + 1
+        $$
     """
     values = [cos(x / sqrt(i + 1.0)) for i, x in enumerate(individual)]
     exp_sum = sum(x**2 for x in individual)
