@@ -8,11 +8,15 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from __future__ import annotations
+
 from itertools import chain
 from operator import attrgetter
+from typing import TYPE_CHECKING
 
-from deap_er.base.typedefs import Individual
-from deap_er.utilities.sorting import sort_non_dominated
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual
+from deap_er.private.various.sort_non_dominated import sort_non_dominated
 
 from .sel_helpers import assign_crowding_dist
 

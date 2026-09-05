@@ -8,8 +8,14 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 import numpy
-from deap_er.base.typedefs import Individual
+
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual
 
 __all__: list[str] = ["assign_crowding_dist", "uniform_reference_points"]
 

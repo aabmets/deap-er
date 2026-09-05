@@ -8,10 +8,14 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from operator import attrgetter
+from __future__ import annotations
 
-from deap_er.base.typedefs import Individual
-from deap_er.rng import rng
+from operator import attrgetter
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual
+from deap_er.private.various.rng import rng
 
 __all__: list[str] = [
     "sel_random",

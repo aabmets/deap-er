@@ -8,10 +8,14 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-import math
+from __future__ import annotations
 
-from deap_er.base.typedefs import Individual, Mutant, NumOrSeq
-from deap_er.rng import rng
+import math
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual, Mutant, NumOrSeq
+from deap_er.private.various.rng import rng
 
 from .bounds import broadcast_param
 

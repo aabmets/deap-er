@@ -8,6 +8,8 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from .private.strategies import Strategy, StrategyMultiObjective, StrategyOnePlusLambda
+from .private.strategies.cma_multi_objective import StrategyMultiObjective
+from .private.strategies.cma_one_plus_lambda import StrategyOnePlusLambda
+from .private.strategies.cma_standard import Strategy
 
 __all__: list[str] = ["StrategyMultiObjective", "StrategyOnePlusLambda", "Strategy"]

@@ -8,7 +8,12 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.base.typedefs import Individual
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual
 
 from .sel_spea_2_archive import truncate_archive
 from .sel_spea_2_helpers import fill_from_density, raw_fitness

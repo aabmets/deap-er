@@ -8,13 +8,18 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from __future__ import annotations
+
 from collections.abc import Callable
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy
-from deap_er import utilities as utils
-from deap_er.base.typedefs import Individual
-from deap_er.rng import rng
+
+from deap_er.private.various.rng import rng
+from deap_er.private.various.sort_non_dominated import sort_non_dominated
+
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual
 
 from .mo_update import (
     commit_parent_params,
@@ -155,7 +160,7 @@ class StrategyMultiObjective:
                 individuals[-1].ps_ = "o", i
 
         else:
-            n_dom = utils.sort_non_dominated(self.parents, len(self.parents))[0]
+            n_dom = sort_non_dominated(self.parents, len(self.parents))[0]
 
             for i in range(self.lamb):
                 j = rng.integers(0, len(n_dom))

@@ -8,9 +8,13 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from collections.abc import Sequence
+from __future__ import annotations
 
-from deap_er.base.typedefs import NumOrSeq
+from collections.abc import Sequence
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import NumOrSeq
 
 __all__: list[str] = ["broadcast_param"]
 

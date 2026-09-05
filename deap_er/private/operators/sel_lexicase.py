@@ -8,11 +8,16 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from __future__ import annotations
+
 from collections.abc import Callable
+from typing import TYPE_CHECKING
 
 import numpy
-from deap_er.base.typedefs import Individual
-from deap_er.rng import rng
+
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual
+from deap_er.private.various.rng import rng
 
 __all__: list[str] = ["lexicase_select", "sel_lexicase", "sel_epsilon_lexicase"]
 

@@ -8,12 +8,16 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from __future__ import annotations
+
 from collections.abc import Callable, Iterable
 from math import log, sqrt
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy
-from deap_er.base.typedefs import Individual
+
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual
 
 from .common import sample_offspring
 

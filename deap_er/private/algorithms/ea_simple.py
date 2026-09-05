@@ -8,8 +8,8 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.base import Toolbox
-from deap_er.records.typedefs import AlgoResult, Hof, Individual, Stats
+from deap_er.private.toolbox import Toolbox
+from deap_er.private.typedefs import EvoAlgoResult, EvoRecords, EvoStats, Individual
 
 from .loop import evaluate_invalid, new_logbook, record_generation
 from .variation import var_and
@@ -23,10 +23,10 @@ def ea_simple(
     generations: int,
     cx_prob: float,
     mut_prob: float,
-    hof: Hof | None = None,
-    stats: Stats | None = None,
+    hof: EvoRecords | None = None,
+    stats: EvoStats | None = None,
     verbose: bool = False,
-) -> AlgoResult:
+) -> EvoAlgoResult:
     """Evolve a population with crossover and mutation on every generation.
 
     Requires ``mate``, ``mutate``, ``select``, and ``evaluate`` on

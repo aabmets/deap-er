@@ -8,10 +8,13 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from collections.abc import Callable
-from typing import Any
+from __future__ import annotations
 
-from deap_er.base.typedefs import Individual
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual
 
 __all__: list[str] = ["mig_ring"]
 

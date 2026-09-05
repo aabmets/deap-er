@@ -8,12 +8,17 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from __future__ import annotations
+
 from math import sqrt
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import numpy
-from deap_er import utilities as utils
-from deap_er.base.typedefs import Individual
+
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual
+from deap_er.private.various.least_contrib import least_contrib
+from deap_er.private.various.sort_non_dominated import sort_non_dominated
 
 from .common import step_size_multiplier
 
@@ -46,7 +51,7 @@ def select(
     if len(candidates) <= strategy.mu:
         return candidates, []
 
-    pareto_fronts = utils.sort_non_dominated(candidates, len(candidates))
+    pareto_fronts = sort_non_dominated(candidates, len(candidates))
 
     chosen: list[Individual] = []
     mid_front: list[Individual] = []
@@ -67,7 +72,7 @@ def select(
         ref = numpy.max(numpy.array([ind.fitness.wvalues for ind in candidates]) * -1, axis=0) + 1
 
         for _ in range(len(mid_front) - k):
-            idx = utils.least_contrib(mid_front, ref)
+            idx = least_contrib(mid_front, ref)
             not_chosen.append(mid_front.pop(idx))
 
         chosen += mid_front

@@ -11,14 +11,14 @@
 from collections.abc import Sequence
 from typing import Any
 
-from deap_er.base import Toolbox
+from deap_er.private.toolbox import Toolbox
+from deap_er.private.typedefs import EvoRecords, EvoStats, Individual
 from deap_er.records import Logbook
-from deap_er.records.typedefs import Hof, Individual, Stats
 
 __all__: list[str] = ["new_logbook", "evaluate_invalid", "record_generation"]
 
 
-def new_logbook(stats: Stats | None) -> Logbook:
+def new_logbook(stats: EvoStats | None) -> Logbook:
     """Create a logbook with the standard algorithm header.
 
     Args:
@@ -66,8 +66,8 @@ def record_generation(
     *,
     population: list[Individual],
     offspring: list[Individual],
-    hof: Hof | None,
-    stats: Stats | None,
+    hof: EvoRecords | None,
+    stats: EvoStats | None,
     verbose: bool,
 ) -> None:
     """Update the hall of fame and append one generation to the logbook.

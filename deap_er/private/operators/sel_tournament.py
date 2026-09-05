@@ -8,13 +8,16 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from __future__ import annotations
+
 from collections.abc import Callable
 from functools import partial
 from operator import attrgetter
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from deap_er.base.typedefs import Individual
-from deap_er.rng import rng
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual
+from deap_er.private.various.rng import rng
 
 from .sel_various import sel_random
 

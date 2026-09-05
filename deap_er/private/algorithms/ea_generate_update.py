@@ -8,8 +8,8 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.base import Toolbox
-from deap_er.records.typedefs import AlgoResult, Hof, Individual, Stats
+from deap_er.private.toolbox import Toolbox
+from deap_er.private.typedefs import EvoAlgoResult, EvoRecords, EvoStats, Individual
 
 from .loop import new_logbook, record_generation
 
@@ -19,10 +19,10 @@ __all__ = ["ea_generate_update"]
 def ea_generate_update(
     toolbox: Toolbox,
     generations: int,
-    hof: Hof | None = None,
-    stats: Stats | None = None,
+    hof: EvoRecords | None = None,
+    stats: EvoStats | None = None,
     verbose: bool = False,
-) -> AlgoResult:
+) -> EvoAlgoResult:
     """Evolve a strategy that generates and updates a population.
 
     Requires ``generate``, ``update``, and ``evaluate`` on ``toolbox``.
