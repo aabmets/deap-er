@@ -93,7 +93,7 @@ addopts = [
     "--cov-report=markdown:reports/coverage.md",
     "--import-mode=importlib",
     "--numprocesses=auto",
-    "--maxprocesses=8",
+    "--maxprocesses=4",
     "--dist=worksteal"
 ]
 pythonpath = [".", "./deap_er"]
