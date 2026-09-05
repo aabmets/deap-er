@@ -71,8 +71,11 @@ def generate(
 ) -> list[Any]:
     """Grow a tree as a depth-first list of primitives and terminals.
 
-    Each branch grows until ``condition`` is true. The list can be
-    passed to ``PrimitiveTree`` to build a tree object.
+    Each branch grows until ``condition`` is true. A branch also stops
+    early when its type has terminals but no primitives, which is how
+    a strongly typed set expresses a leaf-only type such as a rolling
+    window length. The list can be passed to ``PrimitiveTree`` to
+    build a tree object.
 
     Args:
         prim_set: Primitive set from which nodes are selected.
@@ -98,7 +101,8 @@ def generate(
     stack = [(0, ret_type)]
     while len(stack) != 0:
         depth, ret_type = stack.pop()
-        if condition(height, depth):
+        terminal_only = not prim_set.primitives[ret_type] and bool(prim_set.terminals[ret_type])
+        if condition(height, depth) or terminal_only:
             expr.append(_choose_terminal(prim_set, ret_type))
         else:
             prim = _choose_primitive(prim_set, ret_type)
