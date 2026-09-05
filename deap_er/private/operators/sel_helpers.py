@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 __all__: list[str] = ["assign_crowding_dist", "uniform_reference_points"]
 
 
-def assign_crowding_dist(individuals: list[Individual]) -> None:
+def assign_crowding_dist(individuals: list[Individual], *, use_weights: bool = False) -> None:
     """Assign a crowding distance to each individual's fitness.
 
     The distance is stored on the ``crowding_dist`` attribute of each
@@ -28,12 +28,15 @@ def assign_crowding_dist(individuals: list[Individual]) -> None:
 
     Args:
         individuals: Individuals with Fitness attributes.
+        use_weights: If True, crowd on ``wvalues`` instead of
+            ``values``. Defaults to False (Deb's NSGA-II).
     """
     if len(individuals) == 0:
         return
 
     distances = [0.0] * len(individuals)
-    crowd = [(ind.fitness.values, i) for i, ind in enumerate(individuals)]
+    key = (lambda ind: ind.fitness.wvalues) if use_weights else (lambda ind: ind.fitness.values)
+    crowd = [(key(ind), i) for i, ind in enumerate(individuals)]
     n_obj = len(individuals[0].fitness.values)
 
     for i in range(n_obj):

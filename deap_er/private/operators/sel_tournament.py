@@ -129,9 +129,11 @@ def sel_double_tournament(
 def sel_tournament_dcd(individuals: list[Individual], sel_count: int) -> list[Individual]:
     """Select by pairwise dominance, breaking ties with crowding distance.
 
-    ``sel_count`` must be a multiple of four. Each individual must
-    already have a ``crowding_dist`` attribute, which
-    ``assign_crowding_dist`` can set.
+    When ``sel_count`` is a multiple of four the original paired
+    shuffle is used. Other counts run pairwise contests until enough
+    winners are collected. Each individual must already have a
+    ``crowding_dist`` attribute, which ``assign_crowding_dist`` can
+    set.
 
     Args:
         individuals: Individuals to select from.
@@ -141,16 +143,14 @@ def sel_tournament_dcd(individuals: list[Individual], sel_count: int) -> list[In
         The selected individuals.
 
     Raises:
-        ValueError: If ``sel_count`` is larger than the pool, or if
-            ``sel_count`` is not divisible by four.
+        ValueError: If ``sel_count`` is larger than the pool.
     """
+    if sel_count <= 0:
+        return []
     if sel_count > len(individuals):
         raise ValueError(
             "sel_tournament_dcd: count must be less than or equal to individuals length."
         )
-
-    if sel_count % 4 != 0:
-        raise ValueError("sel_tournament_dcd: sel_count must be divisible by four")
 
     def tourney(ind1: Individual, ind2: Individual) -> Individual:
         """Return the better of two individuals by dominance, then crowding.
@@ -174,14 +174,27 @@ def sel_tournament_dcd(individuals: list[Individual], sel_count: int) -> list[In
             return ind1
         return ind2
 
-    individuals_1 = rng.sample(individuals, len(individuals))
-    individuals_2 = rng.sample(individuals, len(individuals))
+    if sel_count % 4 == 0:
+        individuals_1 = rng.sample(individuals, len(individuals))
+        individuals_2 = rng.sample(individuals, len(individuals))
+
+        chosen = []
+        for i in range(0, sel_count, 4):
+            chosen.append(tourney(individuals_1[i], individuals_1[i + 1]))
+            chosen.append(tourney(individuals_1[i + 2], individuals_1[i + 3]))
+            chosen.append(tourney(individuals_2[i], individuals_2[i + 1]))
+            chosen.append(tourney(individuals_2[i + 2], individuals_2[i + 3]))
+        return chosen
+
+    if sel_count == 1 and len(individuals) == 1:
+        return [individuals[0]]
 
     chosen = []
-    for i in range(0, sel_count, 4):
-        chosen.append(tourney(individuals_1[i], individuals_1[i + 1]))
-        chosen.append(tourney(individuals_1[i + 2], individuals_1[i + 3]))
-        chosen.append(tourney(individuals_2[i], individuals_2[i + 1]))
-        chosen.append(tourney(individuals_2[i + 2], individuals_2[i + 3]))
-
+    pool = list(individuals)
+    while len(chosen) < sel_count:
+        rng.shuffle(pool)
+        for i in range(0, len(pool) - 1, 2):
+            chosen.append(tourney(pool[i], pool[i + 1]))
+            if len(chosen) >= sel_count:
+                break
     return chosen

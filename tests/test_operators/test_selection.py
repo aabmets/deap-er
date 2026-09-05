@@ -207,7 +207,7 @@ def test_roulette_all_zero_fitness_returns_requested_count(single_obj):
     assert all(ind in population for ind in chosen)
 
 
-def test_tournament_dcd_returns_exact_count_and_rejects_non_multiple_of_four(multi_obj):
+def test_tournament_dcd_returns_exact_count_and_rejects_oversize(multi_obj):
     population = [_make(multi_obj, [i], (float(i), float(10 - i))) for i in range(10)]
     tools.assign_crowding_dist(population)
 
@@ -215,11 +215,12 @@ def test_tournament_dcd_returns_exact_count_and_rejects_non_multiple_of_four(mul
     chosen = tools.sel_tournament_dcd(population, 4)
     assert len(chosen) == 4
 
-    with pytest.raises(ValueError, match="divisible"):
-        tools.sel_tournament_dcd(population, 1)
+    tools.rng.seed(4)
+    assert len(tools.sel_tournament_dcd(population, 1)) == 1
+    assert len(tools.sel_tournament_dcd(population, 9)) == 9
 
-    with pytest.raises(ValueError, match="divisible"):
-        tools.sel_tournament_dcd(population, 9)
+    with pytest.raises(ValueError, match="less than or equal"):
+        tools.sel_tournament_dcd(population, 11)
 
 
 def test_nsga3_with_memory_updates_reference_points(multi_obj):
