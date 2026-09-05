@@ -11,15 +11,15 @@
 from typing import Any
 
 import pytest
-from deap_er import base, creator, tools
+from deap_er import Fitness, creator, tools
 
 MO_FIT = "MET_FIT"
 MO_IND = "MET_IND"
 
 
 def _setup() -> None:
-    creator.create(MO_FIT, base.Fitness, weights=(-1.0, -1.0))
-    creator.create(MO_IND, list, fitness=creator.__dict__[MO_FIT])
+    creator.create_type(MO_FIT, Fitness, weights=(-1.0, -1.0))
+    creator.create_type(MO_IND, list, fitness=creator.__dict__[MO_FIT])
 
 
 def _teardown() -> None:

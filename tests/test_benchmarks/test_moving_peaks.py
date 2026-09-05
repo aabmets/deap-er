@@ -11,7 +11,7 @@
 
 import pytest
 from deap_er import tools
-from deap_er.benchmarks.moving_peaks import MovingPeaks
+from deap_er.benchmarks import MovingPeaks
 
 
 def test_offline_error_before_first_evaluation():
@@ -45,7 +45,7 @@ def test_fluctuating_peak_count_defaults_to_no_change_severity():
 
 
 def test_change_peaks_respects_peak_count_bounds():
-    tools.seed(17)
+    tools.rng.seed(17)
     landscape = MovingPeaks(dimensions=2, npeaks=[3, 5, 8], change_severity=1.0)
 
     for _ in range(10):
@@ -59,7 +59,7 @@ def test_change_peaks_respects_peak_count_bounds():
 def test_change_peaks_is_stable_with_a_fluctuating_count():
     # Characterization: pins the interleaving of the peak-count change and the
     # per-peak position, height, and width updates.
-    tools.seed(77)
+    tools.rng.seed(77)
     landscape = MovingPeaks(dimensions=2, npeaks=[2, 3, 5], change_severity=1.0)
 
     landscape.change_peaks()
@@ -74,7 +74,7 @@ def test_change_peaks_is_stable_with_a_fluctuating_count():
 
 
 def test_change_peaks_is_stable_with_a_fixed_count():
-    tools.seed(5)
+    tools.rng.seed(5)
     landscape = MovingPeaks(dimensions=2)
 
     landscape.change_peaks()

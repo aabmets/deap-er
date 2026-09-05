@@ -22,7 +22,7 @@ class _ESList(list[Any]):
 def test_shuffle_indexes_preserves_genes():
     genes = [0, 1, 2, 3, 4, 5]
     individual: Any = list(genes)
-    tools.seed(1)
+    tools.rng.seed(1)
     (mutant,) = tools.mut_shuffle_indexes(individual, 1.0)
     assert sorted(mutant) == genes
     assert mutant != genes
@@ -30,14 +30,14 @@ def test_shuffle_indexes_preserves_genes():
 
 def test_flip_bit_inverts_boolean_genes():
     individual: Any = [0, 1, 0, 1]
-    tools.seed(2)
+    tools.rng.seed(2)
     (mutant,) = tools.mut_flip_bit(individual, 1.0)
     assert mutant == [1, 0, 1, 0]
 
 
 def test_es_log_normal_updates_strategy_and_genes():
     individual: Any = _ESList([0.0, 0.0, 0.0], [1.0, 1.0, 1.0])
-    tools.seed(3)
+    tools.rng.seed(3)
     (mutant,) = tools.mut_es_log_normal(individual, 1.0, 1.0)
     assert mutant is individual
     assert mutant != [0.0, 0.0, 0.0]
@@ -46,6 +46,6 @@ def test_es_log_normal_updates_strategy_and_genes():
 
 def test_es_log_normal_skips_individuals_without_strategy():
     individual: Any = [1.0, 2.0]
-    tools.seed(4)
+    tools.rng.seed(4)
     (mutant,) = tools.mut_es_log_normal(individual, 1.0, 1.0)
     assert mutant == [1.0, 2.0]

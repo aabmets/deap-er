@@ -12,7 +12,7 @@ import operator
 from functools import partial
 
 import pytest
-from deap_er import base, creator, gp, tools
+from deap_er import Fitness, Toolbox, creator, gp, tools
 
 HARM_FIT = "HARM_FIT"
 HARM_IND = "HARM_IND"
@@ -30,13 +30,13 @@ def toolbox():
     pset.add_primitive(operator.sub, 2)
     pset.add_primitive(operator.mul, 2)
 
-    creator.create(HARM_FIT, base.Fitness, weights=(-1.0,))
-    creator.create(HARM_IND, gp.PrimitiveTree, fitness=creator.__dict__[HARM_FIT])
+    creator.create_type(HARM_FIT, Fitness, weights=(-1.0,))
+    creator.create_type(HARM_IND, gp.PrimitiveTree, fitness=creator.__dict__[HARM_FIT])
 
     expr = partial(gp.gen_half_and_half, prim_set=pset, min_depth=1, max_depth=2)
     expr_mut = partial(gp.gen_full, min_depth=0, max_depth=2)
 
-    tb = base.Toolbox()
+    tb = Toolbox()
     tb.register("individual", tools.init_iterate, creator.__dict__[HARM_IND], expr)
     tb.register("population", tools.init_repeat, list, tb.individual)
     tb.register("compile", gp.compile_tree, prim_set=pset)
@@ -52,7 +52,7 @@ def toolbox():
 
 
 def _seeded_population(toolbox):
-    tools.seed(31)
+    tools.rng.seed(31)
     return toolbox.population(size=20)
 
 
@@ -125,7 +125,7 @@ def test_harm_updates_the_hall_of_fame(toolbox):
 def test_target_prob_half_life_scales_with_cutoff_not_size():
     import math
 
-    from deap_er.gp.harm import _target_prob
+    from deap_er.private.programming.harm.harm_size import target_prob
 
     alpha, beta, gamma, pop_len, cutoff = 0.05, 10.0, 0.25, 100, 20
     tau = cutoff * alpha + beta
@@ -135,8 +135,8 @@ def test_target_prob_half_life_scales_with_cutoff_not_size():
         decay = math.exp(-math.log(2) * (size - cutoff) / tau)
         return amplitude * decay
 
-    assert _target_prob(30, alpha, beta, gamma, pop_len, cutoff) == pytest.approx(expected(30))
-    assert _target_prob(40, alpha, beta, gamma, pop_len, cutoff) == pytest.approx(expected(40))
+    assert target_prob(30, alpha, beta, gamma, pop_len, cutoff) == pytest.approx(expected(30))
+    assert target_prob(40, alpha, beta, gamma, pop_len, cutoff) == pytest.approx(expected(40))
 
 
 def test_harm_cutoff_uses_evaluated_population_and_survives_small_model(toolbox):

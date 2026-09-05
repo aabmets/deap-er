@@ -16,7 +16,7 @@ from deap_er import tools
 
 
 def test_rand_is_in_unit_interval():
-    tools.seed(0)
+    tools.rng.seed(0)
     ignored: Any = [1.0, 2.0]
     (value,) = tools.bm_rand(ignored)
     assert 0.0 <= value < 1.0

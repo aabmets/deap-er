@@ -8,7 +8,7 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.utilities import initializers as init
+from deap_er import tools
 
 
 def _func_a() -> str:
@@ -23,7 +23,7 @@ class TestHelpers:
     def test_init_repeat_1(self):
         rtype = list
         count = 3
-        result = init.init_repeat(rtype, _func_a, count)
+        result = tools.init_repeat(rtype, _func_a, count)
         assert isinstance(result, rtype)
         assert result.count("gene") == count
         assert len(result) == count
@@ -31,20 +31,20 @@ class TestHelpers:
     def test_init_repeat_2(self):
         rtype = tuple
         count = 3
-        result = init.init_repeat(rtype, _func_a, count)
+        result = tools.init_repeat(rtype, _func_a, count)
         assert isinstance(result, rtype)
         assert len(result) == count
         assert result.count("gene") == count
 
     def test_init_iterate_1(self):
         rtype = list
-        result = init.init_iterate(rtype, _func_b)
+        result = tools.init_iterate(rtype, _func_b)
         assert isinstance(result, rtype)
         assert result == [0, 1, 2]
 
     def test_init_iterate_2(self):
         rtype = tuple
-        result = init.init_iterate(rtype, _func_b)
+        result = tools.init_iterate(rtype, _func_b)
         assert isinstance(result, rtype)
         assert result == (0, 1, 2)
 
@@ -52,7 +52,7 @@ class TestHelpers:
         rtype = list
         count = 3
         funcs = {_func_a, _func_b}
-        result = init.init_cycle(rtype, funcs, count)
+        result = tools.init_cycle(rtype, funcs, count)
         assert isinstance(result, rtype)
         assert len(result) == 6
         assert result.count("gene") == 3
@@ -62,7 +62,7 @@ class TestHelpers:
         rtype = tuple
         count = 3
         funcs = {_func_a, _func_b}
-        result = init.init_cycle(rtype, funcs, count)
+        result = tools.init_cycle(rtype, funcs, count)
         assert isinstance(result, rtype)
         assert len(result) == 6
         assert result.count("gene") == 3

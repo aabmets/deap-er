@@ -12,8 +12,7 @@ from array import array
 from copy import deepcopy
 from functools import partial
 
-from deap_er import base, creator, gp
-from deap_er.base.toolbox import Toolbox, clone_individual
+from deap_er import Fitness, Toolbox, clone_individual, creator, gp
 
 
 class TestToolbox:
@@ -54,8 +53,8 @@ class TestToolbox:
 
 
 def test_clone_individual_copies_list_genes_and_fitness():
-    creator.create("CLONE_FIT", base.Fitness, weights=(1.0,))
-    creator.create("CLONE_IND", list, fitness=creator.__dict__["CLONE_FIT"])
+    creator.create_type("CLONE_FIT", Fitness, weights=(1.0,))
+    creator.create_type("CLONE_IND", list, fitness=creator.__dict__["CLONE_FIT"])
     try:
         original = creator.__dict__["CLONE_IND"]([1, 0, 1])
         original.fitness.values = (3.0,)
@@ -72,8 +71,8 @@ def test_clone_individual_copies_list_genes_and_fitness():
 
 
 def test_clone_individual_copies_array_genes():
-    creator.create("CLONE_ARR_FIT", base.Fitness, weights=(1.0,))
-    creator.create("CLONE_ARR_IND", array, typecode="b", fitness=creator.__dict__["CLONE_ARR_FIT"])
+    creator.create_type("CLONE_ARR_FIT", Fitness, weights=(1.0,))
+    creator.create_type("CLONE_ARR_IND", array, typecode="b", fitness=creator.__dict__["CLONE_ARR_FIT"])
     try:
         original = creator.__dict__["CLONE_ARR_IND"]([1, 0, 1])
         original.fitness.values = (2.0,)
@@ -90,8 +89,8 @@ def test_clone_individual_shares_gp_tree_nodes_and_splits_fitness():
     # GP nodes are immutable once created, so a genetic programming
     # toolbox can register this clone instead of deepcopy and skip
     # copying every node of every individual of every generation.
-    creator.create("CLONE_GP_FIT", base.Fitness, weights=(1.0,))
-    creator.create("CLONE_GP_IND", gp.PrimitiveTree, fitness=creator.__dict__["CLONE_GP_FIT"])
+    creator.create_type("CLONE_GP_FIT", Fitness, weights=(1.0,))
+    creator.create_type("CLONE_GP_IND", gp.PrimitiveTree, fitness=creator.__dict__["CLONE_GP_FIT"])
     try:
         pset = gp.make_column_pset(["value"])
         gp.add_numpy_primitives(pset)
@@ -113,8 +112,8 @@ def test_clone_individual_shares_gp_tree_nodes_and_splits_fitness():
 
 
 def test_clone_individual_falls_back_when_strategy_is_set():
-    creator.create("CLONE_ES_FIT", base.Fitness, weights=(1.0,))
-    creator.create("CLONE_ES_IND", list, fitness=creator.__dict__["CLONE_ES_FIT"])
+    creator.create_type("CLONE_ES_FIT", Fitness, weights=(1.0,))
+    creator.create_type("CLONE_ES_IND", list, fitness=creator.__dict__["CLONE_ES_FIT"])
     try:
         original = creator.__dict__["CLONE_ES_IND"]([1.0, 2.0])
         original.fitness.values = (1.0,)

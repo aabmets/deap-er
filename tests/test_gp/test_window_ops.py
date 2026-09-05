@@ -155,7 +155,7 @@ def test_add_window_primitives_rejects_a_name_a_column_would_shadow():
 def test_window_ephemeral_samples_inside_its_bounds():
     pset = gp.make_column_pset(["value"])
     gp.add_window_ephemeral(pset, "WINDOW_OPS_BOUNDS", 3, 7)
-    tools.seed(5)
+    tools.rng.seed(5)
 
     sampler = pset.terminals[gp.Window][0]
     drawn = {sampler().value for _ in range(200)}

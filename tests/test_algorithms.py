@@ -9,7 +9,7 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import numpy
-from deap_er import base, creator, tools
+from deap_er import Fitness, Toolbox, creator, tools
 
 FITCLSNAME = "FIT_TYPE"
 INDCLSNAME = "IND_TYPE"
@@ -18,18 +18,18 @@ HV_THRESHOLD = 116.0  # 120.777 is the optimal value
 
 
 def setup_func_single_obj():
-    creator.create(FITCLSNAME, base.Fitness, weights=(-1.0,))
-    creator.create(INDCLSNAME, list, fitness=creator.__dict__[FITCLSNAME])
+    creator.create_type(FITCLSNAME, Fitness, weights=(-1.0,))
+    creator.create_type(INDCLSNAME, list, fitness=creator.__dict__[FITCLSNAME])
 
 
 def setup_func_multi_obj():
-    creator.create(FITCLSNAME, base.Fitness, weights=(-1.0, -1.0))
-    creator.create(INDCLSNAME, list, fitness=creator.__dict__[FITCLSNAME])
+    creator.create_type(FITCLSNAME, Fitness, weights=(-1.0, -1.0))
+    creator.create_type(INDCLSNAME, list, fitness=creator.__dict__[FITCLSNAME])
 
 
 def setup_func_multi_obj_numpy():
-    creator.create(FITCLSNAME, base.Fitness, weights=(-1.0, -1.0))
-    creator.create(INDCLSNAME, numpy.ndarray, fitness=creator.__dict__[FITCLSNAME])
+    creator.create_type(FITCLSNAME, Fitness, weights=(-1.0, -1.0))
+    creator.create_type(INDCLSNAME, numpy.ndarray, fitness=creator.__dict__[FITCLSNAME])
 
 
 def teardown_func():
@@ -43,7 +43,7 @@ def test_standard_cma():
     dimensions = 5
     strategy = tools.Strategy(centroid=[0.0] * dimensions, sigma=1.0)
 
-    toolbox = base.Toolbox()
+    toolbox = Toolbox()
     toolbox.register("evaluate", tools.bm_sphere)
     toolbox.register("generate", strategy.generate, creator.__dict__[INDCLSNAME])
     toolbox.register("update", strategy.update)
@@ -64,7 +64,7 @@ def test_nsga2():
     survivors = 16
     generations = 100
 
-    toolbox = base.Toolbox()
+    toolbox = Toolbox()
     toolbox.register("attr_float", tools.rng.uniform, bound_low, bound_up)
     toolbox.register(
         "individual",
@@ -146,9 +146,9 @@ def test_mo_cma_es():
     survivors = 10
     generations = 500
 
-    tools.seed(128)
+    tools.rng.seed(128)
 
-    toolbox = base.Toolbox()
+    toolbox = Toolbox()
     toolbox.register("evaluate", tools.bm_zdt_1)
     toolbox.decorate(
         "evaluate", tools.ClosestValidPenalty(valid, closest_feasible, 1.0e6, distance)
@@ -200,7 +200,7 @@ def test_nsga3():
 
     ref_points = tools.uniform_reference_points(2, ref_ppo=12)
 
-    toolbox = base.Toolbox()
+    toolbox = Toolbox()
     toolbox.register("attr_float", tools.rng.uniform, bound_low, bound_up)
     toolbox.register(
         "individual",

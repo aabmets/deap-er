@@ -33,8 +33,8 @@ from types import SimpleNamespace
 from typing import Any
 
 import numpy
-from deap_er import base, creator, gp, tools
-from deap_er.benchmarks.moving_peaks import MovingPeaks
+from deap_er import Fitness, Toolbox, creator, gp, tools
+from deap_er.benchmarks import MovingPeaks
 
 SEEDS = tuple(range(25))
 DATA_DIR = Path(__file__).parent
@@ -72,16 +72,16 @@ def golden_types() -> Iterator[SimpleNamespace]:
     Yields:
         A namespace of the created individual classes.
     """
-    creator.create("GOLDEN_FIT_MIN", base.Fitness, weights=(-1.0,))
-    creator.create("GOLDEN_IND_MIN", list, fitness=creator.__dict__["GOLDEN_FIT_MIN"])
-    creator.create("GOLDEN_FIT_2", base.Fitness, weights=(1.0, 1.0))
-    creator.create("GOLDEN_IND_2", list, fitness=creator.__dict__["GOLDEN_FIT_2"])
-    creator.create("GOLDEN_FIT_4", base.Fitness, weights=(1.0, 1.0, 1.0, 1.0))
-    creator.create("GOLDEN_IND_4", list, fitness=creator.__dict__["GOLDEN_FIT_4"])
-    creator.create("GOLDEN_FIT_MO", base.Fitness, weights=(-1.0, -1.0))
-    creator.create("GOLDEN_IND_MO", numpy.ndarray, fitness=creator.__dict__["GOLDEN_FIT_MO"])
-    creator.create("GOLDEN_FIT_GP", base.Fitness, weights=(-1.0,))
-    creator.create("GOLDEN_IND_GP", gp.PrimitiveTree, fitness=creator.__dict__["GOLDEN_FIT_GP"])
+    creator.create_type("GOLDEN_FIT_MIN", Fitness, weights=(-1.0,))
+    creator.create_type("GOLDEN_IND_MIN", list, fitness=creator.__dict__["GOLDEN_FIT_MIN"])
+    creator.create_type("GOLDEN_FIT_2", Fitness, weights=(1.0, 1.0))
+    creator.create_type("GOLDEN_IND_2", list, fitness=creator.__dict__["GOLDEN_FIT_2"])
+    creator.create_type("GOLDEN_FIT_4", Fitness, weights=(1.0, 1.0, 1.0, 1.0))
+    creator.create_type("GOLDEN_IND_4", list, fitness=creator.__dict__["GOLDEN_FIT_4"])
+    creator.create_type("GOLDEN_FIT_MO", Fitness, weights=(-1.0, -1.0))
+    creator.create_type("GOLDEN_IND_MO", numpy.ndarray, fitness=creator.__dict__["GOLDEN_FIT_MO"])
+    creator.create_type("GOLDEN_FIT_GP", Fitness, weights=(-1.0,))
+    creator.create_type("GOLDEN_IND_GP", gp.PrimitiveTree, fitness=creator.__dict__["GOLDEN_FIT_GP"])
     try:
         yield SimpleNamespace(
             min_ind=creator.__dict__["GOLDEN_IND_MIN"],
@@ -165,7 +165,7 @@ def selection_case_exact(types: SimpleNamespace, seed: int) -> dict[str, Any]:
 
     for sel_count in (2, 4, 7, 10, 12):
         population = _population(types.two_obj, seed, 10, 3, 2)
-        tools.seed(seed + 300000)
+        tools.rng.seed(seed + 300000)
         out[f"spea2/{sel_count}"] = _indices(tools.sel_spea_2(population, sel_count))
 
     population = _population(types.four_obj, seed, 8, 3, 4)
@@ -175,7 +175,7 @@ def selection_case_exact(types: SimpleNamespace, seed: int) -> dict[str, Any]:
         ("epsilon_zero", (0.0,)),
         ("epsilon_half", (0.5,)),
     ):
-        tools.seed(seed + 200000)
+        tools.rng.seed(seed + 200000)
         if label == "lexicase":
             chosen = tools.sel_lexicase(population, 6)
         else:
@@ -190,26 +190,26 @@ def gp_crossover_case_exact(types: SimpleNamespace, seed: int) -> dict[str, Any]
     out: dict[str, Any] = {}
 
     for name, pset in (("untyped", _untyped_pset()), ("typed", _typed_pset())):
-        tools.seed(seed)
+        tools.rng.seed(seed)
         first = types.gp_ind(gp.gen_full(pset, 1, 4))
         second = types.gp_ind(gp.gen_grow(pset, 1, 4))
-        tools.seed(seed + 100000)
+        tools.rng.seed(seed + 100000)
         gp.cx_one_point(first, second)
         out[f"one_point/{name}"] = [str(first), str(second)]
 
-        tools.seed(seed)
+        tools.rng.seed(seed)
         third = types.gp_ind(gp.gen_full(pset, 1, 4))
         fourth = types.gp_ind(gp.gen_grow(pset, 1, 4))
-        tools.seed(seed + 100000)
+        tools.rng.seed(seed + 100000)
         gp.cx_one_point_leaf_biased(third, fourth, 0.1 + (seed % 9) / 10.0)
         out[f"leaf_biased/{name}"] = [str(third), str(fourth)]
 
     return out
 
 
-def _ea_toolbox() -> base.Toolbox:
+def _ea_toolbox() -> Toolbox:
     """Build a toolbox whose operators are all discrete."""
-    toolbox = base.Toolbox()
+    toolbox = Toolbox()
     toolbox.register("mate", tools.cx_two_point)
     toolbox.register("mutate", tools.mut_flip_bit, mut_prob=0.2)
     toolbox.register("select", tools.sel_tournament, contestants=3)
@@ -232,7 +232,7 @@ def ea_drivers_case_exact(types: SimpleNamespace, seed: int) -> dict[str, Any]:
         stats = tools.Statistics(lambda ind: ind.fitness.values[0])
         stats.register("max", max)
 
-        tools.seed(seed + 600000)
+        tools.rng.seed(seed + 600000)
         if name == "ea_simple":
             final, logbook = tools.ea_simple(toolbox, population, 5, 0.5, 0.3, hof, stats)
         elif name == "ea_mu_plus_lambda":
@@ -253,7 +253,7 @@ def ea_drivers_case_exact(types: SimpleNamespace, seed: int) -> dict[str, Any]:
 
 def operators_case_exact(types: SimpleNamespace, seed: int) -> dict[str, Any]:
     """Integer mutation results for one seed."""
-    tools.seed(seed + 9000)
+    tools.rng.seed(seed + 9000)
     size = 3 + seed % 6
     ind = types.min_ind([tools.rng.randint(0, 5) for _ in range(size)])
     tools.mut_uniform_int(ind, 0, 9, 0.5)
@@ -268,27 +268,27 @@ def operators_case_approx(types: SimpleNamespace, seed: int) -> dict[str, list[f
     random.seed(seed)
     first = types.min_ind([random.uniform(0, 1) for _ in range(size)])
     second = types.min_ind([random.uniform(0, 1) for _ in range(size)])
-    tools.seed(seed + 5000)
+    tools.rng.seed(seed + 5000)
     tools.cx_simulated_binary_bounded(first, second, 2.0 + seed % 5, 0.0, 1.0)
     out["sbx_bounded_scalar"] = _flat(list(first), list(second))
 
-    tools.seed(seed + 6000)
+    tools.rng.seed(seed + 6000)
     third = types.min_ind([tools.rng.uniform(0, 1) for _ in range(size)])
     fourth = types.min_ind([tools.rng.uniform(0, 1) for _ in range(size)])
     tools.cx_simulated_binary_bounded(third, fourth, 20.0, [0.0] * size, [1.0] * size)
     out["sbx_bounded_sequence"] = _flat(list(third), list(fourth))
 
-    tools.seed(seed + 7000)
+    tools.rng.seed(seed + 7000)
     poly = types.min_ind([tools.rng.uniform(0, 1) for _ in range(size)])
     tools.mut_polynomial_bounded(poly, 20.0, 0.0, 1.0, 0.6)
     out["polynomial_bounded"] = _flat(list(poly))
 
-    tools.seed(seed + 8000)
+    tools.rng.seed(seed + 8000)
     gauss = types.min_ind([tools.rng.uniform(0, 1) for _ in range(size)])
     tools.mut_gaussian(gauss, 0.0, 1.0, 0.5)
     out["gaussian_scalar"] = _flat(list(gauss))
 
-    tools.seed(seed + 8500)
+    tools.rng.seed(seed + 8500)
     gauss_seq = types.min_ind([tools.rng.uniform(0, 1) for _ in range(size)])
     tools.mut_gaussian(gauss_seq, [0.0] * size, [1.0] * size, 0.5)
     out["gaussian_sequence"] = _flat(list(gauss_seq))
@@ -324,7 +324,7 @@ def moving_peaks_case_approx(_types: SimpleNamespace, seed: int) -> dict[str, li
     out: dict[str, list[float]] = {}
 
     dim = 2 + seed % 3
-    tools.seed(seed)
+    tools.rng.seed(seed)
     fluctuating = MovingPeaks(dimensions=dim, npeaks=[2, 4, 7], change_severity=1.0)
     for _ in range(3):
         fluctuating.change_peaks()
@@ -333,7 +333,7 @@ def moving_peaks_case_approx(_types: SimpleNamespace, seed: int) -> dict[str, li
     )
     out["fluctuating_eval"] = _flat(fluctuating([0.5] * dim))
 
-    tools.seed(seed + 400000)
+    tools.rng.seed(seed + 400000)
     fixed = MovingPeaks(dimensions=3)
     for _ in range(3):
         fixed.change_peaks()
@@ -351,7 +351,7 @@ def strategies_case_approx(types: SimpleNamespace, seed: int) -> dict[str, list[
     """State of each CMA strategy after a short run."""
     out: dict[str, list[float]] = {}
 
-    tools.seed(seed)
+    tools.rng.seed(seed)
     standard = tools.Strategy(centroid=[0.0] * 5, sigma=1.0)
     for _ in range(10):
         population = standard.generate(types.min_ind)
@@ -362,7 +362,7 @@ def strategies_case_approx(types: SimpleNamespace, seed: int) -> dict[str, list[
         standard.centroid, standard.sigma, standard.diag_d, standard.pc, standard.ps
     )
 
-    tools.seed(seed + 900)
+    tools.rng.seed(seed + 900)
     parent = types.min_ind([1.0] * 4)
     parent.fitness.values = tools.bm_sphere(parent)
     one_plus = tools.StrategyOnePlusLambda(parent, sigma=0.5, offsprings=3)
@@ -375,7 +375,7 @@ def strategies_case_approx(types: SimpleNamespace, seed: int) -> dict[str, list[
         list(one_plus.parent), one_plus.sigma, one_plus.psucc, one_plus.big_a, one_plus.pc
     )
 
-    tools.seed(seed + 1900)
+    tools.rng.seed(seed + 1900)
     choices = [[tools.rng.uniform(0.0, 1.0) for _ in range(4)] for _ in range(6)]
     mo_population = [types.mo_ind(x) for x in choices]
     for ind in mo_population:
@@ -391,7 +391,7 @@ def strategies_case_approx(types: SimpleNamespace, seed: int) -> dict[str, list[
     )
     out["multi_objective_hv"] = _flat(tools.hypervolume(multi.parents, [11.0, 11.0]))
 
-    tools.seed(seed + 2900)
+    tools.rng.seed(seed + 2900)
     choices = [[tools.rng.uniform(0.0, 1.0) for _ in range(3)] for _ in range(5)]
     uneven_population = [types.mo_ind(x) for x in choices]
     for ind in uneven_population:

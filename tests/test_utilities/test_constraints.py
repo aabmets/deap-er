@@ -12,15 +12,15 @@ from typing import Any
 
 import numpy
 import pytest
-from deap_er import base, creator, tools
+from deap_er import Fitness, creator, tools
 
 FIT = "CON_FIT"
 IND = "CON_IND"
 
 
 def _setup(weights: tuple[float, ...] = (-1.0,)) -> None:
-    creator.create(FIT, base.Fitness, weights=weights)
-    creator.create(IND, list, fitness=creator.__dict__[FIT])
+    creator.create_type(FIT, Fitness, weights=weights)
+    creator.create_type(IND, list, fitness=creator.__dict__[FIT])
 
 
 def _teardown() -> None:

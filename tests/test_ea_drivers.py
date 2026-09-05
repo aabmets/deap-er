@@ -9,7 +9,7 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import pytest
-from deap_er import base, creator, tools
+from deap_er import Fitness, Toolbox, creator, tools
 
 EA_FIT = "EA_FIT"
 EA_IND = "EA_IND"
@@ -21,10 +21,10 @@ def _evaluate(individual):
 
 @pytest.fixture
 def toolbox():
-    creator.create(EA_FIT, base.Fitness, weights=(-1.0,))
-    creator.create(EA_IND, list, fitness=creator.__dict__[EA_FIT])
+    creator.create_type(EA_FIT, Fitness, weights=(-1.0,))
+    creator.create_type(EA_IND, list, fitness=creator.__dict__[EA_FIT])
 
-    tb = base.Toolbox()
+    tb = Toolbox()
     tb.register("mate", tools.cx_two_point)
     tb.register("mutate", tools.mut_flip_bit, mut_prob=0.2)
     tb.register("select", tools.sel_tournament, contestants=3)
@@ -37,7 +37,7 @@ def toolbox():
 
 
 def _population(count=10):
-    tools.seed(3)
+    tools.rng.seed(3)
     population = []
     for _ in range(count):
         ind = creator.__dict__[EA_IND]([tools.rng.randint(0, 1) for _ in range(6)])

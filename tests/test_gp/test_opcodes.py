@@ -102,7 +102,7 @@ def test_lowering_carries_the_fill_of_the_primitive_set():
 def test_the_opcode_backend_matches_the_default_backend():
     pset = _kit("OPCODES_PARITY")
     columns = _samples()
-    tools.seed(23)
+    tools.rng.seed(23)
 
     for _ in range(250):
         tree = gp.PrimitiveTree(gp.gen_half_and_half(pset, 2, 4))

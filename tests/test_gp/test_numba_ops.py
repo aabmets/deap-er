@@ -11,7 +11,7 @@
 import numpy
 import pytest
 from deap_er import gp, tools
-from deap_er.gp import numba_ops
+from deap_er.private.programming.numba import numba_ops
 
 pytestmark = pytest.mark.skipif(
     not gp.numba_available(), reason="the optional numba extra is not installed"
@@ -67,7 +67,7 @@ def _dispatch():
 def test_the_numba_backend_matches_the_default_backend():
     pset = _kit("NUMBA_OPS_PARITY")
     columns = _samples()
-    tools.seed(29)
+    tools.rng.seed(29)
 
     for _ in range(250):
         tree = gp.PrimitiveTree(gp.gen_half_and_half(pset, 2, 4))

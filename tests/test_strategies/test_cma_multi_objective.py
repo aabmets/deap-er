@@ -10,7 +10,7 @@
 #
 import numpy
 import pytest
-from deap_er import base, creator, tools
+from deap_er import Fitness, creator, tools
 
 MO_FIT = "MOCMA_FIT"
 MO_IND = "MOCMA_IND"
@@ -18,10 +18,10 @@ MO_IND = "MOCMA_IND"
 
 @pytest.fixture
 def population():
-    creator.create(MO_FIT, base.Fitness, weights=(-1.0, -1.0))
-    creator.create(MO_IND, numpy.ndarray, fitness=creator.__dict__[MO_FIT])
+    creator.create_type(MO_FIT, Fitness, weights=(-1.0, -1.0))
+    creator.create_type(MO_IND, numpy.ndarray, fitness=creator.__dict__[MO_FIT])
 
-    tools.seed(3)
+    tools.rng.seed(3)
     choices = numpy.array([[tools.rng.uniform(0.0, 1.0) for _ in range(4)] for _ in range(6)])
     individuals = [creator.__dict__[MO_IND](x) for x in choices]
     for ind in individuals:

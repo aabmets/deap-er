@@ -10,17 +10,15 @@
 #
 import numpy
 import pytest
-from deap_er import creator
-from deap_er.base import Fitness
-from deap_er.utilities.hypervolume import hypervolume, least_contrib
+from deap_er import Fitness, creator, tools
 
 FIT = "HV_FIT"
 IND = "HV_IND"
 
 
 def _setup() -> None:
-    creator.create(FIT, Fitness, weights=(-1.0, -1.0))
-    creator.create(IND, list, fitness=creator.__dict__[FIT])
+    creator.create_type(FIT, Fitness, weights=(-1.0, -1.0))
+    creator.create_type(IND, list, fitness=creator.__dict__[FIT])
 
 
 def _teardown() -> None:
@@ -37,32 +35,32 @@ def _ind(values: tuple[float, ...]):
 class TestHypervolume:
     def test_1(self):
         front = numpy.array([(a, a) for a in numpy.arange(1, 0, -0.01)])
-        assert hypervolume(front, [2, 2]) == pytest.approx(3.9601000000000033)
+        assert tools.hypervolume(front, [2, 2]) == pytest.approx(3.9601000000000033)
 
     def test_2(self):
         front = numpy.array([(a, a) for a in numpy.arange(2, 0, -0.2)])
-        assert hypervolume(front, [3, 3]) == pytest.approx(7.839999999999998)
+        assert tools.hypervolume(front, [3, 3]) == pytest.approx(7.839999999999998)
 
     def test_3(self):
         front = numpy.array([(a, a, a) for a in numpy.arange(3, 0, -0.03)])
-        assert hypervolume(front, [4, 5, 6]) == pytest.approx(117.7934729999985)
+        assert tools.hypervolume(front, [4, 5, 6]) == pytest.approx(117.7934729999985)
 
     def test_4(self):
         front = numpy.array([(a, a, a) for a in numpy.arange(4, 0, -0.4)])
-        assert hypervolume(front, [4, 5, 6]) == pytest.approx(92.73599999999996)
+        assert tools.hypervolume(front, [4, 5, 6]) == pytest.approx(92.73599999999996)
 
     def test_5(self):
         front = numpy.array([(a, a, a, a) for a in numpy.arange(5, 0, -0.567)])
-        assert hypervolume(front, [9, 2, 7, 4]) == pytest.approx(303.0190427996165)
+        assert tools.hypervolume(front, [9, 2, 7, 4]) == pytest.approx(303.0190427996165)
 
     def test_empty(self):
-        assert hypervolume(numpy.array([])) == 0.0
-        assert hypervolume([]) == 0.0
+        assert tools.hypervolume(numpy.array([])) == 0.0
+        assert tools.hypervolume([]) == 0.0
 
     def test_population(self):
         _setup()
         try:
-            result = hypervolume([_ind((1.0, 4.0)), _ind((4.0, 1.0))], [5.0, 5.0])
+            result = tools.hypervolume([_ind((1.0, 4.0)), _ind((4.0, 1.0))], [5.0, 5.0])
         finally:
             _teardown()
         assert result == pytest.approx(7.0)
@@ -70,19 +68,19 @@ class TestHypervolume:
     def test_auto_reference(self):
         _setup()
         try:
-            result = hypervolume([_ind((1.0, 4.0)), _ind((4.0, 1.0))])
+            result = tools.hypervolume([_ind((1.0, 4.0)), _ind((4.0, 1.0))])
         finally:
             _teardown()
         assert result > 0.0
 
     def test_ndarray_individual_uses_fitness(self):
-        creator.create(FIT, Fitness, weights=(-1.0, -1.0))
-        creator.create(IND, numpy.ndarray, fitness=creator.__dict__[FIT])
+        creator.create_type(FIT, Fitness, weights=(-1.0, -1.0))
+        creator.create_type(IND, numpy.ndarray, fitness=creator.__dict__[FIT])
         try:
             individual = creator.__dict__[IND]([0.0, 0.0])
             individual.fitness.values = (1.0, 4.0)
-            as_one = hypervolume(individual, [5.0, 5.0])
-            as_pop = hypervolume([individual], [5.0, 5.0])
+            as_one = tools.hypervolume(individual, [5.0, 5.0])
+            as_pop = tools.hypervolume([individual], [5.0, 5.0])
         finally:
             _teardown()
         assert as_one == pytest.approx(4.0)
@@ -92,7 +90,7 @@ class TestHypervolume:
 class TestLeastContrib:
     def test_empty_raises(self):
         with pytest.raises(ValueError, match="empty"):
-            least_contrib([])
+            tools.least_contrib([])
 
     def test_least_index(self):
         _setup()
@@ -103,7 +101,7 @@ class TestLeastContrib:
                 _ind((2.0, 7.0)),
                 _ind((7.0, 4.0)),
             ]
-            idx = least_contrib(pop, [10.0, 10.0])
+            idx = tools.least_contrib(pop, [10.0, 10.0])
         finally:
             _teardown()
         assert idx == 1

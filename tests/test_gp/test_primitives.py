@@ -12,41 +12,40 @@ import operator
 from typing import Any
 
 import pytest
-from deap_er.gp.primitives import PrimitiveSet, PrimitiveSetTyped, PrimitiveTree
-from deap_er.gp.tools import compile_tree
+from deap_er import gp
 
 
-def _add_pset() -> PrimitiveSet:
-    pset = PrimitiveSet("main", 1)
+def _add_pset() -> gp.PrimitiveSet:
+    pset = gp.PrimitiveSet("main", 1)
     pset.add_primitive(operator.add, 2)
     return pset
 
 
 def test_from_string_round_trip_named_and_literal():
     pset = _add_pset()
-    tree = PrimitiveTree.from_string("add(ARG0, 2)", pset)
-    restored = PrimitiveTree.from_string(str(tree), pset)
+    tree = gp.PrimitiveTree.from_string("add(ARG0, 2)", pset)
+    restored = gp.PrimitiveTree.from_string(str(tree), pset)
 
     assert [node.name for node in restored] == [node.name for node in tree]
     assert restored[-1].value == 2
-    assert compile_tree(restored, pset)(3) == 5
+    assert gp.compile_tree(restored, pset)(3) == 5
 
 
 def test_from_string_literal_kinds():
     pset = _add_pset()
     pset.add_primitive(operator.mul, 2)
-    tree = PrimitiveTree.from_string("add(mul(ARG0, 1.5), True)", pset)
+    tree = gp.PrimitiveTree.from_string("add(mul(ARG0, 1.5), True)", pset)
     values = [node.value for node in tree if not hasattr(node, "args")]
 
     assert 1.5 in values
     assert True in values
-    assert compile_tree(tree, pset)(2) == 4.0
+    assert gp.compile_tree(tree, pset)(2) == 4.0
 
 
 def test_from_string_rejects_non_literal():
     pset = _add_pset()
     with pytest.raises(TypeError, match="Unable to evaluate terminal"):
-        PrimitiveTree.from_string("add(ARG0, foo)", pset)
+        gp.PrimitiveTree.from_string("add(ARG0, foo)", pset)
 
 
 def test_add_primitive_rejects_duplicate_inferred_name():
@@ -90,7 +89,7 @@ def _zero() -> int:
 
 
 def test_untyped_set_rejects_zero_arity_and_adds_ephemeral():
-    pset = PrimitiveSet("main", 1)
+    pset = gp.PrimitiveSet("main", 1)
     with pytest.raises(ValueError, match="arity should be"):
         pset.add_primitive(operator.add, 0)
     pset.add_ephemeral_constant("COV_EPH_PRIM", _zero)
@@ -103,9 +102,9 @@ def test_untyped_set_rejects_zero_arity_and_adds_ephemeral():
 
 
 def test_rename_arguments_and_adf():
-    adf = PrimitiveSet("ADF0", 1)
+    adf = gp.PrimitiveSet("ADF0", 1)
     adf.add_primitive(operator.add, 2)
-    pset = PrimitiveSet("MAIN", 1)
+    pset = gp.PrimitiveSet("MAIN", 1)
     pset.add_adf(adf)
     pset.rename_arguments(ARG0="x")
     assert pset.arguments == ["x"]
@@ -115,7 +114,7 @@ def test_rename_arguments_and_adf():
 def test_primitive_and_terminal_equality():
     pset = _add_pset()
     first = pset.mapping["add"]
-    second = PrimitiveSet("other", 1)
+    second = gp.PrimitiveSet("other", 1)
     second.add_primitive(operator.add, 2)
     assert first == second.mapping["add"]
     assert first != object()
@@ -126,7 +125,7 @@ def test_primitive_and_terminal_equality():
 
 def test_setitem_rejects_arity_changes():
     pset = _add_pset()
-    tree = PrimitiveTree.from_string("add(ARG0, 2)", pset)
+    tree = gp.PrimitiveTree.from_string("add(ARG0, 2)", pset)
     with pytest.raises(ValueError, match="different arity"):
         tree[0] = tree[-1]
     with pytest.raises(IndexError, match="slice larger"):
@@ -136,17 +135,17 @@ def test_setitem_rejects_arity_changes():
 
 
 def test_from_string_rejects_type_mismatches():
-    pset = PrimitiveSetTyped("main", [float], float)
+    pset = gp.PrimitiveSetTyped("main", [float], float)
     pset.add_primitive(operator.add, [float, float], float)
     pset.add_primitive(operator.neg, [int], int, name="neg")
     with pytest.raises(TypeError, match="does not match"):
-        PrimitiveTree.from_string("add(ARG0, True)", pset)
+        gp.PrimitiveTree.from_string("add(ARG0, True)", pset)
     with pytest.raises(TypeError, match="return type"):
-        PrimitiveTree.from_string("add(neg(1), ARG0)", pset)
+        gp.PrimitiveTree.from_string("add(neg(1), ARG0)", pset)
 
 
 def test_add_primitive_requires_a_name():
-    pset = PrimitiveSetTyped("main", [float], float)
+    pset = gp.PrimitiveSetTyped("main", [float], float)
     nameless: Any = object()
     with pytest.raises(TypeError, match="__name__"):
         pset.add_primitive(nameless, [float], float)

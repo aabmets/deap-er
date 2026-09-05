@@ -8,7 +8,7 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from deap_er.records.logbook import Logbook
+from deap_er.private.records.logbook import Logbook
 
 
 def _filled(count=5):

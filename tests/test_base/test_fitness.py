@@ -12,7 +12,7 @@ from copy import deepcopy
 
 import numpy
 import pytest
-from deap_er.base.fitness import Fitness
+from deap_er import Fitness
 
 
 class TestFitness:

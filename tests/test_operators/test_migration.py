@@ -9,7 +9,7 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import pytest
-from deap_er import base, creator, tools
+from deap_er import Fitness, creator, tools
 
 MIG_FIT = "MIG_FIT"
 MIG_IND = "MIG_IND"
@@ -17,8 +17,8 @@ MIG_IND = "MIG_IND"
 
 @pytest.fixture
 def ind_cls():
-    creator.create(MIG_FIT, base.Fitness, weights=(1.0,))
-    creator.create(MIG_IND, list, fitness=creator.__dict__[MIG_FIT])
+    creator.create_type(MIG_FIT, Fitness, weights=(1.0,))
+    creator.create_type(MIG_IND, list, fitness=creator.__dict__[MIG_FIT])
     yield creator.__dict__[MIG_IND]
     del creator.__dict__[MIG_FIT]
     del creator.__dict__[MIG_IND]

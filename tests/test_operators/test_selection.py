@@ -10,7 +10,7 @@
 #
 import numpy
 import pytest
-from deap_er import base, creator, tools
+from deap_er import Fitness, creator, tools
 from deap_er.private.operators.sel_nsga_3_helpers import associate_to_niche
 
 SO_FIT = "SEL_SO_FIT"
@@ -21,8 +21,8 @@ MO_IND = "SEL_MO_IND"
 
 @pytest.fixture
 def single_obj():
-    creator.create(SO_FIT, base.Fitness, weights=(1.0,))
-    creator.create(SO_IND, list, fitness=creator.__dict__[SO_FIT])
+    creator.create_type(SO_FIT, Fitness, weights=(1.0,))
+    creator.create_type(SO_IND, list, fitness=creator.__dict__[SO_FIT])
     yield creator.__dict__[SO_IND]
     del creator.__dict__[SO_FIT]
     del creator.__dict__[SO_IND]
@@ -30,8 +30,8 @@ def single_obj():
 
 @pytest.fixture
 def multi_obj():
-    creator.create(MO_FIT, base.Fitness, weights=(1.0, 1.0))
-    creator.create(MO_IND, list, fitness=creator.__dict__[MO_FIT])
+    creator.create_type(MO_FIT, Fitness, weights=(1.0, 1.0))
+    creator.create_type(MO_IND, list, fitness=creator.__dict__[MO_FIT])
     yield creator.__dict__[MO_IND]
     del creator.__dict__[MO_FIT]
     del creator.__dict__[MO_IND]
@@ -63,7 +63,7 @@ def test_double_tournament_favours_smaller_individuals(single_obj):
     # Equal fitness everywhere, so only the size tournament can decide.
     population = [_make(single_obj, [0] * length, (1.0,)) for length in (1, 1, 1, 20, 20, 20)]
 
-    tools.seed(4321)
+    tools.rng.seed(4321)
     chosen = tools.sel_double_tournament(
         population,
         rounds=40,
@@ -107,9 +107,9 @@ def test_epsilon_lexicase_recomputes_epsilon_for_each_selection(multi_obj):
     values = [(10.0, 0.0), (9.0, 50.0), (8.0, 100.0), (7.0, 150.0)]
     population = [_make(multi_obj, [i], value) for i, value in enumerate(values)]
 
-    tools.seed(99)
+    tools.rng.seed(99)
     batched = tools.sel_epsilon_lexicase(population, 8)
-    tools.seed(99)
+    tools.rng.seed(99)
     one_at_a_time = [tools.sel_epsilon_lexicase(population, 1)[0] for _ in range(8)]
 
     # Each selection must start from a fresh epsilon, so a batch of eight has to
@@ -148,7 +148,7 @@ def test_spea2_selection_is_stable(multi_obj, sel_count, expected):
     # truncation path, above it takes the density path, which consumes RNG.
     population = _spea2_population(multi_obj)
 
-    tools.seed(2024)
+    tools.rng.seed(2024)
     chosen = tools.sel_spea_2(population, sel_count)
 
     assert [ind[0] for ind in chosen] == expected
@@ -157,7 +157,7 @@ def test_spea2_selection_is_stable(multi_obj, sel_count, expected):
 def test_spea2_returns_requested_count(multi_obj):
     population = _spea2_population(multi_obj)
 
-    tools.seed(11)
+    tools.rng.seed(11)
     assert len(tools.sel_spea_2(population, 4)) == 4
 
 
@@ -172,14 +172,14 @@ def test_spea2_mixed_sign_weights_change_the_archive(sel_count, expected):
     # Dominance uses wvalues, so maximizing the first objective and
     # minimizing the second is not the same front as (1, 1) weights.
     # Distances stay in objective-value space.
-    creator.create("SEL_MS_FIT", base.Fitness, weights=(1.0, -1.0))
-    creator.create("SEL_MS_IND", list, fitness=creator.__dict__["SEL_MS_FIT"])
+    creator.create_type("SEL_MS_FIT", Fitness, weights=(1.0, -1.0))
+    creator.create_type("SEL_MS_IND", list, fitness=creator.__dict__["SEL_MS_FIT"])
     try:
         population = [
             _make(creator.__dict__["SEL_MS_IND"], [i], value)
             for i, value in enumerate(SPEA2_VALUES)
         ]
-        tools.seed(2024)
+        tools.rng.seed(2024)
         chosen = tools.sel_spea_2(population, sel_count)
         assert [ind[0] for ind in chosen] == expected
     finally:
@@ -190,7 +190,7 @@ def test_spea2_mixed_sign_weights_change_the_archive(sel_count, expected):
 def test_roulette_returns_requested_count(single_obj):
     population = [_make(single_obj, [i], (float(i + 1),)) for i in range(6)]
 
-    tools.seed(12)
+    tools.rng.seed(12)
     chosen = tools.sel_roulette(population, 5)
 
     assert len(chosen) == 5
@@ -200,7 +200,7 @@ def test_roulette_returns_requested_count(single_obj):
 def test_roulette_all_zero_fitness_returns_requested_count(single_obj):
     population = [_make(single_obj, [i], (0.0,)) for i in range(5)]
 
-    tools.seed(12)
+    tools.rng.seed(12)
     chosen = tools.sel_roulette(population, 3)
 
     assert len(chosen) == 3
@@ -211,7 +211,7 @@ def test_tournament_dcd_returns_exact_count_and_rejects_non_multiple_of_four(mul
     population = [_make(multi_obj, [i], (float(i), float(10 - i))) for i in range(10)]
     tools.assign_crowding_dist(population)
 
-    tools.seed(3)
+    tools.rng.seed(3)
     chosen = tools.sel_tournament_dcd(population, 4)
     assert len(chosen) == 4
 
@@ -226,7 +226,7 @@ def test_nsga3_with_memory_updates_reference_points(multi_obj):
     ref_points = tools.uniform_reference_points(2, 4)
     select = tools.SelNSGA3WithMemory(ref_points)
 
-    tools.seed(7)
+    tools.rng.seed(7)
     for _ in range(2):
         population = [
             _make(multi_obj, [tools.rng.random()], (tools.rng.random(), tools.rng.random()))

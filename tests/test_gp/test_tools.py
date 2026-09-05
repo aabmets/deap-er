@@ -11,56 +11,55 @@
 import operator
 from typing import Any
 
-from deap_er.gp.primitives import PrimitiveSet, PrimitiveTree
-from deap_er.gp.tools import build_tree_graph, compile_adf_tree, compile_tree, static_limit
+from deap_er import gp, tools
 
 
 def test_compile_tree_without_arguments():
-    pset = PrimitiveSet("main", 0)
+    pset = gp.PrimitiveSet("main", 0)
     pset.add_terminal(2, name="two")
     pset.add_terminal(3, name="three")
     pset.add_primitive(operator.add, 2)
-    tree = PrimitiveTree.from_string("add(two, three)", pset)
+    tree = gp.PrimitiveTree.from_string("add(two, three)", pset)
 
-    assert compile_tree(tree, pset) == 5
+    assert gp.compile_tree(tree, pset) == 5
 
 
 def test_compile_tree_sees_in_place_node_replacement():
     # A cache keyed only by id(tree) would keep the add() callable after
     # the root is replaced. Recompilation must read the current nodes.
-    pset = PrimitiveSet("main", 1)
+    pset = gp.PrimitiveSet("main", 1)
     pset.add_primitive(operator.add, 2)
     pset.add_primitive(operator.mul, 2)
-    tree = PrimitiveTree.from_string("add(ARG0, 2)", pset)
+    tree = gp.PrimitiveTree.from_string("add(ARG0, 2)", pset)
 
-    assert compile_tree(tree, pset)(3) == 5
+    assert gp.compile_tree(tree, pset)(3) == 5
 
     tree[0] = pset.mapping["mul"]
 
-    assert compile_tree(tree, pset)(3) == 6
+    assert gp.compile_tree(tree, pset)(3) == 6
 
 
 def test_compile_adf_tree_wires_automatically_defined_functions():
-    adf = PrimitiveSet("ADF0", 2)
+    adf = gp.PrimitiveSet("ADF0", 2)
     adf.add_primitive(operator.add, 2)
-    main = PrimitiveSet("MAIN", 1)
+    main = gp.PrimitiveSet("MAIN", 1)
     main.add_adf(adf)
-    main_tree = PrimitiveTree.from_string("ADF0(ARG0, ARG0)", main)
-    adf_tree = PrimitiveTree.from_string("add(ARG0, ARG1)", adf)
+    main_tree = gp.PrimitiveTree.from_string("ADF0(ARG0, ARG0)", main)
+    adf_tree = gp.PrimitiveTree.from_string("add(ARG0, ARG1)", adf)
 
     expressions: Any = [main_tree, adf_tree]
-    func = compile_adf_tree(expressions, [main, adf])
+    func = gp.compile_adf_tree(expressions, [main, adf])
 
     assert func(3) == 6
 
 
 def test_build_tree_graph_returns_nodes_edges_and_labels():
-    pset = PrimitiveSet("main", 1)
+    pset = gp.PrimitiveSet("main", 1)
     pset.add_primitive(operator.add, 2)
     pset.add_terminal(1, name="one")
-    tree = PrimitiveTree.from_string("add(ARG0, one)", pset)
+    tree = gp.PrimitiveTree.from_string("add(ARG0, one)", pset)
 
-    nodes, edges, labels = build_tree_graph(tree)
+    nodes, edges, labels = gp.build_tree_graph(tree)
 
     assert nodes == [0, 1, 2]
     assert (0, 1) in edges
@@ -69,14 +68,12 @@ def test_build_tree_graph_returns_nodes_edges_and_labels():
 
 
 def test_static_limit_does_not_alias_two_oversized_children():
-    from deap_er.rng import rng
-
     def bloating(_first: list[int], _second: list[int]) -> tuple[list[int], list[int]]:
         return [0] * 20, [1] * 20
 
-    limited = static_limit(len, 5)(bloating)
+    limited = gp.static_limit(len, 5)(bloating)
     for seed in range(40):
-        rng.seed(seed)
+        tools.rng.seed(seed)
         first, second = limited([3], [4])
         assert first is not second
         first.append(99)
@@ -87,7 +84,7 @@ def test_static_limit_replaces_oversized_offspring():
     def grow(individual: list[int]) -> tuple[list[int]]:
         return (individual + [9],)
 
-    limited = static_limit(len, 3)(grow)
+    limited = gp.static_limit(len, 3)(grow)
 
     assert limited([1, 2]) == [[1, 2, 9]]
     assert limited([1, 2, 3, 4]) == [[1, 2, 3, 4]]

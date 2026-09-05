@@ -11,7 +11,7 @@
 from typing import Any
 
 import pytest
-from deap_er import base, creator, tools
+from deap_er import Fitness, creator, tools
 
 HOF_FIT = "HOF_FIT"
 HOF_IND = "HOF_IND"
@@ -19,8 +19,8 @@ HOF_IND = "HOF_IND"
 
 @pytest.fixture
 def ind_cls():
-    creator.create(HOF_FIT, base.Fitness, weights=(1.0,))
-    creator.create(HOF_IND, list, fitness=creator.__dict__[HOF_FIT])
+    creator.create_type(HOF_FIT, Fitness, weights=(1.0,))
+    creator.create_type(HOF_IND, list, fitness=creator.__dict__[HOF_FIT])
     yield creator.__dict__[HOF_IND]
     del creator.__dict__[HOF_FIT]
     del creator.__dict__[HOF_IND]
@@ -112,8 +112,8 @@ def test_remove_out_of_range_keeps_keys_aligned(ind_cls):
 
 
 def test_pareto_front_keeps_non_dominated_and_drops_twins():
-    creator.create("PF_FIT", base.Fitness, weights=(-1.0, -1.0))
-    creator.create("PF_IND", list, fitness=creator.__dict__["PF_FIT"])
+    creator.create_type("PF_FIT", Fitness, weights=(-1.0, -1.0))
+    creator.create_type("PF_IND", list, fitness=creator.__dict__["PF_FIT"])
     try:
         front = tools.ParetoFront()
 

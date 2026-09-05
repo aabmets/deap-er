@@ -10,7 +10,7 @@
 #
 
 import pytest
-from deap_er import base, creator, tools
+from deap_er import Fitness, Toolbox, creator, tools
 
 VAR_FIT = "VAR_FIT"
 VAR_IND = "VAR_IND"
@@ -18,10 +18,10 @@ VAR_IND = "VAR_IND"
 
 @pytest.fixture
 def toolbox():
-    creator.create(VAR_FIT, base.Fitness, weights=(-1.0,))
-    creator.create(VAR_IND, list, fitness=creator.__dict__[VAR_FIT])
+    creator.create_type(VAR_FIT, Fitness, weights=(-1.0,))
+    creator.create_type(VAR_IND, list, fitness=creator.__dict__[VAR_FIT])
 
-    tb = base.Toolbox()
+    tb = Toolbox()
     tb.register("mate", tools.cx_two_point)
     tb.register("mutate", tools.mut_flip_bit, mut_prob=0.5)
 
@@ -43,7 +43,7 @@ def _population(count=6):
 def test_var_or_never_returns_a_parent_object(toolbox):
     # Reproduction must hand back an independent copy, so that later
     # mutation of an offspring cannot reach back into the population.
-    tools.seed(5)
+    tools.rng.seed(5)
     population = _population()
 
     offspring = tools.var_or(toolbox, population, 40, cx_prob=0.0, mut_prob=0.0)
@@ -54,7 +54,7 @@ def test_var_or_never_returns_a_parent_object(toolbox):
 
 
 def test_var_or_reproduction_copies_the_genes(toolbox):
-    tools.seed(5)
+    tools.rng.seed(5)
     population = _population()
 
     offspring = tools.var_or(toolbox, population, 10, cx_prob=0.0, mut_prob=0.0)
@@ -63,7 +63,7 @@ def test_var_or_reproduction_copies_the_genes(toolbox):
 
 
 def test_var_or_mutating_offspring_leaves_parents_untouched(toolbox):
-    tools.seed(7)
+    tools.rng.seed(7)
     population = _population()
     before = [list(ind) for ind in population]
 
@@ -75,7 +75,7 @@ def test_var_or_mutating_offspring_leaves_parents_untouched(toolbox):
 
 
 def test_var_or_still_produces_the_requested_count(toolbox):
-    tools.seed(9)
+    tools.rng.seed(9)
     population = _population()
 
     offspring = tools.var_or(toolbox, population, 12, cx_prob=0.5, mut_prob=0.3)
