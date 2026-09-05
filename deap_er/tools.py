@@ -131,7 +131,7 @@ from .utilities import (
     sort_non_dominated,
 )
 
-__all__ = [
+__all__: list[str] = [
     "ClosestValidPenalty",
     "DeltaPenalty",
     "HallOfFame",

@@ -11,31 +11,35 @@
 from deap_er.base import Toolbox
 from deap_er.records.typedefs import AlgoResult, Hof, Individual, Stats
 
-from ._loop import _evaluate_invalid, _new_logbook, _record_generation
-from .variation import var_and
+from .loop import evaluate_invalid, new_logbook, record_generation
+from .variation import var_or
 
-__all__ = ["ea_simple"]
+__all__ = ["ea_mu_comma_lambda"]
 
 
-def ea_simple(
+def ea_mu_comma_lambda(
     toolbox: Toolbox,
     population: list[Individual],
     generations: int,
+    offsprings: int,
+    survivors: int,
     cx_prob: float,
     mut_prob: float,
     hof: Hof | None = None,
     stats: Stats | None = None,
     verbose: bool = False,
 ) -> AlgoResult:
-    """Evolve a population with crossover and mutation on every generation.
+    """Evolve a population with mu-comma-lambda selection.
 
     Requires ``mate``, ``mutate``, ``select``, and ``evaluate`` on
-    ``toolbox``. Survivors are the offspring of the current generation.
+    ``toolbox``. Survivors are selected from the offspring only.
 
     Args:
         toolbox: Toolbox with the evolution operators.
         population: Individuals to evolve. Replaced in place.
         generations: Number of generations to run.
+        offsprings: Number of offspring to produce each generation.
+        survivors: Number of individuals to keep after selection.
         cx_prob: Probability of mating two individuals.
         mut_prob: Probability of mutating an individual.
         hof: Optional HallOfFame or ParetoFront to update.
@@ -44,10 +48,18 @@ def ea_simple(
 
     Returns:
         The final population and the logbook.
+
+    Raises:
+        ValueError: If ``survivors`` is greater than ``offsprings``.
     """
-    logbook = _new_logbook(stats)
-    nevals = _evaluate_invalid(toolbox, population)
-    _record_generation(
+    if survivors > offsprings:
+        raise ValueError(
+            "The number of survivors must be less than or equal to the number of offsprings."
+        )
+
+    logbook = new_logbook(stats)
+    nevals = evaluate_invalid(toolbox, population)
+    record_generation(
         logbook,
         0,
         nevals,
@@ -59,14 +71,13 @@ def ea_simple(
     )
 
     for gen in range(1, generations + 1):
-        offspring = toolbox.select(population, len(population))
-        offspring = var_and(toolbox, offspring, cx_prob, mut_prob)
+        offspring = var_or(toolbox, population, offsprings, cx_prob, mut_prob)
 
-        nevals = _evaluate_invalid(toolbox, offspring)
+        nevals = evaluate_invalid(toolbox, offspring)
 
-        population[:] = offspring
+        population[:] = toolbox.select(offspring, survivors)
 
-        _record_generation(
+        record_generation(
             logbook,
             gen,
             nevals,

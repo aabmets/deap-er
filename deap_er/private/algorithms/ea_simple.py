@@ -11,35 +11,31 @@
 from deap_er.base import Toolbox
 from deap_er.records.typedefs import AlgoResult, Hof, Individual, Stats
 
-from ._loop import _evaluate_invalid, _new_logbook, _record_generation
-from .variation import var_or
+from .loop import evaluate_invalid, new_logbook, record_generation
+from .variation import var_and
 
-__all__ = ["ea_mu_comma_lambda"]
+__all__: list[str] = ["ea_simple"]
 
 
-def ea_mu_comma_lambda(
+def ea_simple(
     toolbox: Toolbox,
     population: list[Individual],
     generations: int,
-    offsprings: int,
-    survivors: int,
     cx_prob: float,
     mut_prob: float,
     hof: Hof | None = None,
     stats: Stats | None = None,
     verbose: bool = False,
 ) -> AlgoResult:
-    """Evolve a population with mu-comma-lambda selection.
+    """Evolve a population with crossover and mutation on every generation.
 
     Requires ``mate``, ``mutate``, ``select``, and ``evaluate`` on
-    ``toolbox``. Survivors are selected from the offspring only.
+    ``toolbox``. Survivors are the offspring of the current generation.
 
     Args:
         toolbox: Toolbox with the evolution operators.
         population: Individuals to evolve. Replaced in place.
         generations: Number of generations to run.
-        offsprings: Number of offspring to produce each generation.
-        survivors: Number of individuals to keep after selection.
         cx_prob: Probability of mating two individuals.
         mut_prob: Probability of mutating an individual.
         hof: Optional HallOfFame or ParetoFront to update.
@@ -48,18 +44,10 @@ def ea_mu_comma_lambda(
 
     Returns:
         The final population and the logbook.
-
-    Raises:
-        ValueError: If ``survivors`` is greater than ``offsprings``.
     """
-    if survivors > offsprings:
-        raise ValueError(
-            "The number of survivors must be less than or equal to the number of offsprings."
-        )
-
-    logbook = _new_logbook(stats)
-    nevals = _evaluate_invalid(toolbox, population)
-    _record_generation(
+    logbook = new_logbook(stats)
+    nevals = evaluate_invalid(toolbox, population)
+    record_generation(
         logbook,
         0,
         nevals,
@@ -71,13 +59,14 @@ def ea_mu_comma_lambda(
     )
 
     for gen in range(1, generations + 1):
-        offspring = var_or(toolbox, population, offsprings, cx_prob, mut_prob)
+        offspring = toolbox.select(population, len(population))
+        offspring = var_and(toolbox, offspring, cx_prob, mut_prob)
 
-        nevals = _evaluate_invalid(toolbox, offspring)
+        nevals = evaluate_invalid(toolbox, offspring)
 
-        population[:] = toolbox.select(offspring, survivors)
+        population[:] = offspring
 
-        _record_generation(
+        record_generation(
             logbook,
             gen,
             nevals,

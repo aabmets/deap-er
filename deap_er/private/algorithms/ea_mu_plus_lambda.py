@@ -11,7 +11,7 @@
 from deap_er.base import Toolbox
 from deap_er.records.typedefs import AlgoResult, Hof, Individual, Stats
 
-from ._loop import _evaluate_invalid, _new_logbook, _record_generation
+from .loop import evaluate_invalid, new_logbook, record_generation
 from .variation import var_or
 
 __all__ = ["ea_mu_plus_lambda"]
@@ -50,9 +50,9 @@ def ea_mu_plus_lambda(
     Returns:
         The final population and the logbook.
     """
-    logbook = _new_logbook(stats)
-    nevals = _evaluate_invalid(toolbox, population)
-    _record_generation(
+    logbook = new_logbook(stats)
+    nevals = evaluate_invalid(toolbox, population)
+    record_generation(
         logbook,
         0,
         nevals,
@@ -66,11 +66,11 @@ def ea_mu_plus_lambda(
     for gen in range(1, generations + 1):
         offspring = var_or(toolbox, population, offsprings, cx_prob, mut_prob)
 
-        nevals = _evaluate_invalid(toolbox, offspring)
+        nevals = evaluate_invalid(toolbox, offspring)
 
         population[:] = toolbox.select(population + offspring, survivors)
 
-        _record_generation(
+        record_generation(
             logbook,
             gen,
             nevals,

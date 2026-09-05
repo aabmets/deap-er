@@ -11,7 +11,7 @@
 from deap_er.base import Toolbox
 from deap_er.records.typedefs import AlgoResult, Hof, Individual, Stats
 
-from ._loop import _new_logbook, _record_generation
+from .loop import new_logbook, record_generation
 
 __all__ = ["ea_generate_update"]
 
@@ -37,7 +37,7 @@ def ea_generate_update(
     Returns:
         The final population and the logbook.
     """
-    logbook = _new_logbook(stats)
+    logbook = new_logbook(stats)
 
     population: list[Individual] = []
     for gen in range(1, generations + 1):
@@ -49,7 +49,7 @@ def ea_generate_update(
 
         toolbox.update(population)
 
-        _record_generation(
+        record_generation(
             logbook,
             gen,
             len(population),

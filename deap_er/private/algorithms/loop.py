@@ -15,10 +15,10 @@ from deap_er.base import Toolbox
 from deap_er.records import Logbook
 from deap_er.records.typedefs import Hof, Individual, Stats
 
-__all__: list[str] = []
+__all__: list[str] = ["new_logbook", "evaluate_invalid", "record_generation"]
 
 
-def _new_logbook(stats: Stats | None) -> Logbook:
+def new_logbook(stats: Stats | None) -> Logbook:
     """Create a logbook with the standard algorithm header.
 
     Args:
@@ -33,7 +33,7 @@ def _new_logbook(stats: Stats | None) -> Logbook:
     return logbook
 
 
-def _evaluate_invalid(toolbox: Toolbox, individuals: Sequence[Any]) -> int:
+def evaluate_invalid(toolbox: Toolbox, individuals: Sequence[Any]) -> int:
     """Evaluate the individuals whose fitness is invalid.
 
     When the toolbox has an ``evaluate_batch`` operator, the whole
@@ -59,7 +59,7 @@ def _evaluate_invalid(toolbox: Toolbox, individuals: Sequence[Any]) -> int:
     return len(invalids)
 
 
-def _record_generation(
+def record_generation(
     logbook: Logbook,
     gen: int,
     nevals: int,

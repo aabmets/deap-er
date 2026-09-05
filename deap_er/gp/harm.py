@@ -10,8 +10,8 @@
 #
 from typing import Any
 
-from deap_er.algorithms._loop import _evaluate_invalid
 from deap_er.base import Toolbox
+from deap_er.private.algorithms.loop import evaluate_invalid
 from deap_er.records import Logbook
 from deap_er.records.typedefs import AlgoResult, Hof, Stats
 
@@ -104,7 +104,7 @@ def harm(
     logbook = Logbook()
     logbook.header = ["gen", "nevals"] + (stats.fields if stats else [])
 
-    nevals = _evaluate_invalid(toolbox, population)
+    nevals = evaluate_invalid(toolbox, population)
 
     if hof is not None:
         hof.update(population)
@@ -134,7 +134,7 @@ def harm(
             toolbox, population, pop_len, cx_prob, mut_prob, natural_pop, accept_func
         )
 
-        nevals = _evaluate_invalid(toolbox, offspring)
+        nevals = evaluate_invalid(toolbox, offspring)
 
         if hof is not None:
             hof.update(offspring)

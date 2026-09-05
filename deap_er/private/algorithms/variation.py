@@ -12,7 +12,7 @@ from deap_er.base import Toolbox
 from deap_er.base.typedefs import Individual
 from deap_er.rng import rng
 
-__all__ = ["var_and", "var_or"]
+__all__: list[str] = ["var_and", "var_or"]
 
 
 def var_and(
