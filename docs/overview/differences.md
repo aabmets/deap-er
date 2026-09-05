@@ -1,24 +1,234 @@
 # Important Differences
 
-As this library is an *evolution* of the original [DEAP](https://github.com/DEAP/deap)
-library (pun intended), there are a few important differences that the user should be aware of:
+This library is an *evolution* of the original
+[DEAP](https://github.com/DEAP/deap) library (pun intended). It is not
+a drop-in rename. Function names, parameter order, and a few contracts
+changed. This page is the inventory: the rewrite itself, then the
+operators, bookkeeping, genetic programming, and correctness work that
+accumulated on top of that base.
 
-1. The whole codebase has been completely refactored for better usability and maintainability.
-2. Algorithms, strategies and benchmarks have been moved into the **tools** namespace.
-3. All **camelCase** functions and methods have been renamed to **snake_case**.
-4. Some functions and/or methods have been completely renamed.
-5. All functions and methods have received proper type hints.
-6. The parameters of many functions have been reordered and/or renamed.
-7. Some properties of classes have been changed into method calls.
+## Rewrite and public API
+
+1. The codebase is a complete rewrite for Python 3.12 and newer. The
+   license is Apache-2.0.
+2. Algorithms, strategies, and benchmarks live under the **tools**
+   namespace.
+3. All **camelCase** functions and methods are **snake_case**.
+4. Some functions and methods were renamed entirely.
+5. The public surface has type hints.
+6. Many parameters were reordered or renamed.
+7. Some class properties are now method calls.
 8. Hypervolume, hypervolume contributions, and Pareto ranking delegate
    to [moocore](https://pypi.org/project/moocore/) (prebuilt C wheels).
    deap-er stays a pure-Python package. moocore is licensed
    LGPL-2.1-or-later; do not vendor its sources into this tree.
-9. **3.0 breaking changes:** ``sort_log_non_dominated`` and the
-   ``HyperVolume`` class are removed. ``sort_non_dominated`` no longer
-   takes ``ffo``. ``sel_nsga_2`` / ``sel_nsga_3`` no longer take
-   ``sorting``. ``least_contrib`` no longer takes ``map_func``.
-   ``StrategyMultiObjective`` no longer takes ``mp_pool``.
-10. State persistence has been implemented with the Checkpoint class.
-11. All deprecated and obsolete code is removed.
-12. The whole documentation has been reworked for better comprehensibility.
+9. **3.0 breaking changes:** `sort_log_non_dominated` and the
+   `HyperVolume` class are removed. `sort_non_dominated` no longer
+   takes `ffo`. `sel_nsga_2` / `sel_nsga_3` no longer take
+   `sorting`. `least_contrib` no longer takes `map_func`.
+   `StrategyMultiObjective` no longer takes `mp_pool`.
+10. State persistence is implemented with the `Checkpoint` class.
+11. Deprecated and obsolete DEAP APIs are removed.
+12. The documentation matches the current API.
+
+## Operators and selection
+
+These items were open on the DEAP tracker, or were defects inherited
+from the original sources.
+
+1. [`mut_polynomial_bounded`][deap-655] clamps each gene into
+   `[low, up]` before the Deb powers and requires `eta > 0`, so an
+   out-of-box gene no longer writes NaN or a complex value.
+2. [`cx_simulated_binary_bounded`][deap-740] uses the same clamp and
+   `eta` guard. Out-of-box parents no longer raise `TypeError` on
+   complex arithmetic. The second child uses the opposite sign of
+   $\beta_q$, matching Deb / DEAP (`c2` is the upper child, not a
+   second lower child).
+3. [`cx_blend_bounded`][deap-527] is the boxed form of blend
+   crossover: the same $\gamma$ draw as `cx_blend`, then a clamp on
+   each child gene.
+4. [`cx_partially_matched`][deap-472], uniform PMX, and
+   `cx_ordered` map alleles by value. Permutations of named cities or
+   other non-`{0..n-1}` encodings no longer IndexError or silently
+   write the wrong genes.
+5. [`mut_heterogeneous`][deap-755] applies one mutator per gene, so a
+   mixed encoding (bit + int range + choice) does not need a
+   one-off mutator.
+6. [`assign_crowding_dist`][deap-321] can crowd on `wvalues` via
+   `use_weights=True`. The default, and `sel_nsga_2`, still use raw
+   `values`.
+7. [`sel_tournament_dcd`][deap-641] accepts any
+   `1 ≤ k ≤ len(individuals)`. When `k` is a multiple of 4 the
+   original paired-shuffle path is used; other counts run pairwise
+   contests until `k` winners are collected. `k ≤ 0` returns an empty
+   list.
+8. `sel_roulette` returns `sel_count` individuals when every fitness
+   is zero (uniform draw) instead of an empty list.
+9. `mig_ring` evicts by object identity. Two individuals with equal
+   genes are no longer treated as the same slot, so emigrants are not
+   duplicated and the wrong member is not removed.
+10. `cx_messy_one_point` cuts each parent independently, so lengths
+    can change. Equal-length parents no longer degenerate into a
+    shared-interval two-point swap.
+11. Sequence crossovers copy slices before assignment. NumPy views
+    are not aliased, so a one-point or uniform swap does not destroy
+    a parent. `cx_es_two_point_copy` applies the same copy to the
+    strategy vector.
+
+## Evolution strategies
+
+1. Every CMA strategy accepts `low` / `up` (scalar or length-`dim`)
+   and a `bound_mode` of `"clip"` or `"resample"`, covering the
+   [box-constrained CMA][deap-500] request. Bounds are applied to the
+   sampled vector before `ind_init`. Resample rejects the whole
+   vector; after `resample_limit` failed draws the offspring is
+   clipped so `generate` always returns `lamb` individuals. Both
+   modes are constraint-handling approximations: the CMA update then
+   treats the repaired point as the sample.
+2. MO-CMA's rank-one covariance update gates on $\lVert w \rVert$,
+   not on `w.max()`. A negative evolution path no longer skips the
+   update.
+3. The stall-case $\alpha$ on MO-CMA includes the $c_{\mathrm{cov}}$
+   factor, so repeated stall generations do not inflate the
+   covariance.
+
+## Genetic programming
+
+Prefix-tree GP (loosely typed, strongly typed, ADFs) is still there.
+The following is extra.
+
+1. `generate()` closes a type that has terminals but no primitives.
+   A leaf-only type — a rolling window length is the usual case —
+   can appear in a strongly typed tree.
+2. `add_primitive(..., weight=)` implements
+   [weighted primitive sampling][deap-383]. Equal weights keep the
+   previous RNG stream. The same weights apply to node replacement
+   and insert mutation. Terminals stay uniform.
+3. A zero-arity callable terminal [formats as `name()`][deap-644], so
+   the default `eval` compile path calls it instead of looking up the
+   function object.
+4. `tree_to_infix` is an [infix pretty-printer][deap-24] for logs and
+   papers. It is display-only.
+5. `make_column_pset(names)` builds a strongly typed set with one
+   `Array` input per column. The type tags are `Array` (1D
+   `float64`), `Mask` (1D `bool`), and `Window` (`int`). Argument
+   order is column order.
+6. `add_numpy_primitives` registers a vectorized kit: arithmetic,
+   protected `vdiv` / `vlog` / `vsqrt`, comparisons that produce a
+   `Mask`, mask logic, and `vwhere`. Protected ops only replace a
+   non-finite result that the operation itself fabricated; an input
+   `nan` comes back out as `nan`.
+7. `add_window_primitives` registers causal `delay`, `diff`,
+   `rolling_{sum,mean,std,min,max}`, and `ema`. The window is
+   `[t-n+1, t]`; samples without enough history are `nan`. Look-ahead
+   is forbidden. `add_window_ephemeral` samples inclusive integer
+   lengths.
+8. `compile_tree` caches the default `eval` backend by expression
+   text and context identity. `backend="opcode"` lowers the tree to
+   a postfix tape and runs a NumPy stack machine. `backend="numba"`
+   (the `deap-er[numba]` extra) runs the same tape in one
+   process-wide compiled interpreter. Custom kernels bind at or above
+   `USER_BASE` and pass one dispatcher; they are not a second
+   interpreter.
+9. Algorithms call `toolbox.evaluate_batch(invalids)` when that
+   operator is registered, otherwise `toolbox.map(toolbox.evaluate,
+   invalids)`. A generation can be scored against one shared matrix
+   without changing `map`'s contract.
+10. `tools.clone_individual` shallow-copies a list/array individual
+    and deepcopies only the fitness. GP toolboxes should register it;
+    the default Toolbox clone remains `deepcopy`.
+11. `cx_semantic` builds each child from a snapshot of the original
+    parents. The second child is no longer derived from the already
+    mutated first child.
+12. `cx_one_point` always groups nodes by return type. An `object`
+    root on the first parent no longer disables strongly typed
+    matching.
+13. `static_limit` replaces an oversized offspring with a deepcopy of
+    a parent, so the two offspring slots never share one parent
+    object.
+14. HARM places the size cutoff on evaluated individuals only, scales
+    the half-life by the cutoff (not by each individual's size), and
+    does not crash on an empty candidate slice.
+
+The columnar contract is in the
+[columnar GP tutorial](../tutorials/columnar_gp.md). Shared-array
+evaluation is in the
+[multiprocessing tutorial](../tutorials/multiprocessing.md).
+
+## Records, statistics, and algorithms
+
+1. `MultiStatistics.register(..., chapters=)` can target a subset of
+   chapters, so fitness min/max and a size statistic need not share
+   one function ([DEAP#720][deap-720]).
+2. `MultiStatistics.compile` materializes the input once. A
+   generator, `map`, or `zip` is no longer exhausted by the first
+   chapter.
+3. An empty `Logbook` with a `header` [prints that header][deap-694]
+   from `stream()` instead of the word “empty”.
+4. `Logbook.to_json` / `from_json` [round-trip][deap-121] entries,
+   chapters, and the header. NumPy scalars become Python numbers.
+5. `duplicate_count` is a [variety statistic][deap-350]: population
+   length minus distinct keys.
+6. The four `ea_*` algorithms accept `log_time` ([per-generation
+   wall time][deap-426]), `logger` ([instead of only
+   `print`][deap-750]), and `fronts` (append a new `ParetoFront` of
+   that generation's survivors, [not the cumulative
+   hall of fame][deap-735]).
+7. `HallOfFame.update` inserts into an empty archive, no-ops at
+   `maxsize=0`, and replaces a similar member when the new individual
+   is strictly better.
+8. `HallOfFame.remove` raises `IndexError` on an out-of-range index
+   instead of desynchronizing `keys` and `items`.
+9. `Logbook.pop` normalizes a negative index before comparing it to
+   the stream cursor.
+10. `Logbook.__delitem__` removes the chapter row that shares the
+    same generation, not the same list index.
+11. `History.update` records every member of a batch. A single
+    individual without `history_index` no longer orphans the rest.
+
+## Persistence
+
+1. `Checkpoint.save` writes a sibling `.tmp` file and replaces the
+   destination. A dump that fails part-way through does not truncate
+   the last good checkpoint.
+2. `Checkpoint.load` restores the constructor's `file_path`,
+   `raise_errors`, and `make_dir` after unpickling, so moving a
+   checkpoint file does not send the next save back to the old path.
+3. Setting `save_freq = -1` while iterating `Checkpoint.range`
+   disables further saves. It no longer turns saving on for every
+   remaining generation.
+
+## Creator
+
+1. `creator.create` keeps the `typecode` of an `array.array`
+   instance base. It no longer forces `"b"`.
+
+## Benchmarks
+
+1. DTLZ5 / DTLZ6 apply the angular $\theta$ map only to the first
+   $M-1$ decision variables. Distance variables feed $g$ and are not
+   multiplied into $f_1$ as extra cosines.
+2. Chuang F3 scores the selector-1 branch with the published trap
+   (not the inverse trap) and covers bits $0..39$ without dropping
+   bit 38.
+3. Moving Peaks `pf1` uses Euclidean distance. The `ALT1` preset's
+   `move_severity` is $1.5$, matching its documented table.
+
+[deap-24]: https://github.com/DEAP/deap/issues/24
+[deap-121]: https://github.com/DEAP/deap/issues/121
+[deap-321]: https://github.com/DEAP/deap/issues/321
+[deap-350]: https://github.com/DEAP/deap/issues/350
+[deap-383]: https://github.com/DEAP/deap/issues/383
+[deap-426]: https://github.com/DEAP/deap/issues/426
+[deap-472]: https://github.com/DEAP/deap/issues/472
+[deap-500]: https://github.com/DEAP/deap/issues/500
+[deap-527]: https://github.com/DEAP/deap/issues/527
+[deap-641]: https://github.com/DEAP/deap/issues/641
+[deap-644]: https://github.com/DEAP/deap/issues/644
+[deap-655]: https://github.com/DEAP/deap/issues/655
+[deap-694]: https://github.com/DEAP/deap/issues/694
+[deap-720]: https://github.com/DEAP/deap/issues/720
+[deap-735]: https://github.com/DEAP/deap/issues/735
+[deap-740]: https://github.com/DEAP/deap/issues/740
+[deap-750]: https://github.com/DEAP/deap/issues/750
+[deap-755]: https://github.com/DEAP/deap/issues/755

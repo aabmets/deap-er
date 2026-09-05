@@ -14,6 +14,16 @@ or if you're using the [uv](https://docs.astral.sh/uv/) package manager:
 uv add deap-er
 ```
 
+The optional Numba compile backend for columnar GP is an extra:
+
+```text
+pip install deap-er[numba]
+```
+
+```text
+uv add deap-er --extra numba
+```
+
 ## Namespaces
 
 The functionality of this library is divided into the following namespaces:

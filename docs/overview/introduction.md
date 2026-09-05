@@ -1,23 +1,32 @@
 # Introduction
 
-[DEAP-ER](https://github.com/aabmets/deap-er) is a complete rework of the original
-[DEAP](https://github.com/DEAP/deap) library, which includes features such as:
+[DEAP-ER](https://github.com/aabmets/deap-er) is a rewrite of
+[DEAP](https://github.com/DEAP/deap) for Python 3.12 and newer. The
+toolbox model is the same — register operators, run an algorithm —
+and so are the families of methods listed below. The package is typed,
+uses snake_case, and the published API is what this documentation
+describes.
 
-- Genetic algorithms using any imaginable containers like:
-    - List, Array, Set, Dictionary, Tree, Numpy Array, etc.
-- Genetic programming using prefix trees
-    - Loosely typed, Strongly typed
-    - Automatically defined functions
-- Evolution Strategies (Covariance Matrix Adaptation)
-- Multi-objective optimisation (SPEA-II, NSGA-II, NSGA-III, MO-CMA)
-- Co-evolution (cooperative and competitive) of multiple populations
-- Parallelization of evolution processes using multiprocessing or with [Ray](https://github.com/ray-project/ray)
-- Records to track the evolution and to collect the best individuals
-- Checkpoints to persist the progress of evolutions to disk
-- Benchmarks to test evolution algorithms against common test functions
-- Genealogy of an evolution, that is also compatible with [NetworkX](https://github.com/networkx/networkx)
-- Examples of alternative algorithms:
-    - Symbolic Regression
-    - Particle Swarm Optimization
-    - Differential Evolution
-    - Estimation of Distribution Algorithm
+It is not a drop-in rename. Function names, parameter order, and a few
+contracts changed. The [differences page](differences.md) is the
+migration note and the inventory of work that accumulated on top of
+the original toolbox.
+
+## Capabilities
+
+- Genetic algorithms on ordinary Python containers (list, array, set,
+  dict, tree, NumPy array, and similar)
+- Genetic programming on prefix trees: loosely typed, strongly typed,
+  and automatically defined functions
+- Columnar genetic programming over named `float64` columns, with a
+  vectorized kit, causal windows, and optional compiled backends
+- Evolution strategies (covariance matrix adaptation)
+- Multi-objective search (SPEA-II, NSGA-II, NSGA-III, MO-CMA)
+- Cooperative and competitive co-evolution
+- Parallel evaluation with multiprocessing or with
+  [Ray](https://github.com/ray-project/ray)
+- Statistics, hall of fame, and a NetworkX-compatible genealogy
+- Checkpoints that persist a run to disk
+- Benchmarks against common test functions
+- Worked examples of symbolic regression, particle swarm, differential
+  evolution, and estimation of distribution

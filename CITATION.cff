@@ -1,0 +1,50 @@
+cff-version: 1.2.0
+title: deap-er
+message: >-
+  If you use this software, please cite it and the original
+  DEAP paper listed under references.
+type: software
+authors:
+  - family-names: Aabmets
+    given-names: Mattias
+    email: mattias.aabmets@gmail.com
+repository-code: https://github.com/aabmets/deap-er
+url: https://aabmets.github.io/deap-er/
+abstract: >-
+  Distributed Evolutionary Algorithms in Python - Entirely Reworked.
+  A complete rewrite of the DEAP library for Python 3.12 and up.
+keywords:
+  - deap
+  - evolution
+  - evolutionary algorithms
+  - genetic algorithms
+  - genetic programming
+  - symbolic regression
+  - hypervolume
+license: Apache-2.0
+version: 3.0.0
+references:
+  - type: article
+    title: "DEAP: Evolutionary Algorithms Made Easy"
+    authors:
+      - family-names: Fortin
+        given-names: Félix-Antoine
+      - family-names: De Rainville
+        given-names: François-Michel
+      - family-names: Gardner
+        given-names: Marc-André
+      - family-names: Parizeau
+        given-names: Marc
+      - family-names: Gagné
+        given-names: Christian
+    journal: Journal of Machine Learning Research
+    volume: "13"
+    issue: "70"
+    year: 2012
+    month: 7
+    start: 2171
+    end: 2175
+    url: https://www.jmlr.org/papers/v13/fortin12a.html
+    notes: >-
+      Please cite this paper when publishing results produced
+      with deap-er or DEAP.

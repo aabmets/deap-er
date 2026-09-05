@@ -1,7 +1,9 @@
 # DEAP-ER documentation
 
-**DEAP-ER** is a complete rewrite of the original [DEAP](https://github.com/DEAP/deap)
-library for Python 3.12 and up.
+**DEAP-ER** is a rewrite of [DEAP](https://github.com/DEAP/deap) for
+Python 3.12 and newer. The toolbox model is the same — register
+operators, run an algorithm — but the package is typed, uses
+snake_case, and is not a drop-in rename.
 
 - [Introduction](overview/introduction.md)
 - [Important differences](overview/differences.md)

@@ -1,0 +1,22 @@
+deap-er
+Copyright 2022–2026 Mattias Aabmets
+
+This product is a complete rewrite of DEAP
+(https://github.com/DEAP/deap):
+
+  Copyright (c) 2009–2026 DEAP Project
+  Copyright (c) François-Michel De Rainville, Félix-Antoine Fortin,
+  Marc-André Gardner, Marc Parizeau, Christian Gagné, and contributors
+  Computer Vision and Systems Laboratory (CVSL), Université Laval
+
+  DEAP is licensed under the GNU Lesser General Public License v3.0
+  or later (LGPL-3.0-or-later).
+  https://github.com/DEAP/deap/blob/master/LICENSE.txt
+
+The DEAP authors asked that scientific papers citing results produced
+with DEAP cite:
+
+  Fortin, F.-A., De Rainville, F.-M., Gardner, M.-A., Parizeau, M.,
+  & Gagné, C. (2012). DEAP: Evolutionary Algorithms Made Easy.
+  Journal of Machine Learning Research, 13, 2171–2175.
+  https://www.jmlr.org/papers/v13/fortin12a.html
