@@ -2,9 +2,9 @@ import copy
 from functools import partial
 
 import numpy
-from deap_er import base, creator, gp, tools
+from deap_er import Fitness, Toolbox, creator, gp, tools
 
-tools.seed(1234)  # disables randomization
+tools.rng.seed(1234)  # disables randomization
 
 
 class AntSimulator:
@@ -114,10 +114,10 @@ def setup():
     pset.add_terminal(ant.turn_left)
     pset.add_terminal(ant.turn_right)
 
-    creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-    creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMax)
+    creator.create_type("FitnessMax", Fitness, weights=(1.0,))
+    creator.create_type("Individual", gp.PrimitiveTree, fitness=creator.FitnessMax)
 
-    toolbox = base.Toolbox()
+    toolbox = Toolbox()
     toolbox.register("expr_init", gp.gen_full, prim_set=pset, min_depth=1, max_depth=2)
     toolbox.register("individual", tools.init_iterate, creator.Individual, toolbox.expr_init)
     toolbox.register("population", tools.init_repeat, list, toolbox.individual)

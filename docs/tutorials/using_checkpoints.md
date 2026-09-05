@@ -21,13 +21,13 @@ checkpoint file to the checkpoint constructor, as the data is automatically
 loaded from the disk on object initialization by default.
 
 ```python
-from deap_er import base, creator, tools, env
+from deap_er import Checkpoint, tools
 
 # setup() definition is omitted for brevity
 
 def main(file=None):
     toolbox, stats = setup()
-    cp = env.Checkpoint(file)
+    cp = Checkpoint(file)
     cp.save_freq = 10  # every 10 seconds
 
     if not cp.is_loaded():  # skip if loaded

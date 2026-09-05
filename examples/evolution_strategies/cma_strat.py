@@ -1,14 +1,14 @@
 import numpy
-from deap_er import base, creator, tools
+from deap_er import Fitness, Toolbox, creator, tools
 
-tools.seed(1234)  # disables randomization
+tools.rng.seed(1234)  # disables randomization
 
 
 def setup():
-    creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-    creator.create("Individual", list, fitness=creator.FitnessMin)
+    creator.create_type("FitnessMin", Fitness, weights=(-1.0,))
+    creator.create_type("Individual", list, fitness=creator.FitnessMin)
     strategy = tools.Strategy(centroid=[5.0] * 30, sigma=5.0, offsprings=600, survivors=30)
-    toolbox = base.Toolbox()
+    toolbox = Toolbox()
     toolbox.register("evaluate", tools.bm_rastrigin)
     toolbox.register("generate", strategy.generate, creator.Individual)
     toolbox.register("update", strategy.update)

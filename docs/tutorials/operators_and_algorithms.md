@@ -5,15 +5,15 @@ This section describes the operators and algorithms that are available in the
 individuals available as defined below:
 
 ```python
-from deap_er import base, tools
+from deap_er import Fitness, Toolbox, creator, tools
 import random
 
 IND_SIZE = 5
 
-creator.create_type("FitnessMin", base.Fitness, weights=(-1.0, -1.0))
+creator.create_type("FitnessMin", Fitness, weights=(-1.0, -1.0))
 creator.create_type("Individual", list, fitness=creator.FitnessMin)
 
-toolbox = base.Toolbox()
+toolbox = Toolbox()
 toolbox.register("attr_float", random.random)
 toolbox.register("individual", tools.init_repeat,
                  container=creator.Individual,

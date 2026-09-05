@@ -1,7 +1,7 @@
 import numpy
-from deap_er import base, creator, tools
+from deap_er import Fitness, Toolbox, creator, tools
 
-tools.seed(1234)  # disables randomization
+tools.rng.seed(1234)  # disables randomization
 
 INPUTS = 6
 NGEN = 100
@@ -45,10 +45,10 @@ def mut_del_wire(individual):
 
 
 def setup():
-    creator.create("FitnessMin", base.Fitness, weights=(-1.0, -1.0, -1.0))
-    creator.create("Individual", list, fitness=creator.FitnessMin)
+    creator.create_type("FitnessMin", Fitness, weights=(-1.0, -1.0, -1.0))
+    creator.create_type("Individual", list, fitness=creator.FitnessMin)
 
-    toolbox = base.Toolbox()
+    toolbox = Toolbox()
     toolbox.register("network", gen_network, dimension=INPUTS, min_size=9, max_size=12)
     toolbox.register("individual", tools.init_iterate, creator.Individual, toolbox.network)
     toolbox.register("population", tools.init_repeat, list, toolbox.individual)

@@ -1,9 +1,9 @@
 import array
 
 import numpy
-from deap_er import base, creator, tools
+from deap_er import Fitness, Toolbox, creator, tools
 
-tools.seed(1234)  # disables randomization
+tools.rng.seed(1234)  # disables randomization
 
 NDIM = 10
 CR = 0.25
@@ -13,10 +13,10 @@ NGEN = 200
 
 
 def setup():
-    creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-    creator.create("Individual", array.array, typecode="d", fitness=creator.FitnessMin)
+    creator.create_type("FitnessMin", Fitness, weights=(-1.0,))
+    creator.create_type("Individual", array.array, typecode="d", fitness=creator.FitnessMin)
 
-    toolbox = base.Toolbox()
+    toolbox = Toolbox()
     toolbox.register("attr_float", tools.rng.uniform, -3, 3)
     toolbox.register("individual", tools.init_repeat, creator.Individual, toolbox.attr_float, NDIM)
     toolbox.register("population", tools.init_repeat, list, toolbox.individual)

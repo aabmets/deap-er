@@ -1,14 +1,14 @@
 import numpy
-from deap_er import base, creator, tools
+from deap_er import Fitness, Toolbox, creator, tools
 
-tools.seed(1234)  # disables randomization
+tools.rng.seed(1234)  # disables randomization
 
 
 def setup():
-    creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-    creator.create("Individual", numpy.ndarray, fitness=creator.FitnessMax)
+    creator.create_type("FitnessMax", Fitness, weights=(1.0,))
+    creator.create_type("Individual", numpy.ndarray, fitness=creator.FitnessMax)
 
-    toolbox = base.Toolbox()
+    toolbox = Toolbox()
     toolbox.register("attr_bool", tools.rng.randint, 0, 1)
     toolbox.register("individual", tools.init_repeat, creator.Individual, toolbox.attr_bool, 100)
     toolbox.register("population", tools.init_repeat, list, toolbox.individual)

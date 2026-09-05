@@ -139,10 +139,10 @@ Tree nodes are immutable once created, so an offspring only needs a new
 list and a fresh fitness:
 
 ```python
-from deap_er import base, tools
+from deap_er import Toolbox, clone_individual, gp
 
-toolbox = base.Toolbox()
-toolbox.register("clone", tools.clone_individual)
+toolbox = Toolbox()
+toolbox.register("clone", clone_individual)
 toolbox.register("compile", gp.compile_tree, prim_set=pset)
 ```
 

@@ -1,9 +1,9 @@
 import array
 
 import numpy
-from deap_er import base, creator, tools
+from deap_er import Fitness, Toolbox, creator, tools
 
-tools.seed(1234)  # disables randomization
+tools.rng.seed(1234)  # disables randomization
 
 IND_SIZE = 30
 MIN_VALUE = 4
@@ -34,13 +34,13 @@ def check_strategy(strat):
 
 
 def setup():
-    creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-    creator.create(
+    creator.create_type("FitnessMin", Fitness, weights=(-1.0,))
+    creator.create_type(
         "Individual", array.array, typecode="d", fitness=creator.FitnessMin, strategy=None
     )
-    creator.create("Strategy", array.array, typecode="d")
+    creator.create_type("Strategy", array.array, typecode="d")
 
-    toolbox = base.Toolbox()
+    toolbox = Toolbox()
     toolbox.register("individual", gen_evo_strat, creator.Individual, creator.Strategy)
     toolbox.register("population", tools.init_repeat, list, toolbox.individual)
     toolbox.register("mate", tools.cx_es_blend, alpha=0.1)

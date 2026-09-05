@@ -18,8 +18,8 @@ uv add deap-er
 
 The functionality of this library is divided into the following namespaces:
 
-- **base** — The main *Toolbox* and *Fitness* classes.
-- **creator** — Type creator for use with toolboxes.
+- **deap_er** — `Toolbox`, `Fitness`, `Checkpoint`, `clone_individual`,
+  and the `creator` module.
 - **tools** — Essential evolution components:
     - algorithms
     - operators
@@ -28,11 +28,9 @@ The functionality of this library is divided into the following namespaces:
     - utilities
     - benchmarks
 - **gp** — Components for genetic programming.
-- **env** — The *Checkpoint* class for state persistence.
-- **typedefs** — Datatype aliases used by this library.
 
 These namespaces can be imported with:
 
 ```python
-from deap_er import base, creator, tools, gp, env, typedefs
+from deap_er import Checkpoint, Fitness, Toolbox, clone_individual, creator, gp, tools
 ```

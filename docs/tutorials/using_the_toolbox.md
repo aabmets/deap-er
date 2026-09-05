@@ -16,12 +16,12 @@ function when the registered method is called.
     Alias names must be valid Python identifiers and can be registered into each toolbox only once.
 
 ```python
-from deap_er import base
+from deap_er import Toolbox
 
 def add_func(a, b, c):
     return a + b + c
 
-toolbox = base.Toolbox()
+toolbox = Toolbox()
 toolbox.register("first_alias", add_func, a=1, b=2, c=3)  # args are passed implicitly
 toolbox.register("other_alias", add_func)                 # args are passed explicitly
 
@@ -56,9 +56,9 @@ to lack of object references.
     by the user before they can be used.
 
 ```python
-from deap_er import base, tools
+from deap_er import Toolbox, tools
 
-toolbox = base.Toolbox()
+toolbox = Toolbox()
 toolbox.register("mate", tools.cx_two_point)
 toolbox.register("mutate", tools.mut_flip_bit, mut_prob=0.2)
 toolbox.register("select", tools.sel_tournament, contestants=3)

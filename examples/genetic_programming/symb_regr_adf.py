@@ -2,9 +2,9 @@ import math
 import operator
 
 import numpy
-from deap_er import base, creator, gp, tools
+from deap_er import Fitness, Toolbox, creator, gp, tools
 
-tools.seed(1234)  # disables randomization
+tools.rng.seed(1234)  # disables randomization
 
 CX_PROB = 0.5
 MUT_PROB = 0.2
@@ -58,11 +58,11 @@ def setup():
 
     prim_sets = (pset, adf_set_0, adf_set_1, adf_set_2)
 
-    creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-    creator.create("Tree", gp.PrimitiveTree)
-    creator.create("Individual", list, fitness=creator.FitnessMin)
+    creator.create_type("FitnessMin", Fitness, weights=(-1.0,))
+    creator.create_type("Tree", gp.PrimitiveTree)
+    creator.create_type("Individual", list, fitness=creator.FitnessMin)
 
-    toolbox = base.Toolbox()
+    toolbox = Toolbox()
     toolbox.register("adf_expr_0", gp.gen_full, prim_set=adf_set_0, min_depth=1, max_depth=2)
     toolbox.register("adf_expr_1", gp.gen_full, prim_set=adf_set_1, min_depth=1, max_depth=2)
     toolbox.register("adf_expr_2", gp.gen_full, prim_set=adf_set_2, min_depth=1, max_depth=2)

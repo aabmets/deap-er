@@ -1,9 +1,9 @@
 import operator
 
 import numpy
-from deap_er import base, creator, gp, tools
+from deap_er import Fitness, Toolbox, creator, gp, tools
 
-tools.seed(1234)  # disables randomization
+tools.rng.seed(1234)  # disables randomization
 
 PARITY_FANIN_M = 6
 PARITY_SIZE_M = 2**PARITY_FANIN_M
@@ -44,10 +44,10 @@ def setup():
     pset.add_terminal(1)
     pset.add_terminal(0)
 
-    creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-    creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMax)
+    creator.create_type("FitnessMax", Fitness, weights=(1.0,))
+    creator.create_type("Individual", gp.PrimitiveTree, fitness=creator.FitnessMax)
 
-    toolbox = base.Toolbox()
+    toolbox = Toolbox()
     toolbox.register("expr", gp.gen_full, prim_set=pset, min_depth=3, max_depth=5)
     toolbox.register("individual", tools.init_iterate, creator.Individual, toolbox.expr)
     toolbox.register("population", tools.init_repeat, list, toolbox.individual)

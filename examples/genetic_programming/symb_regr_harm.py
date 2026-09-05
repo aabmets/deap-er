@@ -2,9 +2,9 @@ import math
 import operator
 
 import numpy
-from deap_er import base, creator, gp, tools
+from deap_er import Fitness, Toolbox, creator, gp, tools
 
-tools.seed(1234)  # disables randomization
+tools.rng.seed(1234)  # disables randomization
 
 
 def safe_div(left, right):
@@ -33,10 +33,10 @@ def setup():
     pset.add_ephemeral_constant("rand101", lambda: tools.rng.randint(-1, 1))
     pset.rename_arguments(ARG0="x")
 
-    creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-    creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
+    creator.create_type("FitnessMin", Fitness, weights=(-1.0,))
+    creator.create_type("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
 
-    toolbox = base.Toolbox()
+    toolbox = Toolbox()
     toolbox.register("expr", gp.gen_half_and_half, prim_set=pset, min_depth=1, max_depth=2)
     toolbox.register("individual", tools.init_iterate, creator.Individual, toolbox.expr)
     toolbox.register("population", tools.init_repeat, list, toolbox.individual)

@@ -11,6 +11,8 @@ computed on. Usually, the statistics are computed on the fitness values of
 individuals, as in the following example:
 
 ```python
+from deap_er import tools
+
 # using a func
 
 def source(ind):

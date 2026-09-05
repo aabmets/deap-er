@@ -1,7 +1,7 @@
 import numpy
-from deap_er import base, creator, gp, tools
+from deap_er import Fitness, Toolbox, clone_individual, creator, gp, tools
 
-tools.seed(1234)  # disables randomization
+tools.rng.seed(1234)  # disables randomization
 
 COLUMNS = ["level", "flow", "noise"]
 
@@ -39,14 +39,14 @@ def setup():
     gp.add_window_primitives(pset)
     gp.add_window_ephemeral(pset, "window", 2, 8)
 
-    creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-    creator.create("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
+    creator.create_type("FitnessMin", Fitness, weights=(-1.0,))
+    creator.create_type("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
 
-    toolbox = base.Toolbox()
+    toolbox = Toolbox()
     toolbox.register("expr", gp.gen_half_and_half, prim_set=pset, min_depth=1, max_depth=3)
     toolbox.register("individual", tools.init_iterate, creator.Individual, toolbox.expr)
     toolbox.register("population", tools.init_repeat, list, toolbox.individual)
-    toolbox.register("clone", tools.clone_individual)  # GP nodes are immutable
+    toolbox.register("clone", clone_individual)  # GP nodes are immutable
     toolbox.register("compile", gp.compile_tree, prim_set=pset)
     toolbox.register("evaluate", evaluate, toolbox=toolbox, columns=columns, target=target)
     toolbox.register("select", tools.sel_tournament, contestants=3)

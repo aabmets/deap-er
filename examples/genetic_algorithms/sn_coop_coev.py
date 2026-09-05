@@ -1,7 +1,7 @@
 import numpy
-from deap_er import base, creator, tools
+from deap_er import Fitness, Toolbox, creator, tools
 
-tools.seed(1234)  # disables randomization
+tools.rng.seed(1234)  # disables randomization
 
 INPUTS = 12
 MAXGEN = 100
@@ -64,12 +64,12 @@ def clone_parasite(individual):
 
 
 def setup():
-    creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-    creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-    creator.create("Host", list, fitness=creator.FitnessMin)
-    creator.create("Parasite", list, fitness=creator.FitnessMax)
+    creator.create_type("FitnessMax", Fitness, weights=(1.0,))
+    creator.create_type("FitnessMin", Fitness, weights=(-1.0,))
+    creator.create_type("Host", list, fitness=creator.FitnessMin)
+    creator.create_type("Parasite", list, fitness=creator.FitnessMax)
 
-    h_toolbox = base.Toolbox()
+    h_toolbox = Toolbox()
     h_toolbox.register("host", gen_network, dimension=INPUTS, min_size=9, max_size=12)
     h_toolbox.register("individual", tools.init_iterate, creator.Host, h_toolbox.host)
     h_toolbox.register("population", tools.init_repeat, list, h_toolbox.individual)
@@ -81,7 +81,7 @@ def setup():
     h_toolbox.register("select", tools.sel_tournament, contestants=3)
     h_toolbox.register("clone", clone_network)
 
-    p_toolbox = base.Toolbox()
+    p_toolbox = Toolbox()
     p_toolbox.register("parasite", gen_parasite, dimension=INPUTS)
     p_toolbox.register("individual", tools.init_repeat, creator.Parasite, p_toolbox.parasite, 20)
     p_toolbox.register("population", tools.init_repeat, list, p_toolbox.individual)

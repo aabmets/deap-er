@@ -2,8 +2,9 @@
 
 This tutorial introduces the fundamental concepts of the **fitness**, **individual**
 and **population** objects and how they relate with each other. We will explore the
-usage of the [`creator`](../reference/creator.md) and [`base`](../reference/base.md)
-modules, which are used to create and initialize these objects.
+usage of the [`creator`](../reference/creator.md) module together with
+[`Fitness`](../reference/base.md) and [`Toolbox`](../reference/base.md),
+which are used to create and initialize these objects.
 
 ## Overview
 
@@ -25,22 +26,24 @@ quantity of fitness *weights* should be chosen according to the nature of the
 problem to be solved.
 
 The following examples illustrate the various ways of creating different types of
-Fitness. The `create()` function takes at least two arguments: a name for the
-subclass and a base class to inherit from. All subsequent arguments, if there are
-any, become the attributes of the new type.
+Fitness. The `create_type()` function takes at least two arguments: a name for
+the subclass and a base class to inherit from. All subsequent arguments, if there
+are any, become the attributes of the new type.
 
 **Single-objective**
 
 ```python
-creator.create_type("FitnessMin", base.Fitness, weights=(-1.0,))  # Minimizing
-creator.create_type("FitnessMax", base.Fitness, weights=(1.0,))  # Maximizing
+from deap_er import Fitness, creator
+
+creator.create_type("FitnessMin", Fitness, weights=(-1.0,))  # Minimizing
+creator.create_type("FitnessMax", Fitness, weights=(1.0,))  # Maximizing
 ```
 
 **Multi-objective**
 
 ```python
-creator.create_type("FitnessMulti", base.Fitness, weights=(-1.0, 1.0))  # Min and max
-creator.create_type("FitnessVaried", base.Fitness, weights(0.5, 1.1, -1.7))  # Varied importance
+creator.create_type("FitnessMulti", Fitness, weights=(-1.0, 1.0))  # Min and max
+creator.create_type("FitnessVaried", Fitness, weights(0.5, 1.1, -1.7))  # Varied importance
 ```
 
 ### Individuals
@@ -68,7 +71,10 @@ example, calling `toolbox.individual()` creates a single individual of type
 `creator.Individual`.
 
 ```python
-toolbox = base.Toolbox()
+from deap_er import Toolbox, creator, tools
+import random
+
+toolbox = Toolbox()
 toolbox.register("attr_float", random.random)      # alias and func
 toolbox.register("individual", tools.init_repeat,  # alias and func
     container=creator.Individual,                  # passed to init_repeat
@@ -94,12 +100,12 @@ example creates a single individual, which is a list of **10** random floating-p
 numbers and has a **fitness** attribute of the single-objective maximizing type.
 
 ```python
-from deap_er import creator, base, tools
+from deap_er import Fitness, Toolbox, creator, tools
 
-creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-creator.create("Individual", list, fitness=creator.FitnessMax)
+creator.create_type("FitnessMax", Fitness, weights=(1.0,))
+creator.create_type("Individual", list, fitness=creator.FitnessMax)
 
-toolbox = base.Toolbox()
+toolbox = Toolbox()
 toolbox.register("attr_float", random.random)
 toolbox.register("individual", tools.init_repeat,
     container=creator.Individual,
@@ -117,12 +123,12 @@ the integers **0** through **9** and has a **fitness** attribute of the
 single-objective minimizing type.
 
 ```python
-from deap_er import creator, base, tools
+from deap_er import Fitness, Toolbox, creator, tools
 
-creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-creator.create("Individual", list, fitness=creator.FitnessMin)
+creator.create_type("FitnessMin", Fitness, weights=(-1.0,))
+creator.create_type("Individual", list, fitness=creator.FitnessMin)
 
-toolbox = base.Toolbox()
+toolbox = Toolbox()
 toolbox.register("indices", random.sample,
     population=range(10), k=10
 )
@@ -146,7 +152,7 @@ minimizing type.
     Arity represents the number of arguments an operator takes.
 
 ```python
-from deap_er import creator, base, tools, gp
+from deap_er import Fitness, Toolbox, creator, tools, gp
 import operator
 
 pset = gp.PrimitiveSet("MAIN", arity=1)
@@ -154,11 +160,11 @@ pset.add_primitive(operator.add, arity=2)
 pset.add_primitive(operator.sub, arity=2)
 pset.add_primitive(operator.mul, arity=2)
 
-creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-creator.create("Individual", gp.PrimitiveTree,
+creator.create_type("FitnessMin", Fitness, weights=(-1.0,))
+creator.create_type("Individual", gp.PrimitiveTree,
     fitness=creator.FitnessMin, prim_set=pset
 )
-toolbox = base.Toolbox()
+toolbox = Toolbox()
 toolbox.register("expr", gp.gen_half_and_half,
     prim_set=pset, min_depth=1, max_depth=2
 )
@@ -179,19 +185,19 @@ The following example creates a single individual, which has an evolution
 strategy and a **fitness** attribute of the single-objective minimizing type.
 
 ```python
-from deap_er import creator, base, tools
+from deap_er import Fitness, Toolbox, creator
 import random
 
-creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
-creator.create("Individual", list, fitness=creator.FitnessMin, strategy=None)
-creator.create("Strategy", list)
+creator.create_type("FitnessMin", Fitness, weights=(-1.0,))
+creator.create_type("Individual", list, fitness=creator.FitnessMin, strategy=None)
+creator.create_type("Strategy", list)
 
 def init_evo_strat(individual, strategy, i_size, i_min, i_max, s_min, s_max):
     ind = individual(random.uniform(i_min, i_max) for _ in range(i_size))
     ind.strategy = strategy(random.uniform(s_min, s_max) for _ in range(i_size))
     return ind
 
-toolbox = base.Toolbox()
+toolbox = Toolbox()
 toolbox.register("individual", init_evo_strat,
     individual=creator.Individual,
     strategy=creator.Strategy,
@@ -212,11 +218,11 @@ individual, which has a speed vector and a **fitness** attribute of the
 multi-objective maximizing type.
 
 ```python
-from deap_er import creator, base, tools
+from deap_er import Fitness, Toolbox, creator
 import random
 
-creator.create("FitnessMax", base.Fitness, weights=(1.0, 1.0))
-creator.create("Particle", list, fitness=creator.FitnessMax,
+creator.create_type("FitnessMax", Fitness, weights=(1.0, 1.0))
+creator.create_type("Particle", list, fitness=creator.FitnessMax,
     speed=None, s_min=None, s_max=None, best=None
 )
 def init_particle(cr_cls, size, pos_min, pos_max, spd_min, spd_max):
@@ -226,7 +232,7 @@ def init_particle(cr_cls, size, pos_min, pos_max, spd_min, spd_max):
     particle.spd_max = spd_max
     return particle
 
-toolbox = base.Toolbox()
+toolbox = Toolbox()
 toolbox.register("particle", init_particle, cr_cls=creator.Particle,
     size=2, pos_min=-6, pos_max=6, spd_min=-3, spd_max=3
 )
@@ -243,17 +249,17 @@ numbers `[int, float, int, float, ...]` and has a **fitness** attribute of
 the multi-objective maximizing type.
 
 ```python
-from deap_er import creator, base, tools
+from deap_er import Fitness, Toolbox, creator, tools
 import random
 
-creator.create("FitnessMax", base.Fitness, weights=(1.0, 1.0))
-creator.create("Individual", list, fitness=creator.FitnessMax)
+creator.create_type("FitnessMax", Fitness, weights=(1.0, 1.0))
+creator.create_type("Individual", list, fitness=creator.FitnessMax)
 
 INT_MIN, INT_MAX = 5, 10
 FLT_MIN, FLT_MAX = -0.2, 0.8
 N_CYCLES = 4
 
-toolbox = base.Toolbox()
+toolbox = Toolbox()
 toolbox.register("attr_int", random.randint, INT_MIN, INT_MAX)
 toolbox.register("attr_float", random.uniform, FLT_MIN, FLT_MAX)
 toolbox.register("individual", tools.init_cycle,
@@ -346,7 +352,7 @@ create a population of part random and part non-random individuals (not
 part of the example).
 
 ```python
-from deap_er import base, creator
+from deap_er import Fitness, Toolbox, creator
 import json
 
 def init_population(pop_type, ind, filename):
@@ -354,10 +360,10 @@ def init_population(pop_type, ind, filename):
         contents = json.load(pop_file)
     return pop_type(ind(c) for c in contents)
 
-creator.create("FitnessMax", base.Fitness, weights=(1.0, 1.0))
-creator.create("Individual", list, fitness=creator.FitnessMax)
+creator.create_type("FitnessMax", Fitness, weights=(1.0, 1.0))
+creator.create_type("Individual", list, fitness=creator.FitnessMax)
 
-toolbox = base.Toolbox()
+toolbox = Toolbox()
 toolbox.register("population", init_population,
     list, creator.Individual, "first_guess.json")
 

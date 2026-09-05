@@ -1,9 +1,9 @@
 import math
 
 import numpy
-from deap_er import base, creator, tools
+from deap_er import Fitness, Toolbox, creator, tools
 
-tools.seed(1234)  # disables randomization
+tools.rng.seed(1234)  # disables randomization
 
 NGEN = 1000
 
@@ -33,8 +33,8 @@ def update(part, best, phi1, phi2):
 
 
 def setup():
-    creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-    creator.create(
+    creator.create_type("FitnessMax", Fitness, weights=(1.0,))
+    creator.create_type(
         "Particle",
         numpy.ndarray,
         fitness=creator.FitnessMax,
@@ -44,7 +44,7 @@ def setup():
         best=None,
     )
 
-    toolbox = base.Toolbox()
+    toolbox = Toolbox()
     toolbox.register("particle", generate, size=2, pmin=-6, pmax=6, smin=-3, smax=3)
     toolbox.register("population", tools.init_repeat, list, toolbox.particle)
     toolbox.register("update", update, phi1=2.0, phi2=2.0)

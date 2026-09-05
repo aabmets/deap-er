@@ -1,8 +1,8 @@
 import string
 
-from deap_er import base, creator, tools
+from deap_er import Fitness, Toolbox, creator, tools
 
-tools.seed(1234)  # disables randomization
+tools.rng.seed(1234)  # disables randomization
 
 IND_INIT_SIZE = 5
 MAX_ITEM = 50
@@ -56,10 +56,10 @@ def mutate(individual: set) -> tuple[set]:
 
 
 def setup():
-    creator.create("Fitness", base.Fitness, weights=(-1.0, 1.0))
-    creator.create("Individual", set, fitness=creator.Fitness)
+    creator.create_type("Fitness", Fitness, weights=(-1.0, 1.0))
+    creator.create_type("Individual", set, fitness=creator.Fitness)
 
-    toolbox = base.Toolbox()
+    toolbox = Toolbox()
     toolbox.register("attr_item", tools.rng.choice, list(items.keys()))
     toolbox.register(
         "individual", tools.init_repeat, creator.Individual, toolbox.attr_item, IND_INIT_SIZE

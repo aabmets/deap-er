@@ -3,10 +3,10 @@ import itertools
 import math
 
 import numpy
-from deap_er import base, creator, tools
+from deap_er import Fitness, Toolbox, creator, tools
 
 # Disable randomization to guarantee reproducibility
-tools.seed(1234)
+tools.rng.seed(1234)
 
 # Define constants, objects and functions.
 REG_POP_SIZE = 4
@@ -32,10 +32,10 @@ def brown_ind(iter_, best, sigma):
 
 
 def setup():
-    creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-    creator.create("Individual", array.array, typecode="d", fitness=creator.FitnessMax)
+    creator.create_type("FitnessMax", Fitness, weights=(1.0,))
+    creator.create_type("Individual", array.array, typecode="d", fitness=creator.FitnessMax)
 
-    toolbox = base.Toolbox()
+    toolbox = Toolbox()
     toolbox.register("attr_float", tools.rng.uniform, BOUNDS[0], BOUNDS[1])
     toolbox.register("individual", tools.init_repeat, creator.Individual, toolbox.attr_float, NDIMS)
     toolbox.register("brownian_individual", brown_ind, creator.Individual, sigma=0.3)

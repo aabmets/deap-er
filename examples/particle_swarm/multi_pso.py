@@ -3,10 +3,10 @@ import math
 import operator
 
 import numpy
-from deap_er import base, creator, tools
+from deap_er import Fitness, Toolbox, creator, tools
 
 # Disable randomization to guarantee reproducibility
-tools.seed(1234)
+tools.rng.seed(1234)
 
 # Define constants, objects and functions.
 NDIM = 5
@@ -78,8 +78,8 @@ def convert_swarm(swarm, rcloud, centre, dist):
 
 
 def setup():
-    creator.create("FitnessMax", base.Fitness, weights=(1.0,))
-    creator.create(
+    creator.create_type("FitnessMax", Fitness, weights=(1.0,))
+    creator.create_type(
         "Particle",
         list,
         fitness=creator.FitnessMax,
@@ -87,9 +87,9 @@ def setup():
         best=None,
         bestfit=creator.FitnessMax,
     )
-    creator.create("Swarm", list, best=None, bestfit=creator.FitnessMax)
+    creator.create_type("Swarm", list, best=None, bestfit=creator.FitnessMax)
 
-    toolbox = base.Toolbox()
+    toolbox = Toolbox()
     toolbox.register(
         "particle",
         generate_particle,
