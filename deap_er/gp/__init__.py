@@ -13,6 +13,7 @@ from .crossover import cx_one_point, cx_one_point_leaf_biased
 from .generators import gen_full, gen_grow, gen_half_and_half, generate
 from .harm import harm
 from .mutation import mut_ephemeral, mut_insert, mut_node_replacement, mut_shrink, mut_uniform
+from .numba_ops import USER_DISPATCH_SIGNATURE, bind_tape, numba_available
 from .numpy_ops import (
     add_numpy_primitives,
     infer_fill,
@@ -35,6 +36,16 @@ from .numpy_ops import (
     vsqrt,
     vsub,
     vwhere,
+)
+from .opcodes import (
+    BUILTIN_OPCODES,
+    USER_BASE,
+    Opcode,
+    Tape,
+    bind_numba_opcode,
+    interpret_tape,
+    lower_tree,
+    numba_opcodes,
 )
 from .primitives import (
     Ephemeral,
@@ -119,4 +130,15 @@ __all__ = [
     "rolling_min",
     "rolling_max",
     "ema",
+    "Opcode",
+    "Tape",
+    "USER_BASE",
+    "BUILTIN_OPCODES",
+    "bind_numba_opcode",
+    "numba_opcodes",
+    "lower_tree",
+    "interpret_tape",
+    "USER_DISPATCH_SIGNATURE",
+    "bind_tape",
+    "numba_available",
 ]

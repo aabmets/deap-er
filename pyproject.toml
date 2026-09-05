@@ -39,6 +39,11 @@ dependencies = [
     "moocore>=0.3.2,<0.4",
 ]
 
+[project.optional-dependencies]
+numba = [
+    "numba>=0.67,<0.68",
+]
+
 [project.urls]
 Repository = "https://github.com/aabmets/deap-er"
 Documentation = "https://aabmets.github.io/deap-er/"
@@ -46,6 +51,7 @@ Documentation = "https://aabmets.github.io/deap-er/"
 [dependency-groups]
 dev = [
     "allure-pytest==2.16.0",
+    "numba>=0.67,<0.68",
     "coverage==7.16.0",
     "pytest==9.1.1",
     "pytest-cov==7.1.0",
