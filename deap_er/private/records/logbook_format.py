@@ -113,26 +113,40 @@ def build_header(
             for i in range(offsets[name]):
                 header[blanks + 2 + i].append(chapters_txt[name][i])
         else:
-            length = max(len(line[j].expandtabs()) for line in str_matrix)
+            if str_matrix:
+                length = max(len(line[j].expandtabs()) for line in str_matrix)
+            else:
+                length = max(len(name), logbook.columns_len[j] if logbook.columns_len else 0)
             for line in header[:-1]:
                 line.append(" " * length)
             header[-1].append(name)
     return header
 
 
-def format_txt(logbook: Any, start_index: int) -> list[str]:
+def format_txt(logbook: Any, start_index: int, include_header: bool | None = None) -> list[str]:
     """Format rows from ``start_index`` as aligned column strings.
 
     Args:
         logbook: Logbook to format.
         start_index: First entry to include.
+        include_header: If True, prepend the banner. ``None`` means
+            include it when ``start_index`` is 0 and ``log_header``
+            is True.
 
     Returns:
-        One formatted line per row, including a header when
-        ``start_index`` is 0 and ``log_header`` is True.
+        One formatted line per row, including a header when requested.
     """
+    if include_header is None:
+        include_header = bool(start_index == 0 and logbook.log_header)
     columns = logbook.header
     if not len(logbook):
+        if columns and include_header:
+            if not logbook.columns_len or len(logbook.columns_len) != len(columns):
+                logbook.columns_len = list(map(len, columns))
+            template = "\t".join(
+                f"{{{i}:<{length}}}" for i, length in enumerate(logbook.columns_len)
+            )
+            return [template.format(*columns)]
         return ["The Logbook is empty."]
     if not columns:
         columns = sorted(logbook[0].keys()) + sorted(logbook.chapters.keys())
@@ -143,7 +157,7 @@ def format_txt(logbook: Any, start_index: int) -> list[str]:
     str_matrix = build_rows(logbook, columns, start_index, chapters_txt, offsets)
 
     rows: Iterable[list[str]] = str_matrix
-    if start_index == 0 and logbook.log_header:
+    if include_header:
         header = build_header(logbook, columns, chapters_txt, offsets, str_matrix)
         rows = chain(header, str_matrix)
 

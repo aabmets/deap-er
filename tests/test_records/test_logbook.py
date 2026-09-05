@@ -109,3 +109,36 @@ def test_str_with_chapters_builds_a_banner_header():
         "1  \t1  \t2  \t1.5 \n"
         "2  \t2  \t4  \t2.5 "
     )
+
+
+def test_empty_logbook_with_header_prints_banner_once():
+    logbook = Logbook()
+    logbook.header = ["gen", "nevals"]
+    banner = logbook.stream
+    assert "gen" in banner
+    assert "empty" not in banner.lower()
+    logbook.record(gen=0, nevals=3)
+    follow = logbook.stream
+    assert "gen" not in follow
+    assert "3" in follow
+
+
+def test_empty_stream_without_header_still_prints_banner_on_first_record():
+    logbook = Logbook()
+    assert logbook.stream == "The Logbook is empty."
+    logbook.record(gen=0, nevals=3)
+    first = logbook.stream
+    assert "gen" in first
+    assert "3" in first
+
+
+def test_json_round_trip_restores_chapters_and_numpy_scalars():
+    import numpy
+
+    logbook = Logbook()
+    logbook.header = ["gen"]
+    logbook.record(gen=0, score=numpy.float64(1.5), size={"avg": 4})
+    restored = Logbook.from_json(logbook.to_json())
+    assert restored.header == ["gen"]
+    assert restored[0]["score"] == 1.5
+    assert restored.chapters["size"][0]["avg"] == 4

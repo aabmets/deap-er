@@ -19,7 +19,26 @@ from scipy import spatial
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 
-__all__: list[str] = ["nsga_diversity", "nsga_convergence", "inv_gen_dist"]
+__all__: list[str] = ["nsga_diversity", "nsga_convergence", "inv_gen_dist", "duplicate_count"]
+
+
+def duplicate_count(population: list[Any], key: Any | None = None) -> int:
+    """Return how many individuals are duplicates of an earlier one.
+
+    Args:
+        population: Individuals to scan.
+        key: Extracts the compared value. Defaults to the identity.
+
+    Returns:
+        ``len(population)`` minus the number of distinct keys.
+    """
+    extract = key if key is not None else (lambda obj: obj)
+    unique: list[Any] = []
+    for item in population:
+        value = extract(item)
+        if value not in unique:
+            unique.append(value)
+    return len(population) - len(unique)
 
 
 def nsga_diversity(population: list[Individual], first: Individual, last: Individual) -> float:

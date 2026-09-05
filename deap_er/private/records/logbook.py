@@ -8,8 +8,11 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+import json
 from collections import defaultdict
 from typing import Any, SupportsIndex, override
+
+import numpy
 
 from .logbook_format import format_txt
 
@@ -31,13 +34,18 @@ class Logbook(list[dict[str, Any]]):
         self.log_header: bool = True
         self.columns_len: list[int] = []
         self.header: list[str] = []
+        self.header_streamed: bool = False
         super().__init__()
 
     @property
     def stream(self) -> str:
         """Formatted text of entries recorded since the last stream read."""
         start_index, self.buff_index = self.buff_index, len(self)
-        return "\n".join(self.__txt__(start_index))
+        include_header = self.log_header and not self.header_streamed
+        lines = format_txt(self, start_index, include_header=include_header)
+        if include_header and (self.header or self):
+            self.header_streamed = True
+        return "\n".join(lines)
 
     def record(self, **data: Any) -> None:
         """Append one chronological entry.
@@ -165,3 +173,68 @@ class Logbook(list[dict[str, Any]]):
     def __str__(self) -> str:
         """Return the logbook as an aligned text table."""
         return "\n".join(self.__txt__(0))
+
+    def to_json(self) -> str:
+        """Serialize entries, chapters, and the header to JSON.
+
+        NumPy scalars become Python numbers. Other non-JSON values
+        become strings.
+
+        Returns:
+            A JSON document.
+        """
+        payload = {
+            "header": self.header,
+            "entries": [_json_ready(entry) for entry in self],
+            "chapters": {
+                name: {
+                    "header": chapter.header,
+                    "entries": [_json_ready(entry) for entry in chapter],
+                }
+                for name, chapter in self.chapters.items()
+            },
+        }
+        return json.dumps(payload)
+
+    @classmethod
+    def from_json(cls, text: str) -> "Logbook":
+        """Rebuild a logbook from :meth:`to_json` output.
+
+        Args:
+            text: JSON document produced by :meth:`to_json`.
+
+        Returns:
+            A logbook with restored entries, chapters, and header.
+        """
+        data = json.loads(text)
+        book = cls()
+        book.header = list(data.get("header", []))
+        book.extend(data.get("entries", []))
+        for name, chapter in data.get("chapters", {}).items():
+            child = cls()
+            child.header = list(chapter.get("header", []))
+            child.extend(chapter.get("entries", []))
+            book.chapters[name] = child
+        return book
+
+
+def _json_ready(value: Any) -> Any:
+    """Convert ``value`` into a JSON-serializable object.
+
+    Args:
+        value: Nested mapping, sequence, or scalar.
+
+    Returns:
+        A JSON-safe value. Unknown types become strings.
+    """
+    if isinstance(value, numpy.generic):
+        return value.item()
+    if isinstance(value, numpy.ndarray):
+        return value.tolist()
+    if isinstance(value, dict):
+        return {key: _json_ready(item) for key, item in value.items()}
+    if isinstance(value, list | tuple):
+        return [_json_ready(item) for item in value]
+    if isinstance(value, str | int | float | bool) or value is None:
+        return value
+    return str(value)

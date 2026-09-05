@@ -70,7 +70,8 @@ class MultiStatistics(dict[str, Any]):
     Construct with keyword arguments that map a chapter name to a
     ``Statistics`` instance, for example
     ``MultiStatistics(fitness=stats_fit, size=stats_size)``.
-    ``register`` forwards the same function to every chapter.
+    ``register`` forwards the same function to every chapter unless
+    ``chapters`` names a subset.
     """
 
     @property
@@ -78,16 +79,30 @@ class MultiStatistics(dict[str, Any]):
         """Sorted names of the contained ``Statistics`` objects."""
         return sorted(self.keys())
 
-    def register(self, name: str, func: Callable[..., Any], *args: Any, **kwargs: Any) -> None:
-        """Register ``func`` on every contained ``Statistics`` object.
+    def register(
+        self,
+        name: str,
+        func: Callable[..., Any],
+        *args: Any,
+        chapters: str | Iterable[str] | None = None,
+        **kwargs: Any,
+    ) -> None:
+        """Register ``func`` on contained ``Statistics`` objects.
 
         Args:
             name: Key used for this statistic in each chapter record.
             func: Function applied to each chapter's key values.
             *args: Positional arguments bound into ``func``.
+            chapters: Chapter name or names to update. ``None``
+                registers on every chapter.
             **kwargs: Keyword arguments bound into ``func``.
         """
-        for stats in self.values():
+        if chapters is None:
+            targets = self.values()
+        else:
+            names = (chapters,) if isinstance(chapters, str) else tuple(chapters)
+            targets = [self[chapter] for chapter in names]
+        for stats in targets:
             stats.register(name, func, *args, **kwargs)
 
     def compile(self, data: Iterable[Any]) -> dict[str, Any]:

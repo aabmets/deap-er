@@ -8,6 +8,10 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+import time
+from logging import Logger
+from typing import Any
+
 from deap_er.private.toolbox import Toolbox
 from deap_er.private.typedefs import EvoAlgoResult, EvoRecords, EvoStats, Individual
 
@@ -26,6 +30,9 @@ def ea_simple(
     hof: EvoRecords | None = None,
     stats: EvoStats | None = None,
     verbose: bool = False,
+    logger: Logger | None = None,
+    log_time: bool = False,
+    fronts: list[Any] | None = None,
 ) -> EvoAlgoResult:
     """Evolve a population with crossover and mutation on every generation.
 
@@ -41,12 +48,18 @@ def ea_simple(
         hof: Optional HallOfFame or ParetoFront to update.
         stats: Optional Statistics or MultiStatistics to compile.
         verbose: If True, print the logbook stream each generation.
+        logger: If given with ``verbose``, the stream is logged.
+        log_time: If True, record per-generation ``duration``.
+        fronts: Optional list that receives a ParetoFront snapshot
+            of each generation's population.
 
     Returns:
         The final population and the logbook.
     """
-    logbook = new_logbook(stats)
+    logbook = new_logbook(stats, log_time=log_time)
+    t0 = time.perf_counter()
     nevals = evaluate_invalid(toolbox, population)
+    duration = time.perf_counter() - t0 if log_time else None
     record_generation(
         logbook,
         0,
@@ -56,15 +69,20 @@ def ea_simple(
         hof=hof,
         stats=stats,
         verbose=verbose,
+        logger=logger,
+        duration=duration,
+        fronts=fronts,
     )
 
     for gen in range(1, generations + 1):
+        t0 = time.perf_counter()
         offspring = toolbox.select(population, len(population))
         offspring = var_and(toolbox, offspring, cx_prob, mut_prob)
 
         nevals = evaluate_invalid(toolbox, offspring)
 
         population[:] = offspring
+        duration = time.perf_counter() - t0 if log_time else None
 
         record_generation(
             logbook,
@@ -75,6 +93,9 @@ def ea_simple(
             hof=hof,
             stats=stats,
             verbose=verbose,
+            logger=logger,
+            duration=duration,
+            fronts=fronts,
         )
 
     return population, logbook

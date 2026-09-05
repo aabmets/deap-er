@@ -88,3 +88,8 @@ def test_nsga_convergence_and_inverted_generational_distance():
     # Each front point is sqrt(0.02) from its nearest true-front vertex.
     assert conv == pytest.approx(0.1414213562373095, rel=1e-6)
     assert igd == pytest.approx(0.1414213562373095, rel=1e-6)
+
+
+def test_duplicate_count_counts_twins():
+    assert tools.duplicate_count([[1], [1], [2], [1]]) == 2
+    assert tools.duplicate_count(["a", "bb", "a"], key=len) == 1

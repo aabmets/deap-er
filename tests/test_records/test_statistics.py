@@ -43,3 +43,13 @@ class TestStatistics:
         listed = multi.compile([1, 2, 3, 4])
         assert generated == listed
         assert generated["a"]["sum"] == generated["b"]["sum"] == 10
+
+    def test_multi_statistics_register_targets_named_chapters(self):
+        length_stats = Statistics(key=len)
+        item_stats = Statistics(key=itemgetter(0))
+        ms = MultiStatistics(length=length_stats, item=item_stats)
+        ms.register("mean", numpy.mean, chapters="length")
+        ms.register("max", numpy.max, chapters=["item"])
+        res = ms.compile([[0.0, 1.0], [2.0]])
+        assert "mean" in res["length"] and "max" not in res["length"]
+        assert "max" in res["item"] and "mean" not in res["item"]

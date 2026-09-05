@@ -9,27 +9,30 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from collections.abc import Sequence
+from logging import Logger
 from typing import Any
 
 from deap_er.private.toolbox import Toolbox
 from deap_er.private.typedefs import EvoRecords, EvoStats, Individual
-from deap_er.records import Logbook
+from deap_er.records import Logbook, ParetoFront
 
 __all__: list[str] = ["new_logbook", "evaluate_invalid", "record_generation"]
 
 
-def new_logbook(stats: EvoStats | None) -> Logbook:
+def new_logbook(stats: EvoStats | None, log_time: bool = False) -> Logbook:
     """Create a logbook with the standard algorithm header.
 
     Args:
         stats: Optional Statistics or MultiStatistics whose fields
             become the trailing header columns.
+        log_time: If True, include a ``duration`` column.
 
     Returns:
         A logbook ready to record generations.
     """
     logbook = Logbook()
-    logbook.header = ["gen", "nevals"] + (stats.fields if stats else [])
+    extra = ["duration"] if log_time else []
+    logbook.header = ["gen", "nevals"] + extra + (stats.fields if stats else [])
     return logbook
 
 
@@ -69,6 +72,9 @@ def record_generation(
     hof: EvoRecords | None,
     stats: EvoStats | None,
     verbose: bool,
+    logger: Logger | None = None,
+    duration: float | None = None,
+    fronts: list[Any] | None = None,
 ) -> None:
     """Update the hall of fame and append one generation to the logbook.
 
@@ -84,11 +90,25 @@ def record_generation(
         offspring: Individuals to offer to the hall of fame.
         hof: Optional HallOfFame or ParetoFront to update.
         stats: Optional Statistics or MultiStatistics to compile.
-        verbose: If True, print the logbook stream.
+        verbose: If True, emit the logbook stream.
+        logger: If given, the stream is logged instead of printed.
+        duration: Optional wall time of this generation in seconds.
+        fronts: Optional list that receives a ParetoFront snapshot
+            of ``population`` for this generation.
     """
     if hof is not None:
         hof.update(offspring)
+    if fronts is not None:
+        front = ParetoFront()
+        front.update(population)
+        fronts.append(front)
     record = stats.compile(population) if stats else {}
+    if duration is not None:
+        record["duration"] = duration
     logbook.record(gen=gen, nevals=nevals, **record)
     if verbose:
-        print(logbook.stream)
+        text = logbook.stream
+        if logger is not None:
+            logger.info(text)
+        else:
+            print(text)
