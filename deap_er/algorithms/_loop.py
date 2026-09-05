@@ -36,6 +36,11 @@ def _new_logbook(stats: Stats | None) -> Logbook:
 def _evaluate_invalid(toolbox: Toolbox, individuals: Sequence[Any]) -> int:
     """Evaluate the individuals whose fitness is invalid.
 
+    When the toolbox has an ``evaluate_batch`` operator, the whole
+    batch of invalid individuals is handed to it in one call and
+    ``map`` is not used. Otherwise each individual goes through
+    ``map`` and ``evaluate`` as usual.
+
     Args:
         toolbox: Toolbox with the evaluate and map operators.
         individuals: Individuals to scan for invalid fitness.
@@ -44,7 +49,11 @@ def _evaluate_invalid(toolbox: Toolbox, individuals: Sequence[Any]) -> int:
         The number of individuals that were evaluated.
     """
     invalids = [ind for ind in individuals if not ind.fitness.is_valid()]
-    fitness = toolbox.map(toolbox.evaluate, invalids)
+    evaluate_batch = getattr(toolbox, "evaluate_batch", None)
+    if evaluate_batch is not None:
+        fitness = evaluate_batch(invalids)
+    else:
+        fitness = toolbox.map(toolbox.evaluate, invalids)
     for ind, fit in zip(invalids, fitness, strict=False):
         ind.fitness.values = fit
     return len(invalids)

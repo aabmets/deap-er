@@ -78,6 +78,40 @@ def test_all_drivers_agree_on_generation_numbering(toolbox, driver):
     assert logbook.select("gen") == [0, 1, 2, 3, 4]
 
 
+def test_evaluate_batch_takes_over_from_map_when_registered(toolbox):
+    batches = []
+
+    def evaluate_batch(individuals):
+        batches.append(len(individuals))
+        return [_evaluate(ind) for ind in individuals]
+
+    def forbidden_map(*_args, **_kwargs):
+        raise AssertionError("map must not be used while evaluate_batch is registered")
+
+    toolbox.register("evaluate_batch", evaluate_batch)
+    toolbox.register("map", forbidden_map)
+
+    _, logbook = tools.ea_simple(toolbox, _population(), 3, 0.5, 0.2)
+
+    assert sum(batches) == sum(logbook.select("nevals"))
+    assert len(batches) == len(logbook.select("gen"))
+
+
+def test_map_stays_in_charge_without_an_evaluate_batch_operator(toolbox):
+    mapped = []
+
+    def counting_map(func, items):
+        values = list(map(func, items))
+        mapped.append(len(values))
+        return values
+
+    toolbox.register("map", counting_map)
+
+    _, logbook = tools.ea_simple(toolbox, _population(), 3, 0.5, 0.2)
+
+    assert sum(mapped) == sum(logbook.select("nevals"))
+
+
 def test_mu_comma_lambda_rejects_more_survivors_than_offsprings(toolbox):
     # (mu, lambda) requires lambda >= mu, so this is a caller mistake
     # rather than something to silently correct.
