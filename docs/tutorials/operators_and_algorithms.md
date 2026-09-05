@@ -10,15 +10,15 @@ import random
 
 IND_SIZE = 5
 
-creator.create("FitnessMin", base.Fitness, weights=(-1.0, -1.0))
-creator.create("Individual", list, fitness=creator.FitnessMin)
+creator.create_type("FitnessMin", base.Fitness, weights=(-1.0, -1.0))
+creator.create_type("Individual", list, fitness=creator.FitnessMin)
 
 toolbox = base.Toolbox()
 toolbox.register("attr_float", random.random)
 toolbox.register("individual", tools.init_repeat,
-    container=creator.Individual,
-    func=toolbox.attr_float,
-    size=IND_SIZE)
+                 container=creator.Individual,
+                 func=toolbox.attr_float,
+                 size=IND_SIZE)
 
 ind1 = toolbox.individual()
 ind2 = toolbox.individual()

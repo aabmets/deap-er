@@ -32,15 +32,15 @@ any, become the attributes of the new type.
 **Single-objective**
 
 ```python
-creator.create("FitnessMin", base.Fitness, weights=(-1.0,))  # Minimizing
-creator.create("FitnessMax", base.Fitness, weights=(1.0,))   # Maximizing
+creator.create_type("FitnessMin", base.Fitness, weights=(-1.0,))  # Minimizing
+creator.create_type("FitnessMax", base.Fitness, weights=(1.0,))  # Maximizing
 ```
 
 **Multi-objective**
 
 ```python
-creator.create("FitnessMulti", base.Fitness, weights=(-1.0, 1.0))       # Min and max
-creator.create("FitnessVaried", base.Fitness, weights(0.5, 1.1, -1.7))  # Varied importance
+creator.create_type("FitnessMulti", base.Fitness, weights=(-1.0, 1.0))  # Min and max
+creator.create_type("FitnessVaried", base.Fitness, weights(0.5, 1.1, -1.7))  # Varied importance
 ```
 
 ### Individuals
@@ -57,9 +57,9 @@ types of `Collection`. In addition to the standard `list` class, it is also poss
 to create individuals based on the `array.array` or `numpy.ndarray` classes:
 
 ```python
-creator.create("Individual", list, fitness=creator.FitnessMax)
-creator.create("Individual", numpy.ndarray, fitness=creator.FitnessMax)
-creator.create("Individual", array.array, typecode="i", fitness=creator.FitnessMax)
+creator.create_type("Individual", list, fitness=creator.FitnessMax)
+creator.create_type("Individual", numpy.ndarray, fitness=creator.FitnessMax)
+creator.create_type("Individual", array.array, typecode="i", fitness=creator.FitnessMax)
 ```
 
 After an **Individual** subclass with a *fitness* attribute has been created, it
@@ -317,9 +317,9 @@ has ever been visited by any particle. This can be implemented by recording
 the best position and the best fitness as population attributes:
 
 ```python
-creator.create("Swarm", list, g_best_pos=None, g_best_fit=creator.FitnessMax)
+creator.create_type("Swarm", list, g_best_pos=None, g_best_fit=creator.FitnessMax)
 toolbox.register("swarm", tools.init_repeat, creator.Swarm, toolbox.particle)
-pop = toolbox.swarm(size=100)    # creates a swarm of 100 particles
+pop = toolbox.swarm(size=100)  # creates a swarm of 100 particles
 ```
 
 ### Demes
