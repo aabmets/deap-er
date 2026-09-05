@@ -93,13 +93,22 @@ class Checkpoint:
             OSError: If the file cannot be read and ``raise_errors`` is True.
             dill.PickleError: If deserialization fails and ``raise_errors`` is True.
         """
+        file_path = self.file_path
+        raise_errors = self.raise_errors
+        make_dir = self.make_dir
         try:
             with open(self.file_path, "rb") as f:
                 # nosemgrep: python.lang.security.deserialization.pickle.avoid-dill
                 self.__dict__ = dill.load(f)
+            self.file_path = file_path
+            self.raise_errors = raise_errors
+            self.make_dir = make_dir
             if self._rng_state_ is not None:
                 rng.set_state(self._rng_state_)
-        except (OSError, dill.PickleError) as ex:
+        except (OSError, dill.PickleError, EOFError, TypeError) as ex:
+            self.file_path = file_path
+            self.raise_errors = raise_errors
+            self.make_dir = make_dir
             if self.raise_errors:
                 raise ex
             self._last_op_ = "load_error"
@@ -124,13 +133,17 @@ class Checkpoint:
             self._rng_state_ = rng.get_state()
             if self.make_dir:
                 self.file_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(self.file_path, "wb") as f:
-                _dict_ = vars(self).copy()
-                for key in self._omit_:
-                    _dict_.pop(key, None)
+            _dict_ = vars(self).copy()
+            for key in self._omit_:
+                _dict_.pop(key, None)
+            tmp_path = self.file_path.with_name(self.file_path.name + ".tmp")
+            with open(tmp_path, "wb") as f:
                 # nosemgrep: python.lang.security.deserialization.pickle.avoid-dill
                 dill.dump(_dict_, f)
-        except (OSError, dill.PickleError) as ex:
+            os.replace(tmp_path, self.file_path)
+        except (OSError, dill.PickleError, EOFError, TypeError) as ex:
+            tmp_path = self.file_path.with_name(self.file_path.name + ".tmp")
+            tmp_path.unlink(missing_ok=True)
             if self.raise_errors:
                 raise ex
             self._last_op_ = "save_error"
@@ -159,21 +172,17 @@ class Checkpoint:
             raise ValueError("Iterations argument cannot be a negative number.")
         from_ = self._range_counter_ + 1
         to_excl = self._range_counter_ + generations + 1
-
-        if self.save_freq == -1:  # saving is disabled
-            for i in range(from_, to_excl):
-                yield i
-                self._range_counter_ = i
-        else:  # saving is enabled
-            last_save = time.time()
-            for i in range(from_, to_excl):
-                yield i
-                self._range_counter_ = i
-                now = time.time()
-                elapsed = now - last_save
-                if elapsed >= self._save_freq_:
-                    last_save = now
-                    self.save()
+        last_save = time.time()
+        for i in range(from_, to_excl):
+            yield i
+            self._range_counter_ = i
+            if self.save_freq == -1:
+                continue
+            now = time.time()
+            if now - last_save >= self._save_freq_:
+                last_save = now
+                self.save()
+        if self.save_freq != -1:
             self.save()
 
     @property
