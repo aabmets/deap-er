@@ -657,8 +657,8 @@ def _dtlz_helper_2(individual: Individual, count: int, gval: float) -> list[floa
     def theta(x: float) -> float:
         return pi / (4.0 * (1 + gval)) * (1 + 2 * gval * x)
 
-    vals = [cos(theta(a)) for a in individual[1:]]
-    rdc = reduce(lambda x, y: x * y, vals)
+    vals = [cos(theta(a)) for a in individual[1 : count - 1]]
+    rdc = reduce(lambda x, y: x * y, vals, 1)
     fit = [(1 + gval) * cos(pi / 2.0 * individual[0]) * rdc]
 
     for m in reversed(range(1, count)):

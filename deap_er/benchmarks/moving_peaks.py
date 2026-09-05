@@ -364,7 +364,7 @@ class MPFuncs:
         value = 0.0
         for x, p in zip(individual, positions, strict=False):
             value += (x - p) ** 2
-        return float(height / (1 + width * value))
+        return float(height / (1 + width * math.sqrt(value)))
 
     @staticmethod
     def pf2(
@@ -474,7 +474,7 @@ class MPConfigs:
             "max_width": 12.0,
             "uniform_width": 0,
             "lambda_": 0.5,
-            "move_severity": 1.0,
+            "move_severity": 1.5,
             "height_severity": 7.0,
             "width_severity": 1.0,
             "period": 5000,

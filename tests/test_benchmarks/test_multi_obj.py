@@ -70,3 +70,10 @@ def test_dtlz_family_returns_the_requested_objective_count():
         values = tools.bm_dtlz_4(vector, count, alpha=100.0)
         assert len(values) == count
         _finite(values)
+
+
+def test_dtlz5_f1_uses_only_the_angular_variables():
+    vector: Any = [0.25] + [0.5] * 6
+    values = tools.bm_dtlz_5(vector, 3)
+    assert values[0] == pytest.approx(0.6532814824381883, rel=1e-6)
+    assert sum(value * value for value in values) == pytest.approx(1.0, rel=1e-6)

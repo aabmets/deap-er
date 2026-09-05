@@ -90,3 +90,9 @@ def test_change_peaks_is_stable_with_a_fixed_count():
         ]
     )
     assert landscape.peaks_position[0] == pytest.approx([65.47327583938005, 22.479355750749242])
+
+
+def test_pf1_uses_euclidean_distance_and_alt1_move_severity():
+    value = tools.MPFuncs.pf1((0.0, 3.0), (0.0, 0.0), 50.0, 0.1)
+    assert value == pytest.approx(50.0 / (1.0 + 0.1 * 3.0))
+    assert tools.MPConfigs.ALT1["move_severity"] == 1.5

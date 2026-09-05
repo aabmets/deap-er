@@ -130,9 +130,9 @@ def bm_chuang_f3(individual: Individual) -> tuple[int]:
         for i in range(0, len(individual) - 1, 4):
             total += _inv_trap(individual[i : i + 4])
     else:
-        for i in range(2, len(individual) - 3, 4):
-            total += _inv_trap(individual[i : i + 4])
-        total += _trap(individual[-2:] + individual[:2])
+        for i in range(2, 38, 4):
+            total += _trap(individual[i : i + 4])
+        total += _trap(individual[38:40] + individual[:2])
     return (total,)
 
 

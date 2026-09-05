@@ -65,3 +65,13 @@ def test_chuang_f3_wraps_the_first_pair_when_the_last_bit_is_one():
     assert tools.bm_chuang_f3(ones)[0] > 0
     assert tools.bm_chuang_f3(mixed)[0] >= 0
     assert tools.bm_chuang_f3(_bits([0, 1], 41))[0] >= 0
+
+
+def test_chuang_f3_optima_and_rotated_trap_blocks():
+    zeros: Any = [0] * 41
+    ones: Any = [1] * 41
+    flipped = ones.copy()
+    flipped[38] = 0
+    assert tools.bm_chuang_f3(zeros) == (40,)
+    assert tools.bm_chuang_f3(ones) == (40,)
+    assert tools.bm_chuang_f3(flipped) != (40,)
