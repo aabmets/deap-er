@@ -8,10 +8,10 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from .hall_of_fame import HallOfFame, ParetoFront
-from .history import History
-from .logbook import Logbook
-from .statistics import MultiStatistics, Statistics
+from .private.records.hall_of_fame import HallOfFame, ParetoFront
+from .private.records.history import History
+from .private.records.logbook import Logbook
+from .private.records.statistics import MultiStatistics, Statistics
 
 __all__ = [
     "HallOfFame",

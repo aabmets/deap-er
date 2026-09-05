@@ -11,9 +11,9 @@
 from collections import defaultdict
 from typing import Any, SupportsIndex, override
 
-from ._logbook_format import _format_txt
+from .logbook_format import format_txt
 
-__all__ = ["Logbook"]
+__all__: list[str] = ["Logbook"]
 
 
 class Logbook(list[dict[str, Any]]):
@@ -159,7 +159,7 @@ class Logbook(list[dict[str, Any]]):
             One formatted line per row, including a header when
             ``start_index`` is 0 and ``log_header`` is True.
         """
-        return _format_txt(self, start_index)
+        return format_txt(self, start_index)
 
     @override
     def __str__(self) -> str:

@@ -8,18 +8,21 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from __future__ import annotations
+
 from bisect import bisect_right
 from collections.abc import Callable, Iterator, Sequence
 from copy import deepcopy
 from operator import eq
-from typing import Any, override
+from typing import TYPE_CHECKING, Any, override
 
-from deap_er.base.typedefs import Individual
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual
 
-__all__ = ["HallOfFame", "ParetoFront"]
+__all__: list[str] = ["BaseRecordStorage", "HallOfFame", "ParetoFront"]
 
 
-class _BaseClass:
+class BaseRecordStorage:
     """Shared storage and ordering for HallOfFame and ParetoFront."""
 
     def __init__(self) -> None:
@@ -86,7 +89,7 @@ class _BaseClass:
         return str(self.items)
 
 
-class HallOfFame(_BaseClass):
+class HallOfFame(BaseRecordStorage):
     """Archive of the best individuals seen during evolution.
 
     Members stay sorted by fitness so the first item is the best
@@ -156,7 +159,7 @@ class HallOfFame(_BaseClass):
             self._update_one(ind)
 
 
-class ParetoFront(_BaseClass):
+class ParetoFront(BaseRecordStorage):
     """Archive of every non-dominated individual seen during evolution.
 
     The front is unbounded: every unique non-dominated individual is kept.

@@ -12,7 +12,7 @@ from collections.abc import Callable, Iterable
 from functools import partial
 from typing import Any
 
-__all__ = ["Statistics", "MultiStatistics"]
+__all__: list[str] = ["Statistics", "MultiStatistics"]
 
 
 class Statistics:

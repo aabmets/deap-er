@@ -8,13 +8,16 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from __future__ import annotations
+
 from collections.abc import Callable
 from copy import deepcopy
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from deap_er.base.typedefs import Individual
+if TYPE_CHECKING:
+    from deap_er.private.typedefs import Individual
 
-__all__ = ["History"]
+__all__: list[str] = ["History"]
 
 
 class History:

@@ -13,10 +13,10 @@ from collections.abc import Iterable
 from itertools import chain
 from typing import Any
 
-__all__: list[str] = []
+__all__: list[str] = ["chapter_blocks", "build_rows", "build_header", "format_txt"]
 
 
-def _chapter_blocks(
+def chapter_blocks(
     logbook: Any, start_index: int
 ) -> tuple[dict[str, list[str]], defaultdict[str, int]]:
     """Render every chapter and measure how far each one leads.
@@ -41,7 +41,7 @@ def _chapter_blocks(
     return chapters_txt, offsets
 
 
-def _build_rows(
+def build_rows(
     logbook: Any,
     columns: list[str],
     start_index: int,
@@ -76,7 +76,7 @@ def _build_rows(
     return str_matrix
 
 
-def _build_header(
+def build_header(
     logbook: Any,
     columns: list[str],
     chapters_txt: dict[str, list[str]],
@@ -120,7 +120,7 @@ def _build_header(
     return header
 
 
-def _format_txt(logbook: Any, start_index: int) -> list[str]:
+def format_txt(logbook: Any, start_index: int) -> list[str]:
     """Format rows from ``start_index`` as aligned column strings.
 
     Args:
@@ -139,12 +139,12 @@ def _format_txt(logbook: Any, start_index: int) -> list[str]:
     if not logbook.columns_len or len(logbook.columns_len) != len(columns):
         logbook.columns_len = list(map(len, columns))
 
-    chapters_txt, offsets = _chapter_blocks(logbook, start_index)
-    str_matrix = _build_rows(logbook, columns, start_index, chapters_txt, offsets)
+    chapters_txt, offsets = chapter_blocks(logbook, start_index)
+    str_matrix = build_rows(logbook, columns, start_index, chapters_txt, offsets)
 
     rows: Iterable[list[str]] = str_matrix
     if start_index == 0 and logbook.log_header:
-        header = _build_header(logbook, columns, chapters_txt, offsets, str_matrix)
+        header = build_header(logbook, columns, chapters_txt, offsets, str_matrix)
         rows = chain(header, str_matrix)
 
     template = "\t".join(f"{{{i}:<{length}}}" for i, length in enumerate(logbook.columns_len))
