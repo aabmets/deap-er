@@ -12,7 +12,7 @@ from array import array
 from copy import deepcopy
 from functools import partial
 
-from deap_er import base, creator
+from deap_er import base, creator, gp
 from deap_er.base.toolbox import Toolbox, clone_individual
 
 
@@ -84,6 +84,32 @@ def test_clone_individual_copies_array_genes():
     finally:
         del creator.__dict__["CLONE_ARR_FIT"]
         del creator.__dict__["CLONE_ARR_IND"]
+
+
+def test_clone_individual_shares_gp_tree_nodes_and_splits_fitness():
+    # GP nodes are immutable once created, so a genetic programming
+    # toolbox can register this clone instead of deepcopy and skip
+    # copying every node of every individual of every generation.
+    creator.create("CLONE_GP_FIT", base.Fitness, weights=(1.0,))
+    creator.create("CLONE_GP_IND", gp.PrimitiveTree, fitness=creator.__dict__["CLONE_GP_FIT"])
+    try:
+        pset = gp.make_column_pset(["value"])
+        gp.add_numpy_primitives(pset)
+        original = creator.__dict__["CLONE_GP_IND"](gp.gen_full(pset, 2, 3))
+        original.fitness.values = (4.0,)
+
+        cloned = clone_individual(original)
+        del cloned.fitness.values
+
+        assert cloned is not original
+        assert list(cloned) == list(original)
+        assert all(left is right for left, right in zip(cloned, original, strict=True))
+        assert cloned.fitness is not original.fitness
+        assert original.fitness.values == (4.0,)
+        assert not cloned.fitness.is_valid()
+    finally:
+        del creator.__dict__["CLONE_GP_FIT"]
+        del creator.__dict__["CLONE_GP_IND"]
 
 
 def test_clone_individual_falls_back_when_strategy_is_set():
