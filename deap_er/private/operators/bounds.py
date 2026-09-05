@@ -16,7 +16,20 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from deap_er.private.typedefs import NumOrSeq
 
-__all__: list[str] = ["broadcast_param"]
+__all__: list[str] = ["broadcast_param", "require_positive_eta"]
+
+
+def require_positive_eta(eta: float) -> None:
+    """Require a strictly positive crowding degree.
+
+    Args:
+        eta: Crowding degree of a bounded SBX or polynomial operator.
+
+    Raises:
+        ValueError: If ``eta`` is not greater than 0.
+    """
+    if eta <= 0:
+        raise ValueError("Argument 'eta' must be greater than 0.")
 
 
 def broadcast_param(

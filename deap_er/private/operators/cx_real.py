@@ -16,11 +16,12 @@ if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual, Mates, NumOrSeq
 from deap_er.private.various.rng import rng
 
-from .bounds import broadcast_param
+from .bounds import broadcast_param, require_positive_eta
 from .cx_point import slicer
 
 __all__: list[str] = [
     "cx_blend",
+    "cx_blend_bounded",
     "cx_es_blend",
     "cx_simulated_binary",
     "cx_simulated_binary_bounded",
@@ -47,6 +48,45 @@ def cx_blend(ind1: Individual, ind2: Individual, alpha: float) -> Mates:
         gamma = (1.0 + 2.0 * alpha) * rng.random() - alpha
         ind1[i] = (1.0 - gamma) * x1 + gamma * x2
         ind2[i] = gamma * x1 + (1.0 - gamma) * x2
+
+    return ind1, ind2
+
+
+def cx_blend_bounded(
+    ind1: Individual, ind2: Individual, alpha: float, low: NumOrSeq, up: NumOrSeq
+) -> Mates:
+    """Execute a bounded blend crossover on two individuals.
+
+    Both individuals are modified in place. Each child gene is
+    clamped to ``[low, up]`` after the blend draw.
+
+    Args:
+        ind1: The first individual.
+        ind2: The second individual.
+        alpha: Extent of the interval in which the new values can be
+            drawn for each attribute on both sides of the parents'
+            attributes.
+        low: Lower bound of the search space.
+        up: Upper bound of the search space.
+
+    Returns:
+        The two individuals after crossover.
+
+    Raises:
+        ValueError: If a bound sequence is shorter than the shorter
+            individual.
+    """
+    size = min(len(ind1), len(ind2))
+    low = broadcast_param("low", low, size, "the shorter individual")
+    up = broadcast_param("up", up, size, "the shorter individual")
+
+    for i, xl, xu in zip(list(range(size)), low, up, strict=False):
+        if xu <= xl:
+            continue
+        x1, x2 = ind1[i], ind2[i]
+        gamma = (1.0 + 2.0 * alpha) * rng.random() - alpha
+        ind1[i] = min(max((1.0 - gamma) * x1 + gamma * x2, xl), xu)
+        ind2[i] = min(max(gamma * x1 + (1.0 - gamma) * x2, xl), xu)
 
     return ind1, ind2
 
@@ -126,9 +166,10 @@ def cx_simulated_binary_bounded(
         The two individuals after crossover.
 
     Raises:
-        ValueError: If a bound sequence is shorter than the shorter
-            individual.
+        ValueError: If ``eta`` is not greater than 0, or if a bound
+            sequence is shorter than the shorter individual.
     """
+    require_positive_eta(eta)
 
     def calc_c(diff: float, side: float) -> float:
         """Map a gap to the bound into one bounded SBX child value.
@@ -154,9 +195,13 @@ def cx_simulated_binary_bounded(
     up = broadcast_param("up", up, size, "the shorter individual")
 
     for i, xl, xu in zip(list(range(size)), low, up, strict=False):
+        if xu <= xl:
+            continue
         if rng.random() <= 0.5 and abs(ind1[i] - ind2[i]) > 1e-14:
-            x1 = min(ind1[i], ind2[i])
-            x2 = max(ind1[i], ind2[i])
+            x1 = min(max(min(ind1[i], ind2[i]), xl), xu)
+            x2 = min(max(max(ind1[i], ind2[i]), xl), xu)
+            if abs(x1 - x2) <= 1e-14:
+                continue
             rand = rng.random()
 
             c1 = calc_c(x1 - xl, -1.0)

@@ -17,7 +17,7 @@ if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual, Mutant, NumOrSeq
 from deap_er.private.various.rng import rng
 
-from .bounds import broadcast_param
+from .bounds import broadcast_param, require_positive_eta
 
 __all__: list[str] = [
     "mut_gaussian",
@@ -81,9 +81,10 @@ def mut_polynomial_bounded(
         A one-element tuple containing the mutated individual.
 
     Raises:
-        ValueError: If ``low`` or ``up`` is a sequence shorter than
-            the individual.
+        ValueError: If ``eta`` is not greater than 0, or if ``low``
+            or ``up`` is a sequence shorter than the individual.
     """
+    require_positive_eta(eta)
     size = len(individual)
     low = broadcast_param("low", low, size)
     up = broadcast_param("up", up, size)
@@ -91,7 +92,9 @@ def mut_polynomial_bounded(
     idx = list(range(size))
     for i, xl, xu in zip(idx, low, up, strict=False):
         if rng.random() <= mut_prob:
-            x = individual[i]
+            if xu <= xl:
+                continue
+            x = min(max(individual[i], xl), xu)
             delta_1 = (x - xl) / (xu - xl)
             delta_2 = (xu - x) / (xu - xl)
             rand = rng.random()
