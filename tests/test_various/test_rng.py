@@ -145,6 +145,23 @@ def test_integers_shares_the_uint64_buffer_with_randint_and_choice():
     assert via_integers == via_randint == via_choice
 
 
+def test_sized_integers_drop_integer_leftover_and_keep_floats():
+    tools.rng.seed(0)
+    tools.rng.random()
+    tools.rng.randint(0, 9)
+    state = tools.rng.get_state()
+    leftover_int = tools.rng.randint(0, 9)
+    tools.rng.set_state(state)
+    leftover_float = tools.rng.random()
+
+    tools.rng.set_state(state)
+    tools.rng.integers(0, 10, size=5)
+    assert tools.rng.randint(0, 9) != leftover_int
+    tools.rng.set_state(state)
+    tools.rng.integers(0, 10, size=5)
+    assert tools.rng.random() == leftover_float
+
+
 def test_unused_integer_buffer_is_zeroed():
     tools.rng.seed(0)
     tools.rng.randint(0, 3)

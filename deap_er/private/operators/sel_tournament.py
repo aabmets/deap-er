@@ -38,10 +38,47 @@ def sel_tournament(
     Returns:
         The selected individuals.
     """
-    chosen = []
-    for _ in range(rounds):
-        aspirants = sel_random(individuals, contestants)
-        chosen.append(max(aspirants, key=attrgetter(fit_attr)))
+    if rounds <= 0:
+        return []
+    n = len(individuals)
+    if n == 0:
+        raise IndexError("Cannot choose from an empty sequence")
+    key = attrgetter(fit_attr)
+    if contestants < 1:
+        max((), key=key)
+    idxs = rng.integers(0, n, size=rounds * contestants)
+    chosen: list[Individual] = []
+    total = rounds * contestants
+    if contestants == 1:
+        return [individuals[idx] for idx in idxs]
+    if contestants == 2:
+        for i in range(0, total, 2):
+            first = individuals[idxs[i]]
+            second = individuals[idxs[i + 1]]
+            chosen.append(second if key(second) > key(first) else first)
+        return chosen
+    if contestants == 3:
+        for i in range(0, total, 3):
+            winner = individuals[idxs[i]]
+            best = key(winner)
+            second = individuals[idxs[i + 1]]
+            score = key(second)
+            if score > best:
+                winner, best = second, score
+            third = individuals[idxs[i + 2]]
+            if key(third) > best:
+                winner = third
+            chosen.append(winner)
+        return chosen
+    for i in range(0, total, contestants):
+        winner = individuals[idxs[i]]
+        best = key(winner)
+        for offset in range(1, contestants):
+            candidate = individuals[idxs[i + offset]]
+            score = key(candidate)
+            if score > best:
+                winner, best = candidate, score
+        chosen.append(winner)
     return chosen
 
 

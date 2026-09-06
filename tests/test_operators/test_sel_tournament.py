@@ -12,6 +12,33 @@ import pytest
 from deap_er import tools
 
 
+def test_sel_tournament_returns_requested_count(single_obj, make):
+    population = [make(single_obj, [i], (float(i),)) for i in range(10)]
+    tools.rng.seed(2)
+    chosen = tools.sel_tournament(population, rounds=7, contestants=3)
+    assert len(chosen) == 7
+    assert all(ind in population for ind in chosen)
+
+
+def test_sel_tournament_empty_pool_raises():
+    with pytest.raises(IndexError, match="empty"):
+        tools.sel_tournament([], rounds=1, contestants=3)
+    assert tools.sel_tournament([], rounds=0, contestants=3) == []
+
+
+def test_sel_tournament_uses_fit_attr(single_obj, make):
+    weak = make(single_obj, [0], (0.0,))
+    strong = make(single_obj, [1], (100.0,))
+    weak.alt = 100.0
+    strong.alt = 0.0
+    tools.rng.seed(1)
+    via_fitness = tools.sel_tournament([weak, strong], rounds=40, contestants=2)
+    tools.rng.seed(1)
+    via_alt = tools.sel_tournament([weak, strong], rounds=40, contestants=2, fit_attr="alt")
+    assert via_fitness.count(strong) > via_fitness.count(weak)
+    assert via_alt.count(weak) > via_alt.count(strong)
+
+
 @pytest.mark.parametrize("fitness_first", [True, False])
 def test_double_tournament_returns_requested_count(single_obj, make, fitness_first):
     population = [make(single_obj, [0] * (i % 4 + 1), (float(i),)) for i in range(12)]

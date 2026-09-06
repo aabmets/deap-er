@@ -170,4 +170,4 @@ def test_harm_compiles_statistics_into_the_logbook(toolbox):
         stats=stats,
     )
 
-    assert logbook.select("max") == [7, 7, 3, 3]
+    assert logbook.select("max") == [7, 7, 7, 3]

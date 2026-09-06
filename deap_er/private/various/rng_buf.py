@@ -169,6 +169,9 @@ def draw_integers(
 ) -> int | numpy.ndarray:
     """Draw a scalar int from the uint64 buffer, or a sized array from ``gen``.
 
+    A sized draw discards leftover uint64s so later scalar ints refill
+    from the advanced bit generator. Leftover uniforms are kept.
+
     Args:
         gen: Underlying NumPy Generator.
         buffers: Float and uint64 leftovers.
@@ -186,6 +189,7 @@ def draw_integers(
         OverflowError: If the span exceeds 64 bits.
     """
     if size is not None:
+        buffers._reset_ints()
         return gen.integers(low, high, size=size, endpoint=endpoint)
     if high is None:
         low, high = 0, low
