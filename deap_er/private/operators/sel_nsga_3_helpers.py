@@ -90,6 +90,8 @@ def find_intercepts(
                 or numpy.any((intercepts + best_point) > current_worst)
             ):
                 intercepts = front_worst
+            else:
+                intercepts = intercepts + best_point
 
     return intercepts
 
@@ -108,7 +110,9 @@ def associate_to_niche(
     Returns:
         Niche index and distance to that niche for each individual.
     """
-    fn = (fitness - best_point) / (intercepts - best_point)
+    denom = intercepts - best_point
+    denom = numpy.where(numpy.abs(denom) < 1e-12, 1.0, denom)
+    fn = (fitness - best_point) / denom
     fn = fn[:, numpy.newaxis, :]
     norm = numpy.linalg.norm(reference_points, axis=1)
     distances = numpy.sum(fn * reference_points, axis=2) / norm.reshape(1, -1)
@@ -145,6 +149,8 @@ def select_from_niche(
     selected = []
     available = numpy.ones(len(individuals), dtype=numpy.bool)
     while len(selected) < count:
+        if not numpy.any(available):
+            break
         n = count - len(selected)
 
         available_niches = numpy.zeros(len(niche_counts), dtype=numpy.bool)

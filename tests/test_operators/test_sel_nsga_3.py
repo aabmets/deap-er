@@ -11,7 +11,11 @@
 import numpy
 import pytest
 from deap_er import Fitness, Toolbox, creator, tools
-from deap_er.private.operators.sel_nsga_3_helpers import associate_to_niche
+from deap_er.private.operators.sel_nsga_3_helpers import (
+    associate_to_niche,
+    find_extreme_points,
+    find_intercepts,
+)
 
 FIT = "NSGA3_FIT"
 IND = "NSGA3_IND"
@@ -63,9 +67,64 @@ def test_nsga3_associates_points_to_the_nearest_niche():
     assert distances == pytest.approx([0.0, 0.0, 0.0, 0.2, 0.2], abs=1e-15)
 
 
+def test_nsga3_constant_objective_uses_absolute_intercepts():
+    fit_name = "NSGA3_CONST_FIT"
+    ind_name = "NSGA3_CONST_IND"
+    creator.create_type(fit_name, Fitness, weights=(-1.0, -1.0))
+    creator.create_type(ind_name, list, fitness=creator.__dict__[fit_name])
+    try:
+        pop = []
+        for i in range(5):
+            ind = creator.__dict__[ind_name]([float(i), 1.0])
+            ind.fitness.values = (float(i), 1.0)
+            pop.append(ind)
+
+        fitness = numpy.array([ind.fitness.wvalues for ind in pop], dtype=float) * -1
+        best = numpy.min(fitness, axis=0)
+        worst = numpy.max(fitness, axis=0)
+        ext = find_extreme_points(fitness, best, None)
+        intercepts = find_intercepts(ext, best, worst, worst)
+        refs = tools.uniform_reference_points(2, 4)
+        niches, _ = associate_to_niche(fitness, refs, best, intercepts)
+
+        assert niches.tolist() != [0, 0, 0, 0, 0]
+        assert niches[0] != niches[-1]
+
+        best_shift = numpy.array([-10.0, 0.0])
+        extreme = numpy.array([[-9.0, 0.0], [-10.0, 10.0]])
+        far_worst = numpy.array([100.0, 100.0])
+        got = find_intercepts(extreme, best_shift, far_worst, far_worst)
+        plane = numpy.linalg.solve(extreme - best_shift, numpy.ones(2))
+        assert numpy.allclose(got, 1.0 / plane + best_shift)
+    finally:
+        del creator.__dict__[fit_name]
+        del creator.__dict__[ind_name]
+
+
 def test_empty_population_returns_empty():
     refs = numpy.array([[1.0, 0.0], [0.0, 1.0]])
     assert tools.sel_nsga_3([], 3, refs) == []
+
+
+def test_nsga3_oversize_sel_count_returns_unique_pool():
+    fit_name = "NSGA3_OVER_FIT"
+    ind_name = "NSGA3_OVER_IND"
+    creator.create_type(fit_name, Fitness, weights=(-1.0, -1.0))
+    creator.create_type(ind_name, list, fitness=creator.__dict__[fit_name])
+    try:
+        pop = []
+        for i, val in enumerate([(0.0, 1.0), (0.3, 0.7), (0.6, 0.4), (1.0, 0.0)]):
+            ind = creator.__dict__[ind_name]([float(i)])
+            ind.fitness.values = val
+            pop.append(ind)
+
+        refs = tools.uniform_reference_points(2, 4)
+        chosen = tools.sel_nsga_3(pop, 8, refs)
+        assert len(chosen) == 4
+        assert {id(ind) for ind in chosen} == {id(ind) for ind in pop}
+    finally:
+        del creator.__dict__[fit_name]
+        del creator.__dict__[ind_name]
 
 
 def test_nsga3():

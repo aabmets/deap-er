@@ -34,6 +34,8 @@ def sel_spea_2(individuals: list[Individual], sel_count: int) -> list[Individual
     Returns:
         The selected individuals.
     """
+    if not individuals:
+        return []
     fits = raw_fitness(individuals)
 
     chosen = [i for i in range(len(individuals)) if fits[i] < 1]

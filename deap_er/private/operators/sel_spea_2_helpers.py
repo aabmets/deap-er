@@ -94,9 +94,8 @@ def fill_from_density(
     sq_dist = numpy.einsum("ijk,ijk->ij", delta, delta)
 
     for i in range(big_n):
-        distances = [0.0] * big_n
-        if i + 1 < big_n:
-            distances[i + 1 :] = sq_dist[i, i + 1 :].tolist()
+        distances = sq_dist[i].tolist()
+        distances[i] = math.inf
         kth_dist = randomized_select(distances, 0, big_n - 1, big_k)
         fits[i] += 1.0 / (kth_dist + 2.0)
 
