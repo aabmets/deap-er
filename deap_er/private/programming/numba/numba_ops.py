@@ -17,7 +17,7 @@ from ..opcodes import USER_BASE
 from ..tape import Tape
 from .numba_compile import build
 
-__all__: list[str] = ["USER_DISPATCH_SIGNATURE", "numba_available", "bind_tape"]
+__all__: list[str] = ["USER_DISPATCH_SIGNATURE", "numba_available", "bind_tape", "reserve"]
 
 USER_DISPATCH_SIGNATURE = (
     "(op: int64, sp: int64, stack: float64[:, ::1], columns: float64[:, ::1], "
@@ -60,7 +60,7 @@ def numba_available() -> bool:
     return True
 
 
-def _reserve(depth: int, rows: int) -> tuple[numpy.ndarray, numpy.ndarray]:
+def reserve(depth: int, rows: int) -> tuple[numpy.ndarray, numpy.ndarray]:
     """Hand out the process-wide interpreter workspace.
 
     One workspace is shared by every compiled tape so that a population
@@ -156,7 +156,7 @@ def bind_tape(tape: Tape, dispatch: Any = None) -> Callable[..., numpy.ndarray]:
 
     def call(*columns: Any) -> numpy.ndarray:
         matrix = _as_matrix(columns, tape.columns)
-        stack, scratch = _reserve(tape.depth, matrix.shape[0])
+        stack, scratch = reserve(tape.depth, matrix.shape[0])
         run(
             tape.opcodes,
             tape.operands,

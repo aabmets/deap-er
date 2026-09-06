@@ -17,7 +17,7 @@ from .numba_window import apply_window
 from .numba_window_pair import apply_pair_window
 from .numba_window_ts import apply_ts_window
 
-__all__: list[str] = ["interpret", "idle"]
+__all__: list[str] = ["interpret", "idle", "interpret_many"]
 
 
 def interpret(  # pragma: no cover
@@ -87,3 +87,57 @@ def idle(  # pragma: no cover
         ``-1``, which is not a valid stack pointer.
     """
     return -1
+
+
+def interpret_many(  # pragma: no cover
+    run: Any,
+    opcodes: Any,
+    operands: Any,
+    constants: Any,
+    op_starts: Any,
+    op_lens: Any,
+    c_starts: Any,
+    c_lens: Any,
+    fills: Any,
+    columns: Any,
+    stack: Any,
+    scratch: Any,
+    dispatch: Any,
+    out: Any,
+) -> None:
+    """Run many tapes through one compiled interpreter.
+
+    Args:
+        run: Compiled single-tape interpreter.
+        opcodes: Concatenated instruction stream.
+        operands: Concatenated immediates.
+        constants: Concatenated constant pools.
+        op_starts: Start index of each tape in ``opcodes``.
+        op_lens: Instruction count of each tape.
+        c_starts: Start index of each tape in ``constants``.
+        c_lens: Constant-pool length of each tape.
+        fills: Protected-op fill of each tape.
+        columns: Packed input matrix.
+        stack: Shared column-length workspace.
+        scratch: Spare row.
+        dispatch: Consumer kernel.
+        out: Result of shape ``(n_tapes, n_rows)``.
+    """
+    rows = columns.shape[0]
+    for index in range(op_starts.shape[0]):
+        start = op_starts[index]
+        n_ops = op_lens[index]
+        const_start = c_starts[index]
+        n_consts = c_lens[index]
+        run(
+            opcodes[start : start + n_ops],
+            operands[start : start + n_ops],
+            constants[const_start : const_start + n_consts],
+            columns,
+            fills[index],
+            stack,
+            scratch,
+            dispatch,
+        )
+        for row in range(rows):
+            out[index, row] = stack[0, row]

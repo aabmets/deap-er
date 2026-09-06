@@ -61,6 +61,7 @@ from .private.programming.opcodes import (
     lower_tree,
     numba_opcodes,
 )
+from .private.programming.tape_batch import interpret_tapes
 from .private.programming.primitives.primitive_nodes import Ephemeral, Primitive, Terminal
 from .private.programming.primitives.primitive_set import PrimitiveSet
 from .private.programming.primitives.primitive_set_typed import PrimitiveSetTyped
@@ -137,6 +138,7 @@ __all__ = [
     "numba_opcodes",
     "lower_tree",
     "interpret_tape",
+    "interpret_tapes",
     "Terminal",
     "Ephemeral",
     "Primitive",
