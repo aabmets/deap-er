@@ -21,7 +21,36 @@ from deap_er.private.various.rng import rng
 
 from .sel_various import sel_random
 
-__all__: list[str] = ["sel_tournament", "sel_double_tournament", "sel_tournament_dcd"]
+__all__: list[str] = ["sel_tournament", "sel_double_tournament"]
+
+
+def _sel_pair(
+    individuals: list[Individual], idxs: Any, key: Callable[..., Any], total: int
+) -> list[Individual]:
+    chosen: list[Individual] = []
+    for i in range(0, total, 2):
+        first = individuals[idxs[i]]
+        second = individuals[idxs[i + 1]]
+        chosen.append(second if key(second) > key(first) else first)
+    return chosen
+
+
+def _sel_triple(
+    individuals: list[Individual], idxs: Any, key: Callable[..., Any], total: int
+) -> list[Individual]:
+    chosen: list[Individual] = []
+    for i in range(0, total, 3):
+        winner = individuals[idxs[i]]
+        best = key(winner)
+        second = individuals[idxs[i + 1]]
+        score = key(second)
+        if score > best:
+            winner, best = second, score
+        third = individuals[idxs[i + 2]]
+        if key(third) > best:
+            winner = third
+        chosen.append(winner)
+    return chosen
 
 
 def sel_tournament(
@@ -45,31 +74,16 @@ def sel_tournament(
         raise IndexError("Cannot choose from an empty sequence")
     key = attrgetter(fit_attr)
     if contestants < 1:
-        max((), key=key)
+        raise ValueError("contestants must be at least 1")
     idxs = rng.integers(0, n, size=rounds * contestants)
-    chosen: list[Individual] = []
     total = rounds * contestants
     if contestants == 1:
         return [individuals[idx] for idx in idxs]
     if contestants == 2:
-        for i in range(0, total, 2):
-            first = individuals[idxs[i]]
-            second = individuals[idxs[i + 1]]
-            chosen.append(second if key(second) > key(first) else first)
-        return chosen
+        return _sel_pair(individuals, idxs, key, total)
     if contestants == 3:
-        for i in range(0, total, 3):
-            winner = individuals[idxs[i]]
-            best = key(winner)
-            second = individuals[idxs[i + 1]]
-            score = key(second)
-            if score > best:
-                winner, best = second, score
-            third = individuals[idxs[i + 2]]
-            if key(third) > best:
-                winner = third
-            chosen.append(winner)
-        return chosen
+        return _sel_triple(individuals, idxs, key, total)
+    chosen: list[Individual] = []
     for i in range(0, total, contestants):
         winner = individuals[idxs[i]]
         best = key(winner)
@@ -161,78 +175,3 @@ def sel_double_tournament(
         return _size_tourney(individuals, rounds, t_fit)
     t_size = partial(_size_tourney, select=sel_random)
     return _fit_tourney(individuals, rounds, t_size)
-
-
-def _dcd_tourney(ind1: Individual, ind2: Individual) -> Individual:
-    """Return the better of two individuals by dominance, then crowding.
-
-    Args:
-        ind1: First contestant.
-        ind2: Second contestant.
-
-    Returns:
-        The winning individual.
-    """
-    if ind1.fitness.dominates(ind2.fitness):
-        return ind1
-    elif ind2.fitness.dominates(ind1.fitness):
-        return ind2
-    if ind1.fitness.crowding_dist < ind2.fitness.crowding_dist:
-        return ind2
-    elif ind1.fitness.crowding_dist > ind2.fitness.crowding_dist:
-        return ind1
-    if rng.random() <= 0.5:
-        return ind1
-    return ind2
-
-
-def sel_tournament_dcd(individuals: list[Individual], sel_count: int) -> list[Individual]:
-    """Select by pairwise dominance, breaking ties with crowding distance.
-
-    When ``sel_count`` is a multiple of four the original paired
-    shuffle is used. Other counts run pairwise contests until enough
-    winners are collected. Each individual must already have a
-    ``crowding_dist`` attribute, which ``assign_crowding_dist`` can
-    set.
-
-    Args:
-        individuals: Individuals to select from.
-        sel_count: Number of individuals to select.
-
-    Returns:
-        The selected individuals.
-
-    Raises:
-        ValueError: If ``sel_count`` is larger than the pool.
-    """
-    if sel_count <= 0:
-        return []
-    if sel_count > len(individuals):
-        raise ValueError(
-            "sel_tournament_dcd: count must be less than or equal to individuals length."
-        )
-
-    if sel_count % 4 == 0:
-        individuals_1 = rng.sample(individuals, len(individuals))
-        individuals_2 = rng.sample(individuals, len(individuals))
-
-        chosen = []
-        for i in range(0, sel_count, 4):
-            chosen.append(_dcd_tourney(individuals_1[i], individuals_1[i + 1]))
-            chosen.append(_dcd_tourney(individuals_1[i + 2], individuals_1[i + 3]))
-            chosen.append(_dcd_tourney(individuals_2[i], individuals_2[i + 1]))
-            chosen.append(_dcd_tourney(individuals_2[i + 2], individuals_2[i + 3]))
-        return chosen
-
-    if sel_count == 1 and len(individuals) == 1:
-        return [individuals[0]]
-
-    chosen = []
-    pool = list(individuals)
-    while len(chosen) < sel_count:
-        rng.shuffle(pool)
-        for i in range(0, len(pool) - 1, 2):
-            chosen.append(_dcd_tourney(pool[i], pool[i + 1]))
-            if len(chosen) >= sel_count:
-                break
-    return chosen

@@ -44,11 +44,8 @@ from .private.operators.sel_lexicase import sel_epsilon_lexicase, sel_lexicase
 from .private.operators.sel_nsga_2 import sel_nsga_2
 from .private.operators.sel_nsga_3 import SelNSGA3WithMemory, sel_nsga_3
 from .private.operators.sel_spea_2 import sel_spea_2
-from .private.operators.sel_tournament import (
-    sel_double_tournament,
-    sel_tournament,
-    sel_tournament_dcd,
-)
+from .private.operators.sel_tournament import sel_double_tournament, sel_tournament
+from .private.operators.sel_tournament_dcd import sel_tournament_dcd
 from .private.operators.sel_various import (
     sel_best,
     sel_random,

@@ -22,6 +22,22 @@ type FitnessValues = SupportsFloat | Iterable[SupportsFloat]
 """
 
 
+def _dominates_pair(own: Sequence[float], theirs: Sequence[float]) -> bool:
+    a0, a1 = own
+    b0, b1 = theirs
+    if a0 < b0 or a1 < b1:
+        return False
+    return a0 > b0 or a1 > b1
+
+
+def _dominates_triple(own: Sequence[float], theirs: Sequence[float]) -> bool:
+    a0, a1, a2 = own
+    b0, b1, b2 = theirs
+    if a0 < b0 or a1 < b1 or a2 < b2:
+        return False
+    return a0 > b0 or a1 > b1 or a2 > b2
+
+
 class Fitness:
     """Quality of a solution, compared through weighted objectives.
 
@@ -115,17 +131,9 @@ class Fitness:
         theirs = other.wvalues if slc is None else other.wvalues[slc]
         n = len(own)
         if n == 3:
-            a0, a1, a2 = own
-            b0, b1, b2 = theirs
-            if a0 < b0 or a1 < b1 or a2 < b2:
-                return False
-            return a0 > b0 or a1 > b1 or a2 > b2
+            return _dominates_triple(own, theirs)
         if n == 2:
-            a0, a1 = own
-            b0, b1 = theirs
-            if a0 < b0 or a1 < b1:
-                return False
-            return a0 > b0 or a1 > b1
+            return _dominates_pair(own, theirs)
         if n == 1:
             return own[0] > theirs[0]
         better = False
