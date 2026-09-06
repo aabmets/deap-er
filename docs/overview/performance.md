@@ -13,17 +13,20 @@ installed when the figure is redrawn.
 
 | Case | Relative speed |
 |:-----|---------------:|
-| `nsga_convergence` n=40 | 45× |
-| `compile_tree` 10 trees ×20 repeats | 17× |
-| `sel_spea_2` n=160 k=80 | 5.2× |
-| `sel_spea_2` n=80 k=40 | 4.6× |
-| `clone_individual` n=60 | 3.5× |
+| `nsga_convergence` n=40 | 50× |
+| `sel_nsga_2` n=80 k=40 | 21× |
+| `compile_tree` 10 trees ×20 repeats | 18× |
+| `sel_spea_2` n=160 k=80 | 5.5× |
+| `sel_spea_2` n=80 k=40 | 4.8× |
+| `clone_individual` n=60 | 3.9× |
 | `sel_nsga_3` n=80 k=40 | 2.1× |
-| `fitness.values` ×200 on n=80 | 1.6× |
+| `sel_tournament` n=80 k=80 | 2.0× |
+| `fitness.values` ×200 on n=80 | 1.7× |
 | `fitness.dominates` pairwise n=80 | 1.6× |
+| `ParetoFront.update` n=80 | 1.3× |
 | `compile_tree` 40 unique trees | 1.1× |
-| `deepcopy` n=60 | 1.0× |
-| `ea_simple` n=40 gens=8 | 0.84× |
+| `deepcopy` n=60 | 1.1× |
+| `ea_simple` n=40 gens=8 | 0.87× |
 
 Green is darker as the speedup grows past 100%. The gray bar is
 below the DEAP baseline.
@@ -36,46 +39,50 @@ in Python loops:
 - **`nsga_convergence`** — pairwise distances go through SciPy
   `cdist` on fitness coordinates, not a Python double loop over
   genes.
-- **`sel_spea_2` / `sel_nsga_3`** — dominance and niche assignment
-  are vectorized. SPEA-II density rows stay the original
+- **`sel_nsga_2` / `sel_spea_2` / `sel_nsga_3`** — dominance and
+  niche assignment are vectorized. NSGA-II ranks with
+  `moocore.pareto_rank`. SPEA-II density rows stay the original
   upper-triangle layout so the RNG stream is unchanged.
 - **`compile_tree` repeats** — the default `eval` backend is cached
   by expression text and context identity. Both libraries compile
   the same shared source strings. The first compile of 40 unique
   trees is slightly ahead of DEAP; repeating the same ten trees is
-  about 17× faster.
+  about 18× faster.
 - **`clone_individual`** — a shallow copy of a `list` / `array.array`
   individual plus a deepcopy of fitness. The default
   `Toolbox.clone` is still `deepcopy` (the near-parity bar). Register
   the fast clone when genes are a plain sequence and extra state is
   only fitness. See [Important differences](differences.md).
+- **`sel_tournament`** — all contestant indices come from one
+  `rng.integers(..., size=rounds * contestants)` draw. Winners are
+  compared in Python. That stream differs from scalar `choice`.
 - **`fitness.values` reads** — the tuple is cached after the first
   assignment.
 - **`fitness.dominates`** — one-, two-, and three-objective cases
   unpack `wvalues` and compare directly. Other arities use an
-  indexed loop.
+  indexed loop. **`ParetoFront.update`** uses that same compare
+  against a growing archive.
 
 ## What is slower
 
 One case on this machine sits under 100%:
 
-- **`ea_simple`** — about 0.84× DEAP (2.11 ms vs 1.76 ms on n=40,
-  8 generations). The generational loop is almost entirely
-  tournament selection. Each round calls `sel_random`, and each
-  pick is a scalar `rng.choice`. Crossover and flip-bit mutation
-  add more scalar `random` draws. DEAP uses CPython's `random`
-  module for those. deap-er's process-wide RNG is a NumPy
-  `Generator` facade (buffered uniforms and scalar integers) so
-  one stream can be seeded, checkpointed, and matched by golden
-  tests. A NumPy-backed draw is still more expensive than CPython
-  `random`, so a tiny OneMax-style loop that spends its time in
-  `choice` / `random` loses. The bench does not rewrite tournament
-  to a batched sampler, because that would change the RNG stream.
+- **`ea_simple`** — about 0.87× DEAP (2.02 ms vs 1.75 ms on n=40,
+  8 generations). Isolated `sel_tournament` is ahead of DEAP.
+  The generational loop still spends time on scalar `rng.random`
+  in crossover and flip-bit mutation. DEAP uses CPython's
+  `random` module for those. deap-er's process-wide RNG is a
+  NumPy `Generator` facade (buffered uniforms and scalar integers)
+  so one stream can be seeded, checkpointed, and matched by golden
+  tests. A NumPy-backed `random()` is still more expensive than
+  CPython `random`, so a tiny OneMax-style loop that mixes those
+  draws with variation loses.
 
 That one case does not cancel the selection, clone, and compile
-wins. A run that spends its time in SPEA-II, NSGA-III, or repeated
-GP compile will see the chart's upper bars. A tiny OneMax loop that
-is almost entirely tournament draws will look like `ea_simple`.
+wins. A run that spends its time in SPEA-II, NSGA-II/III, or
+repeated GP compile will see the chart's upper bars. A tiny OneMax
+loop that is almost entirely `random()` in variation will look
+like `ea_simple`.
 
 ## How to reproduce
 
