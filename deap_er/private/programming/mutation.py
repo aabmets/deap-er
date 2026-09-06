@@ -112,6 +112,37 @@ def mut_ephemeral(individual: GPIndividual, mode: str = "all") -> GPMutant:
     return (individual,)
 
 
+def _fill_sibling_terminals(
+    slots: list[Any],
+    new_node: Any,
+    prim_set: PrimitiveSetTyped,
+    position: int,
+) -> bool:
+    """Fill sibling argument slots with random terminals.
+
+    The slot at ``position`` is left for the existing subtree.
+
+    Args:
+        slots: Slot list mutated in place.
+        new_node: Primitive being inserted.
+        prim_set: Primitive set to sample terminals from.
+        position: Index reserved for the original subtree.
+
+    Returns:
+        ``False`` if a sibling type has no terminals, otherwise ``True``.
+    """
+    for i, arg_type in enumerate(new_node.args):
+        if i != position:
+            terms = prim_set.terminals[arg_type]
+            if len(terms) == 0:
+                return False
+            term = rng.choice(terms)
+            if isclass(term):
+                term = term()
+            slots[i] = term
+    return True
+
+
 def mut_insert(individual: GPIndividual, prim_set: PrimitiveSetTyped) -> GPMutant:
     """Insert a new primitive branch at a random position.
 
@@ -143,15 +174,8 @@ def mut_insert(individual: GPIndividual, prim_set: PrimitiveSetTyped) -> GPMutan
             choices.append(i)
     position = rng.choice(choices)
 
-    for i, arg_type in enumerate(new_node.args):
-        if i != position:
-            terms = prim_set.terminals[arg_type]
-            if len(terms) == 0:
-                return (individual,)
-            term = rng.choice(terms)
-            if isclass(term):
-                term = term()
-            new_subtree[i] = term
+    if not _fill_sibling_terminals(new_subtree, new_node, prim_set, position):
+        return (individual,)
 
     new_subtree[position : position + 1] = individual[slice_]
     new_subtree.insert(0, new_node)
