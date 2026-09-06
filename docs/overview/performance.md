@@ -69,19 +69,20 @@ One case on this machine sits under 100%:
 
 - **`ea_simple`** — about 0.87× DEAP (2.02 ms vs 1.75 ms on n=40,
   8 generations). Isolated `sel_tournament` is ahead of DEAP.
-  The generational loop still spends time on scalar `rng.random`
-  in crossover and flip-bit mutation. DEAP uses CPython's
-  `random` module for those. deap-er's process-wide RNG is a
-  NumPy `Generator` facade (buffered uniforms and scalar integers)
-  so one stream can be seeded, checkpointed, and matched by golden
-  tests. A NumPy-backed `random()` is still more expensive than
-  CPython `random`, so a tiny OneMax-style loop that mixes those
-  draws with variation loses.
+  Flip-bit mutation now drains leftover uniforms with
+  `rng.take_floats` (same stream as `random()`). Crossover still
+  draws one scalar `rng.random` per mate-or-skip decision. DEAP
+  uses CPython's `random` module for those. deap-er's process-wide
+  RNG is a NumPy `Generator` facade (buffered uniforms and leftover
+  integers) so one stream can be seeded, checkpointed, and matched
+  by golden tests. A NumPy-backed uniform is still more expensive
+  than CPython `random`, so a tiny OneMax-style loop that mixes
+  those draws with variation loses.
 
 That one case does not cancel the selection, clone, and compile
 wins. A run that spends its time in SPEA-II, NSGA-II/III, or
 repeated GP compile will see the chart's upper bars. A tiny OneMax
-loop that is almost entirely `random()` in variation will look
+loop that is almost entirely uniform draws in variation will look
 like `ea_simple`.
 
 ## How to reproduce
