@@ -51,42 +51,22 @@ uv add deap-er
 
 ## Relative to DEAP
 
-The original library is the research toolbox this one started from. What
-follows is the work that accumulated on top of that base.
+Same toolbox model. Counted from the
+[differences](https://aabmets.github.io/deap-er/overview/differences/)
+inventory:
 
-The rewrite is a single package with type hints on the public surface,
-deprecated DEAP APIs removed, and algorithms, strategies, and benchmarks
-collected under `tools`. Hypervolume, hypervolume contributions, and Pareto
-ranking delegate to [moocore](https://pypi.org/project/moocore/). State
-is persisted with `Checkpoint`. The license is Apache-2.0.
+- **18** still-open [DEAP](https://github.com/DEAP/deap) issues
+  implemented (some older than a decade)
+- **27** correctness bugs fixed — operators, GP, CMA, records,
+  checkpoints, and published benchmarks
+- **21** capabilities DEAP does not have, including boxed CMA,
+  mixed-gene mutation, logbook JSON, and
+  [columnar GP](https://aabmets.github.io/deap-er/tutorials/columnar_gp/)
 
-Several operators and bookkeeping tools that sat as open DEAP issues —
-some for more than a decade — are implemented here. Bounded real-coded
-variation no longer writes NaN or raises when a gene leaves the box;
-permutation crossovers work on arbitrary alleles; CMA-ES can respect a
-box; mixed encodings have a per-gene mutator; GP generation can weight
-primitives and print trees in infix. Logbooks round-trip to JSON, and
-the stock algorithms can record wall time, emit through `logging`, and
-keep the Pareto front of each generation.
-
-A separate pass went through operators, GP, records, CMA, checkpoints, and
-the published benchmarks and corrected defects that change results: NumPy
-crossovers that aliased a parent, a hall of fame that skipped a strictly
-better individual, MO-CMA covariance updates gated on the sign of the
-evolution path, checkpoints that truncated the good file before the new
-dump finished, and several GP and benchmark formula errors inherited from
-the original sources.
-
-Genetic programming also has a columnar path that DEAP does not. A typed
-primitive set is built from named `float64` columns; a vectorized NumPy
-kit and causal window primitives (delay, difference, rolling statistics,
-EMA) produce a whole array per tree. `compile_tree` caches the default
-`eval` path, can lower a tree to an opcode tape, and, with the optional
-`numba` extra, runs that tape in a process-wide compiled interpreter.
-Algorithms call `evaluate_batch` when it is registered, so a generation
-can be scored against one shared matrix, and `clone_individual` avoids
-deepcopying every node. The contract is documented in the
-[columnar GP tutorial](https://aabmets.github.io/deap-er/tutorials/columnar_gp/).
+The package is typed, uses snake_case, and is Apache-2.0. Hypervolume
+work delegates to [moocore](https://pypi.org/project/moocore/). Timed
+hot paths versus DEAP are on the
+[performance page](https://aabmets.github.io/deap-er/overview/performance/).
 
 ## Documentation
 

@@ -3,9 +3,20 @@
 This library is an *evolution* of the original
 [DEAP](https://github.com/DEAP/deap) library (pun intended). It is not
 a drop-in rename. Function names, parameter order, and a few contracts
-changed. This page is the inventory: the rewrite itself, then the
+changed. Same toolbox model. Counted from the sections below:
+
+- **18** still-open [DEAP](https://github.com/DEAP/deap) issues
+  implemented (some older than a decade)
+- **27** correctness bugs fixed — operators, GP, CMA, records,
+  checkpoints, and published benchmarks
+- **21** capabilities DEAP does not have, including boxed CMA,
+  mixed-gene mutation, logbook JSON, and
+  [columnar GP](../tutorials/columnar_gp.md)
+
+The rest of this page is that inventory: the rewrite itself, then the
 operators, bookkeeping, genetic programming, and correctness work that
-accumulated on top of that base.
+accumulated on top of that base. Timed hot paths versus DEAP are on
+the [performance page](performance.md).
 
 ## Rewrite and public API
 
