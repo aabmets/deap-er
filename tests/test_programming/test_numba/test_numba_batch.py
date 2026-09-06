@@ -254,11 +254,9 @@ def test_a_serial_batch_does_not_compile_the_parallel_kernel():
     pset = _kit("BATCH_NUMBA_SERIAL_ONLY")
     columns = _samples()
     tape = gp.lower_tree(gp.PrimitiveTree([pset.mapping["first"]]), pset)
-    held = numba_batch._batch.pop("many_parallel", None)
-    try:
-        gp.interpret_tapes([tape], _matrix(columns), backend="numba")
-        assert "many" in numba_batch._batch
-        assert "many_parallel" not in numba_batch._batch
-    finally:
-        if held is not None:
-            numba_batch._batch["many_parallel"] = held
+    numba_batch._batch.clear()
+
+    gp.interpret_tapes([tape], _matrix(columns), backend="numba")
+
+    assert "many" in numba_batch._batch
+    assert "many_parallel" not in numba_batch._batch
