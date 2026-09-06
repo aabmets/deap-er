@@ -110,8 +110,9 @@ def test_interpret_tapes_rejects_a_sequence_of_columns():
     gp.add_numpy_primitives(pset)
     tape = gp.lower_tree(gp.PrimitiveTree([pset.mapping["first"]]), pset)
 
+    columns = _samples()
     with pytest.raises(ValueError, match="not a sequence of columns"):
-        gp.interpret_tapes([tape], _samples())
+        gp.interpret_tapes([tape], columns)
 
 
 def test_interpret_tapes_rejects_a_one_dimensional_matrix():
