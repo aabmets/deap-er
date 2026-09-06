@@ -158,7 +158,7 @@ def test_interpret_tapes_rejects_a_consumer_opcode_on_the_opcode_backend():
     tree = gp.PrimitiveTree([pset.mapping["batch_local_kernel"], pset.mapping["first"]])
     tape = gp.lower_tree(tree, pset)
 
-    with pytest.raises(ValueError, match="Use backend='numba'"):
+    with pytest.raises(ValueError, match=r"can run\. Use backend='numba'\."):
         gp.interpret_tapes([tape], numpy.zeros((4, 3)))
 
 
@@ -207,3 +207,20 @@ def test_interpret_tapes_accepts_a_generator_of_tapes():
 
     numpy.testing.assert_allclose(actual[0], columns[0])
     numpy.testing.assert_allclose(actual[1], columns[1])
+
+
+def test_numba_backend_explains_a_missing_extra(monkeypatch):
+    import sys
+
+    pset = gp.make_column_pset(COLUMNS)
+    gp.add_numpy_primitives(pset)
+    tape = gp.lower_tree(gp.PrimitiveTree([pset.mapping["first"]]), pset)
+    monkeypatch.setitem(sys.modules, "deap_er.private.programming.numba.numba_batch", None)
+
+    with pytest.raises(ImportError, match=r"deap-er\[numba\]"):
+        gp.interpret_tapes([tape], numpy.zeros((4, 3)), backend="numba")
+
+
+def test_interpret_tapes_documents_reentrant_parallel_dispatch():
+    assert gp.interpret_tapes.__doc__ is not None
+    assert "process-global" in gp.interpret_tapes.__doc__
