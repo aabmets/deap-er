@@ -19,7 +19,7 @@ surface.
 |:--|:-----|:--------|:-------|
 | 1 | [Two-input causal windows](#1-two-input-causal-windows) | `gp` | shipped |
 | 2 | [Causal time-series unaries](#2-causal-time-series-unaries) | `gp` | shipped |
-| 3 | [Incremental window kernels](#3-incremental-window-kernels) | `gp` (same API) | planned |
+| 3 | [Incremental window kernels](#3-incremental-window-kernels) | `gp` (same API) | shipped |
 | 4 | [Batch tape evaluation](#4-batch-tape-evaluation) | `gp` | planned |
 | 5 | [Down-sampled and informed lexicase](#5-down-sampled-and-informed-lexicase) | `operators` | planned |
 | 6 | [Case-structured evaluation helper](#6-case-structured-evaluation-helper) | utilities + docs | planned |
@@ -119,11 +119,18 @@ out” for min / max stay identical. The current Python functions
 remain the definition; new kernels are accepted only with parity
 tests.
 
-**Today.** The compiled path in the window kernels recomputes each
-window from scratch — $O(\text{rows} \times \text{window})$ per
-opcode. The `opcode` backend uses `sliding_window_view` plus a
-ufunc reduce, which still reads $O(\text{rows} \times \text{window})$
-data.
+**Today.** Numba walks each rolling opcode in $O(\text{rows})$:
+running sums for `rolling_{sum,mean,std}` and the pair moments,
+and a monotonic index ring for `rolling_{min,max}` and
+`ts_argmax` / `ts_argmin`. `ts_rank` is still a per-window scan.
+Python and the `opcode` backend stay the definition —
+`sliding_window_view` plus a ufunc reduce, and for `rolling_std` and
+the pair moments each window is centered on its own mean before
+squaring, in row blocks. The kernel keeps running sums and recenters
+a window only once they have lost too many digits, so its result
+follows the oracle without depending on how either side rounds.
+Parity tests compare Numba to that oracle, including `nan` recovery,
+$\pm\inf$, columns far from zero, and a variance that collapses.
 
 **Benefit.** A tree with several rolling nodes on a long column and
 windows of tens to hundreds of samples spends almost all of its
