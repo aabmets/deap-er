@@ -10,7 +10,7 @@
 #
 """Compare hot-path timings of DEAP/deap and aabmets/deap-er.
 
-Arithmetic mean of 30 timed runs after 2 warmups, except first-time
+Arithmetic mean of 50 timed runs after 2 warmups, except first-time
 compile (no warmup; deap-er cache cleared each sample). Populations and
 GP expressions are built from the same numeric genomes / source text so
 both libraries do the same work.
@@ -64,7 +64,10 @@ class _Library(Protocol):
     def wrap_mo(self, genomes: list[list[float]], fits: list[tuple]) -> list: ...
     def wrap_so(self, genomes: list[list[int]]) -> list: ...
     def sel_spea(self, population: list, count: int) -> object: ...
+    def sel_nsga2(self, population: list, count: int) -> object: ...
     def sel_nsga3(self, population: list, count: int, refs: object) -> object: ...
+    def sel_tournament(self, population: list, count: int, contestants: int) -> object: ...
+    def new_pareto(self) -> Any: ...
     def reference_points(self) -> object: ...
     def convergence(self, front: list, optimal: list[tuple]) -> object: ...
     def make_pset(self) -> object: ...
@@ -149,8 +152,17 @@ class _DeapLib:
     def sel_spea(self, population: list, count: int) -> object:
         return deap_tools.selSPEA2(population, count)
 
+    def sel_nsga2(self, population: list, count: int) -> object:
+        return deap_tools.selNSGA2(population, count)
+
     def sel_nsga3(self, population: list, count: int, refs: object) -> object:
         return deap_tools.selNSGA3(population, count, refs)
+
+    def sel_tournament(self, population: list, count: int, contestants: int) -> object:
+        return deap_tools.selTournament(population, count, tournsize=contestants)
+
+    def new_pareto(self) -> Any:
+        return deap_tools.ParetoFront()
 
     def reference_points(self) -> object:
         return deap_tools.uniform_reference_points(3, p=6)
@@ -224,8 +236,17 @@ class _DeapErLib:
     def sel_spea(self, population: list, count: int) -> object:
         return er_tools.sel_spea_2(population, count)
 
+    def sel_nsga2(self, population: list, count: int) -> object:
+        return er_tools.sel_nsga_2(population, count)
+
     def sel_nsga3(self, population: list, count: int, refs: object) -> object:
         return er_tools.sel_nsga_3(population, count, refs)
+
+    def sel_tournament(self, population: list, count: int, contestants: int) -> object:
+        return er_tools.sel_tournament(population, count, contestants=contestants)
+
+    def new_pareto(self) -> Any:
+        return er_tools.ParetoFront()
 
     def reference_points(self) -> object:
         return er_tools.uniform_reference_points(3, ref_ppo=6)
@@ -440,14 +461,22 @@ def _run_library(lib: _Library) -> dict[str, float]:
 
     refs = lib.reference_points()
 
+    def nsga2() -> None:
+        lib.sel_nsga2(pop80, 40)
+
     def nsga3() -> None:
         lib.sel_nsga3(pop80, 40, refs)
 
+    def pareto_update() -> None:
+        lib.new_pareto().update(pop80)
+
     results["fitness.values x200 on n=80"] = _mean_ms(values_reads)
     results["fitness.dominates pairwise n=80"] = _mean_ms(pairwise_dominates)
+    results["ParetoFront.update n=80"] = _mean_ms(pareto_update)
     results["sel_spea_2 n=80 k=40"] = _mean_ms(spea80)
     results["sel_spea_2 n=160 k=80"] = _mean_ms(spea160)
     results["nsga_convergence n=40"] = _mean_ms(conv)
+    results["sel_nsga_2 n=80 k=40"] = _mean_ms(nsga2)
     results["sel_nsga_3 n=80 k=40"] = _mean_ms(nsga3)
 
     pset = lib.make_pset()
@@ -457,6 +486,11 @@ def _run_library(lib: _Library) -> dict[str, float]:
     results["compile_tree 10 trees x20 repeats"] = cached_ms
 
     so_pop = lib.wrap_so(_so_data(60, 32, 31))
+    so80 = lib.wrap_so(_so_data(80, 32, 32))
+
+    def tourney() -> None:
+        lib.seed(33)
+        lib.sel_tournament(so80, 80, 3)
 
     def deepcopies() -> None:
         for individual in so_pop:
@@ -466,6 +500,7 @@ def _run_library(lib: _Library) -> dict[str, float]:
         for individual in so_pop:
             lib.clone_one(individual)
 
+    results["sel_tournament n=80 k=80"] = _mean_ms(tourney)
     results["deepcopy n=60 list inds"] = _mean_ms(deepcopies)
     results["clone_individual n=60 list inds"] = _mean_ms(clones)
 
