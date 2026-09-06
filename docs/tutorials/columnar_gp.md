@@ -123,6 +123,18 @@ gp.add_window_ephemeral(pset, "window", 2, 64)
 The bounds are inclusive. The name must be unique across the process,
 because a primitive set stores ephemeral types by name.
 
+`add_pair_window_primitives` is an optional second kit for two series
+and one `Window`: `rolling_corr`, `rolling_cov`, and `rolling_beta`.
+Moments use the same population divisor as `rolling_std`. Beta is the
+OLS slope of the first series on the second
+($\mathrm{cov}(x, y) / \mathrm{var}(y)$). A window whose denominator
+variance is zero is `nan`, not the protected-op fill.
+
+```python
+gp.add_pair_window_primitives(pset)
+gp.rolling_beta(level, flow, 4)
+```
+
 !!! attention
     A comparison hides the warmup. `numpy.nan > x` is `False`, so
     `vwhere(vgt(rolling_mean(level, 20), flow), a, b)` returns a real

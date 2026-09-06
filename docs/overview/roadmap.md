@@ -15,25 +15,25 @@ program search** first, then multi-objective and continuous search,
 then housekeeping. Each item names the current gap and the intended
 surface.
 
-| # | Item | Surface |
-|:--|:-----|:--------|
-| 1 | [Two-input causal windows](#1-two-input-causal-windows) | `gp` |
-| 2 | [Causal time-series unaries](#2-causal-time-series-unaries) | `gp` |
-| 3 | [Incremental window kernels](#3-incremental-window-kernels) | `gp` (same API) |
-| 4 | [Batch tape evaluation](#4-batch-tape-evaluation) | `gp` |
-| 5 | [Down-sampled and informed lexicase](#5-down-sampled-and-informed-lexicase) | `operators` |
-| 6 | [Case-structured evaluation helper](#6-case-structured-evaluation-helper) | utilities + docs |
-| 7 | [Non-bloating semantic variation](#7-non-bloating-semantic-variation) | `gp` |
-| 8 | [Quality-diversity archive](#8-quality-diversity-archive) | `records` |
-| 9 | [Compile and clone path](#9-compile-and-clone-path) | `gp`, `tools` |
-| 10 | [Vectorized lexicase and plexicase](#10-vectorized-lexicase-and-plexicase) | `operators` |
-| 11 | [SMS-EMOA](#11-sms-emoa) | `operators` |
-| 12 | [MOEA/D and AGE-MOEA-II](#12-moead-and-age-moea-ii) | `operators` |
-| 13 | [IPOP / BIPOP CMA restarts](#13-ipop-bipop-cma-restarts) | `algorithms`, `strategies` |
-| 14 | [Linear-time duplicate count](#14-linear-time-duplicate-count) | `tools` |
+| # | Item | Surface | Status |
+|:--|:-----|:--------|:-------|
+| 1 | [Two-input causal windows](#1-two-input-causal-windows) | `gp` | shipped |
+| 2 | [Causal time-series unaries](#2-causal-time-series-unaries) | `gp` | planned |
+| 3 | [Incremental window kernels](#3-incremental-window-kernels) | `gp` (same API) | planned |
+| 4 | [Batch tape evaluation](#4-batch-tape-evaluation) | `gp` | planned |
+| 5 | [Down-sampled and informed lexicase](#5-down-sampled-and-informed-lexicase) | `operators` | planned |
+| 6 | [Case-structured evaluation helper](#6-case-structured-evaluation-helper) | utilities + docs | planned |
+| 7 | [Non-bloating semantic variation](#7-non-bloating-semantic-variation) | `gp` | planned |
+| 8 | [Quality-diversity archive](#8-quality-diversity-archive) | `records` | planned |
+| 9 | [Compile and clone path](#9-compile-and-clone-path) | `gp`, `tools` | planned |
+| 10 | [Vectorized lexicase and plexicase](#10-vectorized-lexicase-and-plexicase) | `operators` | planned |
+| 11 | [SMS-EMOA](#11-sms-emoa) | `operators` | planned |
+| 12 | [MOEA/D and AGE-MOEA-II](#12-moead-and-age-moea-ii) | `operators` | planned |
+| 13 | [IPOP / BIPOP CMA restarts](#13-ipop-bipop-cma-restarts) | `algorithms`, `strategies` | planned |
+| 14 | [Linear-time duplicate count](#14-linear-time-duplicate-count) | `tools` | planned |
 
-Status of every row is **planned**. Shipping an item updates this page
-and the matching tutorial or reference stub.
+Shipping an item updates this page and the matching tutorial or
+reference stub.
 
 !!! note
     deap-er stays a pure-Python package. Native work remains an
@@ -54,10 +54,11 @@ sample $t$ depends on the two series on $[t - n + 1, t]$ only.
 Samples without enough history are `nan`, matching the unary kit.
 Python, opcode, and Numba paths ship together with parity tests.
 
-**Today.** The window kit is unary: `delay`, `diff`,
-`rolling_{sum,mean,std,min,max}`, `ema`. Pairwise structure
-(one series against another, or two derived columns) cannot be
-expressed without a user opcode.
+**Today.** `add_pair_window_primitives` registers causal
+`rolling_corr`, `rolling_cov`, and `rolling_beta`. Moments use the
+population divisor; beta is the OLS slope of the first series on
+the second. The unary kit is unchanged. Python, opcode, and Numba
+paths agree.
 
 **Benefit.** The type tags already allow a second `Array`. Callers
 stop forking the primitive set for the most common two-series

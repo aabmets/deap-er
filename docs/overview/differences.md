@@ -9,7 +9,7 @@ changed. Same toolbox model. Counted from the sections below:
   implemented (some older than a decade)
 - **36** correctness bugs fixed — operators, GP, CMA, records,
   checkpoints, and published benchmarks
-- **22** capabilities DEAP does not have, including boxed CMA,
+- **23** capabilities DEAP does not have, including boxed CMA,
   mixed-gene mutation, logbook JSON, and
   [columnar GP](../tutorials/columnar_gp.md)
 
@@ -186,6 +186,11 @@ The following is extra.
     shadow the symbol.
 16. `mut_insert` leaves the tree unchanged when a sibling type has
     no terminals, instead of raising `IndexError`.
+17. `add_pair_window_primitives` registers causal `rolling_corr`,
+    `rolling_cov`, and `rolling_beta` over two `Array` arguments and
+    a `Window`. Moments use the population divisor; beta is the OLS
+    slope of the first series on the second. Python, opcode, and
+    Numba paths agree.
 
 The columnar contract is in the
 [columnar GP tutorial](../tutorials/columnar_gp.md). Shared-array

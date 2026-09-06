@@ -59,7 +59,7 @@ inventory:
   implemented (some older than a decade)
 - **36** correctness bugs fixed — operators, GP, CMA, records,
   checkpoints, and published benchmarks
-- **22** capabilities DEAP does not have, including boxed CMA,
+- **23** capabilities DEAP does not have, including boxed CMA,
   mixed-gene mutation, logbook JSON, and
   [columnar GP](https://aabmets.github.io/deap-er/tutorials/columnar_gp/)
 
