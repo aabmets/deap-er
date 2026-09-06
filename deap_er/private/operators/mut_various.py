@@ -151,8 +151,9 @@ def mut_flip_bit(individual: Individual, mut_prob: float) -> Mutant:
     Returns:
         A one-element tuple containing the mutated individual.
     """
-    for i in range(len(individual)):
-        if rng.random() < mut_prob:
+    draws = rng.take_floats(len(individual))
+    for i, u in enumerate(draws):
+        if u < mut_prob:
             individual[i] = type(individual[i])(not individual[i])
 
     return (individual,)
