@@ -195,3 +195,52 @@ def test_mo_cma_es():
     finally:
         del creator.__dict__[smoke_fit]
         del creator.__dict__[smoke_ind]
+
+
+def test_multi_child_parent_sigma_updates_once(population):
+    parents = population[:2]
+    for parent, val in zip(parents, [(0.0, 1.0), (1.0, 0.0)], strict=True):
+        parent.fitness.values = val
+    mo = tools.StrategyMultiObjective(parents, sigma=1.0, survivors=2, offsprings=3)
+    for i, parent in enumerate(mo.parents):
+        parent.ps_ = "p", i
+    cls = type(parents[0])
+    kids = []
+    for p_idx in (0, 0, 1):
+        child = cls(numpy.array(parents[p_idx], copy=True))
+        child.fitness.values = (3.0, 3.0)
+        child.ps_ = "o", p_idx
+        kids.append(child)
+    mo.update(kids)
+    assert mo.psucc[0] == pytest.approx(mo.psucc[1])
+    assert mo.sigmas[0] == pytest.approx(mo.sigmas[1])
+
+
+def test_rank_one_update_scales_when_path_is_zero(population):
+    identity = numpy.identity(2)
+    inv, big_a = tools.StrategyMultiObjective.rank_one_update(
+        identity.copy(), identity.copy(), 0.9, 0.1, numpy.zeros(2)
+    )
+    scale = numpy.sqrt(0.9)
+    assert big_a == pytest.approx(scale * identity)
+    assert inv == pytest.approx(identity / scale)
+
+
+def test_invalid_parent_fitness_promotes_evaluated_offspring():
+    fit, name = "MOCMA_UNEV_FIT", "MOCMA_UNEV_IND"
+    creator.create_type(fit, Fitness, weights=(-1.0, -1.0))
+    creator.create_type(name, list, fitness=creator.__dict__[fit])
+    try:
+        uneval = [creator.__dict__[name]([0.0, 0.0]), creator.__dict__[name]([1.0, 1.0])]
+        mo = tools.StrategyMultiObjective(uneval, sigma=1.0)
+        tb = Toolbox()
+        tb.register("generate", mo.generate, creator.__dict__[name])
+        tb.register("update", mo.update)
+        tb.register("evaluate", lambda ind: (float(ind[0]), float(ind[1])))
+        tools.ea_generate_update(tb, generations=1)
+        assert mo.parents
+        assert all(ind.fitness.is_valid() for ind in mo.parents)
+        assert all(ind.ps_[0] == "o" for ind in mo.parents)
+    finally:
+        del creator.__dict__[fit]
+        del creator.__dict__[name]

@@ -133,16 +133,18 @@ class StrategyMultiObjective:
         """Select new parents and update each parent's CMA parameters.
 
         Offspring are merged with the current parents, then reduced to
-        ``survivors`` by non-dominated sorting. Step-size and
-        covariance are updated per successful parent.
+        ``survivors`` by non-dominated sorting of candidates with
+        valid fitness. Step-size and covariance are updated per
+        successful parent.
 
         Args:
             population: Evaluated individuals from ``generate``.
         """
-        chosen, not_chosen = select(self, population + self.parents)
+        candidates = [ind for ind in population + self.parents if ind.fitness.is_valid()]
+        chosen, not_chosen = select(self, candidates)
         last_steps, sigmas, inv_cholesky, big_a, pc, psucc = copy_offspring_state(self, chosen)
         update_chosen_offspring(self, chosen, last_steps, sigmas, inv_cholesky, big_a, pc, psucc)
-        decay_rejected_offspring(self, not_chosen)
+        decay_rejected_offspring(self, not_chosen, chosen)
         commit_parent_params(self, chosen, sigmas, inv_cholesky, big_a, pc, psucc)
         self.parents = chosen
 
@@ -151,7 +153,8 @@ class StrategyMultiObjective:
 
         When ``offsprings`` equals the parent count, each parent
         produces one child. Otherwise parents are drawn from the first
-        non-dominated front.
+        non-dominated front, or from every parent if any parent
+        fitness is invalid.
 
         Args:
             ind_init: Callable that turns a sampled vector into an
@@ -187,7 +190,10 @@ class StrategyMultiObjective:
                 individuals[-1].ps_ = "o", i
 
         else:
-            n_dom = sort_non_dominated(self.parents, len(self.parents))[0]
+            if all(ind.fitness.is_valid() for ind in self.parents):
+                n_dom = sort_non_dominated(self.parents, len(self.parents))[0]
+            else:
+                n_dom = self.parents
 
             for i in range(self.lamb):
                 j = rng.integers(0, len(n_dom))

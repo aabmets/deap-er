@@ -110,6 +110,10 @@ def rank_one_update(
         big_a = a * big_a + b * numpy.outer(v, w)
         part = a**2 + a * b * norm_w2
         inv_cholesky = 1.0 / a * inv_cholesky - b / part * numpy.outer(w, w_inv)
+    else:
+        a = sqrt(alpha)
+        big_a = a * big_a
+        inv_cholesky = inv_cholesky / a
 
     return inv_cholesky, big_a
 
@@ -192,23 +196,33 @@ def update_chosen_offspring(
             pc[i] = (1.0 - cc) * pc[i]
             alpha = 1 - c_cov + c_cov * cc * (2.0 - cc)
         inv_cholesky[i], big_a[i] = rank_one_update(inv_cholesky[i], big_a[i], alpha, c_cov, pc[i])
-        strategy.psucc[p_idx] = (1.0 - cp) * strategy.psucc[p_idx] + cp
-        strategy.sigmas[p_idx] *= step_size_multiplier(strategy.psucc[p_idx], pt_arg, d)
 
 
-def decay_rejected_offspring(strategy: Any, not_chosen: list[Individual]) -> None:
-    """Shrink step-size on parents whose offspring were discarded.
+def decay_rejected_offspring(
+    strategy: Any, not_chosen: list[Individual], chosen: list[Individual]
+) -> None:
+    """Apply one success-rate and step-size update per sampled parent.
+
+    Igel/Voss uses one trial per generation: the success rate is
+    ``n_selected / n_from_parent``, then ``p_succ`` and ``σ`` update
+    once. Parallel children of one parent are not stacked.
 
     Args:
         strategy: Multi-objective CMA strategy.
         not_chosen: Individuals dropped by selection.
+        chosen: Individuals kept as the next parent set.
     """
     cp, d, pt_arg = strategy.ss_learn_rate, strategy.ss_dmp, strategy.tgt_sr
-    for ind in not_chosen:
-        t, p_idx = ind.ps_
-        if t != "o":
-            continue
-        strategy.psucc[p_idx] = (1.0 - cp) * strategy.psucc[p_idx]
+    n_from: dict[int, int] = {}
+    n_sel: dict[int, int] = {}
+    for bag, inds in ((n_from, chosen + not_chosen), (n_sel, chosen)):
+        for ind in inds:
+            t, p_idx = ind.ps_
+            if t == "o":
+                bag[p_idx] = bag.get(p_idx, 0) + 1
+    for p_idx, n in n_from.items():
+        rate = n_sel.get(p_idx, 0) / n
+        strategy.psucc[p_idx] = (1.0 - cp) * strategy.psucc[p_idx] + cp * rate
         strategy.sigmas[p_idx] *= step_size_multiplier(strategy.psucc[p_idx], pt_arg, d)
 
 

@@ -8,6 +8,7 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+import numpy
 from deap_er import Fitness, creator, tools
 
 SO_FIT = "CMA_STD_FIT"
@@ -51,6 +52,38 @@ def test_strategy_resample_falls_back_and_compute_params_keeps_bounds():
         assert strategy.low == 0.0
         assert strategy.up == 0.1
         assert strategy.bound_mode == "resample"
+    finally:
+        del creator.__dict__[SO_FIT]
+        del creator.__dict__[SO_IND]
+
+
+def test_compute_params_keeps_learned_c_unless_cm_init():
+    creator.create_type(SO_FIT, Fitness, weights=(-1.0,))
+    creator.create_type(SO_IND, list, fitness=creator.__dict__[SO_FIT])
+    try:
+        strategy = tools.Strategy([0.0, 0.0], 1.0)
+        assert numpy.allclose(strategy.big_c, numpy.identity(2))
+        tools.rng.seed(0)
+        for _ in range(8):
+            population = strategy.generate(creator.__dict__[SO_IND])
+            for individual in population:
+                individual.fitness.values = (sum(gene * gene for gene in individual),)
+            strategy.update(population)
+
+        learned_c = numpy.array(strategy.big_c, copy=True)
+        learned_pc = numpy.array(strategy.pc, copy=True)
+        learned_count = strategy.update_count
+        assert not numpy.allclose(learned_c, numpy.identity(2))
+
+        strategy.compute_params(offsprings=12)
+        assert numpy.allclose(strategy.big_c, learned_c)
+        assert numpy.allclose(strategy.pc, learned_pc)
+        assert strategy.update_count == learned_count
+        assert strategy.lamb == 12
+
+        custom = numpy.array([[2.0, 0.0], [0.0, 0.5]])
+        strategy.compute_params(cm_init=custom)
+        assert numpy.allclose(strategy.big_c, custom)
     finally:
         del creator.__dict__[SO_FIT]
         del creator.__dict__[SO_IND]

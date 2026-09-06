@@ -170,13 +170,14 @@ class Strategy:
         default = 4.0 / (self.dim + 4.0)
         self.cm_cum = float(kwargs.get("cm_cum", default))
 
-        self.big_c = kwargs.get("cm_init", numpy.identity(self.dim))
-        self.diag_d, self.big_b = numpy.linalg.eigh(self.big_c)
-        indx = numpy.argsort(self.diag_d)
-        self.diag_d = self.diag_d[indx] ** 0.5
-        self.big_b = self.big_b[:, indx]
-        self.big_bd = self.big_b * self.diag_d
-        self.cond = self.diag_d[indx[-1]] / self.diag_d[indx[0]]
+        if not hasattr(self, "big_c") or "cm_init" in kwargs:
+            self.big_c = kwargs.get("cm_init", numpy.identity(self.dim))
+            self.diag_d, self.big_b = numpy.linalg.eigh(self.big_c)
+            indx = numpy.argsort(self.diag_d)
+            self.cond = self.diag_d[indx[-1]] / self.diag_d[indx[0]]
+            self.diag_d = self.diag_d[indx] ** 0.5
+            self.big_b = self.big_b[:, indx]
+            self.big_bd = self.big_b * self.diag_d
         update_bound_attrs(self, kwargs)
 
     def generate(self, ind_init: Callable[..., Individual]) -> list[Individual]:
