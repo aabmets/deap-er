@@ -64,9 +64,21 @@ inventory:
   [columnar GP](https://aabmets.github.io/deap-er/tutorials/columnar_gp/)
 
 The package is typed, uses snake_case, and is Apache-2.0. Hypervolume
-work delegates to [moocore](https://pypi.org/project/moocore/). Timed
-hot paths versus DEAP are on the
-[performance page](https://aabmets.github.io/deap-er/overview/performance/).
+work delegates to [moocore](https://pypi.org/project/moocore/).
+
+## Performance
+
+On the same genomes and GP expressions, deap-er is faster where DEAP
+still walks Python loops: NSGA convergence (~50×), NSGA-II (~21×),
+cached `compile_tree` (~18×), SPEA-II (~5×), and `clone_individual`
+(~4×). Tournament selection is about 2× after a batched integer draw.
+A tiny `ea_simple` OneMax loop stays a bit behind (~0.87×) because
+crossover and mutation still use scalar NumPy `random()`.
+
+![Hot-path speed of aabmets/deap-er 3.0.0 relative to DEAP/deap 1.4.4](docs/images/hotpath-speedups.png)
+
+DEAP/deap is the 100% baseline. Details and how to reproduce are on
+the [performance page](https://aabmets.github.io/deap-er/overview/performance/).
 
 ## Documentation
 
