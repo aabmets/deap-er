@@ -112,3 +112,32 @@ def test_closest_valid_penalty_and_weight_mismatch():
             mismatch(invalid)
     finally:
         _teardown()
+
+
+def test_closest_valid_penalty_accepts_ndarray_distance():
+    _setup((-1.0, 1.0))
+    try:
+        individual = _ind([9.0, 9.0])
+        feasible = _ind([0.0, 0.0])
+
+        def evaluate(_individual):
+            return (0.0, 1.0)
+
+        penalize = tools.ClosestValidPenalty(
+            validity=lambda _: False,
+            feasible=lambda _: feasible,
+            alpha=1.0,
+            distance=lambda _f, _i: numpy.array([1.0, 2.0]),
+        )(evaluate)
+        result = penalize(individual)
+        individual.fitness.values = result
+
+        delta = tools.DeltaPenalty(
+            lambda _: False, [0.0, 1.0], distance=lambda _: numpy.array([1.0, 2.0])
+        )(evaluate)
+        delta_result = delta(individual)
+    finally:
+        _teardown()
+    assert result == (1.0, -1.0)
+    assert delta_result == (1.0, -1.0)
+    assert all(isinstance(value, float) for value in result)

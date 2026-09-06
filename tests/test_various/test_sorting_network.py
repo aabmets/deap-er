@@ -41,3 +41,10 @@ def test_sorting_network_ignores_same_wire_and_packs_levels():
     diagram = tools.SortingNetwork(3, [(0, 1), (0, 2), (1, 2)]).draw()
     assert "o" in diagram
     assert "0" in diagram
+
+
+def test_sorting_network_evaluate_provided_cases_against_sorted_original():
+    network = tools.SortingNetwork(4, [(0, 1), (2, 3), (0, 2), (1, 3), (1, 2)])
+    assert network.evaluate() == 0
+    assert network.evaluate([[2, 0, 0, 0]]) == 0
+    assert network.evaluate([[3, 1, 4, 2]]) == 0

@@ -10,7 +10,7 @@
 #
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
 from functools import wraps
 from itertools import repeat
 from typing import TYPE_CHECKING, Any
@@ -137,12 +137,13 @@ class ClosestValidPenalty:
                 raise IndexError("Fitness weights and computed fitness are of different size.")
             dists = [0 for _ in individual.fitness.weights]
             if self.dist_fct is not None:
-                dists = self.dist_fct(f_ind, individual)
-                if not isinstance(dists, Sequence):
-                    dists = repeat(dists)
+                measured = self.dist_fct(f_ind, individual)
+                dist_arr = numpy.asarray(measured)
+                dists = repeat(measured) if dist_arr.ndim == 0 else dist_arr
 
             return tuple(
-                f - w * self.alpha * d for f, w, d in zip(f_fbl, weights, dists, strict=False)
+                float(f - w * self.alpha * d)
+                for f, w, d in zip(f_fbl, weights, dists, strict=False)
             )
 
         return wrapper

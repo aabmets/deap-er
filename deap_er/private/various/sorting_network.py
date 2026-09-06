@@ -142,15 +142,11 @@ class SortingNetwork:
             cases = product((0, 1), repeat=self.dimension)
 
         errors = 0
-        ordered = []
-        for i in range(self.dimension + 1):
-            result = [0] * (self.dimension - i) + [1] * i
-            ordered.append(result)
         for sequence in cases:
-            sequence = list(sequence)
-            self.sort(sequence)
-            idx = sum(sequence)
-            errors += int(sequence != ordered[idx])
+            original = list(sequence)
+            seq = list(original)
+            self.sort(seq)
+            errors += int(seq != sorted(original))
         return errors
 
     def draw(self) -> str:
