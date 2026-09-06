@@ -18,7 +18,9 @@ from .tape import Tape
 
 __all__: list[str] = ["interpret_tapes"]
 
-_MATRIX_SHAPE = "interpret_tapes expects a packed (n_rows, n_columns) matrix, not a sequence of columns."
+_MATRIX_SHAPE = (
+    "interpret_tapes expects a packed (n_rows, n_columns) matrix, not a sequence of columns."
+)
 
 
 def _as_batch_matrix(matrix: Any) -> numpy.ndarray:

@@ -11,9 +11,8 @@
 from collections.abc import Sequence
 from typing import Any
 
-import numpy
-
 import numba  # optional extra; this module is imported only for backend='numba'
+import numpy
 
 from ..opcodes import USER_BASE
 from ..tape import Tape
@@ -67,7 +66,7 @@ def interpret_many_parallel(  # pragma: no cover
         out: Result of shape ``(n_tapes, n_rows)``.
     """
     rows = columns.shape[0]
-    for index in numba.prange(op_starts.shape[0]):
+    for index in numba.prange(op_starts.shape[0]):  # ty: ignore[not-iterable]
         slot = numba.get_thread_id()
         start = op_starts[index]
         n_ops = op_lens[index]
@@ -190,9 +189,7 @@ def run_tapes(
     use_parallel = parallel and numba.get_num_threads() > 1
     if use_parallel:
         n_threads = numba.get_num_threads()
-        stacks = numpy.empty(
-            (n_threads, int(packed["max_depth"]) + 1, rows), dtype=numpy.float64
-        )
+        stacks = numpy.empty((n_threads, int(packed["max_depth"]) + 1, rows), dtype=numpy.float64)
         scratches = numpy.empty((n_threads, rows), dtype=numpy.float64)
         many_parallel(
             run,
