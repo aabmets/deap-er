@@ -9,7 +9,7 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from collections.abc import MutableSequence, Sequence
-from typing import Any, overload
+from typing import Any, cast, overload
 
 import numpy
 
@@ -35,6 +35,7 @@ class RNG:
                 the OS is used when omitted.
         """
         self._buf = numpy.empty(_BUFSIZE, dtype=numpy.float64)
+        self._floats: list[float] = []
         self._i = _BUFSIZE
         self._gen = numpy.random.default_rng(seed)
 
@@ -69,6 +70,7 @@ class RNG:
         """
         self._gen.bit_generator.state = state["bit_generator"]
         self._buf = numpy.array(state["buf"], dtype=numpy.float64, copy=True)
+        self._floats = cast(list[float], self._buf.tolist())
         self._i = int(state["index"])
 
     def random(self) -> float:
@@ -77,10 +79,11 @@ class RNG:
         Returns:
             A Python float from the buffered stream.
         """
-        if self._i >= self._buf.size:
+        if self._i >= _BUFSIZE:
             self._gen.random(out=self._buf)
+            self._floats = cast(list[float], self._buf.tolist())
             self._i = 0
-        value = float(self._buf[self._i])
+        value = self._floats[self._i]
         self._i += 1
         return value
 
