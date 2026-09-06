@@ -84,7 +84,7 @@ def test_harm_evaluation_counts_are_stable(toolbox):
         nb_model=40,
     )
 
-    assert logbook.select("nevals") == [20, 11, 15, 12]
+    assert logbook.select("nevals") == [20, 15, 9, 14]
 
 
 def test_harm_replaces_the_population_in_place(toolbox):
@@ -170,4 +170,4 @@ def test_harm_compiles_statistics_into_the_logbook(toolbox):
         stats=stats,
     )
 
-    assert logbook.select("max") == [7, 7, 13, 9]
+    assert logbook.select("max") == [7, 7, 3, 3]

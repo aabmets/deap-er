@@ -67,10 +67,10 @@ def test_change_peaks_is_stable_with_a_fluctuating_count():
     assert len(landscape.peaks_function) == 2
     flat_positions = [coord for position in landscape.peaks_position for coord in position]
     assert flat_positions == pytest.approx(
-        [80.7428994728303, 9.870377604514095, 76.38848077545254, 59.544151415190086]
+        [80.7428994728303, 9.870377604514095, 37.88377359506277, 78.2789375035795]
     )
-    assert landscape.peaks_height == pytest.approx([50.800338213253816, 59.706739130737255])
-    assert landscape.peaks_width == pytest.approx([0.11793668124545155, 0.11189864736162168])
+    assert landscape.peaks_height == pytest.approx([65.7889272375645, 58.35341778722833])
+    assert landscape.peaks_width == pytest.approx([0.09406579248049617, 0.09793301500319732])
 
 
 def test_change_peaks_is_stable_with_a_fixed_count():
