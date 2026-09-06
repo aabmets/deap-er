@@ -129,6 +129,8 @@ def mut_shuffle_indexes(individual: Individual, mut_prob: float) -> Mutant:
         A one-element tuple containing the mutated individual.
     """
     size = len(individual)
+    if size < 2:
+        return (individual,)
     for i in range(size):
         if rng.random() < mut_prob:
             swap_indx = rng.randint(0, size - 2)

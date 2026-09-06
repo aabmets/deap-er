@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
+from deap_er.private.various.clone import clone_individual
 
 __all__: list[str] = ["mig_ring"]
 
@@ -47,17 +48,32 @@ def mig_ring(
     if mig_indices is None:
         mig_indices = list(range(1, nbr_demes)) + [0]
 
-    immigrants = [[] for _ in range(nbr_demes)]
-    emigrants = [[] for _ in range(nbr_demes)]
+    emigrants: list[list[Individual]] = [[] for _ in range(nbr_demes)]
+    vacancies: list[list[int]] = [[] for _ in range(nbr_demes)]
 
     for from_deme in range(nbr_demes):
-        emigrants[from_deme].extend(selection(populations[from_deme], mig_count))
+        selected = selection(populations[from_deme], mig_count)
         if replacement is None:
-            immigrants[from_deme] = emigrants[from_deme]
+            emigrants[from_deme].extend(selected)
+            dest_slots = selected
         else:
-            immigrants[from_deme].extend(replacement(populations[from_deme], mig_count))
+            emigrants[from_deme].extend(clone_individual(ind) for ind in selected)
+            dest_slots = replacement(populations[from_deme], mig_count)
+        taken: set[int] = set()
+        for immigrant in dest_slots:
+            indx = next(
+                (
+                    j
+                    for j, member in enumerate(populations[from_deme])
+                    if member is immigrant and j not in taken
+                ),
+                None,
+            )
+            if indx is None:
+                indx = next(j for j in range(len(populations[from_deme])) if j not in taken)
+            taken.add(indx)
+            vacancies[from_deme].append(indx)
 
     for from_deme, to_deme in enumerate(mig_indices):
-        for i, immigrant in enumerate(immigrants[to_deme]):
-            indx = next(j for j, member in enumerate(populations[to_deme]) if member is immigrant)
+        for i, indx in enumerate(vacancies[to_deme]):
             populations[to_deme][indx] = emigrants[from_deme][i]

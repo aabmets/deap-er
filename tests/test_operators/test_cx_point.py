@@ -25,6 +25,18 @@ def _es(genes: list[float], strategy: list[float]) -> Any:
     return _ESList(genes, strategy)
 
 
+def test_cx_one_point_length_one_is_noop():
+    left: Any = [0]
+    right: Any = [1]
+    assert tools.cx_one_point(left, right) == ([0], [1])
+
+
+def test_cx_two_point_length_one_is_noop():
+    left: Any = [0]
+    right: Any = [1]
+    assert tools.cx_two_point(left, right) == ([0], [1])
+
+
 def test_one_point_swaps_tails():
     tools.rng.seed(1)
     left: Any = [0, 1, 2, 3, 4]

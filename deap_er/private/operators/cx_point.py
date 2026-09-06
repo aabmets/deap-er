@@ -80,6 +80,8 @@ def two_point(
         The two individuals after crossover.
     """
     size = min(len(ind1), len(ind2))
+    if size < 2:
+        return ind1, ind2
     cxp1 = rng.randint(1, size)
     cxp2 = rng.randint(1, size - 1)
     if cxp2 >= cxp1:
@@ -105,6 +107,8 @@ def cx_one_point(ind1: Individual, ind2: Individual) -> Mates:
         The two individuals after crossover.
     """
     size = min(len(ind1), len(ind2))
+    if size < 2:
+        return ind1, ind2
     cxp = rng.randint(1, size - 1)
     ind1, ind2 = slicer(ind1, ind2, cxp)
     return ind1, ind2

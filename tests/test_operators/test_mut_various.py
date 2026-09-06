@@ -20,6 +20,11 @@ class _ESList(list[Any]):
         self.strategy = list(strategy)
 
 
+def test_mut_shuffle_indexes_length_one_is_noop():
+    individual: Any = [0]
+    assert tools.mut_shuffle_indexes(individual, 1.0) == ([0],)
+
+
 def test_shuffle_indexes_preserves_genes():
     genes = [0, 1, 2, 3, 4, 5]
     individual: Any = list(genes)

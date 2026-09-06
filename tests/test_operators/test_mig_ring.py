@@ -91,3 +91,47 @@ def test_mig_ring_preserves_deme_sizes(ind_cls):
     tools.mig_ring(demes, 2, tools.sel_best, replacement=tools.sel_worst)
 
     assert [len(deme) for deme in demes] == [5, 5, 5, 5]
+
+
+def test_mig_ring_sel_random_completes_with_duplicate_draws(ind_cls):
+    tools.rng.seed(0)
+    demes = _demes(ind_cls, nbr_demes=3, size=3)
+
+    tools.mig_ring(demes, 2, tools.sel_random)
+
+    assert [len(deme) for deme in demes] == [3, 3, 3]
+
+
+def test_mig_ring_duplicate_slots_use_distinct_vacancies(ind_cls):
+    def pick_first_twice(population, count):
+        return [population[0]] * count
+
+    demes = _demes(ind_cls, nbr_demes=2, size=3)
+    dest_ids = [id(member) for member in demes[1]]
+
+    tools.mig_ring(demes, 2, pick_first_twice)
+
+    changed = sum(1 for i, member in enumerate(demes[1]) if id(member) != dest_ids[i])
+    assert changed == 2
+
+
+def test_mig_ring_overlapping_destinations_completes(ind_cls):
+    demes = _demes(ind_cls, nbr_demes=3, size=3)
+
+    tools.mig_ring(demes, 2, tools.sel_best, mig_indices=[1, 1, 0])
+
+    assert [len(deme) for deme in demes] == [3, 3, 3]
+
+
+def test_mig_ring_replacement_does_not_alias_across_demes(ind_cls):
+    demes = _demes(ind_cls, nbr_demes=2, size=3)
+
+    tools.mig_ring(demes, 1, tools.sel_best, replacement=tools.sel_worst)
+
+    for src in demes[0]:
+        for dst in demes[1]:
+            assert src is not dst
+
+    source_before = [member[0] for member in demes[0]]
+    demes[1][0][0] = 999
+    assert [member[0] for member in demes[0]] == source_before
