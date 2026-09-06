@@ -72,9 +72,10 @@ On the same genomes and GP expressions, deap-er is faster where DEAP
 still walks Python loops: NSGA convergence (~50×), NSGA-II (~21×),
 cached `compile_tree` (~18×), SPEA-II (~5×), and `clone_individual`
 (~4×). Tournament selection is about 2× after a batched integer draw.
-A tiny `ea_simple` OneMax loop stays a bit behind (~0.87×) because
-crossover still uses scalar NumPy `random()`. Flip-bit mutation
-drains leftover uniforms with `take_floats`.
+A tiny `ea_simple` OneMax loop stays a bit behind (~0.87×). Flip-bit
+mutation drains leftover uniforms with `rng.take_floats`, but `var_and`
+still draws one scalar `rng.random()` per mate-or-skip and per
+mutate-or-skip.
 
 ![Hot-path speed of aabmets/deap-er 3.0.0 relative to DEAP/deap 1.4.4](docs/images/hotpath-speedups.png)
 
