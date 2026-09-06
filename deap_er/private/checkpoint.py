@@ -26,9 +26,9 @@ class Checkpoint:
     """Save and load evolution progress with dill.
 
     Only attributes set on the checkpoint instance are written. The
-    library RNG state (buffered uniforms and Generator) is persisted
-    as well.
-    The target file is chosen at construction.
+    library RNG state (buffered uniforms, leftover integers, and
+    Generator) is persisted as well. The target file is chosen at
+    construction.
 
     Args:
         file_name: Checkpoint file name. Defaults to a random UUID

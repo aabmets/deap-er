@@ -9,69 +9,59 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from collections.abc import MutableSequence, Sequence
-from typing import Any, cast, overload
+from typing import Any, overload
 
 import numpy
 
-__all__: list[str] = ["RNG", "rng"]
+from .rng_buf import RngBuffers, draw_integers
 
-_BUFSIZE = 1024
+__all__: list[str] = ["RNG", "rng"]
 
 
 class RNG:
-    """NumPy Generator facade with a buffered uniform stream.
+    """NumPy Generator facade with buffered uniform and integer streams.
 
-    ``random`` and ``uniform`` pop Python floats from a refillable
-    buffer. Other methods draw from the same ``Generator`` directly.
-    Populations of individuals are indexed as Python sequences so a
-    list of list-genes is never flattened into an array.
+    ``random`` / ``uniform`` pop leftover floats. Scalar ``randint``,
+    ``randrange``, ``choice``, and ``integers`` pop leftover uint64s.
+    Other methods use the same ``Generator``. Sequences stay Python-indexed.
     """
 
     def __init__(self, seed: int | None = None) -> None:
         """Create a generator, optionally seeded.
 
         Args:
-            seed: Seed for the NumPy Generator. Optional; entropy from
-                the OS is used when omitted.
+            seed: Seed for the NumPy Generator. Optional; OS entropy if omitted.
         """
-        self._buf = numpy.empty(_BUFSIZE, dtype=numpy.float64)
-        self._floats: list[float] = []
-        self._i = _BUFSIZE
         self._gen = numpy.random.default_rng(seed)
+        self._buffers = RngBuffers()
 
     def seed(self, seed: int | None = None) -> None:
-        """Reseed the generator and discard unused buffered uniforms.
+        """Reseed the generator and discard unused buffered values.
 
         Args:
-            seed: Seed for a new NumPy Generator. Optional; entropy
-                from the OS is used when omitted.
+            seed: Seed for a new NumPy Generator. Optional; OS entropy if omitted.
         """
         self._gen = numpy.random.default_rng(seed)
-        self._i = _BUFSIZE
+        self._buffers.discard()
 
     def get_state(self) -> dict[str, Any]:
-        """Return the bit-generator state and unused buffer.
+        """Return the bit-generator state and unused buffers.
 
         Returns:
-            A mapping with ``bit_generator``, ``buf``, and ``index``.
+            ``bit_generator``, leftover ``buf`` / ``ibuf``, and their indices.
         """
-        return {
-            "bit_generator": self._gen.bit_generator.state,
-            "buf": self._buf.copy(),
-            "index": self._i,
-        }
+        state = self._buffers.pack()
+        state["bit_generator"] = self._gen.bit_generator.state
+        return state
 
     def set_state(self, state: dict[str, Any]) -> None:
         """Restore a state previously returned by ``get_state``.
 
         Args:
-            state: Mapping with ``bit_generator``, ``buf``, and
-                ``index``.
+            state: Mapping from ``get_state``. ``ibuf`` and ``iindex`` are optional.
         """
         self._gen.bit_generator.state = state["bit_generator"]
-        self._buf = numpy.array(state["buf"], dtype=numpy.float64, copy=True)
-        self._floats = cast(list[float], self._buf.tolist())
-        self._i = int(state["index"])
+        self._buffers.unpack(state)
 
     def random(self) -> float:
         """Return the next uniform float in ``[0.0, 1.0)``.
@@ -79,13 +69,7 @@ class RNG:
         Returns:
             A Python float from the buffered stream.
         """
-        if self._i >= _BUFSIZE:
-            self._gen.random(out=self._buf)
-            self._floats = cast(list[float], self._buf.tolist())
-            self._i = 0
-        value = self._floats[self._i]
-        self._i += 1
-        return value
+        return self._buffers.next_float(self._gen)
 
     def uniform(self, a: float, b: float) -> float:
         """Return a uniform float in ``[a, b)``.
@@ -112,7 +96,7 @@ class RNG:
         Raises:
             ValueError: If the interval is empty.
         """
-        return int(self._gen.integers(a, b, endpoint=True))
+        return self._buffers.offset(self._gen, a, b - a + 1)
 
     def randrange(self, start: int, stop: int | None = None, step: int = 1) -> int:
         """Return a random element from ``range(start, stop, step)``.
@@ -134,7 +118,7 @@ class RNG:
         n = len(values)
         if n == 0:
             raise ValueError("empty range for randrange()")
-        return values[int(self._gen.integers(0, n))]
+        return values[self._buffers.index(self._gen, n)]
 
     def choice[T](self, seq: Sequence[T]) -> T:
         """Return one element of ``seq``.
@@ -151,7 +135,7 @@ class RNG:
         n = len(seq)
         if n == 0:
             raise IndexError("Cannot choose from an empty sequence")
-        return seq[int(self._gen.integers(0, n))]
+        return seq[self._buffers.index(self._gen, n)]
 
     def sample[T](self, population: Sequence[T], k: int) -> list[T]:
         """Return ``k`` unique elements from ``population``.
@@ -164,8 +148,7 @@ class RNG:
             A new list of ``k`` elements.
 
         Raises:
-            ValueError: If ``k`` is negative or larger than
-                ``len(population)``.
+            ValueError: If ``k`` is negative or larger than ``len(population)``.
         """
         n = len(population)
         if k < 0 or k > n:
@@ -216,8 +199,7 @@ class RNG:
         """Return samples from the standard normal distribution.
 
         Args:
-            size: Output shape. A single float is returned when
-                omitted.
+            size: Output shape. A single float is returned when omitted.
 
         Returns:
             A float, or an ndarray when ``size`` is given.
@@ -228,11 +210,7 @@ class RNG:
 
     @overload
     def integers(
-        self,
-        low: int,
-        high: int | None = None,
-        size: None = None,
-        endpoint: bool = False,
+        self, low: int, high: int | None = None, size: None = None, endpoint: bool = False
     ) -> int: ...
 
     @overload
@@ -252,19 +230,21 @@ class RNG:
         size: int | tuple[int, ...] | None = None,
         endpoint: bool = False,
     ) -> int | numpy.ndarray:
-        """Return random integers from the underlying Generator.
+        """Return random integers from the buffered or Generator path.
 
         Args:
-            low: Inclusive lower bound, or exclusive high when
-                ``high`` is omitted.
+            low: Inclusive lower bound, or exclusive high when ``high`` is omitted.
             high: Exclusive upper bound unless ``endpoint`` is True.
             size: Output shape. A single int is returned when omitted.
             endpoint: If True, ``high`` is inclusive.
 
         Returns:
             An int, or an ndarray when ``size`` is given.
+
+        Raises:
+            ValueError: If the interval is empty.
         """
-        return self._gen.integers(low, high, size=size, endpoint=endpoint)
+        return draw_integers(self._gen, self._buffers, low, high, size, endpoint)
 
 
 rng = RNG()
