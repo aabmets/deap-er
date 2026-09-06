@@ -184,3 +184,58 @@ def test_set_state_legacy_keys_drop_integer_leftover():
     legacy = {key: full[key] for key in ("bit_generator", "buf", "index")}
     tools.rng.set_state(legacy)
     assert tools.rng.randint(0, 9) != leftover
+
+
+def test_take_floats_matches_scalar_random():
+    tools.rng.seed(4)
+    batched = tools.rng.take_floats(8)
+    tools.rng.seed(4)
+    assert batched == [tools.rng.random() for _ in range(8)]
+
+
+def test_take_floats_leaves_the_next_random_in_place():
+    tools.rng.seed(5)
+    tools.rng.take_floats(3)
+    after_batch = tools.rng.random()
+    tools.rng.seed(5)
+    for _ in range(3):
+        tools.rng.random()
+    assert tools.rng.random() == after_batch
+
+
+def test_take_floats_crosses_a_refill():
+    tools.rng.seed(6)
+    batched = tools.rng.take_floats(2000)
+    tools.rng.seed(6)
+    assert batched == [tools.rng.random() for _ in range(2000)]
+
+
+def test_take_floats_empty_and_negative():
+    tools.rng.seed(7)
+    assert tools.rng.take_floats(0) == []
+    after_empty = tools.rng.random()
+    tools.rng.seed(7)
+    assert tools.rng.random() == after_empty
+    with pytest.raises(ValueError, match="non-negative"):
+        tools.rng.take_floats(-1)
+
+
+def test_take_floats_from_partial_leftover_crosses_refill():
+    tools.rng.seed(9)
+    for _ in range(8):
+        tools.rng.random()
+    batched = tools.rng.take_floats(1020)
+    tools.rng.seed(9)
+    for _ in range(8):
+        tools.rng.random()
+    assert batched == [tools.rng.random() for _ in range(1020)]
+
+
+def test_take_floats_does_not_drop_integer_leftover():
+    tools.rng.seed(8)
+    tools.rng.randint(0, 9)
+    state = tools.rng.get_state()
+    leftover = tools.rng.randint(0, 9)
+    tools.rng.set_state(state)
+    tools.rng.take_floats(8)
+    assert tools.rng.randint(0, 9) == leftover

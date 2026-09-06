@@ -36,6 +36,20 @@ def test_flip_bit_inverts_boolean_genes():
     assert mutant == [1, 0, 1, 0]
 
 
+def test_flip_bit_matches_per_gene_random_stream():
+    genes = [0, 1, 0, 1, 1, 0, 0, 1]
+    tools.rng.seed(11)
+    draws = [tools.rng.random() for _ in range(len(genes))]
+    expected = [
+        type(gene)(not gene) if draw < 0.35 else gene
+        for gene, draw in zip(genes, draws, strict=True)
+    ]
+    tools.rng.seed(11)
+    individual: Any = list(genes)
+    (mutant,) = tools.mut_flip_bit(individual, 0.35)
+    assert mutant == expected
+
+
 def test_es_log_normal_updates_strategy_and_genes():
     individual: Any = _ESList([0.0, 0.0, 0.0], [1.0, 1.0, 1.0])
     tools.rng.seed(3)
