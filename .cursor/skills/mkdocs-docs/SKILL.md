@@ -10,6 +10,11 @@ description: >-
 
 Do **not** edit `docs/` or `README.md` unless the user requested docs work or approved it as part of the task. Mention doc impact in the reply instead.
 
+Exception: a DEAP bug, still-open DEAP issue, or new capability vs DEAP
+must update the scoreboard via
+[`deap-differences`](../deap-differences/SKILL.md). That edit is in
+scope without asking.
+
 This is **MkDocs Material + mkdocstrings**. Do not add Sphinx, RST, or Read the Docs.
 
 ## Stack
@@ -69,6 +74,10 @@ Math uses **Arithmatex + KaTeX** (`pymdownx.arithmatex` with `generic: true` in 
 - Public API or docstring change → update the docstring on the object. Add a new `docs/reference/<pkg>.md` stub and a `mkdocs.yml` `nav` entry only for a **new** top-level package.
 - New or renamed example script → update the matching `docs/examples/**/*.md` `--8<--` path and `nav` if you add a page.
 - Tutorial / overview behavior change → edit the Markdown; keep links to reference pages.
-- README only carries the docs URL. Do not grow a second docs tree there.
+- DEAP bug, DEAP issue, or new capability vs DEAP → follow
+  [`deap-differences`](../deap-differences/SKILL.md) (inventory + both
+  scoreboards). Required even when the user did not ask for docs.
+- README only carries the docs URL plus the three-line Relative-to-DEAP
+  scoreboard. Do not grow a second docs tree there.
 
 New `.md` files under `docs/` must be listed in `mkdocs.yml` `nav` or they will be orphaned.

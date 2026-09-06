@@ -22,7 +22,10 @@ Scope creep wastes time and review bandwidth. Agents must treat the user's reque
 - Refactoring, renaming, or "cleaning up" code outside the requested change
 - Touching unrelated files, modules, tests, docs, or configs
 - Adding tests, helpers, or abstractions the user did not ask for
-- Updating documentation because a skill or workspace rule *could* apply—ask first
+- Updating documentation because a skill or workspace rule *could* apply—ask first.
+  Exception: a DEAP bug, still-open DEAP issue, or new capability vs DEAP
+  must follow [`deap-differences`](.cursor/skills/deap-differences/SKILL.md)
+  (inventory + scoreboard) without asking
 - "While I'm here" fixes, DRY extractions, or consistency passes across the codebase
 - Expanding a narrow task (e.g. "add a helper") into a multi-file feature delivery
 
@@ -84,6 +87,7 @@ This is required for every Python touch — including narrow one-function fixes,
 | **Python architecture** | [`.cursor/skills/python-architecture/SKILL.md`](.cursor/skills/python-architecture/SKILL.md) | **Required** — any Python work under `deap_er/`, `tests/`, or `examples/` |
 | **Pytest** | [`.cursor/skills/python-pytest/SKILL.md`](.cursor/skills/python-pytest/SKILL.md) | Writing or fixing tests — **only when tests are in scope** (see Scope Discipline) |
 | **MkDocs docs** | [`.cursor/skills/mkdocs-docs/SKILL.md`](.cursor/skills/mkdocs-docs/SKILL.md) | Updating `docs/`, `mkdocs.yml`, or README — **only when docs are in scope** |
+| **DEAP differences** | [`.cursor/skills/deap-differences/SKILL.md`](.cursor/skills/deap-differences/SKILL.md) | Implementing a DEAP issue, fixing an inherited DEAP defect, or adding a capability DEAP does not have — **required**, do not ask |
 | **Validation** | [`.cursor/skills/python-validation/SKILL.md`](.cursor/skills/python-validation/SKILL.md) | After Python edits, before reporting a task complete (when validation is in scope) |
 | **RTK** | [`.cursor/skills/rtk/SKILL.md`](.cursor/skills/rtk/SKILL.md) | Compact shell output; missing binary: `source tools/dev` |
 | **Allure** | [`.cursor/skills/install-allure/SKILL.md`](.cursor/skills/install-allure/SKILL.md) | Project-local `node_modules/.bin/allure` via bun / `source tools/dev` |
@@ -94,7 +98,8 @@ This is required for every Python touch — including narrow one-function fixes,
 |:----------|:--------------------------|
 | Find how an operator or algorithm works | codebase-memory-mcp |
 | Fix SonarQube / SonarCloud issues | sonarqube-mcp → **python-architecture** (if Python) → python-validation (if Python) |
-| Implement a library feature (full request) | codebase-memory-mcp → **python-architecture** → python-pytest (if tests requested) → mkdocs-docs (if docs requested) → python-validation |
+| Implement a library feature (full request) | codebase-memory-mcp → **python-architecture** → python-pytest (if tests requested) → **deap-differences** (if vs DEAP) → mkdocs-docs (if other docs requested) → python-validation |
+| Fix a DEAP bug or implement a DEAP issue | codebase-memory-mcp → **python-architecture** → **deap-differences** → python-pytest (if tests requested) → python-validation |
 | Fix a bug with tests requested | codebase-memory-mcp → **python-architecture** → python-pytest → python-validation |
 | Any Python edit (narrow or broad) | **python-architecture** (always) → other skills only when in scope for that task |
 | Update tutorials / reference / Pages | **mkdocs-docs** (always when docs are in scope) |
