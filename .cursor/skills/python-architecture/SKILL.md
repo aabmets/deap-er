@@ -19,9 +19,9 @@ Runtime deps: `numpy`, `scipy`, `dill`, `moocore`. Optional extra: `numba`.
 deap_er/
   base/              # Toolbox, Fitness
   creator/           # runtime type factory
-  algorithms/        # ea_*, var_*; shared _loop.py
-  operators/         # crossover, mutation, migration; selection/; _bounds.py
-  strategies/        # CMA variants; _common.py
+  algorithms/        # ea_*, var_*; shared loop.py
+  operators/         # crossover, mutation, migration; selection/
+  strategies/        # CMA variants; common.py
   records/           # logbook, statistics, hall of fame, history
   utilities/         # initializers, constraints, metrics; hypervolume/; sorting/
   benchmarks/        # test problems (bm_*)
@@ -52,7 +52,7 @@ Match the existing package. Do not add `utils/`, `config/`, `models/`, `services
 | Sequence GA crossover / mutation / migration | `operators/` |
 | Selection | `operators/selection/` |
 | GP trees, primitives, tapes | `gp/` (`cx_one_point` exists in both `operators` and `gp` — do not merge) |
-| Algorithm loop | `algorithms/` (reuse `_loop`) |
+| Algorithm loop | `algorithms/` (reuse `loop`) |
 | CMA / ES | `strategies/` |
 | Test problem | `benchmarks/` (`bm_*`) |
 | Stats / HoF / history | `records/` |
@@ -77,11 +77,15 @@ Applies to every `.py` file under `deap_er/` and `tests/`. `examples/` are exemp
 
 **> 270** — hard ceiling. Refactor now. Keep splitting recursively until every resulting module is ≤ 270 (prefer ≤ 250) and no child is ≤ 30 lines. If a two-way split would violate the floor, choose a different boundary or more than two modules — do not leave a file over 270.
 
-After a split, wire public names through the package `__init__.py` (and `tools.py` when the symbol belongs on the barrel). Internal leftovers stay `_`-prefixed with `__all__: list[str] = []`.
+After a split, give each module an unprefixed filename. Wire public names through the package `__init__.py` (and `tools.py` when the symbol belongs on the barrel).
 
 ## Public API
 
-Package `__init__.py` files and `tools.py` use **explicit named imports** plus `__all__`. `ruff.toml` ignores F401 on `__init__.py`. Function modules declare `__all__`. Internal `_` modules (`_loop`, `_bounds`, `_common`) set `__all__: list[str] = []`.
+Package `__init__.py` files and `tools.py` use **explicit named imports** plus `__all__`. `ruff.toml` ignores F401 on `__init__.py`. Function modules declare `__all__`.
+
+Forbidden to create private modules with _-prefix in their names. modules may contain _-prefixed functions and other members only if those items are not accessed from outside the module in any place (including not imported into any pytest module).
+
+If another module — library, example, or test — needs a helper, give it an unprefixed name and list it in `__all__` (then re-export if it belongs on the package or `tools` barrel). Do not `from .foo import _helper`.
 
 New public symbol:
 
@@ -90,9 +94,9 @@ New public symbol:
 3. If it belongs on the toolbox barrel, also add it to `deap_er/tools.py` and its `__all__`.
 4. Leave root `__init__.py` alone unless adding a new top-level public package.
 
-Operators and algorithms are **module-level functions**, not classes or services. `_`-prefixed helpers in the same module are normal (`_slicer` in `operators/crossover.py`). Classes are for state: `Toolbox`, `Fitness`, `Checkpoint`, `Strategy*`, `HallOfFame`, `PrimitiveSet`, `SelNSGA3WithMemory`.
+Operators and algorithms are **module-level functions**, not classes or services. Classes are for state: `Toolbox`, `Fitness`, `Checkpoint`, `Strategy*`, `HallOfFame`, `PrimitiveSet`, `SelNSGA3WithMemory`.
 
-Do not flatten operators into classes, invent star-exports, or forbid module-level `_` names.
+Do not flatten operators into classes or invent star-exports.
 
 ## Naming
 
@@ -157,7 +161,7 @@ Examples import `from deap_er import base, creator, tools`, call `tools.seed(...
 
 - Pydantic models, typed settings objects, or application DI
 - Proprietary license headers
-- A ban on module-level `_` names or on functions in class-containing modules
+- A ban on functions in class-containing modules
 - `backend/` vs `tools/` import boundaries
 - `from __future__ import annotations` unless the file already uses it or forward refs need it
 
