@@ -98,6 +98,34 @@ class RngBuffers:
         self._fi += 1
         return value
 
+    def take_floats(self, gen: numpy.random.Generator, count: int) -> list[float]:
+        """Pop ``count`` leftover uniforms, same stream as ``next_float``.
+
+        Args:
+            gen: Generator used to refill an empty float buffer.
+            count: Number of floats. ``0`` returns an empty list.
+
+        Returns:
+            Uniform floats in ``[0.0, 1.0)``.
+
+        Raises:
+            ValueError: If ``count`` is negative.
+        """
+        if count < 0:
+            raise ValueError("count must be non-negative")
+        out: list[float] = []
+        remaining = count
+        while remaining:
+            if self._fi >= _BUFSIZE:
+                gen.random(out=self._fbuf)
+                self._floats = cast(list[float], self._fbuf.tolist())
+                self._fi = 0
+            take = min(remaining, _BUFSIZE - self._fi)
+            out.extend(self._floats[self._fi : self._fi + take])
+            self._fi += take
+            remaining -= take
+        return out
+
     def next_u64(self, gen: numpy.random.Generator) -> int:
         """Pop the next raw 64-bit word.
 

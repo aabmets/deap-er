@@ -21,9 +21,10 @@ __all__: list[str] = ["RNG", "rng"]
 class RNG:
     """NumPy Generator facade with buffered uniform and integer streams.
 
-    ``random`` / ``uniform`` pop leftover floats. Scalar ``randint``,
-    ``randrange``, ``choice``, and ``integers`` pop leftover uint64s.
-    Other methods use the same ``Generator``. Sequences stay Python-indexed.
+    ``random`` / ``uniform`` / ``take_floats`` pop leftover floats.
+    Scalar ``randint``, ``randrange``, ``choice``, and ``integers`` pop
+    leftover uint64s. Other methods use the same ``Generator``.
+    Sequences stay Python-indexed.
     """
 
     def __init__(self, seed: int | None = None) -> None:
@@ -70,6 +71,20 @@ class RNG:
             A Python float from the buffered stream.
         """
         return self._buffers.next_float(self._gen)
+
+    def take_floats(self, count: int) -> list[float]:
+        """Return ``count`` leftover uniforms, same stream as ``random``.
+
+        Args:
+            count: Number of floats. ``0`` returns an empty list.
+
+        Returns:
+            Uniform floats in ``[0.0, 1.0)``.
+
+        Raises:
+            ValueError: If ``count`` is negative.
+        """
+        return self._buffers.take_floats(self._gen, count)
 
     def uniform(self, a: float, b: float) -> float:
         """Return a uniform float in ``[a, b)``.
