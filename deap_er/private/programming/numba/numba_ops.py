@@ -15,14 +15,7 @@ import numpy
 
 from ..opcodes import USER_BASE
 from ..tape import Tape
-from . import (
-    numba_kernels,
-    numba_numeric,
-    numba_predicate,
-    numba_window,
-    numba_window_pair,
-    numba_window_ts,
-)
+from .numba_compile import build
 
 __all__: list[str] = ["USER_DISPATCH_SIGNATURE", "numba_available", "bind_tape"]
 
@@ -51,58 +44,7 @@ receives every argument on the stack, so a window arrives as a
 broadcast row and can be read from ``stack[sp - 1][0]``.
 """
 
-_MISSING = (
-    "The numba backend needs the optional 'numba' dependency. "
-    "Install it with: pip install deap-er[numba]"
-)
-
-_built: dict[str, Any] = {}
 _workspace: dict[str, numpy.ndarray] = {}
-
-_JIT_GROUPS: tuple[tuple[Any, tuple[str, ...]], ...] = (
-    (
-        numba_numeric,
-        (
-            "truthy",
-            "apply_div",
-            "apply_log",
-            "apply_sqrt",
-            "apply_load",
-            "apply_arith",
-            "apply_unary",
-            "apply_numeric",
-        ),
-    ),
-    (
-        numba_predicate,
-        (
-            "apply_eq",
-            "apply_gt_lt",
-            "apply_ge_le",
-            "apply_and_or",
-            "apply_not_where",
-            "apply_predicate",
-        ),
-    ),
-    (
-        numba_window,
-        (
-            "apply_shift",
-            "reduce_stats",
-            "window_extreme",
-            "fill_ema",
-            "roll_stats",
-            "roll_minmax",
-            "roll_ema",
-            "apply_window",
-        ),
-    ),
-    (numba_window_pair, ("reduce_pair", "roll_pair_stats", "apply_pair_window")),
-    (
-        numba_window_ts,
-        ("window_rank", "window_arg", "reduce_ts_window", "roll_ts_window", "apply_ts_window"),
-    ),
-)
 
 
 def numba_available() -> bool:
@@ -142,40 +84,6 @@ def _reserve(depth: int, rows: int) -> tuple[numpy.ndarray, numpy.ndarray]:
         _workspace["stack"] = stack
         _workspace["scratch"] = numpy.empty(rows, dtype=numpy.float64)
     return stack[: depth + 1], _workspace["scratch"]
-
-
-def _build() -> tuple[Any, Any]:
-    """Compile the tape interpreter and the fallback dispatcher.
-
-    Both are built once per process and reused for every tape.
-
-    Returns:
-        The interpreter and the no-op dispatcher.
-
-    Raises:
-        ImportError: If the ``numba`` extra is not installed.
-    """
-    if "run" in _built:
-        return _built["run"], _built["idle"]
-    try:
-        import numba  # optional extra, imported only when the backend is asked for
-    except ImportError as err:
-        raise ImportError(_MISSING) from err
-
-    jit = numba.njit(cache=False, nogil=True, error_model="numpy")
-    # Callees first so the interpreter sees compiled globals. Numba
-    # compiles these from bytecode, so the CPython tracer never sees
-    # them. The parity tests exercise every instruction.
-    for module, names in _JIT_GROUPS:
-        for name in names:
-            compiled = jit(getattr(module, name))
-            setattr(module, name, compiled)
-            setattr(numba_kernels, name, compiled)
-        if module is numba_numeric:
-            numba_predicate.truthy = numba_numeric.truthy
-    _built["run"] = jit(numba_kernels.interpret)
-    _built["idle"] = jit(numba_kernels.idle)
-    return _built["run"], _built["idle"]
 
 
 def _as_matrix(columns: Sequence[Any], expected: int) -> numpy.ndarray:
@@ -236,7 +144,7 @@ def bind_tape(tape: Tape, dispatch: Any = None) -> Callable[..., numpy.ndarray]:
             "result without them. Use backend='python' or backend='opcode' for a "
             "primitive set that takes no arguments."
         )
-    run, idle = _build()
+    run, idle = build()
     if dispatch is None:
         unknown = tape.opcodes[tape.opcodes >= USER_BASE]
         if unknown.size:

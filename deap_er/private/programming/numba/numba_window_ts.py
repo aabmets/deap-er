@@ -12,6 +12,7 @@ import math
 from typing import Any
 
 from . import numba_codes as codes
+from .numba_window_extreme import roll_extreme
 
 __all__: list[str] = ["apply_ts_window"]
 
@@ -54,33 +55,17 @@ def roll_ts_window(  # pragma: no cover
         scratch: Spare row of ``rows`` values.
         arg: Window length.
     """
+    if op != codes.TS_RANK:
+        want_max = 1 if op == codes.TS_ARGMAX else 0
+        roll_extreme(want_max, rows, sp, stack, scratch, arg, 1)
+        return
     for t in range(rows):
         if t + 1 < arg:
             scratch[t] = math.nan
             continue
-        scratch[t] = reduce_ts_window(op, stack, sp, t, arg)
+        scratch[t] = window_rank(stack, sp, t, arg)
     for t in range(rows):
         stack[sp - 1, t] = scratch[t]
-
-
-def reduce_ts_window(  # pragma: no cover
-    op: int, stack: Any, sp: int, t: int, arg: int
-) -> float:
-    """Reduce one full trailing window to a rank or an extremum age.
-
-    Args:
-        op: Time-series window opcode.
-        stack: Column-length workspace.
-        sp: Current stack pointer.
-        t: Index of the current sample.
-        arg: Window length.
-
-    Returns:
-        The reduced value, or ``nan``.
-    """
-    if op == codes.TS_RANK:
-        return window_rank(stack, sp, t, arg)
-    return window_arg(op, stack, sp, t, arg)
 
 
 def window_rank(stack: Any, sp: int, t: int, arg: int) -> float:  # pragma: no cover
@@ -110,37 +95,3 @@ def window_rank(stack: Any, sp: int, t: int, arg: int) -> float:  # pragma: no c
             equal += 1.0
     rank = less + (equal + 1.0) / 2.0
     return (rank - 1.0) / (arg - 1.0)
-
-
-def window_arg(op: int, stack: Any, sp: int, t: int, arg: int) -> float:  # pragma: no cover
-    """Return how many samples ago the window extremum occurred.
-
-    The scan walks newest to oldest and updates only on a strict
-    improvement, so a tie keeps the most recent extremum.
-
-    Args:
-        op: ``TS_ARGMAX`` or ``TS_ARGMIN``.
-        stack: Column-length workspace.
-        sp: Current stack pointer.
-        t: Index of the current sample.
-        arg: Window length.
-
-    Returns:
-        The age of the extremum, or ``nan``.
-    """
-    best = stack[sp - 1, t]
-    age = 0.0
-    for j in range(t, t - arg, -1):
-        value = stack[sp - 1, j]
-        if math.isnan(value):
-            return math.nan
-        if j == t:
-            continue
-        if op == codes.TS_ARGMAX:
-            if value > best:
-                best = value
-                age = float(t - j)
-        elif value < best:
-            best = value
-            age = float(t - j)
-    return age
