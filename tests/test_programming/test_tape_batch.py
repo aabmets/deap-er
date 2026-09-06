@@ -158,7 +158,7 @@ def test_interpret_tapes_rejects_a_consumer_opcode_on_the_opcode_backend():
     tree = gp.PrimitiveTree([pset.mapping["batch_local_kernel"], pset.mapping["first"]])
     tape = gp.lower_tree(tree, pset)
 
-    with pytest.raises(ValueError, match="consumer kernel"):
+    with pytest.raises(ValueError, match="Use backend='numba'"):
         gp.interpret_tapes([tape], numpy.zeros((4, 3)))
 
 
@@ -189,6 +189,21 @@ def test_interpret_tapes_runs_tapes_with_empty_constant_pools():
     columns = _samples()
 
     actual = gp.interpret_tapes(tapes, _matrix(columns))
+
+    numpy.testing.assert_allclose(actual[0], columns[0])
+    numpy.testing.assert_allclose(actual[1], columns[1])
+
+
+def test_interpret_tapes_accepts_a_generator_of_tapes():
+    pset = gp.make_column_pset(COLUMNS)
+    gp.add_numpy_primitives(pset)
+    tapes = (
+        gp.lower_tree(gp.PrimitiveTree([pset.mapping["first"]]), pset),
+        gp.lower_tree(gp.PrimitiveTree([pset.mapping["second"]]), pset),
+    )
+    columns = _samples()
+
+    actual = gp.interpret_tapes((tape for tape in tapes), _matrix(columns))
 
     numpy.testing.assert_allclose(actual[0], columns[0])
     numpy.testing.assert_allclose(actual[1], columns[1])

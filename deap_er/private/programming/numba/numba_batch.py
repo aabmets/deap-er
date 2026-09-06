@@ -86,21 +86,32 @@ def interpret_many_parallel(  # pragma: no cover
             out[index, row] = stacks[slot, 0, row]
 
 
-def _batch_kernels() -> tuple[Any, Any, Any, Any]:
-    """Compile the batch interpreters once per process.
+def _serial_kernel() -> tuple[Any, Any, Any]:
+    """Compile the serial batch interpreter once per process.
 
     Returns:
-        Single-tape runner, idle dispatcher, serial batch kernel,
-        and parallel batch kernel.
+        Single-tape runner, idle dispatcher, and serial batch kernel.
     """
     run, idle = build()
     if "many" not in _batch:
         jit = numba.njit(cache=False, nogil=True, error_model="numpy")
-        _batch["many"] = jit(numba_kernels.interpret_many)
-        _batch["many_parallel"] = numba.njit(
-            cache=False, nogil=True, error_model="numpy", parallel=True
-        )(interpret_many_parallel)
-    return run, idle, _batch["many"], _batch["many_parallel"]
+        compiled = jit(numba_kernels.interpret_many)
+        _batch["many"] = compiled
+    return run, idle, _batch["many"]
+
+
+def _parallel_kernel() -> Any:
+    """Compile the parallel batch interpreter once per process.
+
+    Returns:
+        The ``prange`` batch kernel.
+    """
+    if "many_parallel" not in _batch:
+        compiled = numba.njit(cache=False, nogil=True, error_model="numpy", parallel=True)(
+            interpret_many_parallel
+        )
+        _batch["many_parallel"] = compiled
+    return _batch["many_parallel"]
 
 
 def _pack(tapes: Sequence[Tape]) -> dict[str, numpy.ndarray | int]:
@@ -180,9 +191,9 @@ def run_tapes(
         if unknown.size and dispatch is None:
             raise ValueError(
                 f"The tape holds consumer opcode {int(unknown[0])} but no dispatch "
-                "kernel was given. Pass dispatch= to compile_tree."
+                "kernel was given. Pass dispatch= to interpret_tapes."
             )
-    run, idle, many, many_parallel = _batch_kernels()
+    run, idle, many = _serial_kernel()
     if dispatch is None:
         dispatch = idle
     packed = _pack(tapes)
@@ -191,6 +202,7 @@ def run_tapes(
         n_threads = numba.get_num_threads()
         stacks = numpy.empty((n_threads, int(packed["max_depth"]) + 1, rows), dtype=numpy.float64)
         scratches = numpy.empty((n_threads, rows), dtype=numpy.float64)
+        many_parallel = _parallel_kernel()
         many_parallel(
             run,
             packed["opcodes"],

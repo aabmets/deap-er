@@ -195,7 +195,7 @@ def test_a_consumer_kernel_without_a_dispatcher_is_rejected():
         gp.PrimitiveTree([pset.mapping["batch_numba_orphan"], pset.mapping["first"]]), pset
     )
 
-    with pytest.raises(ValueError, match="no dispatch kernel"):
+    with pytest.raises(ValueError, match="Pass dispatch= to interpret_tapes"):
         gp.interpret_tapes([tape], numpy.zeros((4, 3)), backend="numba")
 
 
@@ -233,3 +233,32 @@ def test_interpret_tapes_grows_the_shared_workspace_to_max_depth():
 
     assert numba_ops._workspace["stack"].shape[0] >= deep.depth + 1
     assert numba_ops._workspace["stack"].shape[1] == 24
+
+
+def test_interpret_tapes_accepts_a_generator_of_tapes():
+    pset = _kit("BATCH_NUMBA_GENERATOR")
+    columns = _samples()
+    tapes = _lower_trees(pset, 3, seed=53)
+
+    actual = gp.interpret_tapes((tape for tape in tapes), _matrix(columns), backend="numba")
+
+    for index, tape in enumerate(tapes):
+        numpy.testing.assert_allclose(
+            actual[index], gp.bind_tape(tape)(*columns), equal_nan=True, rtol=1e-9, atol=1e-12
+        )
+
+
+def test_a_serial_batch_does_not_compile_the_parallel_kernel():
+    from deap_er.private.programming.numba import numba_batch
+
+    pset = _kit("BATCH_NUMBA_SERIAL_ONLY")
+    columns = _samples()
+    tape = gp.lower_tree(gp.PrimitiveTree([pset.mapping["first"]]), pset)
+    held = numba_batch._batch.pop("many_parallel", None)
+    try:
+        gp.interpret_tapes([tape], _matrix(columns), backend="numba")
+        assert "many" in numba_batch._batch
+        assert "many_parallel" not in numba_batch._batch
+    finally:
+        if held is not None:
+            numba_batch._batch["many_parallel"] = held

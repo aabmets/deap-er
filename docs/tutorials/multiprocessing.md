@@ -129,7 +129,8 @@ round-trip a `Window` ephemeral. The fitness list must have one
 entry per individual — `evaluate_invalid` zips without `strict`.
 
 `parallel=True` is in-process Numba threading (one workspace per
-thread, each as long as the book). It does not replace a process
+thread, each as long as the book). A consumer `dispatch` kernel must
+be safe on several stacks at once. It does not replace a process
 pool. Leave it off when the series is millions of bars, or when a
 pool is already running.
 

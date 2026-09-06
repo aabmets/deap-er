@@ -8,7 +8,7 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from collections.abc import Sequence
+from collections.abc import Iterable
 from typing import Any
 
 import numpy
@@ -20,6 +20,10 @@ __all__: list[str] = ["interpret_tapes"]
 
 _MATRIX_SHAPE = (
     "interpret_tapes expects a packed (n_rows, n_columns) matrix, not a sequence of columns."
+)
+_NUMBA_MISSING = (
+    "The numba backend needs the optional 'numba' dependency. "
+    "Install it with: pip install deap-er[numba]"
 )
 
 
@@ -46,7 +50,7 @@ def _as_batch_matrix(matrix: Any) -> numpy.ndarray:
     return numpy.ascontiguousarray(packed, dtype=numpy.float64)
 
 
-def _check_tapes(tapes: Sequence[Tape], columns: int) -> None:
+def _check_tapes(tapes: tuple[Tape, ...], columns: int) -> None:
     """Reject tapes that do not match the packed matrix.
 
     Args:
@@ -61,7 +65,7 @@ def _check_tapes(tapes: Sequence[Tape], columns: int) -> None:
             raise ValueError(f"The tape expects {tape.columns} columns, got {columns}.")
 
 
-def _reject_consumer(tapes: Sequence[Tape]) -> None:
+def _reject_consumer(tapes: tuple[Tape, ...]) -> None:
     """Reject tapes that hold a consumer opcode.
 
     Args:
@@ -76,7 +80,7 @@ def _reject_consumer(tapes: Sequence[Tape]) -> None:
         if consumer.size:
             raise ValueError(
                 f"Opcode {int(consumer[0])} belongs to a consumer kernel, which only "
-                f"the numba backend can run. Use backend='python' or backend='numba'."
+                f"the numba backend can run. Use backend='numba'."
             )
 
 
@@ -93,7 +97,7 @@ def _write_opcode_row(out: numpy.ndarray, index: int, result: Any, rows: int) ->
     out[index] = numpy.broadcast_to(values, (rows,))
 
 
-def _run_opcode(tapes: Sequence[Tape], matrix: numpy.ndarray) -> numpy.ndarray:
+def _run_opcode(tapes: tuple[Tape, ...], matrix: numpy.ndarray) -> numpy.ndarray:
     """Run every tape on the NumPy stack machine.
 
     Args:
@@ -113,7 +117,7 @@ def _run_opcode(tapes: Sequence[Tape], matrix: numpy.ndarray) -> numpy.ndarray:
 
 
 def interpret_tapes(
-    tapes: Sequence[Tape],
+    tapes: Iterable[Tape],
     matrix: Any,
     *,
     backend: str = "opcode",
@@ -137,12 +141,14 @@ def interpret_tapes(
 
     Args:
         tapes: Tapes produced by ``lower_tree``, in the order of the
-            output rows.
+            output rows. A one-shot iterable is consumed once.
         matrix: Packed ``(n_rows, n_columns)`` column table. A sequence
             of columns is rejected.
         backend: Either ``'opcode'`` or ``'numba'``.
         dispatch: Compiled kernel that implements the consumer opcodes
             of the ``'numba'`` backend. Ignored by ``'opcode'``.
+            With ``parallel=True`` it must be safe on several stacks
+            at once — no process-global buffer.
         parallel: If True, run the Numba path with one workspace per
             thread. Requires ``backend='numba'``.
 
@@ -157,6 +163,7 @@ def interpret_tapes(
         ImportError: If ``backend='numba'`` and the ``numba`` extra
             is not installed.
     """
+    tapes = tuple(tapes)
     packed = _as_batch_matrix(matrix)
     _check_tapes(tapes, packed.shape[1])
     if backend == "opcode":
@@ -164,8 +171,10 @@ def interpret_tapes(
             raise ValueError("parallel=True requires backend='numba'.")
         return _run_opcode(tapes, packed)
     if backend == "numba":
-        # Optional extra: imported only when the Numba batch path is asked for.
-        from .numba.numba_batch import run_tapes
-
+        try:
+            # Optional extra: imported only when the Numba batch path is asked for.
+            from .numba.numba_batch import run_tapes
+        except ImportError as err:
+            raise ImportError(_NUMBA_MISSING) from err
         return run_tapes(tapes, packed, dispatch=dispatch, parallel=parallel)
     raise ValueError(f"Unknown compile backend '{backend}'. Use 'opcode' or 'numba'.")
