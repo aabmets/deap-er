@@ -7,9 +7,9 @@ changed. Same toolbox model. Counted from the sections below:
 
 - **18** still-open [DEAP](https://github.com/DEAP/deap) issues
   implemented (some older than a decade)
-- **27** correctness bugs fixed — operators, GP, CMA, records,
+- **36** correctness bugs fixed — operators, GP, CMA, records,
   checkpoints, and published benchmarks
-- **21** capabilities DEAP does not have, including boxed CMA,
+- **22** capabilities DEAP does not have, including boxed CMA,
   mixed-gene mutation, logbook JSON, and
   [columnar GP](../tutorials/columnar_gp.md)
 
@@ -73,11 +73,16 @@ from the original sources.
    original paired-shuffle path is used; other counts run pairwise
    contests until `k` winners are collected. `k ≤ 0` returns an empty
    list.
-8. `sel_roulette` returns `sel_count` individuals when every fitness
-   is zero (uniform draw) instead of an empty list.
+8. `sel_roulette` and `sel_stochastic_universal_sampling` spin the
+   wheel on `wvalues[0]`. A negative floor is shifted so a
+   minimization weight still has a positive slice. When every slice
+   is zero the draw is uniform instead of an empty list. An empty
+   pool or `sel_count ≤ 0` returns `[]`.
 9. `mig_ring` evicts by object identity. Two individuals with equal
-   genes are no longer treated as the same slot, so emigrants are not
-   duplicated and the wrong member is not removed.
+   genes are no longer treated as the same slot. Emigrants are cloned
+   when a replacement operator is set, so the source deme is not
+   aliased into the destination. Duplicate draws take the next unused
+   index instead of writing one vacancy twice.
 10. `cx_messy_one_point` cuts each parent independently, so lengths
     can change. Equal-length parents no longer degenerate into a
     shared-interval two-point swap.
@@ -85,6 +90,17 @@ from the original sources.
     are not aliased, so a one-point or uniform swap does not destroy
     a parent. `cx_es_two_point_copy` applies the same copy to the
     strategy vector.
+12. `sel_spea_2` uses the full distance row for density, with the
+    self-distance set to infinity, so the $k$-th neighbour is not the
+    zero pad of the upper triangle. An empty pool returns `[]`.
+13. `sel_nsga_3` intercepts on the success path are $1/x + \mathrm{best}$.
+    Association treats a near-zero $\mathrm{intercepts} - \mathrm{best}$
+    gap as $1$ so the niche distance is not NaN. Niching stops when
+    the last front is exhausted, so a $k$ larger than the pool does
+    not loop forever.
+14. `cx_one_point`, `cx_two_point`, and `mut_shuffle_indexes` no-op
+    when a parent is shorter than two genes, so a length-1 individual
+    no longer hits an empty `randint` interval.
 
 ## Evolution strategies
 
@@ -98,10 +114,15 @@ from the original sources.
    treats the repaired point as the sample.
 2. MO-CMA's rank-one covariance update gates on $\lVert w \rVert$,
    not on `w.max()`. A negative evolution path no longer skips the
-   update.
+   update. When $w \approx 0$ the factors still scale by
+   $\sqrt{\alpha}$.
 3. The stall-case $\alpha$ on MO-CMA includes the $c_{\mathrm{cov}}$
    factor, so repeated stall generations do not inflate the
    covariance.
+4. MO-CMA writes one step-size trial per parent when
+   $\lambda \neq \mu$, so several children of the same parent do not
+   stack $\sigma$ updates. `generate` samples every parent if any
+   parent fitness is invalid; `update` ranks only valid fitnesses.
 
 ## Genetic programming
 
@@ -160,6 +181,11 @@ The following is extra.
 14. HARM places the size cutoff on evaluated individuals only, scales
     the half-life by the cutoff (not by each individual's size), and
     does not crash on an empty candidate slice.
+15. `add_primitive` and `add_terminal` reject a name that matches a
+    primitive-set argument, so a compiled lambda parameter cannot
+    shadow the symbol.
+16. `mut_insert` leaves the tree unchanged when a sibling type has
+    no terminals, instead of raising `IndexError`.
 
 The columnar contract is in the
 [columnar GP tutorial](../tutorials/columnar_gp.md). Shared-array
@@ -177,7 +203,8 @@ evaluation is in the
 3. An empty `Logbook` with a `header` [prints that header][deap-694]
    from `stream()` instead of the word “empty”.
 4. `Logbook.to_json` / `from_json` [round-trip][deap-121] entries,
-   chapters, and the header. NumPy scalars become Python numbers.
+   nested chapters, and the header. NumPy scalars become Python
+   numbers.
 5. `duplicate_count` is a [variety statistic][deap-350]: population
    length minus distinct keys.
 6. The four `ea_*` algorithms accept `log_time` ([per-generation
@@ -193,7 +220,8 @@ evaluation is in the
 9. `Logbook.pop` normalizes a negative index before comparing it to
    the stream cursor.
 10. `Logbook.__delitem__` removes the chapter row that shares the
-    same generation, not the same list index.
+    same generation — including a later occurrence of a repeated
+    `gen` and every index in a slice — not the same list index.
 11. `History.update` records every member of a batch. A single
     individual without `history_index` no longer orphans the rest.
 
@@ -214,6 +242,15 @@ evaluation is in the
 1. `creator.create` keeps the `typecode` of an `array.array`
    instance base. It no longer forces `"b"`.
 
+## Constraints and utilities
+
+1. `ClosestValidPenalty` treats a scalar NumPy distance like
+   `DeltaPenalty` does: a 0-d array is broadcast, so an `ndarray`
+   is not passed to `itertools.repeat`.
+2. `SortingNetwork.evaluate` copies each case, sorts the copy, and
+   compares it to `sorted(original)`, so integer cases are not
+   scored as bit-count patterns.
+
 ## Benchmarks
 
 1. DTLZ5 / DTLZ6 apply the angular $\theta$ map only to the first
@@ -222,8 +259,12 @@ evaluation is in the
 2. Chuang F3 scores the selector-1 branch with the published trap
    (not the inverse trap) and covers bits $0..39$ without dropping
    bit 38.
-3. Moving Peaks `pf1` uses Euclidean distance. The `ALT1` preset's
-   `move_severity` is $1.5$, matching its documented table.
+3. Moving Peaks `ALT1` uses `move_severity` $1.5$, matching its
+   documented table.
+4. Royal Road R2 sums R1 at every doubling of `order` that still
+   fits the bit string. The top-level schema is included, so a
+   64-bit all-ones individual with order $8$ scores $256$.
+5. Kotanchek uses the published denominator $1.2$, not $3.2$.
 
 [deap-24]: https://github.com/DEAP/deap/issues/24
 [deap-121]: https://github.com/DEAP/deap/issues/121
