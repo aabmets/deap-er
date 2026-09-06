@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable, Sequence
-from typing import Any, SupportsFloat, override
+from typing import Any, SupportsFloat, cast, override
 
 __all__: list[str] = ["FitnessValues", "Fitness"]
 
@@ -72,19 +72,24 @@ class Fitness:
 
     @values.setter
     def values(self, values: FitnessValues) -> None:
-        if isinstance(values, Iterable):
-            seq: tuple[float, ...] = tuple(float(value) for value in values)
+        if isinstance(values, tuple):
+            raw: tuple[Any, ...] = values
+        elif isinstance(values, Iterable):
+            raw = tuple(values)
         else:
-            seq = (float(values),)
-        if len(seq) != len(self.weights):
+            raw = (values,)
+        if len(raw) != len(self.weights):
             raise TypeError(
                 "The assigned values must have the same length as "
                 "the 'weights' attribute of the 'Fitness' class."
             )
+        if raw and type(raw[0]) is float:
+            seq = cast(tuple[float, ...], raw)
+        else:
+            seq = tuple(float(value) for value in raw)
         self._values = seq
-        self.wvalues = tuple(
-            value * weight for value, weight in zip(seq, self.weights, strict=True)
-        )
+        weights = self.weights
+        self.wvalues = tuple(value * weight for value, weight in zip(seq, weights, strict=True))
 
     @values.deleter
     def values(self) -> None:
@@ -106,10 +111,10 @@ class Fitness:
         Returns:
             True if ``self`` dominates ``other``.
         """
-        slc = slice(None) if slc is None else slc
-        compared = list(zip(self.wvalues, other.wvalues, strict=False))[slc]
+        own = self.wvalues if slc is None else self.wvalues[slc]
+        theirs = other.wvalues if slc is None else other.wvalues[slc]
         better = False
-        for a, b in compared:
+        for a, b in zip(own, theirs, strict=True):
             if a < b:
                 return False
             if a > b:
@@ -123,9 +128,7 @@ class Fitness:
             True if ``weights`` is non-empty and ``values`` has the
             same length.
         """
-        a = len(self.weights)
-        b = len(self.wvalues)
-        return a == b and a > 0
+        return len(self.wvalues) == len(self.weights) > 0
 
     def __gt__(self, other: Fitness) -> bool:
         """Return whether this fitness is strictly better than ``other``."""
