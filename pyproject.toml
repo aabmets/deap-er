@@ -62,6 +62,8 @@ dev = [
     "ty==0.0.78",
     "mkdocs-material>=9.7.7",
     "mkdocstrings[python]>=1.0.6",
+    "seaborn>=0.13,<1",
+    "deap>=1.4.4,<2",
 ]
 release = [
     "packaging==26.3",
