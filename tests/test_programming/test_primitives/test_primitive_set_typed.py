@@ -30,3 +30,17 @@ def test_add_primitive_requires_a_name():
     nameless: Any = object()
     with pytest.raises(TypeError, match="__name__"):
         pset.add_primitive(nameless, [float], float)
+
+
+def test_add_primitive_rejects_name_that_matches_an_argument():
+    pset = gp.PrimitiveSetTyped("main", [float], float)
+    pset.rename_arguments(ARG0="price")
+    with pytest.raises(ValueError, match="shadow"):
+        pset.add_primitive(operator.neg, [float], float, name="price")
+
+
+def test_add_terminal_rejects_name_that_matches_an_argument():
+    pset = gp.PrimitiveSetTyped("main", [float], float)
+    pset.rename_arguments(ARG0="price")
+    with pytest.raises(ValueError, match="shadow"):
+        pset.add_terminal(1.0, float, name="price")

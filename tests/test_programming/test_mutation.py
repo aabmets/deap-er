@@ -130,6 +130,31 @@ def test_mut_insert_returns_unchanged_when_no_compatible_primitive(ind_cls):
     assert list(mutant) == list(tree)
 
 
+def test_mut_insert_skips_when_sibling_type_has_no_terminals(ind_cls):
+    class Vec:
+        pass
+
+    class Scl:
+        pass
+
+    pset = gp.PrimitiveSetTyped("main", [Scl], Vec)
+    pset.add_primitive(lambda s: [s], [Scl], Vec, name="make")
+    pset.add_primitive(lambda a, b: a, [Vec, Vec], Vec, name="combine")
+    pset.add_terminal(1.0, Scl)
+    combine = pset.mapping["combine"]
+    make = pset.mapping["make"]
+    term = pset.terminals[Scl][0]
+    tree = ind_cls(gp.PrimitiveTree([combine, make, term, make, term]))
+    before = str(tree)
+
+    tools.rng.seed(0)
+    (mutant,) = gp.mut_insert(tree, pset)
+
+    assert str(mutant)
+    assert pset.terminals[Vec] == []
+    assert str(mutant) == before
+
+
 def test_mut_ephemeral_modes(ind_cls):
     pset = gp.PrimitiveSet("main", 1)
     pset.add_primitive(operator.add, 2)

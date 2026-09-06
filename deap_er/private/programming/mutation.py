@@ -145,7 +145,10 @@ def mut_insert(individual: GPIndividual, prim_set: PrimitiveSetTyped) -> GPMutan
 
     for i, arg_type in enumerate(new_node.args):
         if i != position:
-            term = rng.choice(prim_set.terminals[arg_type])
+            terms = prim_set.terminals[arg_type]
+            if len(terms) == 0:
+                return (individual,)
+            term = rng.choice(terms)
             if isclass(term):
                 term = term()
             new_subtree[i] = term

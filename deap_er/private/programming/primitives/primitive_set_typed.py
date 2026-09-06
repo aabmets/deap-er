@@ -127,6 +127,11 @@ class PrimitiveSetTyped:
                 raise TypeError("Primitive must have a name or a '__name__' attribute.")
             name = raw_name
 
+        if name in self.arguments:
+            raise ValueError(
+                f"Primitive name '{name}' is also an argument of the primitive set. "
+                f"A compiled lambda parameter would shadow the primitive."
+            )
         if name in self.context:
             raise ValueError(
                 f"Primitives are required to have a unique name. "
@@ -149,13 +154,19 @@ class PrimitiveSetTyped:
                 when ``terminal`` is callable.
 
         Raises:
-            ValueError: If ``name`` is already registered in the set.
+            ValueError: If ``name`` is already registered, or matches
+                an argument of the primitive set.
         """
         symbolic = False
         if name is None and callable(terminal):
             raw_name = getattr(terminal, "__name__", None)
             name = raw_name if isinstance(raw_name, str) else None
 
+        if name is not None and name in self.arguments:
+            raise ValueError(
+                f"Terminal name '{name}' is also an argument of the primitive set. "
+                f"A compiled lambda parameter would shadow the terminal."
+            )
         if name is not None and name in self.context:
             raise ValueError(
                 f"Terminals are required to have a unique name. "
