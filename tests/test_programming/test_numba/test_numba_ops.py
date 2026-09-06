@@ -179,7 +179,7 @@ def test_compiled_tapes_share_one_workspace():
 
 
 def test_the_workspace_reserves_the_row_promised_to_a_kernel():
-    stack, scratch = numba_ops._reserve(3, 16)
+    stack, scratch = numba_ops.reserve(3, 16)
 
     assert stack.shape == (4, 16)
     assert scratch.shape == (16,)

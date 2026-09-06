@@ -9,7 +9,7 @@ changed. Same toolbox model. Counted from the sections below:
   implemented (some older than a decade)
 - **36** correctness bugs fixed — operators, GP, CMA, records,
   checkpoints, and published benchmarks
-- **24** capabilities DEAP does not have, including boxed CMA,
+- **25** capabilities DEAP does not have, including boxed CMA,
   mixed-gene mutation, logbook JSON, and
   [columnar GP](../tutorials/columnar_gp.md)
 
@@ -196,6 +196,12 @@ The following is extra.
     scaled to $[0, 1]$; a window of 1 is `nan`. Arg-extremum is how
     many samples ago the extreme occurred (`0` is now); a tie keeps
     the most recent. Python, opcode, and Numba paths agree.
+19. `interpret_tapes` scores many tapes against one packed
+    `(rows, columns)` matrix and returns `(n_individuals, n_rows)`.
+    The opcode path unpacks columns once. The Numba path is a
+    compiled loop; `parallel=True` gives each thread its own
+    workspace. Unique programs are compiled once by `str(tree)`
+    and lowered from the tree object.
 
 The columnar contract is in the
 [columnar GP tutorial](../tutorials/columnar_gp.md). Shared-array

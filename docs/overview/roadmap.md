@@ -20,7 +20,7 @@ surface.
 | 1 | [Two-input causal windows](#1-two-input-causal-windows) | `gp` | shipped |
 | 2 | [Causal time-series unaries](#2-causal-time-series-unaries) | `gp` | shipped |
 | 3 | [Incremental window kernels](#3-incremental-window-kernels) | `gp` (same API) | shipped |
-| 4 | [Batch tape evaluation](#4-batch-tape-evaluation) | `gp` | planned |
+| 4 | [Batch tape evaluation](#4-batch-tape-evaluation) | `gp` | shipped |
 | 5 | [Down-sampled and informed lexicase](#5-down-sampled-and-informed-lexicase) | `operators` | planned |
 | 6 | [Case-structured evaluation helper](#6-case-structured-evaluation-helper) | utilities + docs | planned |
 | 7 | [Non-bloating semantic variation](#7-non-bloating-semantic-variation) | `gp` | planned |
@@ -148,11 +148,14 @@ recipe that compiles each unique tree string once and then scores
 the generation in one shot. `evaluate_batch` on the toolbox already
 replaces `map` for a generation; this is the matching interpreter.
 
-**Today.** Algorithms call `toolbox.evaluate_batch(invalids)` when
-that operator is registered. The tape interpreter still runs one
-tree at a time and copies `stack[0]` out of a shared workspace.
-The Numba backend already accepts a pre-packed matrix; the opcode
-backend still stacks columns per individual.
+**Today.** `interpret_tapes(tapes, matrix)` returns
+`(n_individuals, n_rows)` from one packed `(rows, columns)` matrix.
+The opcode path unpacks columns once. The Numba path is a compiled
+loop over jagged tapes; `parallel=True` uses one workspace per
+thread. Algorithms still call `toolbox.evaluate_batch(invalids)`
+when that operator is registered — the matching interpreter is
+this function. `compile_tree` is unchanged: the opcode runner
+still stacks columns per individual.
 
 **Benefit.** Columnar evaluation becomes population-wide instead of
 only per tree. One kernel launch, one matrix, no per-individual

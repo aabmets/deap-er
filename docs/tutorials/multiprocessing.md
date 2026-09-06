@@ -107,11 +107,31 @@ and `evaluate`.
 
 ```python
 def evaluate_batch(individuals):
-    programs = [toolbox.compile(expr=ind) for ind in individuals]
-    return [(score(program(*columns)),) for program in programs]
+    unique = {}
+    tapes = []
+    index = []
+    for ind in individuals:
+        key = str(ind)
+        slot = unique.get(key)
+        if slot is None:
+            unique[key] = slot = len(tapes)
+            tapes.append(gp.lower_tree(ind, pset))
+        index.append(slot)
+    predicted = gp.interpret_tapes(tapes, matrix, backend="numba")
+    return [score(predicted[i], target) for i in index]
 
 toolbox.register("evaluate_batch", evaluate_batch)
 ```
+
+Key unique programs by `str(ind)` and lower the tree object. Do not
+pass the string to `lower_tree`: `PrimitiveTree.from_string` cannot
+round-trip a `Window` ephemeral. The fitness list must have one
+entry per individual — `evaluate_invalid` zips without `strict`.
+
+`parallel=True` is in-process Numba threading (one workspace per
+thread, each as long as the book). It does not replace a process
+pool. Leave it off when the series is millions of bars, or when a
+pool is already running.
 
 !!! note
     `evaluate_batch` replaces `map` for evaluation, so a batch operator
