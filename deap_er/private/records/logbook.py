@@ -103,32 +103,37 @@ class Logbook(list[dict[str, Any]]):
         return super().pop(idx)
 
     def _delete_slice(self, key: slice) -> None:
-        """Delete a slice of entries and the same indexes from every chapter.
+        """Delete a slice of entries and matching chapter rows.
 
         Args:
             key: Slice of entries to remove.
         """
         for i in sorted(range(*key.indices(len(self))), reverse=True):
-            self.pop(i)
-            for chapter in self.chapters.values():
-                chapter.pop(i)
+            self._delete_index(i)
 
-    def _chapter_index_for_generation(self, chapter: "Logbook", generation: Any) -> int | None:
+    def _chapter_index_for_generation(
+        self, chapter: "Logbook", generation: Any, parent_index: int
+    ) -> int | None:
         """Return the chapter row that shares ``generation``.
+
+        When several rows share a generation, the match is the
+        occurrence that lines up with ``parent_index``.
 
         Args:
             chapter: Nested logbook to search.
             generation: Generation value from the parent entry.
+            parent_index: Parent row being deleted.
 
         Returns:
             Matching chapter index, or None.
         """
         if generation is None:
             return None
-        return next(
-            (i for i, entry in enumerate(chapter) if entry.get("gen") == generation),
-            None,
-        )
+        remaining = sum(1 for entry in self[parent_index:] if entry.get("gen") == generation)
+        matches = [i for i, entry in enumerate(chapter) if entry.get("gen") == generation]
+        if remaining == 0 or len(matches) < remaining:
+            return None
+        return matches[-remaining]
 
     def _delete_index(self, key: SupportsIndex) -> None:
         """Delete one entry and the matching generation from every chapter.
@@ -141,13 +146,13 @@ class Logbook(list[dict[str, Any]]):
             idx += len(self)
         record = self[idx] if 0 <= idx < len(self) else {}
         generation = record.get("gen")
-        self.pop(key)
         for chapter in self.chapters.values():
             if not chapter:
                 continue
-            match = self._chapter_index_for_generation(chapter, generation)
+            match = self._chapter_index_for_generation(chapter, generation, idx)
             if match is not None:
                 chapter.pop(match)
+        self.pop(key)
 
     @override
     def __delitem__(self, key: SupportsIndex | slice, /) -> None:
@@ -187,11 +192,7 @@ class Logbook(list[dict[str, Any]]):
             "header": self.header,
             "entries": [_json_ready(entry) for entry in self],
             "chapters": {
-                name: {
-                    "header": chapter.header,
-                    "entries": [_json_ready(entry) for entry in chapter],
-                }
-                for name, chapter in self.chapters.items()
+                name: json.loads(chapter.to_json()) for name, chapter in self.chapters.items()
             },
         }
         return json.dumps(payload)
@@ -211,10 +212,7 @@ class Logbook(list[dict[str, Any]]):
         book.header = list(data.get("header", []))
         book.extend(data.get("entries", []))
         for name, chapter in data.get("chapters", {}).items():
-            child = cls()
-            child.header = list(chapter.get("header", []))
-            child.extend(chapter.get("entries", []))
-            book.chapters[name] = child
+            book.chapters[name] = cls.from_json(json.dumps(chapter))
         return book
 
 

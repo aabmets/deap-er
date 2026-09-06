@@ -71,6 +71,31 @@ def test_delitem_does_not_drop_unrelated_chapter_row():
     assert [entry["avg"] for entry in logbook.chapters["size"]] == [1]
 
 
+def test_delitem_slice_does_not_drop_unrelated_chapter_row():
+    logbook = Logbook()
+    logbook.record(gen=0)
+    logbook.record(gen=1, size={"avg": 1})
+    del logbook[0:1]
+    assert [entry["gen"] for entry in logbook] == [1]
+    assert [entry["avg"] for entry in logbook.chapters["size"]] == [1]
+
+    cleared = Logbook()
+    cleared.record(gen=0)
+    cleared.record(gen=1, size={"avg": 1})
+    del cleared[:]
+    assert list(cleared) == []
+    assert list(cleared.chapters["size"]) == []
+
+
+def test_delitem_pairs_matching_repeat_generation():
+    logbook = Logbook()
+    logbook.record(gen=1, size={"avg": 10})
+    logbook.record(gen=1, size={"avg": 20})
+    del logbook[1]
+    assert [entry["gen"] for entry in logbook] == [1]
+    assert [entry["avg"] for entry in logbook.chapters["size"]] == [10]
+
+
 def test_str_of_empty_logbook():
     assert str(Logbook()) == "The Logbook is empty."
 
@@ -142,3 +167,12 @@ def test_json_round_trip_restores_chapters_and_numpy_scalars():
     assert restored.header == ["gen"]
     assert restored[0]["score"] == 1.5
     assert restored.chapters["size"][0]["avg"] == 4
+
+
+def test_json_round_trip_restores_nested_chapters():
+    logbook = Logbook()
+    logbook.record(gen=0, fit={"avg": 1, "more": {"x": 2}})
+    restored = Logbook.from_json(logbook.to_json())
+    assert list(restored.chapters["fit"].chapters.keys()) == ["more"]
+    assert restored.chapters["fit"].chapters["more"][0]["x"] == 2
+    assert restored.chapters["fit"][0]["avg"] == 1
