@@ -163,15 +163,65 @@ def roll_stats(  # pragma: no cover
         win_total, win_squares = window_totals(pos_inf, neg_inf, total, squares)
         variance = math.nan
         if op == codes.ROLL_STD:
-            mean = win_total / arg
-            variance = win_squares / arg - mean * mean
-            if pos_inf > 0 or neg_inf > 0:
-                variance = scan_variance(stack, sp - 1, t - arg + 1, t + 1)
-            elif variance_untrusted(variance, err_bound, arg):
-                offset = row_offset(stack, sp - 1, t - arg + 1, t + 1)
-                total, squares = scan_sums(stack, sp - 1, t - arg + 1, t + 1, offset)
-                err_bound = EPSILON * squares
-                variance = scan_variance(stack, sp - 1, t - arg + 1, t + 1)
+            variance, offset, total, squares, err_bound = std_window(
+                stack,
+                sp,
+                t,
+                arg,
+                win_total,
+                win_squares,
+                pos_inf,
+                neg_inf,
+                total,
+                squares,
+                err_bound,
+                offset,
+            )
         scratch[t] = reduce_stats(op, win_total, variance, arg)
     for t in range(rows):
         stack[sp - 1, t] = scratch[t]
+
+
+def std_window(  # pragma: no cover
+    stack: Any,
+    sp: int,
+    t: int,
+    arg: int,
+    win_total: float,
+    win_squares: float,
+    pos_inf: int,
+    neg_inf: int,
+    total: float,
+    squares: float,
+    err_bound: float,
+    offset: float,
+) -> tuple[float, float, float, float, float]:
+    """Rebuild a rolling standard-deviation window when the running path drifts.
+
+    Args:
+        stack: Column-length workspace.
+        sp: Current stack pointer.
+        t: Current sample index.
+        arg: Window length.
+        win_total: IEEE window sum.
+        win_squares: IEEE window sum of squares.
+        pos_inf: Count of ``+inf`` samples.
+        neg_inf: Count of ``-inf`` samples.
+        total: Finite-sample sum.
+        squares: Finite-sample sum of squares.
+        err_bound: Accumulated error bound on ``squares``.
+        offset: Current centering shift.
+
+    Returns:
+        Variance, offset, total, squares, and err_bound.
+    """
+    mean = win_total / arg
+    variance = win_squares / arg - mean * mean
+    if pos_inf > 0 or neg_inf > 0:
+        return scan_variance(stack, sp - 1, t - arg + 1, t + 1), offset, total, squares, err_bound
+    if not variance_untrusted(variance, err_bound, arg):
+        return variance, offset, total, squares, err_bound
+    offset = row_offset(stack, sp - 1, t - arg + 1, t + 1)
+    total, squares = scan_sums(stack, sp - 1, t - arg + 1, t + 1, offset)
+    err_bound = EPSILON * squares
+    return scan_variance(stack, sp - 1, t - arg + 1, t + 1), offset, total, squares, err_bound

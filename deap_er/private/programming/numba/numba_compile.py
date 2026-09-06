@@ -71,11 +71,19 @@ JIT_GROUPS: tuple[tuple[Any, tuple[str, ...]], ...] = (
     ),
     (
         numba_window_extreme,
-        ("roll_extreme", "roll_minmax"),
+        (
+            "fill_nan_rows",
+            "drop_outgoing",
+            "pop_dominated",
+            "ingest_sample",
+            "write_extreme",
+            "roll_extreme",
+            "roll_minmax",
+        ),
     ),
     (
         numba_window_roll,
-        ("absorb_stat", "window_totals", "reduce_stats", "roll_stats"),
+        ("absorb_stat", "window_totals", "reduce_stats", "std_window", "roll_stats"),
     ),
     (
         numba_window,
@@ -105,6 +113,44 @@ JIT_GROUPS: tuple[tuple[Any, tuple[str, ...]], ...] = (
 )
 
 
+def _compile_group(module: Any, names: tuple[str, ...], jit: Any) -> None:
+    for name in names:
+        compiled = jit(getattr(module, name))
+        setattr(module, name, compiled)
+        setattr(numba_kernels, name, compiled)
+
+
+def _wire_scan() -> None:
+    for target in (numba_window_roll, numba_window_pair_roll):
+        target.row_offset = numba_window_scan.row_offset
+        target.variance_untrusted = numba_window_scan.variance_untrusted
+    numba_window_roll.scan_sums = numba_window_scan.scan_sums
+    numba_window_roll.scan_variance = numba_window_scan.scan_variance
+    numba_window_pair_roll.scan_pair_sums = numba_window_scan.scan_pair_sums
+    numba_window_pair_roll.scan_pair_moments = numba_window_scan.scan_pair_moments
+
+
+def _wire_module(module: Any) -> None:
+    if module is numba_numeric:
+        numba_predicate.truthy = numba_numeric.truthy
+        return
+    if module is numba_window_scan:
+        _wire_scan()
+        return
+    if module is numba_window_pair_reduce:
+        numba_window_pair_roll.reduce_pair = numba_window_pair_reduce.reduce_pair
+        return
+    if module is numba_window_extreme:
+        numba_window.roll_minmax = numba_window_extreme.roll_minmax
+        numba_window_ts.roll_extreme = numba_window_extreme.roll_extreme
+        return
+    if module is numba_window_roll:
+        numba_window.roll_stats = numba_window_roll.roll_stats
+        return
+    if module is numba_window_pair_roll:
+        numba_window_pair.roll_pair_stats = numba_window_pair_roll.roll_pair_stats
+
+
 def build() -> tuple[Any, Any]:
     """Compile the tape interpreter and the fallback dispatcher.
 
@@ -128,29 +174,8 @@ def build() -> tuple[Any, Any]:
     # Numba compiles these from bytecode, so the CPython tracer never
     # sees them. The parity tests exercise every instruction.
     for module, names in JIT_GROUPS:
-        for name in names:
-            compiled = jit(getattr(module, name))
-            setattr(module, name, compiled)
-            setattr(numba_kernels, name, compiled)
-        if module is numba_numeric:
-            numba_predicate.truthy = numba_numeric.truthy
-        if module is numba_window_scan:
-            for target in (numba_window_roll, numba_window_pair_roll):
-                target.row_offset = numba_window_scan.row_offset
-                target.variance_untrusted = numba_window_scan.variance_untrusted
-            numba_window_roll.scan_sums = numba_window_scan.scan_sums
-            numba_window_roll.scan_variance = numba_window_scan.scan_variance
-            numba_window_pair_roll.scan_pair_sums = numba_window_scan.scan_pair_sums
-            numba_window_pair_roll.scan_pair_moments = numba_window_scan.scan_pair_moments
-        if module is numba_window_pair_reduce:
-            numba_window_pair_roll.reduce_pair = numba_window_pair_reduce.reduce_pair
-        if module is numba_window_extreme:
-            numba_window.roll_minmax = numba_window_extreme.roll_minmax
-            numba_window_ts.roll_extreme = numba_window_extreme.roll_extreme
-        if module is numba_window_roll:
-            numba_window.roll_stats = numba_window_roll.roll_stats
-        if module is numba_window_pair_roll:
-            numba_window_pair.roll_pair_stats = numba_window_pair_roll.roll_pair_stats
+        _compile_group(module, names, jit)
+        _wire_module(module)
     _built["run"] = jit(numba_kernels.interpret)
     _built["idle"] = jit(numba_kernels.idle)
     return _built["run"], _built["idle"]
