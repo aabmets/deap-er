@@ -10,10 +10,9 @@
 #
 """Compare hot-path timings of DEAP/deap and aabmets/deap-er.
 
-Median of 9 timed runs after 2 warmups, except ``ea_simple`` (5 runs, 1
-warmup) and first-time compile (no warmup; deap-er cache cleared each
-sample). Populations are built from the same numeric genomes so both
-libraries do the same work.
+Arithmetic mean of 30 timed runs after 2 warmups, except first-time
+compile (no warmup; deap-er cache cleared each sample). Populations are
+built from the same numeric genomes so both libraries do the same work.
 
     uv run python tools/bench_hotpaths.py
 """
@@ -43,7 +42,7 @@ from deap_er import creator as er_creator
 from deap_er import gp as er_gp
 from deap_er import tools as er_tools
 
-REPEAT = 9
+REPEAT = 30
 WARMUP = 2
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 _DEFAULT_JSON = _REPO_ROOT / "reports" / "hotpath-bench.json"
@@ -75,13 +74,13 @@ class _Library(Protocol):
     def run_ea(self, population: list) -> object: ...
 
 
-def _median_ms(
+def _mean_ms(
     func: Callable[[], object],
     *,
     repeat: int = REPEAT,
     warmup: int = WARMUP,
 ) -> float:
-    """Return the median runtime of ``func`` in milliseconds.
+    """Return the arithmetic-mean runtime of ``func`` in milliseconds.
 
     Args:
         func: Nullary callable to time.
@@ -89,7 +88,7 @@ def _median_ms(
         warmup: Untimed calls to run first.
 
     Returns:
-        Median elapsed milliseconds.
+        Mean elapsed milliseconds.
     """
     for _ in range(warmup):
         func()
@@ -98,7 +97,7 @@ def _median_ms(
         start = time.perf_counter()
         func()
         samples.append((time.perf_counter() - start) * 1000.0)
-    return statistics.median(samples)
+    return statistics.fmean(samples)
 
 
 def _drop_creator_types(module: Any) -> None:
@@ -347,8 +346,8 @@ def _measure_compile(lib: _Library, trees: list, pset: object) -> tuple[float, f
                 lib.compile_one(tree, pset)(0.5)
         return (time.perf_counter() - start) * 1000.0
 
-    first_ms = _median_ms(compile_once, warmup=0)
-    cached_ms = statistics.median([compile_repeat_ms() for _ in range(REPEAT)])
+    first_ms = _mean_ms(compile_once, warmup=0)
+    cached_ms = statistics.fmean([compile_repeat_ms() for _ in range(REPEAT)])
     return first_ms, cached_ms
 
 
@@ -359,7 +358,7 @@ def _run_library(lib: _Library) -> dict[str, float]:
         lib: Library adapter.
 
     Returns:
-        Case name to median milliseconds.
+        Case name to mean milliseconds.
     """
     lib.make_types()
     results: dict[str, float] = {}
@@ -406,12 +405,12 @@ def _run_library(lib: _Library) -> dict[str, float]:
     def nsga3() -> None:
         lib.sel_nsga3(pop80, 40, refs)
 
-    results["fitness.values x200 on n=80"] = _median_ms(values_reads)
-    results["fitness.dominates pairwise n=80"] = _median_ms(pairwise_dominates)
-    results["sel_spea_2 n=80 k=40"] = _median_ms(spea80)
-    results["sel_spea_2 n=160 k=80"] = _median_ms(spea160)
-    results["nsga_convergence n=40"] = _median_ms(conv)
-    results["sel_nsga_3 n=80 k=40"] = _median_ms(nsga3)
+    results["fitness.values x200 on n=80"] = _mean_ms(values_reads)
+    results["fitness.dominates pairwise n=80"] = _mean_ms(pairwise_dominates)
+    results["sel_spea_2 n=80 k=40"] = _mean_ms(spea80)
+    results["sel_spea_2 n=160 k=80"] = _mean_ms(spea160)
+    results["nsga_convergence n=40"] = _mean_ms(conv)
+    results["sel_nsga_3 n=80 k=40"] = _mean_ms(nsga3)
 
     pset = lib.make_pset()
     trees = lib.make_trees(pset, 40)
@@ -429,14 +428,14 @@ def _run_library(lib: _Library) -> dict[str, float]:
         for individual in so_pop:
             lib.clone_one(individual)
 
-    results["deepcopy n=60 list inds"] = _median_ms(deepcopies)
-    results["clone_individual n=60 list inds"] = _median_ms(clones)
+    results["deepcopy n=60 list inds"] = _mean_ms(deepcopies)
+    results["clone_individual n=60 list inds"] = _mean_ms(clones)
 
     def ea_run() -> None:
         lib.seed(41)
         lib.run_ea(lib.wrap_so(_so_data(40, 24, 41)))
 
-    results["ea_simple n=40 gens=8"] = _median_ms(ea_run, repeat=5, warmup=1)
+    results["ea_simple n=40 gens=8"] = _mean_ms(ea_run)
     lib.drop_types()
     return results
 

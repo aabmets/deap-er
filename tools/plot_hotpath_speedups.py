@@ -147,7 +147,7 @@ def _caption(report: dict[str, Any], deap_ver: str, er_ver: str) -> str:
     warmup = meta.get("warmup", "?")
     return (
         f"Bars are aabmets/deap-er {er_ver} as a percentage of DEAP/deap "
-        f"{deap_ver} speed. Median of {repeat} runs after {warmup} warmups."
+        f"{deap_ver} speed. Mean of {repeat} runs after {warmup} warmups."
     )
 
 
