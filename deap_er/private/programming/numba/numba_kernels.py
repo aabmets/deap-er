@@ -91,14 +91,8 @@ def idle(  # pragma: no cover
 
 def interpret_many(  # pragma: no cover
     run: Any,
-    opcodes: Any,
-    operands: Any,
-    constants: Any,
-    op_starts: Any,
-    op_lens: Any,
-    c_starts: Any,
-    c_lens: Any,
-    fills: Any,
+    streams: Any,
+    layout: Any,
     columns: Any,
     stack: Any,
     scratch: Any,
@@ -109,20 +103,16 @@ def interpret_many(  # pragma: no cover
 
     Args:
         run: Compiled single-tape interpreter.
-        opcodes: Concatenated instruction stream.
-        operands: Concatenated immediates.
-        constants: Concatenated constant pools.
-        op_starts: Start index of each tape in ``opcodes``.
-        op_lens: Instruction count of each tape.
-        c_starts: Start index of each tape in ``constants``.
-        c_lens: Constant-pool length of each tape.
-        fills: Protected-op fill of each tape.
+        streams: ``(opcodes, operands, constants)`` concatenated tapes.
+        layout: ``(op_starts, op_lens, c_starts, c_lens, fills)``.
         columns: Packed input matrix.
         stack: Shared column-length workspace.
         scratch: Spare row.
         dispatch: Consumer kernel.
         out: Result of shape ``(n_tapes, n_rows)``.
     """
+    opcodes, operands, constants = streams
+    op_starts, op_lens, c_starts, c_lens, fills = layout
     rows = columns.shape[0]
     for index in range(op_starts.shape[0]):
         start = op_starts[index]
