@@ -40,6 +40,9 @@ __all__: list[str] = [
     "ROLL_MIN",
     "ROLL_MAX",
     "EMA",
+    "ROLL_CORR",
+    "ROLL_COV",
+    "ROLL_BETA",
     "BASE",
     "UNKNOWN_OPCODE",
 ]
@@ -73,5 +76,8 @@ ROLL_STD = int(Opcode.ROLL_STD)
 ROLL_MIN = int(Opcode.ROLL_MIN)
 ROLL_MAX = int(Opcode.ROLL_MAX)
 EMA = int(Opcode.EMA)
+ROLL_CORR = int(Opcode.ROLL_CORR)
+ROLL_COV = int(Opcode.ROLL_COV)
+ROLL_BETA = int(Opcode.ROLL_BETA)
 BASE = USER_BASE
 UNKNOWN_OPCODE = "The tape holds an opcode the interpreter does not know."

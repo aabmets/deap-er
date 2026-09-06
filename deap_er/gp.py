@@ -71,6 +71,12 @@ from .private.programming.window_ops import (
     add_window_primitives,
     ema,
 )
+from .private.programming.window_pair import (
+    add_pair_window_primitives,
+    rolling_beta,
+    rolling_corr,
+    rolling_cov,
+)
 from .private.programming.window_roll import (
     delay,
     diff,
@@ -146,6 +152,7 @@ __all__ = [
     "ema",
     "add_window_primitives",
     "add_window_ephemeral",
+    "add_pair_window_primitives",
     "delay",
     "diff",
     "rolling_sum",
@@ -153,4 +160,7 @@ __all__ = [
     "rolling_std",
     "rolling_min",
     "rolling_max",
+    "rolling_corr",
+    "rolling_cov",
+    "rolling_beta",
 ]

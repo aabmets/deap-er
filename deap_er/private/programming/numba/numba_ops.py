@@ -15,7 +15,7 @@ import numpy
 
 from ..opcodes import USER_BASE
 from ..tape import Tape
-from . import numba_kernels, numba_numeric, numba_predicate, numba_window
+from . import numba_kernels, numba_numeric, numba_predicate, numba_window, numba_window_pair
 
 __all__: list[str] = ["USER_DISPATCH_SIGNATURE", "numba_available", "bind_tape"]
 
@@ -90,6 +90,7 @@ _JIT_GROUPS: tuple[tuple[Any, tuple[str, ...]], ...] = (
             "apply_window",
         ),
     ),
+    (numba_window_pair, ("reduce_pair", "roll_pair_stats", "apply_pair_window")),
 )
 
 

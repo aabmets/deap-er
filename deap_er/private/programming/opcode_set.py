@@ -52,6 +52,9 @@ class Opcode(IntEnum):
     ROLL_MIN = 26
     ROLL_MAX = 27
     EMA = 28
+    ROLL_CORR = 29
+    ROLL_COV = 30
+    ROLL_BETA = 31
 
 
 BUILTIN_OPCODES: dict[str, Opcode] = {
@@ -82,6 +85,9 @@ BUILTIN_OPCODES: dict[str, Opcode] = {
     "rolling_min": Opcode.ROLL_MIN,
     "rolling_max": Opcode.ROLL_MAX,
     "ema": Opcode.EMA,
+    "rolling_corr": Opcode.ROLL_CORR,
+    "rolling_cov": Opcode.ROLL_COV,
+    "rolling_beta": Opcode.ROLL_BETA,
 }
 """Opcode of every primitive registered by the builtin kits."""
 
@@ -112,5 +118,8 @@ OPCODES_ARITY: dict[int, int] = {
     Opcode.EQ: 2,
     Opcode.AND: 2,
     Opcode.OR: 2,
+    Opcode.ROLL_CORR: 2,
+    Opcode.ROLL_COV: 2,
+    Opcode.ROLL_BETA: 2,
     Opcode.WHERE: 3,
 }

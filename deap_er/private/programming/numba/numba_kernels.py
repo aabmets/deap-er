@@ -14,6 +14,7 @@ from . import numba_codes as codes
 from .numba_numeric import apply_numeric
 from .numba_predicate import apply_predicate
 from .numba_window import apply_window
+from .numba_window_pair import apply_pair_window
 
 __all__: list[str] = ["interpret", "idle"]
 
@@ -57,6 +58,8 @@ def interpret(  # pragma: no cover
             sp = apply_predicate(op, rows, sp, stack)
         elif op <= codes.EMA:
             sp = apply_window(op, rows, sp, stack, scratch, arg)
+        elif op <= codes.ROLL_BETA:
+            sp = apply_pair_window(op, rows, sp, stack, scratch, arg)
         elif op >= codes.BASE:
             sp = int(dispatch(op, sp, stack, columns, constants, scratch))
         else:

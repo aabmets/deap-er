@@ -11,7 +11,7 @@
 from collections.abc import Callable, Sequence
 from typing import Any
 
-from . import window_ops
+from . import window_ops, window_pair
 from .numpy import numpy_ops
 from .opcode_set import BUILTIN_OPCODES, USER_BASE, Opcode
 from .tape import Tape, bind_numba_opcode, numba_opcodes
@@ -63,6 +63,11 @@ _WINDOWED: dict[int, Callable[..., Any]] = {
     Opcode.ROLL_MIN: window_ops.rolling_min,
     Opcode.ROLL_MAX: window_ops.rolling_max,
     Opcode.EMA: window_ops.ema,
+}
+_PAIR_WINDOWED: dict[int, Callable[..., Any]] = {
+    Opcode.ROLL_CORR: window_pair.rolling_corr,
+    Opcode.ROLL_COV: window_pair.rolling_cov,
+    Opcode.ROLL_BETA: window_pair.rolling_beta,
 }
 
 
@@ -177,6 +182,10 @@ def _apply_opcode(
         return
     if opcode in _WINDOWED:
         _replace(stack, _WINDOWED[opcode](_peek(stack), operand))
+        return
+    if opcode in _PAIR_WINDOWED:
+        right = _pop(stack)
+        _replace(stack, _PAIR_WINDOWED[opcode](_peek(stack), right, operand))
         return
     if opcode in _BINARY:
         right = _pop(stack)
