@@ -203,15 +203,40 @@ Numba backend also accepts a single prepacked `(n_rows, n_columns)`
 matrix, which avoids repacking them on every call.
 
 The Numba interpreter is compiled once per process, never once per
-tree, and it is deliberately single threaded. Every compiled tape
-shares one process-wide workspace, so parallelize across individuals
-with `toolbox.map`, as described in the
-[multiprocessing tutorial](multiprocessing.md), rather than by calling
-compiled programs from several threads.
+tree. Every compiled tape shares one process-wide workspace, so a
+`bind_tape` callable must not be run from several threads at once.
 
-It also has no way to size a result for a primitive set that takes no
-arguments, since every value it holds is one column long. Use the
-`python` or `opcode` backend for a constant-only set.
+To score a generation against one packed `(n_rows, n_columns)`
+matrix, lower unique trees and call `interpret_tapes`. Cache by
+`str(tree)` and lower the **tree object** —
+`PrimitiveTree.from_string` cannot round-trip a `Window` ephemeral.
+
+```python
+def evaluate_batch(individuals):
+    unique = {}
+    tapes = []
+    index = []
+    for ind in individuals:
+        key = str(ind)
+        slot = unique.get(key)
+        if slot is None:
+            unique[key] = slot = len(tapes)
+            tapes.append(gp.lower_tree(ind, pset))
+        index.append(slot)
+    predicted = gp.interpret_tapes(tapes, matrix, backend="numba")
+    return [score(predicted[i], target) for i in index]
+```
+
+`parallel=True` evaluates those tapes on several Numba threads. Each
+thread keeps a workspace of shape `(depth + 1, n_rows)`, so a long
+book costs `n_threads` full-length stacks. Leave it off for a
+multi-year one-minute series; turn it on for tens or hundreds of
+thousands of bars. `evaluate_batch` still owns any process pool, as
+described in the [multiprocessing tutorial](multiprocessing.md).
+
+The Numba backend has no way to size a result for a primitive set
+that takes no arguments, since every value it holds is one column
+long. Use the `python` or `opcode` backend for a constant-only set.
 
 !!! note
     A tree that is nothing but a column returns that column itself
@@ -269,7 +294,9 @@ time.
   Checkpoint the trees themselves rather than their text.
 - `compile_adf_tree` runs on the default backend only.
 - The Numba backend shares one workspace across every compiled tape,
-  so its callables must not be run from several threads at once.
+  so a `bind_tape` callable must not be run from several threads at
+  once. `interpret_tapes(..., parallel=True)` allocates thread-local
+  stacks for that call only.
 
 ## Related
 
