@@ -229,10 +229,12 @@ def evaluate_batch(individuals):
 
 `parallel=True` evaluates those tapes on several Numba threads. Each
 thread keeps a workspace of shape `(depth + 1, n_rows)`, so a long
-book costs `n_threads` full-length stacks. Leave it off for a
-multi-year one-minute series; turn it on for tens or hundreds of
-thousands of bars. `evaluate_batch` still owns any process pool, as
-described in the [multiprocessing tutorial](multiprocessing.md).
+book costs `n_threads` full-length stacks. A consumer `dispatch`
+kernel must be safe on those stacks at once — no process-global
+buffer. Leave `parallel` off for a multi-year one-minute series;
+turn it on for tens or hundreds of thousands of bars.
+`evaluate_batch` still owns any process pool, as described in the
+[multiprocessing tutorial](multiprocessing.md).
 
 The Numba backend has no way to size a result for a primitive set
 that takes no arguments, since every value it holds is one column
