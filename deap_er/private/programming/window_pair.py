@@ -16,7 +16,7 @@ from numpy.lib.stride_tricks import sliding_window_view
 
 from .columnar import Array, Window, reject_shadowed
 from .primitives.primitive_set_typed import PrimitiveSetTyped
-from .window_roll import as_series
+from .window_roll import CHUNK_ROWS, as_series, window_deviations
 
 __all__: list[str] = [
     "as_pair_series",
@@ -63,7 +63,10 @@ def pair_moments(left: Any, right: Any, window: Any) -> PairMoments:
     """Take population covariance and variances of a trailing pair window.
 
     The divisor is the window length. A negative variance from rounding
-    is clamped to zero, matching ``rolling_std``.
+    is clamped to zero, matching ``rolling_std``. Every window is
+    centered on its own mean before squaring, in row blocks, so the
+    moments stay accurate however far the samples sit from zero. A
+    window that holds an infinity is ``nan``.
 
     Args:
         left: First series.
@@ -85,15 +88,24 @@ def pair_moments(left: Any, right: Any, window: Any) -> PairMoments:
         return result, length, None, None, None
     left_view = sliding_window_view(left_series, length)
     right_view = sliding_window_view(right_series, length)
+    rows = left_view.shape[0]
+    cov = numpy.empty(rows, dtype=numpy.float64)
+    var_x = numpy.empty(rows, dtype=numpy.float64)
+    var_y = numpy.empty(rows, dtype=numpy.float64)
     count = float(length)
-    mean_x = numpy.add.reduce(left_view, axis=-1) / count
-    mean_y = numpy.add.reduce(right_view, axis=-1) / count
-    squares_x = numpy.add.reduce(left_view * left_view, axis=-1) / count
-    squares_y = numpy.add.reduce(right_view * right_view, axis=-1) / count
-    products = numpy.add.reduce(left_view * right_view, axis=-1) / count
-    cov = products - mean_x * mean_y
-    var_x = numpy.maximum(squares_x - mean_x * mean_x, 0.0)
-    var_y = numpy.maximum(squares_y - mean_y * mean_y, 0.0)
+    for start in range(0, rows, CHUNK_ROWS):
+        stop = start + CHUNK_ROWS
+        dev_x = window_deviations(left_view[start:stop], length)
+        dev_y = window_deviations(right_view[start:stop], length)
+        with numpy.errstate(invalid="ignore"):
+            residue_x = numpy.add.reduce(dev_x, axis=-1) / count
+            residue_y = numpy.add.reduce(dev_y, axis=-1) / count
+            products = numpy.add.reduce(dev_x * dev_y, axis=-1) / count
+            squares_x = numpy.add.reduce(dev_x * dev_x, axis=-1) / count
+            squares_y = numpy.add.reduce(dev_y * dev_y, axis=-1) / count
+            cov[start:stop] = products - residue_x * residue_y
+            var_x[start:stop] = numpy.maximum(squares_x - residue_x * residue_x, 0.0)
+            var_y[start:stop] = numpy.maximum(squares_y - residue_y * residue_y, 0.0)
     return result, length, cov, var_x, var_y
 
 

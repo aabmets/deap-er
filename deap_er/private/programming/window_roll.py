@@ -14,9 +14,9 @@ import numpy
 from numpy.lib.stride_tricks import sliding_window_view
 
 __all__: list[str] = [
+    "CHUNK_ROWS",
     "as_series",
-    "delay",
-    "diff",
+    "window_deviations",
     "rolling",
     "rolling_sum",
     "rolling_mean",
@@ -24,6 +24,8 @@ __all__: list[str] = [
     "rolling_min",
     "rolling_max",
 ]
+
+CHUNK_ROWS = 1024
 
 
 def as_series(value: Any, window: Any) -> tuple[numpy.ndarray, int]:
@@ -47,47 +49,26 @@ def as_series(value: Any, window: Any) -> tuple[numpy.ndarray, int]:
     return series, length
 
 
-def delay(value: Any, window: Any) -> numpy.ndarray:
-    """Shift a series into the past by ``window`` samples.
+def window_deviations(block: numpy.ndarray, length: int) -> numpy.ndarray:
+    """Center each window of a strided block on its own mean.
 
-    ``y[t]`` is ``x[t - window]``. The first ``window`` samples have no
-    past to read and are ``nan``.
+    Subtracting the window mean before squaring is what keeps the
+    moments accurate: ``E[x^2] - mean^2`` would cancel away the digits
+    the variance is made of whenever the samples sit far from zero.
 
-    Args:
-        value: Series to shift.
-        window: Number of samples to shift by. At least 1.
-
-    Returns:
-        The shifted series.
-
-    Raises:
-        ValueError: If the window length is less than 1.
-    """
-    series, length = as_series(value, window)
-    result = numpy.full(series.shape, numpy.nan, dtype=numpy.float64)
-    if length < series.size:
-        result[length:] = series[:-length]
-    return result
-
-
-def diff(value: Any, window: Any) -> numpy.ndarray:
-    """Subtract a delayed copy of a series from itself.
-
-    ``y[t]`` is ``x[t] - x[t - window]``. The first ``window`` samples
-    are ``nan``.
+    A window holding an infinity has no finite mean, so its deviations
+    are ``nan`` by definition rather than by accident.
 
     Args:
-        value: Series to difference.
-        window: Number of samples to look back. At least 1.
+        block: Strided view of shape ``(rows, length)``.
+        length: Window length.
 
     Returns:
-        The differenced series.
-
-    Raises:
-        ValueError: If the window length is less than 1.
+        The deviations from each window's mean.
     """
-    series, length = as_series(value, window)
-    return series - delay(series, length)
+    with numpy.errstate(invalid="ignore"):
+        mean = numpy.add.reduce(block, axis=-1) / length
+        return block - mean[:, None]
 
 
 def rolling(
@@ -170,6 +151,12 @@ def rolling_std(value: Any, window: Any) -> numpy.ndarray:
     The window is ``[t - window + 1, t]`` inclusive and the divisor is
     the window length. The first ``window - 1`` samples are ``nan``.
 
+    Each window is centered on its own mean before squaring, so the
+    result stays accurate however far the samples sit from zero. The
+    windows are centered in row blocks, which keeps peak memory
+    proportional to the block rather than to the whole series. A window
+    that holds an infinity is ``nan``.
+
     Args:
         value: Series to reduce.
         window: Trailing window length. At least 1.
@@ -184,11 +171,17 @@ def rolling_std(value: Any, window: Any) -> numpy.ndarray:
     result = numpy.full(series.shape, numpy.nan, dtype=numpy.float64)
     if length > series.size:
         return result
-    mean = numpy.add.reduce(sliding_window_view(series, length), axis=-1) / length
-    squares = numpy.add.reduce(sliding_window_view(series * series, length), axis=-1) / length
-    variance = squares - mean * mean
-    numpy.maximum(variance, 0.0, out=variance)
-    result[length - 1 :] = numpy.sqrt(variance)
+    view = sliding_window_view(series, length)
+    output = result[length - 1 :]
+    for start in range(0, view.shape[0], CHUNK_ROWS):
+        block = view[start : start + CHUNK_ROWS]
+        deviations = window_deviations(block, length)
+        with numpy.errstate(invalid="ignore"):
+            residue = numpy.add.reduce(deviations, axis=-1) / length
+            squares = numpy.add.reduce(deviations * deviations, axis=-1) / length
+            variance = squares - residue * residue
+        numpy.maximum(variance, 0.0, out=variance)
+        output[start : start + CHUNK_ROWS] = numpy.sqrt(variance)
     return result
 
 

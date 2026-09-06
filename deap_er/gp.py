@@ -78,14 +78,13 @@ from .private.programming.window_pair import (
     rolling_cov,
 )
 from .private.programming.window_roll import (
-    delay,
-    diff,
     rolling_max,
     rolling_mean,
     rolling_min,
     rolling_std,
     rolling_sum,
 )
+from .private.programming.window_shift import delay, diff
 from .private.programming.window_ts import add_ts_primitives, ts_argmax, ts_argmin, ts_rank
 
 __all__ = [

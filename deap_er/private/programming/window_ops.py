@@ -19,14 +19,13 @@ from .columnar import Array, Window, reject_shadowed
 from .primitives.primitive_set_typed import PrimitiveSetTyped
 from .window_roll import (
     as_series,
-    delay,
-    diff,
     rolling_max,
     rolling_mean,
     rolling_min,
     rolling_std,
     rolling_sum,
 )
+from .window_shift import delay, diff
 
 __all__: list[str] = ["ema", "add_window_primitives", "add_window_ephemeral"]
 
