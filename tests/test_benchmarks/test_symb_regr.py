@@ -36,3 +36,8 @@ def test_symbolic_regression_benchmarks_return_finite_floats():
     assert tools.bm_unwrapped_ball(point_2d) == pytest.approx(
         10 / (5 + (1.5 - 3) ** 2 + (2.5 - 3) ** 2)
     )
+
+
+def test_kotanchek_uses_published_1_2_denominator():
+    peak: Any = [1.0, 2.5]
+    assert tools.bm_kotanchek(peak) == pytest.approx(1.0 / 1.2)

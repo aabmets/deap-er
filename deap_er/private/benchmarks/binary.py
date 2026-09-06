@@ -65,7 +65,7 @@ def bm_royal_road_2(individual: Individual, order: int) -> tuple[int]:
     """
     total = 0
     n_order = order
-    while n_order < order**2:
+    while n_order <= len(individual):
         total += bm_royal_road_1(individual, n_order)[0]
         n_order *= 2
     return (total,)

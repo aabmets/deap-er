@@ -25,6 +25,9 @@ class MPFuncs:
     ) -> float:
         """The peak function of the :data:`DEFAULT` preset.
 
+        Official Moving Peaks scenario 1 is the squared form
+        ``height / (1 + width * sum((x_i - p_i)^2))``.
+
         Args:
             individual: Individual to evaluate.
             positions: Peak centre coordinates.
@@ -37,7 +40,7 @@ class MPFuncs:
         value = 0.0
         for x, p in zip(individual, positions, strict=False):
             value += (x - p) ** 2
-        return float(height / (1 + width * math.sqrt(value)))
+        return float(height / (1 + width * value))
 
     @staticmethod
     def pf2(

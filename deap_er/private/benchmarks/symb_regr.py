@@ -106,12 +106,12 @@ def bm_kotanchek(individual: Individual) -> float:
         | | |
         |---|---|
         | Range | $\mathbf{x} \in [-1, 7]^2$ |
-        | Function | $f(\mathbf{x}) = \frac{e^{-(x_1 - 1)^2}}{3.2 + (x_2 - 2.5)^2}$ |
+        | Function | $f(\mathbf{x}) = \frac{e^{-(x_1 - 1)^2}}{1.2 + (x_2 - 2.5)^2}$ |
     """
     i = individual[0]
     j = individual[1]
     numer = exp(-((i - 1) ** 2))
-    de_nom = 3.2 + (j - 2.5) ** 2
+    de_nom = 1.2 + (j - 2.5) ** 2
     return float(numer / de_nom)
 
 

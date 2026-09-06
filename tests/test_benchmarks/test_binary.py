@@ -30,9 +30,16 @@ def test_royal_road_2_sums_successive_orders():
     ones: Any = [1] * 16
     zeros: Any = [0] * 16
     assert tools.bm_royal_road_2(ones, 4)[0] == (
-        tools.bm_royal_road_1(ones, 4)[0] + tools.bm_royal_road_1(ones, 8)[0]
+        tools.bm_royal_road_1(ones, 4)[0]
+        + tools.bm_royal_road_1(ones, 8)[0]
+        + tools.bm_royal_road_1(ones, 16)[0]
     )
     assert tools.bm_royal_road_2(zeros, 4) == (0,)
+
+
+def test_royal_road_2_classic_optimum_includes_top_schema():
+    ones: Any = [1] * 64
+    assert tools.bm_royal_road_2(ones, 8) == (256,)
 
 
 def test_chuang_f1_uses_trap_or_inverse_from_last_bit():
