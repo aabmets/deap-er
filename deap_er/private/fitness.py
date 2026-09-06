@@ -113,8 +113,25 @@ class Fitness:
         """
         own = self.wvalues if slc is None else self.wvalues[slc]
         theirs = other.wvalues if slc is None else other.wvalues[slc]
+        n = len(own)
+        if n == 3:
+            a0, a1, a2 = own
+            b0, b1, b2 = theirs
+            if a0 < b0 or a1 < b1 or a2 < b2:
+                return False
+            return a0 > b0 or a1 > b1 or a2 > b2
+        if n == 2:
+            a0, a1 = own
+            b0, b1 = theirs
+            if a0 < b0 or a1 < b1:
+                return False
+            return a0 > b0 or a1 > b1
+        if n == 1:
+            return own[0] > theirs[0]
         better = False
-        for a, b in zip(own, theirs, strict=True):
+        for i in range(n):
+            a = own[i]
+            b = theirs[i]
             if a < b:
                 return False
             if a > b:
