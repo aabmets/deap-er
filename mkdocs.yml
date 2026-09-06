@@ -81,6 +81,7 @@ nav:
   - Overview:
       - Introduction: overview/introduction.md
       - Important Differences: overview/differences.md
+      - Performance: overview/performance.md
       - Getting Started: overview/getting_started.md
   - Tutorials:
       - Using the Toolbox: tutorials/using_the_toolbox.md

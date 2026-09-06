@@ -7,6 +7,7 @@ snake_case, and is not a drop-in rename.
 
 - [Introduction](overview/introduction.md)
 - [Important differences](overview/differences.md)
+- [Performance](overview/performance.md)
 - [Getting started](overview/getting_started.md)
 - [Tutorials](tutorials/using_the_toolbox.md)
 - [Examples](examples/genetic_algorithms/onemax.md)

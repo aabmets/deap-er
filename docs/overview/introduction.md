@@ -10,7 +10,8 @@ describes.
 It is not a drop-in rename. Function names, parameter order, and a few
 contracts changed. The [differences page](differences.md) is the
 migration note and the inventory of work that accumulated on top of
-the original toolbox.
+the original toolbox. Timed hot paths versus DEAP are on the
+[performance page](performance.md).
 
 ## Capabilities
 
