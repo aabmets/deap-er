@@ -18,7 +18,7 @@ surface.
 | # | Item | Surface | Status |
 |:--|:-----|:--------|:-------|
 | 1 | [Two-input causal windows](#1-two-input-causal-windows) | `gp` | shipped |
-| 2 | [Causal time-series unaries](#2-causal-time-series-unaries) | `gp` | planned |
+| 2 | [Causal time-series unaries](#2-causal-time-series-unaries) | `gp` | shipped |
 | 3 | [Incremental window kernels](#3-incremental-window-kernels) | `gp` (same API) | planned |
 | 4 | [Batch tape evaluation](#4-batch-tape-evaluation) | `gp` | planned |
 | 5 | [Down-sampled and informed lexicase](#5-down-sampled-and-informed-lexicase) | `operators` | planned |
@@ -89,9 +89,14 @@ Cross-sectional rank across many series is out of scope unless the
 caller stacks those series as columns and treats the operation as
 row-wise.
 
-**Today.** `add_numpy_primitives` and `add_window_primitives` cover
-arithmetic, masks, `vwhere`, and unary windows. Rank-in-window and
-arg-extremum are missing.
+**Today.** `add_ts_primitives` registers causal `ts_rank`,
+`ts_argmax`, and `ts_argmin` over an `Array` and a `Window`. Rank is
+the 1-based average rank of the current sample, scaled by
+$(r - 1) / (n - 1)$ so a unique window low is $0$ and a unique high
+is $1$. A window of 1 is `nan`. Arg-extremum is the age of the
+extreme (`0` is the current sample); a tie keeps the most recent.
+`delay`, `diff`, and `ema` stay on the unary window kit. Python,
+opcode, and Numba paths agree.
 
 **Benefit.** Programs can say “where this sample sits in the last
 $n$ values” and “when the trailing extremum occurred” without each

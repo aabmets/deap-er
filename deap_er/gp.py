@@ -86,6 +86,7 @@ from .private.programming.window_roll import (
     rolling_std,
     rolling_sum,
 )
+from .private.programming.window_ts import add_ts_primitives, ts_argmax, ts_argmin, ts_rank
 
 __all__ = [
     "Array",
@@ -153,6 +154,7 @@ __all__ = [
     "add_window_primitives",
     "add_window_ephemeral",
     "add_pair_window_primitives",
+    "add_ts_primitives",
     "delay",
     "diff",
     "rolling_sum",
@@ -163,4 +165,7 @@ __all__ = [
     "rolling_corr",
     "rolling_cov",
     "rolling_beta",
+    "ts_rank",
+    "ts_argmax",
+    "ts_argmin",
 ]

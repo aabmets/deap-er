@@ -55,6 +55,9 @@ class Opcode(IntEnum):
     ROLL_CORR = 29
     ROLL_COV = 30
     ROLL_BETA = 31
+    TS_RANK = 32
+    TS_ARGMAX = 33
+    TS_ARGMIN = 34
 
 
 BUILTIN_OPCODES: dict[str, Opcode] = {
@@ -88,6 +91,9 @@ BUILTIN_OPCODES: dict[str, Opcode] = {
     "rolling_corr": Opcode.ROLL_CORR,
     "rolling_cov": Opcode.ROLL_COV,
     "rolling_beta": Opcode.ROLL_BETA,
+    "ts_rank": Opcode.TS_RANK,
+    "ts_argmax": Opcode.TS_ARGMAX,
+    "ts_argmin": Opcode.TS_ARGMIN,
 }
 """Opcode of every primitive registered by the builtin kits."""
 
@@ -107,6 +113,9 @@ OPCODES_ARITY: dict[int, int] = {
     Opcode.ROLL_MIN: 1,
     Opcode.ROLL_MAX: 1,
     Opcode.EMA: 1,
+    Opcode.TS_RANK: 1,
+    Opcode.TS_ARGMAX: 1,
+    Opcode.TS_ARGMIN: 1,
     Opcode.ADD: 2,
     Opcode.SUB: 2,
     Opcode.MUL: 2,

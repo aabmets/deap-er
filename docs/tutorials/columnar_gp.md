@@ -50,8 +50,9 @@ look like the default `ARG0` prefix are rejected.
     A column may not share a name with a primitive. `level` is fine,
     `vadd` is not: the lambda parameter would shadow the operator and
     the tree would quietly compute the wrong thing. Both
-    `add_numpy_primitives` and `add_window_primitives` raise instead of
-    letting that happen.
+    `add_numpy_primitives`, `add_window_primitives`,
+    `add_pair_window_primitives`, and `add_ts_primitives` raise instead
+    of letting that happen.
 
 ### Type tags
 
@@ -133,6 +134,20 @@ variance is zero is `nan`, not the protected-op fill.
 ```python
 gp.add_pair_window_primitives(pset)
 gp.rolling_beta(level, flow, 4)
+```
+
+`add_ts_primitives` is an optional kit for rank and arg-extremum
+inside one trailing window: `ts_rank`, `ts_argmax`, and `ts_argmin`.
+Each takes an `Array` and a `Window`. `ts_rank` is the average rank
+of the current sample, scaled so a unique window low is $0$ and a
+unique high is $1$. A window of 1 is `nan`. `ts_argmax` / `ts_argmin`
+are how many samples ago the extreme occurred — $0$ means now — and
+a tie keeps the most recent extreme.
+
+```python
+gp.add_ts_primitives(pset)
+gp.ts_rank(level, 8)
+gp.ts_argmax(flow, 8)
 ```
 
 !!! attention

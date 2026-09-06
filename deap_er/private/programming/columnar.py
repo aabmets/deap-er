@@ -111,7 +111,8 @@ def make_column_pset(names: Sequence[str], name: str = "MAIN") -> PrimitiveSetTy
     arguments in that same order.
 
     Register operators onto the set with ``add_numpy_primitives``,
-    ``add_window_primitives``, and ``add_pair_window_primitives``.
+    ``add_window_primitives``, ``add_pair_window_primitives``, and
+    ``add_ts_primitives``.
 
     Args:
         names: Column names, in the order the columns are passed to

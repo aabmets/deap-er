@@ -9,7 +9,7 @@ changed. Same toolbox model. Counted from the sections below:
   implemented (some older than a decade)
 - **36** correctness bugs fixed — operators, GP, CMA, records,
   checkpoints, and published benchmarks
-- **23** capabilities DEAP does not have, including boxed CMA,
+- **24** capabilities DEAP does not have, including boxed CMA,
   mixed-gene mutation, logbook JSON, and
   [columnar GP](../tutorials/columnar_gp.md)
 
@@ -191,6 +191,11 @@ The following is extra.
     a `Window`. Moments use the population divisor; beta is the OLS
     slope of the first series on the second. Python, opcode, and
     Numba paths agree.
+18. `add_ts_primitives` registers causal `ts_rank`, `ts_argmax`, and
+    `ts_argmin`. Rank is the average rank of the current sample
+    scaled to $[0, 1]$; a window of 1 is `nan`. Arg-extremum is how
+    many samples ago the extreme occurred (`0` is now); a tie keeps
+    the most recent. Python, opcode, and Numba paths agree.
 
 The columnar contract is in the
 [columnar GP tutorial](../tutorials/columnar_gp.md). Shared-array
