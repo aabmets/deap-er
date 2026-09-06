@@ -89,7 +89,9 @@ def test_interpret_tapes_numba_matches_bind_tape():
 
     for index, tape in enumerate(tapes):
         expected = gp.bind_tape(tape)(*columns)
-        numpy.testing.assert_allclose(actual[index], expected, equal_nan=True, rtol=1e-9, atol=1e-12)
+        numpy.testing.assert_allclose(
+            actual[index], expected, equal_nan=True, rtol=1e-9, atol=1e-12
+        )
 
 
 def test_interpret_tapes_numba_matches_the_default_backend():
@@ -216,7 +218,13 @@ def test_interpret_tapes_grows_the_shared_workspace_to_max_depth():
     shallow = gp.lower_tree(gp.PrimitiveTree([mapping["vneg"], mapping["first"]]), pset)
     deep = gp.lower_tree(
         gp.PrimitiveTree(
-            [mapping["vadd"], mapping["vmul"], mapping["first"], mapping["second"], mapping["third"]]
+            [
+                mapping["vadd"],
+                mapping["vmul"],
+                mapping["first"],
+                mapping["second"],
+                mapping["third"],
+            ]
         ),
         pset,
     )
