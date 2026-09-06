@@ -146,7 +146,7 @@ def rolling_corr(left: Any, right: Any, window: Any) -> numpy.ndarray:
     denom = numpy.sqrt(var_x * var_y)
     with numpy.errstate(invalid="ignore", divide="ignore"):
         values = cov / denom
-    values[denom == 0.0] = numpy.nan
+    values[denom <= 0.0] = numpy.nan
     result[length - 1 :] = values
     return result
 
@@ -175,7 +175,7 @@ def rolling_beta(left: Any, right: Any, window: Any) -> numpy.ndarray:
         return result
     with numpy.errstate(invalid="ignore", divide="ignore"):
         values = cov / var_y
-    values[var_y == 0.0] = numpy.nan
+    values[var_y <= 0.0] = numpy.nan
     result[length - 1 :] = values
     return result
 

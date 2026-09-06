@@ -114,9 +114,9 @@ def reduce_pair(  # pragma: no cover
     if op == codes.ROLL_COV:
         return cov
     if op == codes.ROLL_CORR:
-        if var_x == 0.0 or var_y == 0.0:
+        if var_x <= 0.0 or var_y <= 0.0:
             return math.nan
         return cov / math.sqrt(var_x * var_y)
-    if var_y == 0.0:
+    if var_y <= 0.0:
         return math.nan
     return cov / var_y
