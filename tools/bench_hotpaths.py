@@ -11,8 +11,9 @@
 """Compare hot-path timings of DEAP/deap and aabmets/deap-er.
 
 Arithmetic mean of 30 timed runs after 2 warmups, except first-time
-compile (no warmup; deap-er cache cleared each sample). Populations are
-built from the same numeric genomes so both libraries do the same work.
+compile (no warmup; deap-er cache cleared each sample). Populations and
+GP expressions are built from the same numeric genomes / source text so
+both libraries do the same work.
 
     uv run python tools/bench_hotpaths.py
 """
@@ -42,7 +43,7 @@ from deap_er import creator as er_creator
 from deap_er import gp as er_gp
 from deap_er import tools as er_tools
 
-REPEAT = 30
+REPEAT = 50
 WARMUP = 2
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 _DEFAULT_JSON = _REPO_ROOT / "reports" / "hotpath-bench.json"
@@ -67,7 +68,6 @@ class _Library(Protocol):
     def reference_points(self) -> object: ...
     def convergence(self, front: list, optimal: list[tuple]) -> object: ...
     def make_pset(self) -> object: ...
-    def make_trees(self, pset: object, count: int) -> list: ...
     def compile_one(self, tree: object, pset: object) -> Callable[[float], object]: ...
     def clear_compile_cache(self) -> None: ...
     def clone_one(self, individual: object) -> object: ...
@@ -165,10 +165,6 @@ class _DeapLib:
         pset.addPrimitive(lambda a: -a, 1, name="neg")
         return pset
 
-    def make_trees(self, pset: object, count: int) -> list:
-        self.seed(21)
-        return [deap_gp.PrimitiveTree(deap_gp.genHalfAndHalf(pset, 1, 4)) for _ in range(count)]
-
     def compile_one(self, tree: object, pset: object) -> Callable[[float], object]:
         return deap_gp.compile(tree, pset)
 
@@ -244,10 +240,6 @@ class _DeapErLib:
         pset.add_primitive(lambda a: -a, 1, name="neg")
         return pset
 
-    def make_trees(self, pset: object, count: int) -> list:
-        self.seed(21)
-        return [er_gp.PrimitiveTree(er_gp.gen_half_and_half(pset, 1, 4)) for _ in range(count)]
-
     def compile_one(self, tree: object, pset: object) -> Callable[[float], object]:
         return er_gp.compile_tree(tree, pset)
 
@@ -319,12 +311,58 @@ def _optimal_front(count: int, objectives: int, seed: int) -> list[tuple]:
     return [tuple(rng.random() for _ in range(objectives)) for _ in range(count)]
 
 
+_GP_PRIMS = (("add", 2), ("mul", 2), ("neg", 1))
+_GP_TERM = "ARG0"
+_GP_TERM_RATIO = 1 / (1 + len(_GP_PRIMS))
+
+
+def _gp_node(rng: random.Random, height: int, depth: int, min_depth: int, grow: bool) -> str:
+    """Build one shared GP expression node.
+
+    Args:
+        rng: Dedicated Python RNG, independent of either library.
+        height: Drawn tree height.
+        depth: Depth of this node.
+        min_depth: Earliest depth a terminal is allowed.
+        grow: If True, use grow (mixed leaf depths); else full.
+
+    Returns:
+        A Python expression using ``add``, ``mul``, ``neg``, and ``ARG0``.
+    """
+    at_height = depth == height
+    early_term = grow and depth >= min_depth and rng.random() < _GP_TERM_RATIO
+    if at_height or early_term:
+        return _GP_TERM
+    name, arity = rng.choice(_GP_PRIMS)
+    args = ", ".join(_gp_node(rng, height, depth + 1, min_depth, grow) for _ in range(arity))
+    return f"{name}({args})"
+
+
+def _gp_exprs(count: int, seed: int) -> list[str]:
+    """Build shared half-and-half expression strings for compile benches.
+
+    Args:
+        count: Number of expressions.
+        seed: RNG seed.
+
+    Returns:
+        Expression source that both libraries compile as-is.
+    """
+    rng = random.Random(seed)
+    exprs = []
+    for _ in range(count):
+        grow = rng.choice((True, False))
+        height = rng.randint(1, 4)
+        exprs.append(_gp_node(rng, height, 0, 1, grow))
+    return exprs
+
+
 def _measure_compile(lib: _Library, trees: list, pset: object) -> tuple[float, float]:
     """Time a cold compile of 40 trees and a cached 10-tree × 20 repeat.
 
     Args:
         lib: Library adapter.
-        trees: Pre-generated primitive trees.
+        trees: Shared expression strings.
         pset: Primitive set used to compile them.
 
     Returns:
@@ -413,7 +451,7 @@ def _run_library(lib: _Library) -> dict[str, float]:
     results["sel_nsga_3 n=80 k=40"] = _mean_ms(nsga3)
 
     pset = lib.make_pset()
-    trees = lib.make_trees(pset, 40)
+    trees = _gp_exprs(40, 21)
     first_ms, cached_ms = _measure_compile(lib, trees, pset)
     results["compile_tree 40 unique trees"] = first_ms
     results["compile_tree 10 trees x20 repeats"] = cached_ms
