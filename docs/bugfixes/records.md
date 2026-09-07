@@ -88,6 +88,20 @@ index and pop the matching occurrence.
 
 ---
 
+## `pop` left chapter rows behind
+
+`__delitem__` removed the matching chapter row. `pop` only dropped
+the parent entry, so `logbook.pop(i)` and `del logbook[i]` diverged:
+chapters still held the deleted generation.
+
+**Fix.** `pop` removes the chapter row that shares ``gen`` (same
+occurrence rule as `__delitem__`). `__delitem__` now calls `pop`.
+
+**Validator.**
+`tests/test_records/test_logbook.py::test_pop_removes_matching_chapter_row`
+
+---
+
 ## `pop(-1)` rewound the stream cursor
 
 A raw negative index was compared to `buff_index`, so `pop(-1)`
