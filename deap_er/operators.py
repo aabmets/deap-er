@@ -8,6 +8,7 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from .private.operators.cx_hetero import cx_heterogeneous
 from .private.operators.cx_permutation import (
     cx_ordered,
     cx_partially_matched,
@@ -21,7 +22,6 @@ from .private.operators.cx_point import (
     cx_two_point,
     cx_two_point_copy,
 )
-from .private.operators.cx_hetero import cx_heterogeneous
 from .private.operators.cx_real import (
     cx_blend,
     cx_blend_bounded,
