@@ -20,6 +20,7 @@ from deap_er.private.operators.bounds import broadcast_param
 from deap_er.private.strategies.common import update_bound_attrs
 from deap_er.private.various.clone import clone_individual
 
+from .compile_cache import expression_key
 from .compilers import invalidate_compiled
 from .ephemeral_leaves import assign_ephemerals, extract_ephemerals, leaf_range, numeric_leaves
 
@@ -87,11 +88,11 @@ def tune_ephemerals(
         trials = strategy.generate(_trial_init(individual))
         _score_trials(individual, trials, evaluate, evaluate_batch, copier)
         strategy.update(trials)
-    old_exprs = [str(individual)]
-    old_exprs.extend(str(tree) for tree, _ in leaves)
+    old_keys = [expression_key(individual)]
+    old_keys.extend(expression_key(tree) for tree, _ in leaves)
     assign_ephemerals(individual, _clipped_centroid(strategy).tolist())
-    for expr in dict.fromkeys(old_exprs):
-        invalidate_compiled(expr)
+    for key in dict.fromkeys(old_keys):
+        invalidate_compiled(key)
     fitness = getattr(individual, "fitness", None)
     if fitness is not None and fitness.is_valid():
         del individual.fitness.values
