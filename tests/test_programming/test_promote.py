@@ -62,8 +62,8 @@ def test_promote_rejects_incomplete_ill_typed_and_trivial_trees():
         gp.promote_subtree(pset, [tree[0]])
     with pytest.raises(ValueError, match="complete"):
         gp.promote_subtree(pset, list(tree) + [tree[1]])
+    bad = [pset.mapping["add"], pset.mapping["ARG0"], gp.Terminal(True, False, bool)]
     with pytest.raises(TypeError, match="return type"):
-        bad = [pset.mapping["add"], pset.mapping["ARG0"], gp.Terminal(True, False, bool)]
         gp.promote_subtree(pset, bad)
     with pytest.raises(ValueError, match="lone argument"):
         gp.promote_subtree(pset, [pset.mapping["ARG0"]])
@@ -79,13 +79,15 @@ def test_promote_rejects_adf_and_untyped_zero_arity():
     main = gp.PrimitiveSet("MAIN", 1)
     main.add_adf(adf)
     main.add_primitive(operator.add, 2)
+    adf_tree = gp.PrimitiveTree.from_string("ADF0(ARG0, ARG0)", main)
     with pytest.raises(ValueError, match="ADF"):
-        gp.promote_subtree(main, gp.PrimitiveTree.from_string("ADF0(ARG0, ARG0)", main))
+        gp.promote_subtree(main, adf_tree)
     loose = gp.PrimitiveSet("main", 1)
     loose.add_primitive(operator.add, 2)
     loose.add_terminal(1, name="one")
+    const_tree = gp.PrimitiveTree.from_string("add(one, one)", loose)
     with pytest.raises(ValueError, match="arity"):
-        gp.promote_subtree(loose, gp.PrimitiveTree.from_string("add(one, one)", loose))
+        gp.promote_subtree(loose, const_tree)
 
 
 def test_add_adf_still_compiles_after_promote():
@@ -157,13 +159,9 @@ def test_failed_promote_rolls_back_eviction():
     pset = _typed_set()
     first = gp.promote_subtree(pset, gp.PrimitiveTree.from_string("add(ARG0, ARG1)", pset))
     bound = dict(gp.numba_opcodes())
+    second = gp.PrimitiveTree.from_string("mul(ARG0, ARG1)", pset)
     with pytest.raises(ValueError, match="weight"):
-        gp.promote_subtree(
-            pset,
-            gp.PrimitiveTree.from_string("mul(ARG0, ARG1)", pset),
-            max_library=1,
-            weight=0.0,
-        )
+        gp.promote_subtree(pset, second, max_library=1, weight=0.0)
     assert gp.promoted_names(pset) == [first]
     assert first in pset.mapping
     assert first in pset.context

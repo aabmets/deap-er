@@ -27,6 +27,7 @@ __all__: list[str] = [
     "next_promo_name",
     "note_promoted_use",
     "promoted_names",
+    "register_promoted",
     "rollback_promote",
 ]
 
@@ -169,6 +170,30 @@ def drop_from_lists(prim_set: PrimitiveSetTyped, prim: Any) -> None:
             items.remove(prim)
 
 
+def register_promoted(
+    prim_set: PrimitiveSetTyped,
+    func: Any,
+    in_types: list[type],
+    ret_type: type,
+    name: str,
+    weight: float,
+) -> None:
+    """Register a promoted callable on a typed or untyped set.
+
+    Args:
+        prim_set: Set that receives the primitive.
+        func: Compiled body.
+        in_types: Formal argument types.
+        ret_type: Return type of the body.
+        name: Generated primitive name.
+        weight: Sampling weight.
+    """
+    if isinstance(prim_set, PrimitiveSet):
+        PrimitiveSet.add_primitive(prim_set, func, len(in_types), name=name, weight=weight)
+        return
+    PrimitiveSetTyped.add_primitive(prim_set, func, in_types, ret_type, name=name, weight=weight)
+
+
 def rollback_promote(
     prim_set: PrimitiveSetTyped,
     library: PromotedLibrary,
@@ -190,10 +215,5 @@ def rollback_promote(
         prim_set.prims_count -= 1
         library.records.pop(name, None)
     for record, prim, func in reversed(detached):
-        if isinstance(prim_set, PrimitiveSet):
-            prim_set.add_primitive(func, prim.arity, name=record.name, weight=prim.weight)
-        else:
-            prim_set.add_primitive(
-                func, list(prim.args), prim.ret, name=record.name, weight=prim.weight
-            )
+        register_promoted(prim_set, func, list(prim.args), prim.ret, record.name, prim.weight)
         library.records[record.name] = record

@@ -110,13 +110,9 @@ def test_failed_columnar_promote_does_not_orphan_opcode():
     pset = _column_set()
     first = gp.promote_subtree(pset, gp.PrimitiveTree.from_string("vadd(x, y)", pset))
     bound = dict(gp.numba_opcodes())
+    second = gp.PrimitiveTree.from_string("vmul(x, y)", pset)
     with pytest.raises(ValueError, match="weight"):
-        gp.promote_subtree(
-            pset,
-            gp.PrimitiveTree.from_string("vmul(x, y)", pset),
-            max_library=1,
-            weight=0.0,
-        )
+        gp.promote_subtree(pset, second, max_library=1, weight=0.0)
     assert gp.promoted_names(pset) == [first]
     assert gp.numba_opcodes() == bound
 
