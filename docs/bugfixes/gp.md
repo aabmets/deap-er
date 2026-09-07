@@ -1,6 +1,7 @@
 # Genetic programming
 
-Correctness fixes in crossover, mutation, HARM, and typed primitive sets.
+Correctness fixes in crossover, mutation, HARM, typed primitive sets,
+and tree assignment.
 
 ---
 
@@ -101,3 +102,19 @@ function.
 
 - `tests/test_programming/test_primitives/test_primitive_set_typed.py::test_add_primitive_rejects_name_that_matches_an_argument`
 - `tests/test_programming/test_primitives/test_primitive_set_typed.py::test_add_terminal_rejects_name_that_matches_an_argument`
+
+---
+
+## `PrimitiveTree` slice assignment crashed when the start was omitted
+
+`tree[:]` and `tree[:n]` build a slice whose `start` is `None`.
+`__setitem__` compared `key.start >= len(self)` and raised
+`TypeError` instead of replacing a complete tree. Same comparison
+as upstream DEAP.
+
+**Fix.** Treat a missing start as `0`, same as list assignment.
+
+**Validators.**
+
+- `tests/test_programming/test_primitives/test_primitive_tree.py::test_setitem_open_start_slice_replaces_whole_tree`
+- `tests/test_programming/test_primitives/test_primitive_tree.py::test_setitem_stop_only_slice_replaces_whole_tree`

@@ -7,7 +7,7 @@ changed. Same toolbox model. Counted from the sections below:
 
 - **18** still-open [DEAP](https://github.com/DEAP/deap) issues
   [implemented](../bugfixes/deap_fixes.md) (some older than a decade)
-- **36** correctness bugs fixed — [operators](../bugfixes/operators.md),
+- **37** correctness bugs fixed — [operators](../bugfixes/operators.md),
   [GP](../bugfixes/gp.md),
   [CMA](../bugfixes/strategies.md),
   [records](../bugfixes/records.md),
@@ -239,6 +239,9 @@ The following is extra.
     without re-wrapping the whole tree; `cx_slim_donor` swaps a donor
     block size-preservingly. `compile_slim_tree` evaluates
     $\mathrm{head} + \sum \delta_i$.
+21. `PrimitiveTree` slice assignment treats a missing start as `0`.
+    `tree[:]` and `tree[:n]` no longer raise `TypeError` when the
+    replacement is a complete tree.
 
 The columnar contract is in the
 [columnar GP tutorial](../tutorials/columnar_gp.md). Shared-array
