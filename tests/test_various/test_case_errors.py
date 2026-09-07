@@ -8,6 +8,9 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+
+from typing import Any, cast
+
 import numpy
 import pytest
 from deap_er import Fitness, creator, tools
@@ -110,10 +113,92 @@ def test_case_errors_rejects_invalid_range_endpoints():
 def test_case_errors_rejects_invalid_masks():
     predicted = numpy.array([1.0, 2.0])
     target = numpy.zeros(2)
-    with pytest.raises(ValueError, match="dtype bool"):
+    with pytest.raises(ValueError, match="integer arrays are not accepted"):
         tools.case_errors(predicted, target, numpy.array([1, 0], dtype=int))
     with pytest.raises(ValueError, match="match the series length"):
         tools.case_errors(predicted, target, numpy.array([True, False, True]))
+
+
+def test_case_errors_intersects_valid_with_finite_samples():
+    predicted = numpy.array([1.0, NAN, 3.0])
+    target = numpy.array([0.0, 0.0, 0.0])
+    valid = numpy.array([True, True, True])
+    errors = tools.case_errors(predicted, target, [(0, 3)], valid=valid)
+    assert errors == (pytest.approx(5.0),)
+    assert not numpy.isnan(errors[0])
+
+
+def test_case_errors_returns_empty_when_valid_intersection_has_no_samples():
+    predicted = numpy.array([NAN, NAN])
+    target = numpy.array([NAN, NAN])
+    valid = numpy.array([True, True])
+    assert tools.case_errors(predicted, target, [(0, 2)], valid=valid) == (float("inf"),)
+
+
+def test_case_errors_rejects_integer_arrays_as_case_boundaries():
+    predicted = numpy.array([1.0, 2.0, 3.0])
+    target = numpy.zeros(3)
+    with pytest.raises(ValueError, match="integer arrays are not accepted"):
+        tools.case_errors(predicted, target, numpy.array([0, 2], dtype=int))
+
+
+def test_case_errors_accepts_two_column_integer_range_array():
+    predicted = numpy.array([0.0, 1.0, 2.0, 3.0])
+    target = numpy.array([0.0, 0.0, 1.0, 1.0])
+    ranges = numpy.array([[0, 2], [2, 4]], dtype=int)
+    errors = tools.case_errors(predicted, target, ranges)
+    assert errors == (pytest.approx(0.5), pytest.approx(2.5))
+
+
+def test_case_errors_rejects_invalid_valid_mask():
+    predicted = numpy.array([1.0, 2.0])
+    target = numpy.zeros(2)
+    with pytest.raises(ValueError, match="valid must"):
+        tools.case_errors(predicted, target, [(0, 2)], valid=numpy.array([True]))
+
+
+def test_case_errors_rejects_float_range_endpoints():
+    predicted = numpy.array([1.0, 2.0])
+    target = numpy.zeros(2)
+    with pytest.raises(ValueError, match="integers"):
+        tools.case_errors(predicted, target, cast(Any, [(0.0, 2.0)]))
+
+
+def test_case_errors_scores_overlapping_ranges_independently():
+    predicted = numpy.array([0.0, 1.0, 2.0, 3.0])
+    target = numpy.zeros(4)
+    errors = tools.case_errors(predicted, target, [(0, 2), (1, 3)])
+    assert errors == (pytest.approx(0.5), pytest.approx(2.5))
+
+
+def test_case_errors_excludes_vwhere_hidden_warmup_with_valid():
+    predicted = numpy.array([0.5, 1.0, 2.0])
+    target = numpy.array([1.0, 1.0, 1.0])
+    trusted = numpy.array([False, True, True])
+    hidden = tools.case_errors(predicted, target, [(0, 3)])
+    trusted_errors = tools.case_errors(predicted, target, [(0, 3)], valid=trusted)
+    assert hidden == (pytest.approx(5.0 / 12.0),)
+    assert trusted_errors == (pytest.approx(0.5),)
+
+
+def test_case_errors_output_feeds_lexicase():
+    _setup()
+    try:
+        target = numpy.zeros(4)
+        good = numpy.zeros(4)
+        bad = numpy.ones(4)
+        good_errors = tools.case_errors(good, target, [(0, 2), (2, 4)])
+        bad_errors = tools.case_errors(bad, target, [(0, 2), (2, 4)])
+        better = creator.__dict__[IND]([])
+        worse = creator.__dict__[IND]([])
+        better.fitness.values = good_errors
+        worse.fitness.values = bad_errors
+        chosen = tools.sel_lexicase([worse, better], 1, cases=[0, 1])
+    finally:
+        _teardown()
+    assert chosen == [better]
+    assert good_errors == (pytest.approx(0.0), pytest.approx(0.0))
+    assert bad_errors == (pytest.approx(1.0), pytest.approx(1.0))
 
 
 def test_case_errors_fits_lexicase_fitness_vectors():

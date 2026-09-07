@@ -18,14 +18,17 @@ import numpy
 __all__: list[str] = ["case_errors"]
 
 
-def _as_series(predicted: numpy.ndarray, target: numpy.ndarray) -> tuple[numpy.ndarray, int]:
+def _as_series(
+    predicted: numpy.ndarray,
+    target: numpy.ndarray,
+) -> tuple[numpy.ndarray, numpy.ndarray, int]:
     left = numpy.asarray(predicted, dtype=numpy.float64)
     right = numpy.asarray(target, dtype=numpy.float64)
     if left.ndim != 1 or right.ndim != 1:
         raise ValueError("predicted and target must be one-dimensional arrays")
     if left.shape[0] != right.shape[0]:
         raise ValueError("predicted and target must have the same length")
-    return left, int(left.shape[0])
+    return left, right, int(left.shape[0])
 
 
 def _validate_interval(start: object, stop: object, length: int) -> tuple[int, int]:
@@ -55,13 +58,34 @@ def _ranges_from_mask(mask: numpy.ndarray, length: int) -> list[tuple[int, int]]
     return [(int(run[0]), int(run[-1]) + 1) for run in starts]
 
 
+def _ranges_from_array(ranges: numpy.ndarray, length: int) -> list[tuple[int, int]]:
+    if ranges.dtype == bool:
+        return _ranges_from_mask(ranges, length)
+    if ranges.ndim == 2 and ranges.shape[1] == 2 and numpy.issubdtype(ranges.dtype, numpy.integer):
+        return [_validate_interval(start, stop, length) for start, stop in ranges]
+    if ranges.ndim == 1 and numpy.issubdtype(ranges.dtype, numpy.integer):
+        raise ValueError(
+            "integer arrays are not accepted as case boundaries; "
+            "pass explicit (start, stop) pairs, a (n_cases, 2) integer array, "
+            "or a one-dimensional boolean mask"
+        )
+    raise ValueError(
+        "ranges must be explicit (start, stop) pairs, a (n_cases, 2) integer "
+        "array, or a one-dimensional boolean mask"
+    )
+
+
 def _normalize_ranges(
     ranges: Sequence[tuple[int, int]] | numpy.ndarray,
     length: int,
 ) -> list[tuple[int, int]]:
     if isinstance(ranges, numpy.ndarray):
-        return _ranges_from_mask(ranges, length)
+        return _ranges_from_array(ranges, length)
     return [_validate_interval(start, stop, length) for start, stop in ranges]
+
+
+def _finite_mask(predicted: numpy.ndarray, target: numpy.ndarray) -> numpy.ndarray:
+    return numpy.isfinite(predicted) & numpy.isfinite(target)
 
 
 def _case_mse(
@@ -95,18 +119,21 @@ def case_errors(
     are finite at that index.
 
     Pass an explicit ``valid`` mask when comparisons or ``vwhere`` can
-    hide a ``nan`` warmup while the prediction stays finite. Segment
-    boundaries stay on the caller; this helper does not split a series
+    hide a ``nan`` warmup while the prediction stays finite. That mask is
+    intersected with the finite check, so non-finite samples never enter
+    the MSE even when ``valid`` marks them ``True``. Segment boundaries
+    stay on the caller; this helper does not split a series
     chronologically.
 
     Args:
         predicted: Predicted series.
         target: Target series, same length as ``predicted``.
-        ranges: Either a sequence of ``(start, stop)`` pairs or a
-            one-dimensional ``bool`` mask. A mask defines one case per
-            contiguous run of ``True`` values.
-        valid: Optional per-sample validity mask. Defaults to finite
-            values in both series.
+        ranges: A sequence of ``(start, stop)`` pairs, a ``(n_cases, 2)``
+            integer array of half-open bounds, or a one-dimensional
+            ``bool`` mask. A mask defines one case per contiguous run of
+            ``True`` values.
+        valid: Optional per-sample mask intersected with the finite check.
+            Use it to drop trusted prefixes such as hidden warmup.
         empty: Value returned when a case has no scorable samples.
 
     Returns:
@@ -117,15 +144,16 @@ def case_errors(
             if range endpoints are invalid, or if a mask has the wrong
             shape or dtype.
     """
-    predicted, length = _as_series(predicted, target)
-    target = numpy.asarray(target, dtype=numpy.float64)
+    predicted, target, length = _as_series(predicted, target)
     intervals = _normalize_ranges(ranges, length)
+    finite = _finite_mask(predicted, target)
     if valid is None:
-        sample_valid = numpy.isfinite(predicted) & numpy.isfinite(target)
+        sample_valid = finite
     else:
         sample_valid = numpy.asarray(valid, dtype=bool)
         if sample_valid.ndim != 1 or sample_valid.shape[0] != length:
             raise ValueError("valid must be a one-dimensional mask matching the series length")
+        sample_valid = sample_valid & finite
     return tuple(
         _case_mse(predicted, target, sample_valid, start, stop, empty) for start, stop in intervals
     )

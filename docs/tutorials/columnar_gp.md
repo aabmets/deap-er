@@ -252,16 +252,17 @@ lexicase or a multi-objective fitness vector:
 ```python
 predicted = func(*columns)
 errors = tools.case_errors(predicted, target, [(0, 256), (256, 512)])
-return errors
+return errors  # assign directly to fitness.values for lexicase
 ```
 
 Pass a one-dimensional `bool` mask instead of explicit ranges when
-each contiguous run of `True` should be its own case. Use the
-optional `valid` mask when a comparison or `vwhere` can hide warmup:
-the default keeps only samples where **both** `predicted` and `target`
-are finite, which still scores a finite branch that replaced a `nan`
-operand. Exclude that prefix explicitly rather than assuming `nan`
-propagates through the tree.
+each contiguous run of `True` should be its own case. Integer arrays
+are not accepted as case boundaries unless they are a `(n_cases, 2)`
+table of half-open bounds. Use the optional `valid` mask when a
+comparison or `vwhere` can hide warmup: it is intersected with the
+finite check, so a sample must still be finite in both series even
+when `valid` is `True`. Exclude hidden-warmup prefixes explicitly
+rather than assuming `nan` propagates through the tree.
 
 Segment boundaries and prediction–target alignment stay on the caller.
 This helper does not choose a chronological split and does not ship
