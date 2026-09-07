@@ -24,7 +24,7 @@ surface.
 | 5 | [Down-sampled and informed lexicase](#5-down-sampled-and-informed-lexicase) | `operators` | shipped |
 | 6 | [Case-structured evaluation helper](#6-case-structured-evaluation-helper) | utilities + docs | shipped |
 | 7 | [Non-bloating semantic variation](#7-non-bloating-semantic-variation) | `gp` | shipped |
-| 8 | [Quality-diversity archive](#8-quality-diversity-archive) | `records` | planned |
+| 8 | [Quality-diversity archive](#8-quality-diversity-archive) | `records` | shipped |
 | 9 | [Compile and clone path](#9-compile-and-clone-path) | `gp`, `tools` | planned |
 | 10 | [Vectorized lexicase and plexicase](#10-vectorized-lexicase-and-plexicase) | `operators` | planned |
 | 11 | [SMS-EMOA](#11-sms-emoa) | `operators` | planned |
@@ -263,10 +263,11 @@ variation. A thin `ea_map_elites` can wrap
 coordinates are program length, output variance, or how often a
 mask is true — whatever the caller measures.
 
-**Today.** Hall of fame and Pareto-front snapshots keep elites by
-fitness. There is no archive indexed by a behavior tessellation.
-NSGA-II / III and SPEA-II assume one shared objective space, not
-a collection of competent solutions across a behavior space.
+**Today.** `GridArchive` bins caller-supplied behavior descriptors into a
+uniform grid and keeps the best individual per cell. `add` and
+`random_elites` are the variation surface; `ea_map_elites` wraps
+`evaluate_invalid`, archive updates, and `var_or`. Fitness stays on
+`ind.fitness`; descriptors stay on the caller.
 
 **Benefit.** Quality-diversity keeps the best individual per cell
 instead of a single champion or a single Pareto front. That is
