@@ -140,6 +140,12 @@ def test_ea_map_elites_uses_evaluate_batch_when_registered(toolbox):
     assert batches
 
 
+def _max_stats():
+    stats = tools.Statistics(lambda ind: ind.fitness.values[0])
+    stats.register("max", max)
+    return stats
+
+
 def test_ea_map_elites_with_empty_initial_leaves_archive_empty(toolbox):
     archive = tools.GridArchive(ranges=[(0.0, 10.0)], bins=4)
 
@@ -156,6 +162,52 @@ def test_ea_map_elites_with_empty_initial_leaves_archive_empty(toolbox):
 
     assert len(archive) == 0
     assert logbook.select("gen") == [0]
+
+
+def test_ea_map_elites_empty_initial_generation_zero_with_stats(toolbox):
+    # Generation 0 still records when initial is empty. Tutorial-style
+    # max stats must not reduce an empty seed list.
+    archive = tools.GridArchive(ranges=[(0.0, 10.0)], bins=4)
+
+    _, logbook = tools.ea_map_elites(
+        toolbox,
+        archive,
+        _behavior,
+        [],
+        generations=0,
+        batch_size=5,
+        cx_prob=0.0,
+        mut_prob=0.0,
+        stats=_max_stats(),
+    )
+
+    assert logbook.select("gen") == [0]
+    assert len(archive) == 0
+
+
+def test_ea_map_elites_prefilled_archive_empty_initial_with_stats(toolbox):
+    # Resume from a seeded archive: variation is allowed with initial=[].
+    # Gen 0 compiles that empty seed; later gens compile offspring.
+    archive = tools.GridArchive(ranges=[(6.0, 9.0)], bins=4)
+    seed = creator.__dict__[ME_IND]([0, 1, 1, 0, 1, 1])
+    seed.fitness.values = _evaluate(seed)
+    assert archive.add(seed, _behavior(seed))
+
+    _, logbook = tools.ea_map_elites(
+        toolbox,
+        archive,
+        _behavior,
+        [],
+        generations=2,
+        batch_size=4,
+        cx_prob=0.0,
+        mut_prob=0.2,
+        stats=_max_stats(),
+    )
+
+    assert logbook.select("gen") == [0, 1, 2]
+    assert len(archive) >= 1
+    assert all(value is not None for value in logbook.select("max")[1:])
 
 
 def test_ea_map_elites_empty_initial_with_generations_raises(toolbox):
