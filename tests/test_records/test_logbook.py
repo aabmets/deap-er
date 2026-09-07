@@ -53,6 +53,16 @@ def test_delitem_single_index():
     assert [entry["gen"] for entry in logbook] == [0, 2, 3, 4]
 
 
+def test_pop_removes_matching_chapter_row():
+    logbook = Logbook()
+    logbook.record(gen=0, size={"avg": 10})
+    logbook.record(gen=1, size={"avg": 20})
+    logbook.record(gen=2, size={"avg": 30})
+    assert logbook.pop(1)["gen"] == 1
+    assert [entry["gen"] for entry in logbook] == [0, 2]
+    assert [entry["avg"] for entry in logbook.chapters["size"]] == [10, 30]
+
+
 def test_pop_negative_index_does_not_rewind_unstreamed_cursor():
     logbook = _filled()
     logbook.buff_index = 2
