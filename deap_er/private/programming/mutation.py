@@ -21,6 +21,7 @@ from deap_er.private.various.rng import rng
 from .generators import choose_weighted
 from .primitives.primitive_nodes import Ephemeral, Primitive
 from .primitives.primitive_set_typed import PrimitiveSetTyped
+from .promote import note_promoted_use
 
 __all__: list[str] = [
     "mut_uniform",
@@ -76,6 +77,7 @@ def mut_node_replacement(individual: GPIndividual, prim_set: PrimitiveSetTyped) 
         node_ret = prim_set.primitives[node.ret]
         prims = [p for p in node_ret if p.args == node.args]
         individual[index] = choose_weighted(prims)
+        note_promoted_use(prim_set, individual[index].name)
 
     return (individual,)
 
@@ -166,6 +168,7 @@ def mut_insert(individual: GPIndividual, prim_set: PrimitiveSetTyped) -> GPMutan
         return (individual,)
 
     new_node = choose_weighted(primitives)
+    note_promoted_use(prim_set, new_node.name)
     new_subtree = [None] * len(new_node.args)
 
     choices = []

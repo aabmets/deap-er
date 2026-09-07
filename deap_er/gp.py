@@ -11,6 +11,7 @@
 from .private.programming.columnar import Array, Mask, Window, make_column_pset
 from .private.programming.compilers import (
     build_tree_graph,
+    clear_compile_cache,
     compile_adf_tree,
     compile_tree,
     static_limit,
@@ -76,6 +77,7 @@ from .private.programming.primitives.primitive_nodes import Ephemeral, Primitive
 from .private.programming.primitives.primitive_set import PrimitiveSet
 from .private.programming.primitives.primitive_set_typed import PrimitiveSetTyped
 from .private.programming.primitives.primitive_tree import PrimitiveTree
+from .private.programming.promote import promote_subtree, promoted_names
 from .private.programming.semantic import cx_semantic, mut_semantic
 from .private.programming.slim.slim_ops import (
     cx_slim_donor,
@@ -196,6 +198,9 @@ __all__ = [
     "cx_slim_donor",
     "compile_tree",
     "compile_adf_tree",
+    "clear_compile_cache",
+    "promote_subtree",
+    "promoted_names",
     "build_tree_graph",
     "static_limit",
     "ema",
