@@ -73,7 +73,11 @@ def apply_strategy_restart(
     initial_center: numpy.ndarray,
     best: Individual | None,
 ) -> None:
-    """Reset a wrapped CMA strategy for the next restart."""
+    """Reset a wrapped CMA strategy for the next restart.
+
+    For multi-objective strategies, ``survivors`` is capped at ``min(mu, lamb)``
+    so a large-λ restart may retain fewer parents than offspring count.
+    """
     center = sample_centroid(
         dim,
         getattr(strategy, "low", None),

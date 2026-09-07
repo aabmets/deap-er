@@ -209,3 +209,43 @@ def test_partial_batch_leaves_reduced_lambda_without_restore():
         assert not hasattr(restart, "_saved_lamb")
     finally:
         _teardown()
+
+
+def test_bipop_accounts_initial_run_on_first_restart():
+    creator.create_type(FIT, Fitness, weights=(-1.0,))
+    creator.create_type(IND, list, fitness=creator.__dict__[FIT])
+    try:
+        strategy = tools.Strategy([0.0] * 5, sigma=1.0, offsprings=8)
+        restart = tools.RestartStrategy(strategy, mode="bipop", budget=100_000)
+        restart._ind_init = creator.__dict__[IND]
+        restart._run_evals = 5000
+        restart._tracker.terminate = True
+        restart.restart()
+        assert restart._budget_large == 5000
+        assert restart._last_large_run_evals == 5000
+    finally:
+        _teardown()
+
+
+def test_best_fitness_nan_for_multi_objective():
+    creator.create_type(FIT, Fitness, weights=(-1.0, -1.0))
+    creator.create_type(IND, list, fitness=creator.__dict__[FIT])
+    try:
+        parents = [creator.__dict__[IND]([0.1, 0.2]) for _ in range(4)]
+        for parent in parents:
+            parent.fitness.values = (parent[0] ** 2, parent[1] ** 2)
+        mo = tools.StrategyMultiObjective(parents, sigma=0.1, offsprings=4, survivors=4)
+        ref = [10.0, 10.0]
+        restart = tools.RestartStrategy(
+            mo,
+            mode="ipop",
+            budget=100,
+            stagnation_key=lambda ind: tools.hypervolume([ind], ref),
+        )
+        offspring = restart.generate(creator.__dict__[IND])
+        for ind in offspring:
+            ind.fitness.values = (ind[0] ** 2, ind[1] ** 2)
+        restart.update(offspring)
+        assert math.isnan(restart.best_fitness)
+    finally:
+        _teardown()

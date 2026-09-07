@@ -134,6 +134,8 @@ class RestartStrategy:
         """Best raw objective seen across all runs for single-objective runs."""
         if self._evals_used == 0:
             return float("nan")
+        if self._fitness_weights and len(self._fitness_weights) > 1:
+            return float("nan")
         if self._fitness_weights and len(self._fitness_weights) == 1:
             weight = self._fitness_weights[0]
             if weight != 0:
@@ -244,9 +246,10 @@ class RestartStrategy:
         self._tracker.begin_run(lamb, sigma, max_iter=cap)
 
     def _account_run_budget(self) -> None:
-        if self._run_count == 0:
+        if self._run_evals == 0:
             return
-        if self._regime == "small":
+        regime = self._regime if self._regime is not None else "large"
+        if regime == "small":
             self._budget_small += self._run_evals
         else:
             self._budget_large += self._run_evals
