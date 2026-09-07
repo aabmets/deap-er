@@ -62,16 +62,20 @@ def test_expression_key_uses_nodes_for_trees_and_text_for_source():
 
     assert expression_key("add(ARG0, 2)") == "add(ARG0, 2)"
     assert expression_key(tree) == (
-        ("add", None, 2, False),
-        ("ARG0", "ARG0", 0, False),
-        ("2", 2, 0, False),
+        ("add", None, 2, False, "add"),
+        ("ARG0", "ARG0", 0, False, "ARG0"),
+        ("2", 2, 0, False, "2"),
     )
 
 
 def test_discard_expression_drops_structural_tree_keys():
     cache = CompileCache()
     marker = object()
-    struct = (("add", None, 2, False), ("ARG0", "ARG0", 0, False), ("2", 2, 0, False))
+    struct = (
+        ("add", None, 2, False, "add"),
+        ("ARG0", "ARG0", 0, False, "ARG0"),
+        ("2", 2, 0, False, "2"),
+    )
     cache.set(("python", 0, struct, ("ARG0",), (), 0), marker)
     cache.set(("python", 0, "add(ARG0, 2)", ("ARG0",), (), 0), marker)
     cache.set(("opcode", 0, "mul(1, 2)", (), (), 0), marker)
