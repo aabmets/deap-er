@@ -27,7 +27,7 @@ surface.
 | 8 | [Quality-diversity archive](#8-quality-diversity-archive) | `records` | shipped |
 | 9 | [Compile and clone path](#9-compile-and-clone-path) | `gp`, `tools` | shipped |
 | 10 | [Vectorized lexicase and plexicase](#10-vectorized-lexicase-and-plexicase) | `operators` | shipped |
-| 11 | [SMS-EMOA](#11-sms-emoa) | `operators` | planned |
+| 11 | [SMS-EMOA](#11-sms-emoa) | `operators` | shipped |
 | 12 | [MOEA/D and AGE-MOEA-II](#12-moead-and-age-moea-ii) | `operators` | planned |
 | 13 | [IPOP / BIPOP CMA restarts](#13-ipop-bipop-cma-restarts) | `algorithms`, `strategies` | planned |
 | 14 | [Linear-time duplicate count](#14-linear-time-duplicate-count) | `tools` | planned |
@@ -351,9 +351,12 @@ with the smallest hypervolume contribution. Steady-state or
 generational. `least_contrib` and `hypervolume` already delegate
 to moocore.
 
-**Today.** Hypervolume is a *metric*. Selection is Pareto plus
-crowding (NSGA-II), reference directions (NSGA-III), or SPEA-II
-density. There is no indicator-based selector.
+**Today.** `sel_sms_emoa` performs SMS-EMOA environmental selection:
+non-dominated sorting, then repeated removal of the least hypervolume
+contributor on the critical front via ``least_contrib`` (moocore).
+Use it generational on ``parents + offspring`` or steady-state on
+``parents + [child]``. Optional ``ref_point`` follows the
+``hypervolume`` / ``least_contrib`` minimization-space convention.
 
 **Benefit.** The expensive part of SMS-EMOA is already done. The
 algorithm is a loop over contributions. Completes the story that
