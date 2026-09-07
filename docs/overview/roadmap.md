@@ -29,7 +29,7 @@ surface.
 | 10 | [Vectorized lexicase and plexicase](#10-vectorized-lexicase-and-plexicase) | `operators` | shipped |
 | 11 | [SMS-EMOA](#11-sms-emoa) | `operators` | shipped |
 | 12 | [MOEA/D and AGE-MOEA-II](#12-moead-and-age-moea-ii) | `operators` | shipped |
-| 13 | [IPOP / BIPOP CMA restarts](#13-ipop-bipop-cma-restarts) | `algorithms`, `strategies` | planned |
+| 13 | [IPOP / BIPOP CMA restarts](#13-ipop-bipop-cma-restarts) | `algorithms`, `strategies` | shipped |
 | 14 | [Linear-time duplicate count](#14-linear-time-duplicate-count) | `tools` | planned |
 
 Shipping an item updates this page and the matching tutorial or
@@ -401,11 +401,14 @@ grows $\lambda$ and resets the CMA state on stagnation
 (`Strategy`, `StrategyOnePlusLambda`, `StrategyMultiObjective`);
 it does not add a new covariance-update variant.
 
-**Today.** CMA, $(1+\lambda)$-CMA, and MO-CMA ship with box
-constraints (`clip` / `resample`). Restarts are caller-written
-wrappers. No Sep-CMA, LM-CMA, or learned step-size controller is
-planned until a user hits a documented wall; high-dimension
-Sep-CMA is the only plausible next variant.
+**Today.** ``RestartStrategy`` wraps ``Strategy``, ``StrategyOnePlusLambda``,
+and ``StrategyMultiObjective`` with IPOP or BIPOP restart scheduling
+(BBOB-style stagnation, λ doubling, and small-regime sampling).
+``ea_generate_update_restarts`` runs until the evaluation budget is
+spent. Box constraints from the inner strategy are preserved. No
+Sep-CMA, LM-CMA, or learned step-size controller is planned until a
+user hits a documented wall; high-dimension Sep-CMA is the only
+plausible next variant.
 
 **Benefit.** This is how CMA is used on hard landscapes: enlarge
 the population, reset the model, continue. ES users stop writing

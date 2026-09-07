@@ -9,6 +9,7 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from .private.algorithms.ea_generate_update import ea_generate_update
+from .private.algorithms.ea_generate_update_restarts import ea_generate_update_restarts
 from .private.algorithms.ea_map_elites import ea_map_elites
 from .private.algorithms.ea_mu_comma_lambda import ea_mu_comma_lambda
 from .private.algorithms.ea_mu_plus_lambda import ea_mu_plus_lambda
@@ -17,6 +18,7 @@ from .private.algorithms.variation import var_and, var_or
 
 __all__: list[str] = [
     "ea_generate_update",
+    "ea_generate_update_restarts",
     "ea_map_elites",
     "ea_mu_comma_lambda",
     "ea_mu_plus_lambda",

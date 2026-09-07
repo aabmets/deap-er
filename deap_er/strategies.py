@@ -11,5 +11,11 @@
 from .private.strategies.cma_multi_objective import StrategyMultiObjective
 from .private.strategies.cma_one_plus_lambda import StrategyOnePlusLambda
 from .private.strategies.cma_standard import Strategy
+from .private.strategies.restart import RestartStrategy
 
-__all__: list[str] = ["StrategyMultiObjective", "StrategyOnePlusLambda", "Strategy"]
+__all__: list[str] = [
+    "RestartStrategy",
+    "StrategyMultiObjective",
+    "StrategyOnePlusLambda",
+    "Strategy",
+]
