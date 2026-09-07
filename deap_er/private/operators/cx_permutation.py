@@ -163,6 +163,8 @@ def cx_ordered(ind1: Individual, ind2: Individual) -> Mates:
     """
     size = min(len(ind1), len(ind2))
     _allele_maps(ind1, ind2, size)
+    if size < 2:
+        return ind1, ind2
     a, b = rng.sample(list(range(size)), 2)
     if a > b:
         a, b = b, a
