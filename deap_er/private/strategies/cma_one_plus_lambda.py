@@ -167,13 +167,21 @@ class StrategyOnePlusLambda:
 
         The parent is replaced when a better offspring exists. Success
         rate drives the step-size; a successful replacement also
-        updates the covariance.
+        updates the covariance. An unevaluated parent (no fitness
+        values, as after ``reset_state`` / a restart) adopts the best
+        offspring without counting a fake success or adapting
+        sigma or the covariance.
 
         Args:
             population: Evaluated individuals from ``generate``.
         """
         if hasattr(self.parent, "fitness"):
+            if not population:
+                return
             population.sort(key=lambda ind: ind.fitness, reverse=True)
+            if not self.parent.fitness.is_valid():
+                self.parent = copy.deepcopy(population[0])
+                return
             lambda_succ = sum(self.parent.fitness <= ind.fitness for ind in population)
             psucc = float(lambda_succ) / self.lamb
             self.psucc = (1 - self.ss_learn_rate) * self.psucc + self.ss_learn_rate * psucc

@@ -205,6 +205,10 @@ from the original sources.
    and default $c_1$ / $c_\mu$ are the full-matrix rates scaled by
    $(n + 2) / 3$. The `generate` / `update` surface, including
    `low` / `up`, matches `Strategy`. `RestartStrategy` can wrap it.
+9. $(1+\lambda)$ CMA does not treat an unevaluated parent as worse
+   than every offspring. After `reset_state` / an IPOP restart the
+   first update adopts the best child without a fake
+   $p_{\mathrm{succ}}=1$ step-size blow-up.
 
 ## Genetic programming
 
