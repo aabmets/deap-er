@@ -24,6 +24,14 @@
 --8<-- "examples/genetic_programming/symb_regr_harm.py"
 ```
 
+## Using SLIM semantic GP
+
+Non-bloating geometric semantic variation with HARM size control:
+
+```python
+--8<-- "examples/genetic_programming/symb_regr_slim.py"
+```
+
 ## Using Epsilon Lexicase
 
 ```python
