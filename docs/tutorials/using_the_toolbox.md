@@ -105,3 +105,7 @@ toolbox.register("mutate", tools.mut_gaussian,
 toolbox.decorate("mate", clamp(MIN, MAX))
 toolbox.decorate("mutate", clamp(MIN, MAX))
 ```
+
+For Gaussian mutation alone, `tools.mut_gaussian_bounded` clamps each
+mutated gene into `[low, up]` inside the operator. The decorator
+remains the generic wrap for any other tool.

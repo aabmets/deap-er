@@ -32,7 +32,7 @@ surface.
 | 13 | [IPOP / BIPOP CMA restarts](#13-ipop-bipop-cma-restarts) | `algorithms`, `strategies` | shipped |
 | 14 | [Linear-time duplicate count](#14-linear-time-duplicate-count) | `tools` | shipped |
 | 15 | [Heterogeneous crossover](#15-heterogeneous-crossover) | `operators` | planned |
-| 16 | [Bounded Gaussian mutation](#16-bounded-gaussian-mutation) | `operators` | planned |
+| 16 | [Bounded Gaussian mutation](#16-bounded-gaussian-mutation) | `operators` | shipped |
 | 17 | [Differential evolution operators](#17-differential-evolution-operators) | `operators` | planned |
 | 18 | [Constraint-dominance selection](#18-constraint-dominance-selection) | `operators` | planned |
 | 19 | [Sep-CMA](#19-sep-cma) | `strategies` | planned |
@@ -479,9 +479,11 @@ Related: [Operators](../reference/operators.md).
 `[low, up]`. `low` / `up` may be scalars or per-gene sequences,
 matching `mut_polynomial_bounded`.
 
-**Today.** `mut_gaussian` adds a Gaussian and leaves the gene
-wherever it lands. Boxed SBX, boxed blend, boxed polynomial
-mutation, and boxed CMA already keep variation inside a box.
+**Today.** `mut_gaussian_bounded` applies the same $N(\mu, \sigma)$
+add as `mut_gaussian`, then clamps each mutated gene into
+`[low, up]`. Bounds may be scalars or per-gene sequences. An empty
+interval (`up <= low`) is skipped. Unmutated genes are left as they
+are. `mut_gaussian` is unchanged.
 
 **Benefit.** The usual real-coded GA mutation when the search space
 is a box and polynomial mutation is not wanted. Out-of-box genes

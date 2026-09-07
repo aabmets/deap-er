@@ -98,3 +98,76 @@ def test_mut_heterogeneous_applies_one_callable_per_gene():
     short: Any = [1, 2]
     with pytest.raises(ValueError, match="same length"):
         tools.mut_heterogeneous(short, [lambda x: x], 1.0)
+
+
+def test_mut_gaussian_bounded_matches_gaussian_then_clamp():
+    genes = [0.2, 0.5, 0.8]
+    tools.rng.seed(7)
+    unbounded: Any = list(genes)
+    (raw,) = tools.mut_gaussian(unbounded, 0.0, 1.0, 0.5)
+    expected = [min(max(gene, 0.0), 1.0) for gene in raw]
+
+    tools.rng.seed(7)
+    bounded: Any = list(genes)
+    (mutant,) = tools.mut_gaussian_bounded(bounded, 0.0, 1.0, 0.0, 1.0, 0.5)
+    assert mutant is bounded
+    assert mutant == expected
+
+
+def test_mut_gaussian_bounded_matches_per_gene_bounds():
+    genes = [0.4, -0.2, 1.2]
+    low = [0.0, -1.0, 0.5]
+    up = [1.0, 0.0, 2.0]
+    tools.rng.seed(8)
+    unbounded: Any = list(genes)
+    (raw,) = tools.mut_gaussian(unbounded, [0.0, 0.1, -0.1], [0.5, 1.0, 0.25], 0.8)
+    expected = [min(max(gene, xl), xu) for gene, xl, xu in zip(raw, low, up, strict=True)]
+
+    tools.rng.seed(8)
+    bounded: Any = list(genes)
+    (mutant,) = tools.mut_gaussian_bounded(
+        bounded, [0.0, 0.1, -0.1], [0.5, 1.0, 0.25], low, up, 0.8
+    )
+    assert mutant == expected
+
+
+def test_mut_gaussian_bounded_out_of_box_stays_in_bounds():
+    tools.rng.seed(9)
+    individual: Any = [10.0, -5.0]
+    (mutant,) = tools.mut_gaussian_bounded(individual, 0.0, 1.0, 0.0, 1.0, 1.0)
+    assert mutant is individual
+    assert all(0.0 <= gene <= 1.0 for gene in mutant)
+
+
+def test_mut_gaussian_bounded_zero_prob_is_noop():
+    genes = [10.0, -5.0]
+    individual: Any = list(genes)
+    (mutant,) = tools.mut_gaussian_bounded(individual, 0.0, 1.0, 0.0, 1.0, 0.0)
+    assert mutant == genes
+
+
+def test_mut_gaussian_bounded_skips_empty_interval():
+    individual: Any = [0.3, 0.7]
+    (mutant,) = tools.mut_gaussian_bounded(individual, 0.0, 1.0, 1.0, 0.0, 1.0)
+    assert mutant == [0.3, 0.7]
+
+
+def test_mut_gaussian_bounded_rejects_short_parameter_sequences():
+    individual: Any = [0.0, 1.0]
+    with pytest.raises(ValueError, match="at least the size"):
+        tools.mut_gaussian_bounded(individual, mu=[0.0], sigma=0.1, low=0.0, up=1.0, mut_prob=1.0)
+    with pytest.raises(ValueError, match="at least the size"):
+        tools.mut_gaussian_bounded(individual, 0.0, sigma=[0.1], low=0.0, up=1.0, mut_prob=1.0)
+    with pytest.raises(ValueError, match="at least the size"):
+        tools.mut_gaussian_bounded(individual, 0.0, 0.1, low=[0.0], up=1.0, mut_prob=1.0)
+    with pytest.raises(ValueError, match="at least the size"):
+        tools.mut_gaussian_bounded(individual, 0.0, 0.1, 0.0, up=[1.0], mut_prob=1.0)
+
+
+def test_mut_gaussian_bounded_accepts_numpy_integer_bounds():
+    individual: Any = [10.0, -5.0]
+    tools.rng.seed(1)
+    (mutant,) = tools.mut_gaussian_bounded(
+        individual, 0.0, 1.0, numpy.int64(0), numpy.int64(1), 1.0
+    )
+    assert all(0.0 <= gene <= 1.0 for gene in mutant)
