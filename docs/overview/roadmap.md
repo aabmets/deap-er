@@ -22,7 +22,7 @@ surface.
 | 3 | [Incremental window kernels](#3-incremental-window-kernels) | `gp` (same API) | shipped |
 | 4 | [Batch tape evaluation](#4-batch-tape-evaluation) | `gp` | shipped |
 | 5 | [Down-sampled and informed lexicase](#5-down-sampled-and-informed-lexicase) | `operators` | shipped |
-| 6 | [Case-structured evaluation helper](#6-case-structured-evaluation-helper) | utilities + docs | planned |
+| 6 | [Case-structured evaluation helper](#6-case-structured-evaluation-helper) | utilities + docs | shipped |
 | 7 | [Non-bloating semantic variation](#7-non-bloating-semantic-variation) | `gp` | planned |
 | 8 | [Quality-diversity archive](#8-quality-diversity-archive) | `records` | planned |
 | 9 | [Compile and clone path](#9-compile-and-clone-path) | `gp`, `tools` | planned |
@@ -203,10 +203,12 @@ honest pattern: ignore non-finite warmup, do not score a `vwhere`
 that hid a `nan`, and keep prediction–target alignment on the
 caller.
 
-**Today.** The tutorial already warns that a comparison hides
-warmup (`nan > x` is `False`). There is no helper that turns
-ranges into a case vector, so each caller re-implements the split
-and can leak warmup or future samples into a case.
+**Today.** `tools.case_errors` turns aligned `predicted` and `target`
+series into one MSE per explicit `[start, stop)` range or per
+contiguous `True` run in a boolean mask. Non-finite samples are
+skipped by default; an optional `valid` mask covers the `vwhere`
+warmup trap documented in the columnar tutorial. There is still no
+built-in chronological split or metric catalog.
 
 **Benefit.** The usual “several segments, hide some” recipe is a
 few lines if the helper exists, and a class of off-by-one and
