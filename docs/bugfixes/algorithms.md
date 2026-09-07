@@ -1,6 +1,6 @@
 # Algorithms
 
-Correctness fix in the generate-and-update driver.
+Correctness fixes in the algorithm drivers and variation operators.
 
 ---
 
@@ -36,3 +36,20 @@ individuals that were actually scored.
 
 **Validator.**
 `tests/test_algorithms/test_ea_drivers.py::test_generate_update_uses_evaluate_batch_when_registered`
+
+---
+
+## `var_or` crashed when the parent pool had one individual
+
+`rng.sample(population, 2)` needs two distinct parents. After
+`ea_mu_comma_lambda` keeps a single survivor — a valid
+$(1,\lambda)$ setting — the next generation raised
+`ValueError` as soon as a crossover draw fired. The same crash
+hits `ea_mu_plus_lambda` when $\mu = 1$ and `cx_prob > 0`.
+
+**Fix.** When the pool has fewer than two individuals, clone the
+only parent twice and mate those clones. Empty pools still fail
+on `choice`.
+
+**Validator.**
+`tests/test_algorithms/test_variation.py::test_var_or_single_parent_with_crossover_does_not_crash`
