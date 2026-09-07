@@ -25,13 +25,13 @@ def parse_centroids(centroids: Sequence[Sequence[float]] | numpy.ndarray) -> num
         centroids: Candidate cell centers in descriptor space.
 
     Returns:
-        Contiguous finite unique centroids.
+        A copy of the centroids as a contiguous finite unique array.
 
     Raises:
         ValueError: If the array is empty, not 2-D, non-finite, or
             contains duplicate rows.
     """
-    array = numpy.ascontiguousarray(numpy.asarray(centroids, dtype=numpy.float64))
+    array = numpy.array(centroids, dtype=numpy.float64, copy=True, order="C")
     if array.ndim != 2 or array.shape[0] < 1 or array.shape[1] < 1:
         raise ValueError("centroids must be a non-empty 2-D array")
     if not bool(numpy.isfinite(array).all()):
@@ -49,9 +49,10 @@ def cvt_centroids(
 ) -> numpy.ndarray:
     """Compute ``k`` centroids by k-means on a behavior sample.
 
-    Seeding uses :data:`~deap_er.rng.rng` so checkpointed runs stay
-    reproducible. Callers who already have centroids can pass them
-    straight to :class:`~deap_er.records.CvtArchive`.
+    Seeding uses the process-wide ``tools.rng`` generator so
+    checkpointed runs stay reproducible. Callers who already have
+    centroids can pass them straight to
+    :class:`~deap_er.records.CvtArchive`.
 
     Args:
         samples: Behavior descriptors with shape ``(n, dims)``.

@@ -108,7 +108,7 @@ class CvtArchive:
             )
         return nearest_index(self._centroids, descriptor)
 
-    def add(self, individual: Any, descriptor: Sequence[float]) -> bool:
+    def add(self, individual: Any, descriptor: Sequence[float] | numpy.ndarray) -> bool:
         """Insert ``individual`` when it improves its Voronoi cell.
 
         Args:
