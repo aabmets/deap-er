@@ -44,8 +44,7 @@ def bm_royal_road_1(individual: Individual, order: int) -> tuple[int]:
         start = i * order
         stop = i * order + order
         values = individual[start:stop]
-        mapper = map(str, values)
-        gene = int("".join(mapper), 2)
+        gene = int("".join(str(int(bool(bit))) for bit in values), 2)
         total += order * int(gene / max_value)
     return (total,)
 
