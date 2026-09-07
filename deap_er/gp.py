@@ -85,6 +85,17 @@ from .private.programming.slim.slim_ops import (
 )
 from .private.programming.slim.slim_tree import SlimTree, compile_slim_tree
 from .private.programming.tape_batch import interpret_tapes
+from .private.various.semantic_descriptors import (
+    semantic_descriptors,
+    semantic_moments,
+    semantic_solve_bits,
+)
+from .private.various.semantic_neighbors import semantic_distance, semantic_nearest
+from .private.various.semantic_project import (
+    semantic_pca_basis,
+    semantic_project,
+    semantic_random_basis,
+)
 from .private.programming.window_ops import (
     add_window_ephemeral,
     add_window_primitives,
@@ -161,6 +172,14 @@ __all__ = [
     "lower_tree",
     "interpret_tape",
     "interpret_tapes",
+    "semantic_descriptors",
+    "semantic_moments",
+    "semantic_pca_basis",
+    "semantic_project",
+    "semantic_random_basis",
+    "semantic_solve_bits",
+    "semantic_distance",
+    "semantic_nearest",
     "Terminal",
     "Ephemeral",
     "Primitive",
