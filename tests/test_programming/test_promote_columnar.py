@@ -57,9 +57,7 @@ def test_promoted_columnar_backends_agree():
 def test_nested_promote_expands_fully():
     pset = _column_set()
     inner = gp.promote_subtree(pset, gp.PrimitiveTree.from_string("vadd(x, y)", pset))
-    outer = gp.promote_subtree(
-        pset, gp.PrimitiveTree.from_string(f"vmul({inner}(x, y), x)", pset)
-    )
+    outer = gp.promote_subtree(pset, gp.PrimitiveTree.from_string(f"vmul({inner}(x, y), x)", pset))
     tree = gp.PrimitiveTree.from_string(f"{outer}(x, y)", pset)
     tape = gp.lower_tree(tree, pset)
     assert not numpy.any(tape.opcodes >= gp.USER_BASE)
