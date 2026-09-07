@@ -185,7 +185,10 @@ def apply_cma_hyperparams(
     dim = strategy.dim
     default = int(4 + 3 * log(dim))
     strategy.lamb = int(kwargs.get("offsprings", default))
-    strategy.mu = int(kwargs.get("survivors", int(strategy.lamb / 2)))
+    default_mu = int(strategy.lamb / 2)
+    if strategy.lamb >= 1:
+        default_mu = max(1, default_mu)
+    strategy.mu = int(kwargs.get("survivors", default_mu))
     scheme = kwargs.get("weights", "superlinear")
     if scheme == "superlinear":
         weights = log(strategy.mu + 0.5) - numpy.log(numpy.arange(1, strategy.mu + 1))

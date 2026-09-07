@@ -221,6 +221,11 @@ from the original sources.
 10. BIPOP small-regime $\sigma$ is $\sigma_{\mathrm{large}}\cdot
     10^{-2U[0,1]}$, not a hardcoded $2.0$. A custom first-run step
     size no longer launches small restarts in $[0.02, 2]$.
+11. Default $\mu$ is at least $1$ when $\lambda\ge 1$.
+    $\mu=\lfloor\lambda/2\rfloor$ is no longer $0$ at $\lambda=1$,
+    so `Strategy` / `StrategySeparable` and a `RestartStrategy`
+    leftover budget of one evaluation no longer raise
+    `ZeroDivisionError` on an empty weight vector.
 
 ## Genetic programming
 
