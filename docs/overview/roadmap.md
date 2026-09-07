@@ -34,7 +34,7 @@ surface.
 | 15 | [Heterogeneous crossover](#15-heterogeneous-crossover) | `operators` | shipped |
 | 16 | [Bounded Gaussian mutation](#16-bounded-gaussian-mutation) | `operators` | shipped |
 | 17 | [Differential evolution operators](#17-differential-evolution-operators) | `operators` | shipped |
-| 18 | [Constraint-dominance selection](#18-constraint-dominance-selection) | `operators` | planned |
+| 18 | [Constraint-dominance selection](#18-constraint-dominance-selection) | `operators` | shipped |
 | 19 | [Sep-CMA](#19-sep-cma) | `strategies` | shipped |
 | 20 | [CVT / unstructured MAP-Elites](#20-cvt-unstructured-map-elites) | `records` | planned |
 
@@ -540,9 +540,13 @@ Pareto / crowding on objectives; two infeasibles prefer the
 smaller constraint violation. The caller supplies a feasibility
 flag or a violation amount. Fitness values are not rewritten.
 
-**Today.** `DeltaPenalty` and `ClosestValidPenalty` turn an invalid
-individual into a bad fitness number, then ordinary selection
-runs.
+**Today.** `constraint_dominates` is Deb's constrained-domination
+rule. `sel_nsga_2` accepts optional ``feasible=`` and
+``violation=`` callables and ranks with that rule: feasible before
+infeasible, ordinary Pareto / crowding among feasibles, smaller
+violation among infeasibles. Omitted kwargs keep unconstrained
+NSGA-II. Fitness values are not rewritten. `DeltaPenalty` and
+`ClosestValidPenalty` remain the penalty path.
 
 **Benefit.** Constrained NSGA-II users stop inventing a penalty
 scale. Penalties remain the other path.

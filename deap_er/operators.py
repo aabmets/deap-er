@@ -53,6 +53,7 @@ from .private.operators.sel_moead_helpers import (
     scalarization_pbi,
     scalarization_tchebycheff,
 )
+from .private.operators.constraint_dominates import constraint_dominates
 from .private.operators.sel_nsga_2 import sel_nsga_2
 from .private.operators.sel_nsga_3 import SelNSGA3WithMemory, sel_nsga_3
 from .private.operators.sel_sms_emoa import sel_sms_emoa
@@ -107,6 +108,7 @@ __all__: list[str] = [
     "sample_informed_cases",
     "sel_epsilon_lexicase",
     "sel_lexicase",
+    "constraint_dominates",
     "sel_nsga_2",
     "SelNSGA3WithMemory",
     "sel_nsga_3",
