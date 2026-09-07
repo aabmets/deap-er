@@ -8,3 +8,6 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from .measure import measure_section
+
+__all__ = ["measure_section"]
