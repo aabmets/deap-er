@@ -29,6 +29,15 @@ def test_partially_matched_and_uniform_pmx_keep_permutations():
     assert sorted(second) == list(range(6))
 
 
+def test_cx_ordered_length_one_is_noop():
+    left: Any = [0]
+    right: Any = [0]
+    assert tools.cx_ordered(left, right) == ([0], [0])
+    empty_left: Any = []
+    empty_right: Any = []
+    assert tools.cx_ordered(empty_left, empty_right) == ([], [])
+
+
 def test_ordered_keeps_permutations():
     tools.rng.seed(11)
     order_left: Any = [0, 1, 2, 3, 4]
