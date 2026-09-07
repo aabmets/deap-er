@@ -40,9 +40,16 @@ from .private.operators.mut_various import (
     mut_uniform_int,
 )
 from .private.operators.sample_informed_cases import sample_informed_cases
+from .private.operators.sel_age_moea_2 import SelAGE2WithMemory, sel_age_moea_2
 from .private.operators.sel_helpers import assign_crowding_dist, uniform_reference_points
 from .private.operators.sel_lexicase import sel_epsilon_lexicase, sel_lexicase
 from .private.operators.sel_lexicase_matrix import fitness_case_matrix
+from .private.operators.sel_moead import SelMOEADWithMemory, sel_moead
+from .private.operators.sel_moead_helpers import (
+    moead_neighborhood,
+    scalarization_pbi,
+    scalarization_tchebycheff,
+)
 from .private.operators.sel_nsga_2 import sel_nsga_2
 from .private.operators.sel_nsga_3 import SelNSGA3WithMemory, sel_nsga_3
 from .private.operators.sel_sms_emoa import sel_sms_emoa
@@ -84,6 +91,13 @@ __all__: list[str] = [
     "assign_crowding_dist",
     "uniform_reference_points",
     "fitness_case_matrix",
+    "scalarization_tchebycheff",
+    "scalarization_pbi",
+    "moead_neighborhood",
+    "sel_moead",
+    "SelMOEADWithMemory",
+    "sel_age_moea_2",
+    "SelAGE2WithMemory",
     "sample_informed_cases",
     "sel_epsilon_lexicase",
     "sel_lexicase",

@@ -28,7 +28,7 @@ surface.
 | 9 | [Compile and clone path](#9-compile-and-clone-path) | `gp`, `tools` | shipped |
 | 10 | [Vectorized lexicase and plexicase](#10-vectorized-lexicase-and-plexicase) | `operators` | shipped |
 | 11 | [SMS-EMOA](#11-sms-emoa) | `operators` | shipped |
-| 12 | [MOEA/D and AGE-MOEA-II](#12-moead-and-age-moea-ii) | `operators` | planned |
+| 12 | [MOEA/D and AGE-MOEA-II](#12-moead-and-age-moea-ii) | `operators` | shipped |
 | 13 | [IPOP / BIPOP CMA restarts](#13-ipop-bipop-cma-restarts) | `algorithms`, `strategies` | planned |
 | 14 | [Linear-time duplicate count](#14-linear-time-duplicate-count) | `tools` | planned |
 
@@ -379,9 +379,11 @@ Related: [Operators](../reference/operators.md).
   assign survival by geodesic distance. After MOEA/D: more code,
   more payoff when the front is not a simplex.
 
-**Today.** The Pareto family is NSGA-II and SPEA-II. The reference
-family is NSGA-III only. There is no decomposition method and no
-geometry-adaptive selector.
+**Today.** `sel_moead` and `SelMOEADWithMemory` decompose with
+Tchebycheff or PBI scalarization over `uniform_reference_points`
+weight vectors. `sel_age_moea_2` and `SelAGE2WithMemory` estimate
+front curvature with Newton–Raphson and break ties on the last
+partial front with geodesic diversity.
 
 **Benefit.** Many-objective users currently stop at NSGA-III.
 MOEA/D is the standard decomposition method. AGE-MOEA-II is the
