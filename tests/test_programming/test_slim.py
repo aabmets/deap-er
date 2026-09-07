@@ -10,6 +10,7 @@
 #
 import math
 import operator
+from typing import Any
 
 from deap_er import gp, tools
 
@@ -20,10 +21,50 @@ class _FitnessStub:
     def __init__(self, value: float, weight: float = -1.0) -> None:
         self.values = (value,)
         self.weights = (weight,)
+        self.wvalues = (value * weight,)
         self.valid = True
 
     def is_valid(self) -> bool:
         return self.valid
+
+    def __gt__(self, other: object) -> bool:
+        if not isinstance(other, _FitnessStub):
+            return NotImplemented
+        return self.wvalues > other.wvalues
+
+
+class _MOFitnessStub:
+    """Two-objective fitness stand-in for donor-selection tests."""
+
+    def __init__(
+        self,
+        values: tuple[float, float],
+        weights: tuple[float, float] = (-1.0, -1.0),
+    ) -> None:
+        self.values = values
+        self.weights = weights
+        self.wvalues = tuple(value * weight for value, weight in zip(values, weights, strict=True))
+        self.valid = True
+
+    def __gt__(self, other: object) -> bool:
+        if not isinstance(other, _MOFitnessStub):
+            return NotImplemented
+        return self.wvalues > other.wvalues
+
+
+class _FitnessValidFlagStub:
+    """Fitness stub exposing only a ``valid`` flag (no ``is_valid``)."""
+
+    def __init__(self, value: float, weight: float = -1.0) -> None:
+        self.values = (value,)
+        self.weights = (weight,)
+        self.wvalues = (value * weight,)
+        self.valid = True
+
+    def __gt__(self, other: object) -> bool:
+        if not isinstance(other, _FitnessValidFlagStub):
+            return NotImplemented
+        return self.wvalues > other.wvalues
 
 
 def lf(x):
@@ -163,15 +204,105 @@ def test_deflate_never_removes_head():
     assert [node.name for node in slim.head] == [node.name for node in head_snapshot]
 
 
+def test_slim_inflate_mutates_in_place():
+    tools.rng.seed(11)
+    pset = _semantic_pset()
+    slim = _slim_head(pset)
+    (mutated,) = gp.mut_slim_inflate(slim, pset, min_depth=1, max_depth=1, mut_step=0.2)
+    assert mutated is slim
+
+
+def test_mut_slim_inflate_rejects_primitive_tree():
+    pset = _semantic_pset()
+    tree: Any = gp.gen_grow(pset, 1, 2)
+    try:
+        gp.mut_slim_inflate(tree, pset, min_depth=1, max_depth=1, mut_step=0.2)
+    except TypeError as err:
+        assert "SlimTree" in str(err)
+    else:
+        raise AssertionError("expected TypeError for PrimitiveTree input")
+
+
+def test_cx_slim_donor_rejects_primitive_tree():
+    tools.rng.seed(12)
+    pset = _semantic_pset()
+    tree1: Any = gp.gen_grow(pset, 1, 2)
+    slim2 = _slim_head(pset)
+    gp.mut_slim_inflate(slim2, pset, min_depth=1, max_depth=1, mut_step=0.2)
+    try:
+        gp.cx_slim_donor(tree1, slim2, pset, best_donor=False)
+    except TypeError as err:
+        assert "SlimTree" in str(err)
+    else:
+        raise AssertionError("expected TypeError for PrimitiveTree input")
+
+
+def test_cx_slim_donor_mutates_parents_in_place():
+    tools.rng.seed(13)
+    pset = _semantic_pset()
+    slim1 = _slim_head(pset)
+    slim2 = _slim_head(pset)
+    gp.mut_slim_inflate(slim1, pset, min_depth=1, max_depth=1, mut_step=0.2)
+    child1, child2 = gp.cx_slim_donor(slim1, slim2, pset, best_donor=False)
+    assert child1 is slim1
+    assert child2 is slim2
+
+
+def test_cx_slim_donor_best_donor_uses_multi_objective_fitness():
+    tools.rng.seed(14)
+    pset = _semantic_pset()
+    worse = _slim_head(pset)
+    better = _slim_head(pset)
+    gp.mut_slim_inflate(worse, pset, min_depth=1, max_depth=1, mut_step=0.2)
+    gp.mut_slim_inflate(better, pset, min_depth=1, max_depth=1, mut_step=0.3)
+    better_block = str(better.deltas[0])
+    worse.fitness = _MOFitnessStub((5.0, 10.0))
+    better.fitness = _MOFitnessStub((5.0, 3.0))
+    gp.cx_slim_donor(worse, better, pset, best_donor=True)
+    assert len(better.deltas) == 0
+    assert any(str(delta) == better_block for delta in worse.deltas)
+
+
+def test_cx_slim_donor_accepts_fitness_with_valid_flag_only():
+    tools.rng.seed(15)
+    pset = _semantic_pset()
+    donor = _slim_head(pset)
+    receiver = _slim_head(pset)
+    gp.mut_slim_inflate(donor, pset, min_depth=1, max_depth=1, mut_step=0.15)
+    donor_block = str(donor.deltas[0])
+    donor.fitness = _FitnessValidFlagStub(1.0)
+    receiver.fitness = _FitnessValidFlagStub(10.0)
+    _, child_receiver = gp.cx_slim_donor(donor, receiver, pset, best_donor=True)
+    assert any(str(delta) == donor_block for delta in child_receiver.deltas)
+
+
+def test_slim_deflate_without_semantic_primitives():
+    tools.rng.seed(16)
+    semantic = _semantic_pset()
+    slim = _slim_head(semantic)
+    gp.mut_slim_inflate(slim, semantic, min_depth=1, max_depth=1, mut_step=0.2)
+    pset = gp.PrimitiveSet("main", 1)
+    pset.add_primitive(operator.add, 2)
+    pset.add_terminal(1.0)
+    pset.rename_arguments(ARG0="x")
+    assert len(slim.deltas) == 1
+    (mutated,) = gp.mut_slim_deflate(slim, pset)
+    assert mutated is slim
+    assert mutated.deltas == []
+
+
 def test_primitive_tree_coercion():
     tools.rng.seed(10)
     pset = _semantic_pset()
-    tree1 = gp.gen_grow(pset, 1, 2)
+    tree1: Any = gp.gen_grow(pset, 1, 2)
     slim2 = _slim_head(pset)
     gp.mut_slim_inflate(slim2, pset, min_depth=1, max_depth=1, mut_step=0.2)
-    child1, child2 = gp.cx_slim_donor(tree1, slim2, pset, best_donor=False)
-    assert isinstance(child1, gp.SlimTree)
-    assert isinstance(child2, gp.SlimTree)
+    try:
+        gp.cx_slim_donor(tree1, slim2, pset, best_donor=False)
+    except TypeError as err:
+        assert "SlimTree" in str(err)
+    else:
+        raise AssertionError("expected TypeError for PrimitiveTree input")
 
 
 def test_missing_primitives_raises():
