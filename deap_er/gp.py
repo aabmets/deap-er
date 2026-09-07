@@ -70,6 +70,13 @@ from .private.programming.primitives.primitive_set import PrimitiveSet
 from .private.programming.primitives.primitive_set_typed import PrimitiveSetTyped
 from .private.programming.primitives.primitive_tree import PrimitiveTree
 from .private.programming.semantic import cx_semantic, mut_semantic
+from .private.programming.slim.slim_ops import (
+    cx_slim_donor,
+    mut_slim,
+    mut_slim_deflate,
+    mut_slim_inflate,
+)
+from .private.programming.slim.slim_tree import SlimTree, compile_slim_tree
 from .private.programming.tape_batch import interpret_tapes
 from .private.programming.window_ops import (
     add_window_ephemeral,
@@ -150,6 +157,12 @@ __all__ = [
     "PrimitiveTree",
     "cx_semantic",
     "mut_semantic",
+    "SlimTree",
+    "compile_slim_tree",
+    "mut_slim_inflate",
+    "mut_slim_deflate",
+    "mut_slim",
+    "cx_slim_donor",
     "compile_tree",
     "compile_adf_tree",
     "build_tree_graph",
