@@ -9,6 +9,7 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import math
+from typing import Any, cast
 
 import numpy
 import pytest
@@ -68,7 +69,7 @@ def test_surrogate_requires_update_and_known_kind():
         store.predict([0.0])
     store.update(numpy.array([[0.0]]), [1.0])
     with pytest.raises(ValueError, match="nearest"):
-        store.predict([0.0], kind="ridge")
+        store.predict([0.0], kind=cast(Any, "ridge"))
 
 
 def test_surrogate_trust_matrix(ind_cls):

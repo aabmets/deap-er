@@ -34,7 +34,7 @@ def test_semantic_distance_euclidean_and_cosine():
     cosine = tools.semantic_distance(query, matrix, metric="cosine")
     numpy.testing.assert_allclose(euclid, [0.0, math.sqrt(2.0)])
     numpy.testing.assert_allclose(cosine, [0.0, 1.0])
-    assert tools.semantic_distance(query, matrix[0], metric="euclidean") == pytest.approx(0.0)
+    assert tools.semantic_distance(query, matrix[0], metric="euclidean")[0] == pytest.approx(0.0)
 
 
 def test_semantic_distance_ignores_warmup_columns():
@@ -77,7 +77,5 @@ def test_semantic_nearest_trust_matrix(ind_cls):
     people[0].fitness.values = (1.0,)
     with pytest.raises(ValueError, match="valid fitness"):
         tools.semantic_nearest([0.0, 1.0], matrix, individuals=people, trust_matrix=False)
-    nearest = tools.semantic_nearest(
-        [0.0, 1.0], matrix, individuals=people, trust_matrix=True
-    )
+    nearest = tools.semantic_nearest([0.0, 1.0], matrix, individuals=people, trust_matrix=True)
     numpy.testing.assert_array_equal(nearest, [0])

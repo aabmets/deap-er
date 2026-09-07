@@ -37,7 +37,8 @@ def as_semantic_matrix(matrix: numpy.ndarray | Sequence[Sequence[float]]) -> num
     packed = numpy.asarray(matrix, dtype=numpy.float64)
     if packed.ndim != 2:
         raise ValueError(
-            f"semantic matrix must be two-dimensional (n_individuals, n_rows), got ndim={packed.ndim}"
+            "semantic matrix must be two-dimensional "
+            f"(n_individuals, n_rows), got ndim={packed.ndim}"
         )
     return packed
 

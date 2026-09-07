@@ -74,37 +74,33 @@ def semantic_distance(
     *,
     metric: SemanticMetric = "euclidean",
     valid: numpy.ndarray | None = None,
-) -> numpy.ndarray | float:
+) -> numpy.ndarray:
     """Return finite-mask distances from ``query`` to each packed row.
 
     Only coordinates that are finite on both sides and marked ``valid``
     enter the distance. An empty overlap, or a zero cosine norm, is
-    ``+inf``.
+    ``+inf``. A one-dimensional ``matrix`` is treated as a single row.
 
     Args:
         query: Semantic row of length ``n_rows``.
         matrix: Pack of shape ``(n_individuals, n_rows)``, or one row of
-            length ``n_rows`` for a scalar distance.
+            length ``n_rows``.
         metric: ``euclidean`` or ``cosine`` (``1 -`` cosine similarity).
         valid: Optional per-row warmup mask of length ``n_rows``.
 
     Returns:
-        Distances of length ``n_individuals``, or one float when
-        ``matrix`` is a single row.
+        Distances of length ``n_individuals`` (length 1 for a single
+        row).
 
     Raises:
         ValueError: If shapes do not match or ``metric`` is unknown.
     """
     packed = numpy.asarray(matrix, dtype=numpy.float64)
-    scalar = packed.ndim == 1
-    if scalar:
+    if packed.ndim == 1:
         packed = packed.reshape(1, -1)
     packed = as_semantic_matrix(packed)
     row = _query_row(query, packed.shape[1])
-    dist = _masked_distance(packed, row, _pair_mask(packed, row, valid), metric)
-    if scalar:
-        return float(dist[0])
-    return dist
+    return _masked_distance(packed, row, _pair_mask(packed, row, valid), metric)
 
 
 def semantic_nearest(
