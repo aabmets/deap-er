@@ -8,15 +8,22 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from .private.records.grid_archive import ArchiveStats, GridArchive
+from .private.records.archive_common import ArchiveStats
+from .private.records.cvt_archive import CvtArchive
+from .private.records.cvt_centroids import cvt_centroids
+from .private.records.grid_archive import GridArchive
 from .private.records.hall_of_fame import HallOfFame, ParetoFront
 from .private.records.history import History
 from .private.records.logbook import Logbook
 from .private.records.statistics import MultiStatistics, Statistics
+from .private.records.unstructured_archive import UnstructuredArchive
 
 __all__ = [
     "ArchiveStats",
+    "CvtArchive",
     "GridArchive",
+    "UnstructuredArchive",
+    "cvt_centroids",
     "HallOfFame",
     "ParetoFront",
     "History",
