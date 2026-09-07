@@ -307,6 +307,34 @@ Segment boundaries and prediction–target alignment stay on the caller.
 This helper does not choose a chronological split and does not ship
 application-specific metrics beyond per-case MSE.
 
+The same `interpret_tapes` pack is also search geometry. Project it
+into a behavior vector and `add` the result to a MAP-Elites archive
+so the archive keeps different *functions*, not different strings.
+`ind.fitness` still ranks the cell. Pass the same `valid=` warmup
+mask you use for `case_errors` — a descriptor or distance that sees
+warmup is a lookahead bug. `trust_matrix=True` means the pack is
+row-aligned with the current individuals, the same footgun as
+lexicase.
+
+```python
+predicted = gp.interpret_tapes(tapes, matrix, backend="numba")
+descriptors = tools.semantic_moments(predicted, valid=warmup)
+for individual, descriptor in zip(individuals, descriptors, strict=True):
+    archive.add(individual, descriptor)
+parent = individuals[tools.semantic_nearest(predicted[0], predicted, k=1)[0]]
+surrogate = tools.SemanticSurrogate()
+surrogate.update(predicted, [ind.fitness.wvalues[0] for ind in individuals])
+guess = surrogate.predict(predicted[0], kind="nearest")
+```
+
+`semantic_solve_bits` is the lexicase convention: a case is solved
+when its MSE is exactly $0$. Continuous residuals usually want
+moments or a caller PCA / random projection (`semantic_pca_basis`,
+`semantic_random_basis`, `semantic_project`). High-dimensional solve
+bits fit `CvtArchive` or `UnstructuredArchive` better than a grid.
+`SemanticSurrogate.predict` is last-generation nearest or linear
+lookup, not a learned quality-diversity model.
+
 `parallel=True` evaluates those tapes on several Numba threads. Each
 thread keeps a workspace of shape `(depth + 1, n_rows)`, so a long
 book costs `n_threads` full-length stacks. A consumer `dispatch`

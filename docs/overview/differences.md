@@ -290,6 +290,14 @@ The following is extra.
     `generate` / `update` loop, writes repaired values back, and
     invalidates fitness plus the compile-cache entry for the old
     expression.
+23. `semantic_moments`, `semantic_solve_bits`, and `semantic_project`
+    turn an `interpret_tapes` `(n_individuals, n_rows)` pack into a
+    behavior descriptor (per-row moments, lexicase solve bits, or a
+    caller PCA / random basis). `semantic_nearest` looks up cosine
+    or Euclidean neighbors on the finite / `valid=` mask.
+    `SemanticSurrogate` is a last-generation linear or nearest-neighbor
+    stand-in. Fitness stays on `ind.fitness`; the archive still ranks
+    a cell by fitness.
 
 The columnar contract is in the
 [columnar GP tutorial](../tutorials/columnar_gp.md). Shared-array

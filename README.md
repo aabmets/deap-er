@@ -98,6 +98,7 @@ inventory:
   - `duplicate_count`
   - `ea_*` `log_time`, `logger`, and per-generation `fronts`
   - MAP-Elites `GridArchive` / `CvtArchive` / `UnstructuredArchive` / `ea_map_elites`
+  - semantic search space (`semantic_descriptors`, `semantic_nearest`, `SemanticSurrogate`)
   - `mut_de` (DE/rand/1/bin trial)
   - `step_islands` (heterogeneous island step) and append-only tape rescore
 

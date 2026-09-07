@@ -38,7 +38,7 @@ surface.
 | 19 | [Sep-CMA](#19-sep-cma) | `strategies` | shipped |
 | 20 | [CVT / unstructured MAP-Elites](#20-cvt-unstructured-map-elites) | `records` | shipped |
 | 21 | [Growing primitive language](#21-growing-primitive-language) | `gp` | planned |
-| 22 | [Semantic search space](#22-semantic-search-space) | `gp`, `records` | planned |
+| 22 | [Semantic search space](#22-semantic-search-space) | `gp`, `records` | shipped |
 | 23 | [Co-evolving cases](#23-co-evolving-cases) | `operators`, `records` | planned |
 | 24 | [Memetic constants](#24-memetic-constants) | `gp`, `strategies` | shipped |
 | 25 | [Streaming and island ecology](#25-streaming-and-island-ecology) | `algorithms` | shipped |
@@ -48,7 +48,7 @@ Shipping an item updates this page and the matching tutorial or
 reference stub. Items 15–20 are the toolbox-shaped holes after
 the first backlog; they are shipped. Items 21–23 compose pieces
 that already shipped (tapes, SlimGP, lexicase, archives, CMA)
-into a longer program-search loop. Items 24–26 are shipped.
+into a longer program-search loop. Items 22 and 24–26 are shipped.
 Still not a second genome family.
 
 !!! note
@@ -695,10 +695,16 @@ geometry, not only as a fitness source. Two concrete pieces:
 `SlimTree` + `mut_slim` already move in output space. This item
 hooks that geometry to the archive and to selection.
 
-**Today.** Semantics exist at evaluation time and are thrown
-away. `GridArchive` takes whatever descriptor the caller
-invented. Lexicase reads `fitness.values` (or `matrix=`), which
-is usually a reduction of the series, not the series.
+**Today.** `semantic_moments`, `semantic_solve_bits`, and
+`semantic_project` turn an `interpret_tapes` pack into a
+behavior vector (moments, lexicase solve bits, or a caller
+PCA / random basis). `add` those descriptors to `GridArchive`,
+`CvtArchive`, or `UnstructuredArchive` — variation stays SlimGP
+or ordinary GP. `semantic_nearest` does cosine or Euclidean
+lookup on the finite / `valid=` mask. `SemanticSurrogate` stores
+last-generation semantics for nearest or linear predict.
+`ind.fitness` is not replaced. `trust_matrix=True` is the same
+row-alignment footgun as lexicase.
 
 **Benefit.** Breeding and keeping happen in the space SlimGP
 already mutates. You keep a zoo of competent specialists
