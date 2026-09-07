@@ -171,6 +171,9 @@ from the original sources.
     longer `IndexError` or `StopIteration`. An unreplaced home
     vacancy clones the leftover emigrant so two demes do not
     share one object.
+26. `sel_best` and `sel_worst` return `[]` when `sel_count <= 0`.
+    A negative count is no longer a Python slice that drops
+    individuals from the other end of the ranked list.
 
 ## Evolution strategies
 
