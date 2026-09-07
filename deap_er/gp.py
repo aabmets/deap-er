@@ -26,7 +26,12 @@ from .private.programming.mutation import (
     mut_shrink,
     mut_uniform,
 )
-from .private.programming.numba.numba_ops import USER_DISPATCH_SIGNATURE, bind_tape, numba_available
+from .private.programming.numba.numba_ops import (
+    USER_DISPATCH_SIGNATURE,
+    bind_tape,
+    numba_available,
+    warmup_numba,
+)
 from .private.programming.numpy.numpy_arith import (
     vabs,
     vadd,
@@ -109,6 +114,7 @@ __all__ = [
     "USER_DISPATCH_SIGNATURE",
     "numba_available",
     "bind_tape",
+    "warmup_numba",
     "vadd",
     "vsub",
     "vmul",

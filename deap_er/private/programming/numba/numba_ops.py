@@ -13,11 +13,21 @@ from typing import Any
 
 import numpy
 
-from ..opcodes import USER_BASE
+from ..columnar import make_column_pset
+from ..numpy.numpy_ops import add_numpy_primitives
+from ..opcodes import USER_BASE, lower_tree
+from ..primitives.primitive_tree import PrimitiveTree
 from ..tape import Tape
+from ..tape_batch import interpret_tapes
 from .numba_compile import build
 
-__all__: list[str] = ["USER_DISPATCH_SIGNATURE", "numba_available", "bind_tape", "reserve"]
+__all__: list[str] = [
+    "USER_DISPATCH_SIGNATURE",
+    "numba_available",
+    "bind_tape",
+    "reserve",
+    "warmup_numba",
+]
 
 USER_DISPATCH_SIGNATURE = (
     "(op: int64, sp: int64, stack: float64[:, ::1], columns: float64[:, ::1], "
@@ -170,3 +180,26 @@ def bind_tape(tape: Tape, dispatch: Any = None) -> Callable[..., numpy.ndarray]:
         return stack[0].copy()
 
     return call
+
+
+def warmup_numba(*, parallel: bool = False, dispatch: Any = None) -> None:
+    """Compile the Numba tape interpreter for this process.
+
+    Runs a trivial column-load tape so the interpreter and the serial
+    batch kernel are specialized before the first real evaluation.
+
+    Args:
+        parallel: If True, also specialize the ``prange`` batch kernel.
+        dispatch: Consumer kernel to specialize. ``None`` uses the idle
+            dispatcher.
+
+    Raises:
+        ImportError: If the ``numba`` extra is not installed.
+    """
+    pset = make_column_pset(["first"])
+    add_numpy_primitives(pset)
+    tape = lower_tree(PrimitiveTree([pset.mapping["first"]]), pset)
+    matrix = numpy.zeros((2, 1), dtype=numpy.float64)
+    interpret_tapes([tape], matrix, backend="numba", dispatch=dispatch)
+    if parallel:
+        interpret_tapes([tape], matrix, backend="numba", dispatch=dispatch, parallel=True)
