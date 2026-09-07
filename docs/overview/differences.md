@@ -450,6 +450,10 @@ evaluation is in the
    fits the bit string. The top-level schema is included, so a
    64-bit all-ones individual with order $8$ scores $256$.
 5. Kotanchek uses the published denominator $1.2$, not $3.2$.
+6. Royal Road R1 (and R2, which sums R1) decodes each block with
+   `int(bool(bit))` before the base-2 parse. Boolean bits from
+   `mut_flip_bit` no longer become `"TrueTrue"` and raise
+   `ValueError`.
 
 [deap-24]: https://github.com/DEAP/deap/issues/24
 [deap-121]: https://github.com/DEAP/deap/issues/121
