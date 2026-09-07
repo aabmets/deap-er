@@ -39,17 +39,18 @@ def _pack(*columns):
 
 
 def test_appended_rows_match_a_one_shot_full_matrix():
-    prefix = _pack(numpy.arange(8.0), numpy.arange(8.0) * 2.0)
-    suffix = _pack(numpy.arange(8.0, 12.0), numpy.arange(8.0, 12.0) * 2.0)
+    prefix = _pack(numpy.arange(8.0))
+    suffix = _pack(numpy.arange(8.0, 12.0))
     grown = numpy.vstack([prefix, suffix])
-    one_shot = numpy.ascontiguousarray(numpy.concatenate([prefix, suffix], axis=0))
-    tape = _vadd_tape()
+    tape = _rolling_mean_tape(3)
 
-    numpy.testing.assert_allclose(
-        gp.interpret_tapes([tape], grown),
-        gp.interpret_tapes([tape], one_shot),
-        equal_nan=True,
-    )
+    actual = gp.interpret_tapes([tape], grown)
+    expected = gp.rolling_mean(grown[:, 0], 3)
+
+    numpy.testing.assert_allclose(actual[0], expected, equal_nan=True)
+    prefix_rows = prefix.shape[0]
+    numpy.testing.assert_allclose(actual[0, :prefix_rows], expected[:prefix_rows], equal_nan=True)
+    numpy.testing.assert_allclose(actual[0, prefix_rows:], expected[prefix_rows:], equal_nan=True)
 
 
 def test_suffix_without_history_misses_the_rolling_oracle():

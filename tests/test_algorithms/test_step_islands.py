@@ -133,6 +133,7 @@ def test_step_islands_keeps_fitness_when_eval_keys_match(ind_cls):
     second = _individuals(ind_cls, [8, 9])
     for ind in first + second:
         ind.fitness.values = _evaluate(ind)
+    first_ids = {id(ind) for ind in first}
     keep = _toolbox(list, tools.sel_best)
 
     tools.step_islands(
@@ -141,7 +142,29 @@ def test_step_islands_keeps_fitness_when_eval_keys_match(ind_cls):
         eval_keys=("shared", "shared"),
     )
 
+    arrivals = [ind for ind in first if id(ind) not in first_ids]
+    assert arrivals
     assert all(ind.fitness.is_valid() for ind in first + second)
+    assert all(ind.fitness.values == _evaluate(ind) for ind in arrivals)
+
+
+def test_step_islands_keeps_fitness_when_eval_keys_omitted(ind_cls):
+    first = _individuals(ind_cls, [1, 2])
+    second = _individuals(ind_cls, [8, 9])
+    for ind in first + second:
+        ind.fitness.values = _evaluate(ind)
+    first_ids = {id(ind) for ind in first}
+    keep = _toolbox(list, tools.sel_best)
+
+    tools.step_islands(
+        [(keep, first), (keep, second)],
+        migrate=lambda pops: tools.mig_ring(pops, 1, tools.sel_best),
+    )
+
+    arrivals = [ind for ind in first if id(ind) not in first_ids]
+    assert arrivals
+    assert all(ind.fitness.is_valid() for ind in first + second)
+    assert all(ind.fitness.values == _evaluate(ind) for ind in arrivals)
 
 
 def test_step_islands_invalidates_immigrants_when_eval_keys_differ(ind_cls):
