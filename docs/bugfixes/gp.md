@@ -177,8 +177,8 @@ the last completed fragment.
 `add(ARG0)` stringified as `ARG0` and compiled as the identity.
 Same tokenizer as upstream DEAP.
 
-**Fix.** Planned: reject a token that arrives after the root is
-complete, and reject a stream that still owes argument types.
+**Fix.** Reject a token that arrives after the root is complete,
+and reject a stream that still owes argument types.
 
 **Validators.**
 

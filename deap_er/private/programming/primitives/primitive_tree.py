@@ -178,9 +178,11 @@ class PrimitiveTree(list[Any]):
 
         Raises:
             TypeError: If a token is not a registered primitive
-                and is not a Python literal, or if a primitive or
-                terminal type does not match the expected type.
-                A ``Window`` slot accepts an ``int`` literal.
+                and is not a Python literal, if a primitive or
+                terminal type does not match the expected type, if
+                a token arrives after the tree is complete, or if
+                the stream still owes argument types. A ``Window``
+                slot accepts an ``int`` literal.
         """
         tokens = re.split("[ \t\n\r\f\v(),]", string)
         expr = []
@@ -188,6 +190,8 @@ class PrimitiveTree(list[Any]):
         for token in tokens:
             if token == "":
                 continue
+            if expr and not ret_types:
+                raise TypeError(f"Unexpected extra token after a complete expression: {token}.")
             ret_type = ret_types.popleft() if ret_types else None
             if token in prim_set.mapping:
                 primitive = primitive_from_token(token, prim_set, ret_type)
@@ -196,6 +200,8 @@ class PrimitiveTree(list[Any]):
                     ret_types.extendleft(reversed(primitive.args))
                 continue
             expr.append(terminal_from_token(token, ret_type))
+        if ret_types:
+            raise TypeError("Expression is incomplete; missing arguments.")
         return cls(expr)
 
     def search_subtree(self, begin: int) -> slice:

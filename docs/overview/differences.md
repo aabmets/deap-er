@@ -345,6 +345,10 @@ The following is extra.
     `Window` slot. `str(tree)` writes window lengths as integers;
     the opcode backend no longer `TypeError`s when compiling that
     text, and a stringified windowed tree round-trips.
+26. `PrimitiveTree.from_string` rejects extra tokens and incomplete
+    calls. `add(ARG0, 2, 3)` and `add(ARG0)` no longer stringify
+    as a leftover leaf and compile as the constant $3$ or the
+    identity.
 
 The columnar contract is in the
 [columnar GP tutorial](../tutorials/columnar_gp.md). Shared-array
