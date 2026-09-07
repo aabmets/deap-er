@@ -202,6 +202,18 @@ def test_case_errors_output_feeds_lexicase():
     assert bad_errors == (pytest.approx(1.0), pytest.approx(1.0))
 
 
+def test_case_intervals_normalizes_explicit_pairs():
+    assert tools.case_intervals([(0, 2), (2, 4)], 4) == [(0, 2), (2, 4)]
+
+
+def test_case_valid_mask_intersects_finite_and_caller_mask():
+    predicted = numpy.array([1.0, NAN, 3.0])
+    target = numpy.zeros(3)
+    valid = numpy.array([False, True, True])
+    mask = tools.case_valid_mask(predicted, target, valid)
+    assert mask.tolist() == [False, False, True]
+
+
 def test_case_errors_fits_lexicase_fitness_vectors():
     _setup()
     try:
