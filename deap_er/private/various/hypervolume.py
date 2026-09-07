@@ -18,7 +18,7 @@ import numpy
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 
-__all__: list[str] = ["minimized_points", "has_fitness", "hypervolume"]
+__all__: list[str] = ["hypervolume"]
 
 
 def minimized_points(population: list[Any]) -> numpy.ndarray:

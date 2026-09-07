@@ -11,6 +11,7 @@
 import numpy
 import pytest
 from deap_er import gp
+from deap_er.private.programming.numpy.numpy_ops import infer_fill
 
 NAN = numpy.nan
 
@@ -99,9 +100,9 @@ def test_infer_fill_reads_back_the_registered_fill():
     gp.add_numpy_primitives(default)
     gp.add_numpy_primitives(custom, fill=-2.5)
 
-    assert gp.infer_fill(default) == 1.0
-    assert gp.infer_fill(custom) == -2.5
-    assert gp.infer_fill(gp.make_column_pset(["value"])) == 1.0
+    assert infer_fill(default) == 1.0
+    assert infer_fill(custom) == -2.5
+    assert infer_fill(gp.make_column_pset(["value"])) == 1.0
 
 
 def test_mask_terminals_let_generation_close_a_condition_branch():

@@ -30,7 +30,6 @@ from .private.programming.numba.numba_ops import (
     USER_DISPATCH_SIGNATURE,
     bind_tape,
     numba_available,
-    warmup_numba,
 )
 from .private.programming.numpy.numpy_arith import (
     vabs,
@@ -55,7 +54,7 @@ from .private.programming.numpy.numpy_logic import (
     vor,
     vwhere,
 )
-from .private.programming.numpy.numpy_ops import add_numpy_primitives, infer_fill
+from .private.programming.numpy.numpy_ops import add_numpy_primitives
 from .private.programming.opcodes import (
     BUILTIN_OPCODES,
     USER_BASE,
@@ -114,7 +113,6 @@ __all__ = [
     "USER_DISPATCH_SIGNATURE",
     "numba_available",
     "bind_tape",
-    "warmup_numba",
     "vadd",
     "vsub",
     "vmul",
@@ -134,7 +132,6 @@ __all__ = [
     "vor",
     "vnot",
     "vwhere",
-    "infer_fill",
     "add_numpy_primitives",
     "Opcode",
     "USER_BASE",
