@@ -31,7 +31,10 @@ def mig_ring(
 
     From each population, ``selection`` picks ``mig_count`` emigrants.
     Those individuals replace members of the destination population.
-    Populations are modified in place.
+    When a source sends more emigrants than the destination has
+    vacancies, or a deme is smaller than ``mig_count``, only as
+    many individuals as both sides can hold are moved. Deme
+    lengths are unchanged. Populations are modified in place.
 
     Args:
         populations: Populations to migrate between.
@@ -70,10 +73,15 @@ def mig_ring(
                 None,
             )
             if indx is None:
-                indx = next(j for j in range(len(populations[from_deme])) if j not in taken)
+                indx = next(
+                    (j for j in range(len(populations[from_deme])) if j not in taken),
+                    None,
+                )
+                if indx is None:
+                    break
             taken.add(indx)
             vacancies[from_deme].append(indx)
 
     for from_deme, to_deme in enumerate(mig_indices):
-        for i, indx in enumerate(vacancies[to_deme]):
-            populations[to_deme][indx] = emigrants[from_deme][i]
+        for indx, immigrant in zip(vacancies[to_deme], emigrants[from_deme], strict=False):
+            populations[to_deme][indx] = immigrant
