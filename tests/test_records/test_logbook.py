@@ -53,6 +53,27 @@ def test_delitem_single_index():
     assert [entry["gen"] for entry in logbook] == [0, 2, 3, 4]
 
 
+def test_pop_without_generation_removes_positional_chapter_row():
+    logbook = Logbook()
+    logbook.record(nevals=10, size={"avg": 1.0})
+    logbook.record(nevals=20, size={"avg": 2.0})
+    assert logbook.pop(0)["nevals"] == 10
+    assert [entry["nevals"] for entry in logbook] == [20]
+    assert [entry["avg"] for entry in logbook.chapters["size"]] == [2.0]
+    data = [line.split("\t") for line in str(logbook).splitlines() if "20" in line]
+    assert data
+    assert any(cell.strip() == "2" for cell in data[0])
+
+
+def test_pop_without_generation_keeps_shorter_chapter():
+    logbook = Logbook()
+    logbook.record(nevals=10)
+    logbook.record(nevals=20, size={"avg": 2.0})
+    logbook.pop(0)
+    assert [entry["nevals"] for entry in logbook] == [20]
+    assert [entry["avg"] for entry in logbook.chapters["size"]] == [2.0]
+
+
 def test_pop_removes_matching_chapter_row():
     logbook = Logbook()
     logbook.record(gen=0, size={"avg": 10})

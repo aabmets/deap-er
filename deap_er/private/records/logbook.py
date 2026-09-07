@@ -88,7 +88,8 @@ class Logbook(list[dict[str, Any]]):
 
         The stream cursor is moved back when the removed entry has
         already been streamed. The chapter row that shares ``gen``
-        is removed from every chapter.
+        is removed from every chapter. A row without ``gen`` is
+        paired by index when the chapter is the same length.
 
         Args:
             index: Position of the entry to remove.
@@ -126,7 +127,9 @@ class Logbook(list[dict[str, Any]]):
         """Return the chapter row that shares ``generation``.
 
         When several rows share a generation, the match is the
-        occurrence that lines up with ``parent_index``.
+        occurrence that lines up with ``parent_index``. When
+        ``generation`` is missing and the chapter is the same
+        length as this logbook, the match is positional.
 
         Args:
             chapter: Nested logbook to search.
@@ -137,6 +140,8 @@ class Logbook(list[dict[str, Any]]):
             Matching chapter index, or None.
         """
         if generation is None:
+            if 0 <= parent_index < len(chapter) == len(self):
+                return parent_index
             return None
         remaining = sum(1 for entry in self[parent_index:] if entry.get("gen") == generation)
         matches = [i for i, entry in enumerate(chapter) if entry.get("gen") == generation]

@@ -208,6 +208,25 @@ non-finite, matching MAP-Elites `add`.
 
 ---
 
+## `pop` without `gen` left chapter rows behind
+
+`pop` and `__delitem__` pair chapter rows by `gen`. A record
+written without that key returned no match, so the chapter kept
+every row. Stream pairing already falls back to position when
+lengths match, so `str` then blanked the remaining cells.
+
+**Fix.** When `gen` is missing and the chapter is the same length
+as the parent, delete (and render) the chapter row at the same
+index. A shorter chapter — a generation recorded without that
+chapter — is still left alone.
+
+**Validators.**
+
+- `tests/test_records/test_logbook.py::test_pop_without_generation_removes_positional_chapter_row`
+- `tests/test_records/test_logbook.py::test_pop_without_generation_keeps_shorter_chapter`
+
+---
+
 ## `MultiStatistics.compile` exhausted a generator
 
 Each chapter iterated `data`. A one-shot iterable (generator,
