@@ -7,7 +7,7 @@ changed. Same toolbox model. Counted from the sections below:
 
 - **18** still-open [DEAP](https://github.com/DEAP/deap) issues
   [implemented](../bugfixes/deap_fixes.md) (some older than a decade)
-- **36** correctness bugs fixed — [operators](../bugfixes/operators.md),
+- **37** correctness bugs fixed — [operators](../bugfixes/operators.md),
   [GP](../bugfixes/gp.md),
   [CMA](../bugfixes/strategies.md),
   [records](../bugfixes/records.md),
@@ -323,6 +323,9 @@ evaluation is in the
 
 1. `creator.create` keeps the `typecode` of an `array.array`
    instance base. It no longer forces `"b"`.
+2. `Fitness.dominates` returns `False` when the other fitness is
+   invalid or the compared objective counts differ. An unevaluated
+   opponent no longer raises `ValueError` or `IndexError`.
 
 ## Constraints and utilities
 

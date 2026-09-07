@@ -125,11 +125,14 @@ class Fitness:
                 objectives are used when omitted.
 
         Returns:
-            True if ``self`` dominates ``other``.
+            True if ``self`` dominates ``other``. False if either
+            fitness is invalid or the compared lengths differ.
         """
         own = self.wvalues if slc is None else self.wvalues[slc]
         theirs = other.wvalues if slc is None else other.wvalues[slc]
         n = len(own)
+        if n == 0 or n != len(theirs):
+            return False
         if n == 3:
             return _dominates_triple(own, theirs)
         if n == 2:
