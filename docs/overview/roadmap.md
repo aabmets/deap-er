@@ -33,7 +33,7 @@ surface.
 | 14 | [Linear-time duplicate count](#14-linear-time-duplicate-count) | `tools` | shipped |
 | 15 | [Heterogeneous crossover](#15-heterogeneous-crossover) | `operators` | shipped |
 | 16 | [Bounded Gaussian mutation](#16-bounded-gaussian-mutation) | `operators` | shipped |
-| 17 | [Differential evolution operators](#17-differential-evolution-operators) | `operators` | planned |
+| 17 | [Differential evolution operators](#17-differential-evolution-operators) | `operators` | shipped |
 | 18 | [Constraint-dominance selection](#18-constraint-dominance-selection) | `operators` | planned |
 | 19 | [Sep-CMA](#19-sep-cma) | `strategies` | shipped |
 | 20 | [CVT / unstructured MAP-Elites](#20-cvt-unstructured-map-elites) | `records` | planned |
@@ -513,9 +513,13 @@ on a binomial subset of genes (rate `CR`, at least one gene
 forced), and let the caller keep $y$ when it is better. Register
 them like any other variation operator.
 
-**Today.** That loop lives in
+**Today.** `mut_de` writes a DE/rand/1/bin trial in place:
+$y_i = a_i + F\,(b_i - c_i)$ on a binomial subset of genes
+(rate `cx_prob`, at least one gene forced). The caller supplies
+donors $a$, $b$, $c$ and keeps $y$ when it is better. Optional
+`low` / `up` clamp written genes. There is no `ea_de`. PSO stays
+an example. The basic recipe is in
 [the DE examples](../examples/genetic_algorithms/diff_evo.md).
-PSO stays an example. There is no `ea_de`.
 
 **Benefit.** DE is the algorithm that is still a recipe. Operators
 close that without a new algorithm family.
