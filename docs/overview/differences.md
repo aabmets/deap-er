@@ -141,9 +141,10 @@ The following is extra.
    [weighted primitive sampling][deap-383]. Equal weights keep the
    previous RNG stream. The same weights apply to node replacement
    and insert mutation. Terminals stay uniform.
-3. A zero-arity callable terminal [formats as `name()`][deap-644], so
-   the default `eval` compile path calls it instead of looking up the
-   function object.
+3. A zero-arity callable terminal can [format as `name()`][deap-644]
+   when `add_terminal(..., call_zero=True)`, so the default `eval`
+   compile path calls it instead of looking up the function object.
+   Action terminals (Santa Fe ant) stay uncalled names by default.
 4. `tree_to_infix` is an [infix pretty-printer][deap-24] for logs and
    papers. It is display-only.
 5. `make_column_pset(names)` builds a strongly typed set with one

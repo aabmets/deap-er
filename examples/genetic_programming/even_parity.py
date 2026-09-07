@@ -53,10 +53,12 @@ def setup():
     toolbox.register("population", tools.init_repeat, list, toolbox.individual)
     toolbox.register("compile", gp.compile_tree, prim_set=pset)
     toolbox.register("evaluate", evaluate, toolbox=toolbox)
-    toolbox.register("select", tools.sel_tournament, contestants=3)
+    toolbox.register("select", tools.sel_tournament, contestants=7)
     toolbox.register("mate", gp.cx_one_point)
     toolbox.register("expr_mut", gp.gen_grow, min_depth=0, max_depth=2)
     toolbox.register("mutate", gp.mut_uniform, expr=toolbox.expr_mut, prim_set=pset)
+    toolbox.decorate("mate", gp.static_limit(limiter=operator.attrgetter("height"), max_value=17))
+    toolbox.decorate("mutate", gp.static_limit(limiter=operator.attrgetter("height"), max_value=17))
 
     stats = tools.Statistics(lambda ind: ind.fitness.values)
     stats.register("avg", numpy.mean)
@@ -83,7 +85,7 @@ def main():
         "population": pop,
         "generations": 40,
         "cx_prob": 0.5,
-        "mut_prob": 0.1,
+        "mut_prob": 0.2,
         "hof": hof,
         "stats": stats,
         "verbose": True,

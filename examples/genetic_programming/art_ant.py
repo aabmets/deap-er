@@ -1,5 +1,6 @@
 import copy
 from functools import partial
+from pathlib import Path
 
 import numpy
 from deap_er import Fitness, Toolbox, creator, gp, tools
@@ -103,7 +104,8 @@ def evaluate(individual, ant, prim_set):
 
 def setup():
     ant = AntSimulator(max_moves=600)
-    with open("art_ant_trail.txt") as trail_file:
+    trail_path = Path(__file__).with_name("art_ant_trail.txt")
+    with trail_path.open() as trail_file:
         ant.parse_matrix(trail_file)
 
     pset = gp.PrimitiveSet("MAIN", 0)

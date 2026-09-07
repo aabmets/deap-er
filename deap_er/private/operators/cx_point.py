@@ -28,6 +28,18 @@ __all__: list[str] = [
 ]
 
 
+def _segment(individual: Individual, slc: slice, copy: bool = False) -> Individual:
+    """Return a detached slice assignable onto the destination container.
+
+    ``array.array`` rejects list payloads on slice assignment. Keep the
+    native slice (or its ``copy``) instead of coercing to ``list``.
+    """
+    piece = individual[slc]
+    if copy or hasattr(piece, "copy"):
+        return piece.copy()
+    return piece
+
+
 def slicer(
     ind1: Individual, ind2: Individual, start: int, stop: int | None = None, copy: bool = False
 ) -> Mates:
@@ -55,8 +67,8 @@ def slicer(
         s1 = slice(start, stop)
         s2 = slice(start, stop)
 
-    temp_1 = ind1[s1].copy() if copy or hasattr(ind1[s1], "copy") else list(ind1[s1])
-    temp_2 = ind2[s2].copy() if copy or hasattr(ind2[s2], "copy") else list(ind2[s2])
+    temp_1 = _segment(ind1, s1, copy)
+    temp_2 = _segment(ind2, s2, copy)
     ind1[s1] = temp_2
     ind2[s2] = temp_1
     return ind1, ind2
@@ -129,7 +141,9 @@ def cx_messy_one_point(ind1: Individual, ind2: Individual) -> Mates:
     """
     cxp1 = rng.randint(0, len(ind1))
     cxp2 = rng.randint(0, len(ind2))
-    ind1[cxp1:], ind2[cxp2:] = list(ind2[cxp2:]), list(ind1[cxp1:])
+    tail1 = _segment(ind1, slice(cxp1, None))
+    tail2 = _segment(ind2, slice(cxp2, None))
+    ind1[cxp1:], ind2[cxp2:] = tail2, tail1
     return ind1, ind2
 
 
