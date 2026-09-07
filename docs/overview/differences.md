@@ -165,6 +165,10 @@ from the original sources.
     (the default) is a guard repair path only — it does not
     overwrite a healthy exam. Chronological splits stay on the
     caller.
+25. `mig_ring` pairs source emigrants with dest vacancies by
+    length, and stops claiming slots once a deme is full. Unequal
+    island sizes, or `sel_random` with `k` larger than a deme, no
+    longer `IndexError` or `StopIteration`.
 
 ## Evolution strategies
 
