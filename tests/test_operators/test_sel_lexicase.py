@@ -158,3 +158,70 @@ def test_lexicase_float_case_index_raises_index_error(multi_obj, make):
     bad_cases: Any = [1.0]
     with pytest.raises(IndexError, match="case index"):
         tools.sel_lexicase(population, 1, cases=bad_cases)
+
+
+def test_fitness_case_matrix_round_trip(multi_obj, make):
+    population = [
+        make(multi_obj, [0], (1.0, 2.0)),
+        make(multi_obj, [1], (3.0, 4.0)),
+    ]
+
+    matrix = tools.fitness_case_matrix(population)
+
+    assert matrix.shape == (2, 2)
+    assert matrix[0, 0] == 1.0
+    assert matrix[1, 1] == 4.0
+
+
+def test_lexicase_matrix_matches_default_path(multi_obj, make):
+    values = [(10.0, 0.0), (9.0, 50.0), (8.0, 100.0), (7.0, 150.0)]
+    population = [make(multi_obj, [i], value) for i, value in enumerate(values)]
+    matrix = tools.fitness_case_matrix(population)
+
+    for seed in range(20):
+        tools.rng.seed(seed)
+        default = tools.sel_lexicase(population, 8)
+        tools.rng.seed(seed)
+        packed = tools.sel_lexicase(population, 8, matrix=matrix)
+        assert default == packed
+
+
+def test_epsilon_lexicase_matrix_matches_default_path(multi_obj, make):
+    values = [(10.0, 0.0), (9.0, 50.0), (8.0, 100.0), (7.0, 150.0)]
+    population = [make(multi_obj, [i], value) for i, value in enumerate(values)]
+    matrix = tools.fitness_case_matrix(population)
+
+    for seed in range(20):
+        tools.rng.seed(seed)
+        default = tools.sel_epsilon_lexicase(population, 8)
+        tools.rng.seed(seed)
+        packed = tools.sel_epsilon_lexicase(population, 8, matrix=matrix)
+        assert default == packed
+
+
+def test_lexicase_matrix_wrong_shape_raises(multi_obj, make):
+    population = [make(multi_obj, [0], (1.0, 2.0))]
+
+    with pytest.raises(ValueError, match="shape"):
+        tools.sel_lexicase(population, 1, matrix=numpy.zeros((1, 3)))
+
+
+def test_lexicase_matrix_mismatch_raises(multi_obj, make):
+    population = [make(multi_obj, [0], (1.0, 2.0))]
+    matrix = numpy.array([[9.0, 8.0]])
+
+    with pytest.raises(ValueError, match="does not match"):
+        tools.sel_lexicase(population, 1, matrix=matrix)
+
+
+def test_informed_cases_matrix_matches_default(error_cases, make):
+    values = [(0.0, 1.0, 1.0, 1.0), (1.0, 0.0, 1.0, 1.0), (1.0, 1.0, 0.0, 1.0)]
+    population = [make(error_cases, [i], value) for i, value in enumerate(values)]
+    matrix = tools.fitness_case_matrix(population)
+
+    for seed in range(20):
+        tools.rng.seed(seed)
+        default = tools.sample_informed_cases(population, 2)
+        tools.rng.seed(seed)
+        packed = tools.sample_informed_cases(population, 2, matrix=matrix)
+        assert default == packed
