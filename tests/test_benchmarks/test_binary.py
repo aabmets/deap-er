@@ -49,7 +49,9 @@ def test_royal_road_decodes_boolean_bits_like_integers():
     mixed_bool: Any = [True, True, False, False, True, True, True, True]
     assert tools.bm_royal_road_1(ones_bool, 4) == tools.bm_royal_road_1(ones_int, 4)
     assert tools.bm_royal_road_1(mixed_bool, 4) == tools.bm_royal_road_1(mixed_int, 4)
-    assert tools.bm_royal_road_2([True] * 16, 4) == tools.bm_royal_road_2([1] * 16, 4)
+    r2_bool: Any = [True] * 16
+    r2_int: Any = [1] * 16
+    assert tools.bm_royal_road_2(r2_bool, 4) == tools.bm_royal_road_2(r2_int, 4)
 
 
 def test_chuang_f1_uses_trap_or_inverse_from_last_bit():
