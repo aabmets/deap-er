@@ -216,3 +216,20 @@ unchanged when `size < 2`.
 
 **Validator.**
 `tests/test_operators/test_cx_permutation.py::test_cx_ordered_length_one_is_noop`
+
+---
+
+## NumPy integer bounds crashed `broadcast_param`
+
+`isinstance(var, int | float)` rejects `numpy.int64`. Per-gene
+operators then called `len()` on the scalar and raised `TypeError`.
+`numpy.float64` already passed because it is a `float` subclass.
+DEAP treats a non-sequence as a scalar, so `mutUniformInt(ind, 0,
+np.int64(5), …)` works there.
+
+**Fix.** Treat `numbers.Integral` and `numbers.Real` as scalars,
+including NumPy integer and float scalars. Sequences, including
+`ndarray`, still go through the length check.
+
+**Validator.**
+`tests/test_operators/test_mut_various.py::test_mut_uniform_int_accepts_numpy_integer_bounds`
