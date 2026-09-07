@@ -21,7 +21,7 @@ surface.
 | 2 | [Causal time-series unaries](#2-causal-time-series-unaries) | `gp` | shipped |
 | 3 | [Incremental window kernels](#3-incremental-window-kernels) | `gp` (same API) | shipped |
 | 4 | [Batch tape evaluation](#4-batch-tape-evaluation) | `gp` | shipped |
-| 5 | [Down-sampled and informed lexicase](#5-down-sampled-and-informed-lexicase) | `operators` | planned |
+| 5 | [Down-sampled and informed lexicase](#5-down-sampled-and-informed-lexicase) | `operators` | shipped |
 | 6 | [Case-structured evaluation helper](#6-case-structured-evaluation-helper) | utilities + docs | planned |
 | 7 | [Non-bloating semantic variation](#7-non-bloating-semantic-variation) | `gp` | planned |
 | 8 | [Quality-diversity archive](#8-quality-diversity-archive) | `records` | planned |
@@ -168,20 +168,18 @@ Related: [Multiprocessing](../tutorials/multiprocessing.md).
 
 ## 5. Down-sampled and informed lexicase
 
-**What.** New selectors next to `sel_lexicase` and
-`sel_epsilon_lexicase`:
+**What.** Optional `cases=` on `sel_lexicase` and
+`sel_epsilon_lexicase` so one selector call filters on an explicit
+subset of case indices. Informed sampling is a **case-subset
+builder** used *by* lexicase, not a third ad-hoc selector.
+`sel_lexicase` defaults do not change.
 
-- `sel_lexicase_downsampled(individuals, sel_count, cases=…, rng=…)`
-  — evaluate on an explicit subset of case indices per generation
-- an informed variant that builds the subset from population
-  statistics so synonymous cases are not over-sampled (Boldi et al.)
-
-Informed sampling is a **case-subset builder** used *by* lexicase,
-not a third ad-hoc selector. `sel_lexicase` defaults do not change.
-
-**Today.** Lexicase and $\varepsilon$-lexicase (including
-MAD-estimated slack) are implemented as a Python loop over every
-case. There is no down-sampling and no informed subset.
+**Today.** `sel_lexicase` and `sel_epsilon_lexicase` accept
+`cases=` (keyword-only). When omitted, every fitness index is used.
+`sample_informed_cases` builds a subset by farthest-first traversal
+of Hamming distances between case solve vectors (Boldi et al.), so
+synonymous cases are not over-sampled. A case is solved when its
+value is $0$. Evaluation stays on the caller.
 
 **Benefit.** When fitness is a vector of cases — folds, series,
 regimes, or per-point residuals — full lexicase is

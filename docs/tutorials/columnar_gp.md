@@ -227,6 +227,21 @@ def evaluate_batch(individuals):
     return [score(predicted[i], target) for i in index]
 ```
 
+If `score` returns a vector of case errors, lexicase can filter on a
+subset rebuilt each generation. Do not freeze `cases=` on the
+toolbox. A case is solved when its value is exactly $0$. Continuous
+residuals and maximize-only scores need an explicit `solved`
+predicate — without one, every case looks unsolved and the subset
+is a random fill.
+
+```python
+def select(individuals, sel_count):
+    cases = tools.sample_informed_cases(individuals, 20)
+    return tools.sel_lexicase(individuals, sel_count, cases=cases)
+
+toolbox.register("select", select)
+```
+
 `parallel=True` evaluates those tapes on several Numba threads. Each
 thread keeps a workspace of shape `(depth + 1, n_rows)`, so a long
 book costs `n_threads` full-length stacks. A consumer `dispatch`

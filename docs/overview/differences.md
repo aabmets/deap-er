@@ -9,7 +9,7 @@ changed. Same toolbox model. Counted from the sections below:
   implemented (some older than a decade)
 - **36** correctness bugs fixed — operators, GP, CMA, records,
   checkpoints, and published benchmarks
-- **25** capabilities DEAP does not have, including boxed CMA,
+- **26** capabilities DEAP does not have, including boxed CMA,
   mixed-gene mutation, logbook JSON, and
   [columnar GP](../tutorials/columnar_gp.md)
 
@@ -101,6 +101,11 @@ from the original sources.
 14. `cx_one_point`, `cx_two_point`, and `mut_shuffle_indexes` no-op
     when a parent is shorter than two genes, so a length-1 individual
     no longer hits an empty `randint` interval.
+15. `sel_lexicase` and `sel_epsilon_lexicase` accept `cases=` to
+    filter on a per-generation subset of fitness indices. Defaults
+    still use every case. `sample_informed_cases` builds that subset
+    by farthest-first traversal of Hamming distances between case
+    solve vectors, so synonymous cases are not over-sampled.
 
 ## Evolution strategies
 
