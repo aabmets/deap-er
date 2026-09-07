@@ -48,6 +48,7 @@ from .private.operators.sel_age_moea_2 import SelAGE2WithMemory, sel_age_moea_2
 from .private.operators.sel_helpers import assign_crowding_dist, uniform_reference_points
 from .private.operators.sel_lexicase import sel_epsilon_lexicase, sel_lexicase
 from .private.operators.sel_lexicase_matrix import fitness_case_matrix
+from .private.operators.sel_team import sel_team
 from .private.operators.sel_moead import SelMOEADWithMemory, sel_moead
 from .private.operators.sel_moead_helpers import (
     moead_neighborhood,
@@ -108,6 +109,7 @@ __all__: list[str] = [
     "sample_informed_cases",
     "sel_epsilon_lexicase",
     "sel_lexicase",
+    "sel_team",
     "constraint_dominates",
     "sel_nsga_2",
     "SelNSGA3WithMemory",
