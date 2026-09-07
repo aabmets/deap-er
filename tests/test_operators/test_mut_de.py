@@ -106,6 +106,20 @@ def test_mut_de_rejects_half_bounds():
         )
 
 
+def test_mut_de_rejects_short_bound_sequence():
+    with pytest.raises(ValueError, match="low"):
+        tools.mut_de(
+            _ind(0.0, 0.0),
+            _ind(1.0, 1.0),
+            _ind(2.0, 2.0),
+            _ind(0.0, 0.0),
+            1.0,
+            1.0,
+            low=[0.0],
+            up=1.0,
+        )
+
+
 def test_mut_de_clamps_written_genes():
     (trial,) = tools.mut_de(
         _ind(10.0, -5.0), _ind(8.0, 8.0), _ind(4.0, 4.0), _ind(0.0, 0.0), 1.0, 1.0, low=0.0, up=1.0
