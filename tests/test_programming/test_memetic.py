@@ -190,12 +190,17 @@ def test_tune_ephemerals_no_op_without_numeric_leaves(ind_cls):
     assert tree.fitness.is_valid()
 
 
-def test_tune_ephemerals_rejects_dim_mismatch_and_bad_budget(ind_cls):
+def test_tune_ephemerals_rejects_dim_mismatch(ind_cls):
     pset = _float_pset("MEMETIC_ERR")
     tree = _two_leaf_tree(ind_cls, pset)
     strategy = tools.Strategy([0.0, 0.0], 0.1)
     with pytest.raises(ValueError, match="strategy.dim"):
         gp.tune_ephemerals(tree, strategy, lambda _ind: (0.0,), n_gen=1)
+
+
+def test_tune_ephemerals_rejects_bad_budget(ind_cls):
+    pset = _float_pset("MEMETIC_N_GEN")
+    tree = _two_leaf_tree(ind_cls, pset)
     with pytest.raises(ValueError, match="n_gen"):
         gp.tune_ephemerals(tree, tools.Strategy([0.0], 0.1), lambda _ind: (0.0,), n_gen=0)
 
