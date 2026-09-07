@@ -35,6 +35,44 @@ from .mo_update import (
 __all__ = ["StrategyMultiObjective"]
 
 
+def _raw(parent: Individual, sigma: float, big_a: numpy.ndarray, step: numpy.ndarray):
+    return numpy.asarray(parent + sigma * numpy.dot(big_a, step), dtype=float)
+
+
+def _front(parents: list[Individual]) -> list[Individual]:
+    if all(ind.fitness.is_valid() for ind in parents):
+        return sort_non_dominated(parents, len(parents))[0]
+    return parents
+
+
+def _resample_offspring(
+    strategy: Any, ind_init: Callable[..., Individual], arz: numpy.ndarray, one_each: bool
+) -> list[Individual]:
+    n_dom: list[Individual] = [] if one_each else _front(strategy.parents)
+    individuals = []
+    for i in range(strategy.lamb):
+        p_idx = i if one_each else n_dom[rng.integers(0, len(n_dom))].ps_[1]
+        raw = _raw(strategy.parents[p_idx], strategy.sigmas[p_idx], strategy.big_a[p_idx], arz[i])
+        init = ind_init(
+            apply_box_bounds(
+                raw,
+                strategy.low,
+                strategy.up,
+                "resample",
+                strategy.resample_limit,
+                lambda p_idx=p_idx: _raw(
+                    strategy.parents[p_idx],
+                    strategy.sigmas[p_idx],
+                    strategy.big_a[p_idx],
+                    rng.standard_normal(strategy.dim),
+                ),
+            )
+        )
+        init.ps_ = "o", p_idx
+        individuals.append(init)
+    return individuals
+
+
 class StrategyMultiObjective:
     """Multi-objective Covariance Matrix Adaptation evolution strategy.
 
@@ -183,49 +221,15 @@ class StrategyMultiObjective:
         arz = rng.standard_normal((self.lamb, self.dim))
         for i, p in enumerate(self.parents):
             p.ps_ = "p", i
-
-        def _raw(parent: Individual, sigma: float, big_a: numpy.ndarray, step: numpy.ndarray):
-            return numpy.asarray(parent + sigma * numpy.dot(big_a, step), dtype=float)
-
-        def _front() -> list[Individual]:
-            if all(ind.fitness.is_valid() for ind in self.parents):
-                return sort_non_dominated(self.parents, len(self.parents))[0]
-            return self.parents
-
         if not self.parents:
             return []
-
         one_each = self.lamb == self.mu and len(self.parents) >= self.lamb
-        resample = self.bound_mode == "resample" and (self.low is not None or self.up is not None)
-        if resample:
-            n_dom: list[Individual] = [] if one_each else _front()
-            individuals = []
-            for i in range(self.lamb):
-                p_idx = i if one_each else n_dom[rng.integers(0, len(n_dom))].ps_[1]
-                raw = _raw(self.parents[p_idx], self.sigmas[p_idx], self.big_a[p_idx], arz[i])
-                init = ind_init(
-                    apply_box_bounds(
-                        raw,
-                        self.low,
-                        self.up,
-                        "resample",
-                        self.resample_limit,
-                        lambda p_idx=p_idx: _raw(
-                            self.parents[p_idx],
-                            self.sigmas[p_idx],
-                            self.big_a[p_idx],
-                            rng.standard_normal(self.dim),
-                        ),
-                    )
-                )
-                init.ps_ = "o", p_idx
-                individuals.append(init)
-            return individuals
-
+        if self.bound_mode == "resample" and (self.low is not None or self.up is not None):
+            return _resample_offspring(self, ind_init, arz, one_each)
         if one_each:
             parent_idxs = list(range(self.lamb))
         else:
-            n_dom = _front()
+            n_dom = _front(self.parents)
             parent_idxs = [n_dom[rng.integers(0, len(n_dom))].ps_[1] for _ in range(self.lamb)]
         raws = numpy.empty((self.lamb, self.dim), dtype=float)
         for i, p_idx in enumerate(parent_idxs):
