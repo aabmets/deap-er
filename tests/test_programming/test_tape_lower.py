@@ -113,6 +113,38 @@ def test_the_opcode_backend_matches_the_default_backend():
         )
 
 
+def _matrix(columns):
+    return numpy.ascontiguousarray(numpy.stack(columns, axis=1))
+
+
+def test_the_opcode_backend_accepts_a_packed_matrix():
+    pset = _kit("OPCODE_MATRIX")
+    columns = _samples()
+    matrix = _matrix(columns)
+    tools.rng.seed(29)
+
+    for _ in range(100):
+        tree = gp.PrimitiveTree(gp.gen_half_and_half(pset, 2, 4))
+        expected = gp.compile_tree(tree, pset, backend="opcode")(*columns)
+        actual = gp.compile_tree(tree, pset, backend="opcode")(matrix)
+        numpy.testing.assert_allclose(
+            _as_column(actual, 24), _as_column(expected, 24), equal_nan=True
+        )
+
+
+def test_interpret_tape_accepts_a_packed_matrix():
+    pset = _kit("OPCODE_TAPE_MATRIX")
+    columns = _samples()
+    matrix = _matrix(columns)
+    tree = gp.PrimitiveTree(gp.gen_half_and_half(pset, 2, 4))
+    tape = gp.lower_tree(tree, pset)
+
+    expected = gp.interpret_tape(tape, columns)
+    actual = gp.interpret_tape(tape, matrix)
+
+    numpy.testing.assert_allclose(_as_column(actual, 24), _as_column(expected, 24), equal_nan=True)
+
+
 def test_the_opcode_backend_evaluates_a_set_without_arguments():
     pset = gp.PrimitiveSetTyped("MAIN", [], gp.Array)
     gp.add_numpy_primitives(pset)

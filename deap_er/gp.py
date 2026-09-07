@@ -30,6 +30,7 @@ from .private.programming.numba.numba_ops import (
     USER_DISPATCH_SIGNATURE,
     bind_tape,
     numba_available,
+    warmup_numba,
 )
 from .private.programming.numpy.numpy_arith import (
     vabs,
@@ -120,6 +121,7 @@ __all__ = [
     "USER_DISPATCH_SIGNATURE",
     "numba_available",
     "bind_tape",
+    "warmup_numba",
     "vadd",
     "vsub",
     "vmul",

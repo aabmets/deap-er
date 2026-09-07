@@ -25,7 +25,7 @@ surface.
 | 6 | [Case-structured evaluation helper](#6-case-structured-evaluation-helper) | utilities + docs | shipped |
 | 7 | [Non-bloating semantic variation](#7-non-bloating-semantic-variation) | `gp` | shipped |
 | 8 | [Quality-diversity archive](#8-quality-diversity-archive) | `records` | shipped |
-| 9 | [Compile and clone path](#9-compile-and-clone-path) | `gp`, `tools` | planned |
+| 9 | [Compile and clone path](#9-compile-and-clone-path) | `gp`, `tools` | shipped |
 | 10 | [Vectorized lexicase and plexicase](#10-vectorized-lexicase-and-plexicase) | `operators` | planned |
 | 11 | [SMS-EMOA](#11-sms-emoa) | `operators` | planned |
 | 12 | [MOEA/D and AGE-MOEA-II](#12-moead-and-age-moea-ii) | `operators` | planned |
@@ -300,10 +300,13 @@ on long columnar runs:
    register the fast clone (today the decorator always
    `deepcopy`s).
 
-**Today.** Those four behaviors are the remaining cost around the
-tape that is not “the kernel itself.” `clone_individual` already
-exists and is the recommended `Toolbox.clone` for GP; `static_limit`
-does not use it.
+**Today.** `CompileCache` evicts one LRU entry at a time instead of
+clearing the whole compile cache at 1024 entries. The opcode backend
+accepts a pre-packed `(rows, columns)` matrix like Numba.
+`gp.warmup_numba()` sets a default `NUMBA_CACHE_DIR` when unset so
+spawned workers reload the compiled interpreter from disk.
+`static_limit` rejects oversized offspring with
+`clone_individual` instead of `deepcopy`.
 
 **Benefit.** Multi-hour runs with many unique trees keep their
 compile working set, stop restacking columns, start faster in

@@ -267,7 +267,7 @@ class _DeapErLib:
     def clear_compile_cache(self) -> None:
         module = sys.modules.get("deap_er.private.programming.compilers")
         cache = getattr(module, "_compile_cache", None)
-        if isinstance(cache, dict):
+        if cache is not None and hasattr(cache, "clear"):
             cache.clear()
 
     def clone_one(self, individual: object) -> object:
