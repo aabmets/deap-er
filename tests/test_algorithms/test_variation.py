@@ -91,3 +91,16 @@ def test_var_or_still_produces_the_requested_count(toolbox):
     offspring = tools.var_or(toolbox, population, 12, cx_prob=0.5, mut_prob=0.3)
 
     assert len(offspring) == 12
+
+
+def test_var_and_rejects_probabilities_outside_unit_interval(toolbox):
+    population = _population()
+    with pytest.raises(ValueError, match="crossover"):
+        tools.var_and(toolbox, population, cx_prob=-0.1, mut_prob=0.1)
+    with pytest.raises(ValueError, match="mutation"):
+        tools.var_and(toolbox, population, cx_prob=0.1, mut_prob=1.5)
+
+
+def test_var_or_rejects_probabilities_that_sum_over_one(toolbox):
+    with pytest.raises(ValueError, match="sum"):
+        tools.var_or(toolbox, _population(), 4, cx_prob=0.6, mut_prob=0.6)
