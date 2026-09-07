@@ -76,6 +76,18 @@ def test_nsga_diversity_for_a_single_point_is_one():
     assert delta == pytest.approx(1.0)
 
 
+def test_nsga_diversity_collapsed_front_is_one():
+    _setup()
+    try:
+        first: Any = (0.5, 0.5)
+        last: Any = (0.5, 0.5)
+        twins = [_ind((0.5, 0.5)), _ind((0.5, 0.5))]
+        delta = tools.nsga_diversity(twins, first, last)
+    finally:
+        _teardown()
+    assert delta == pytest.approx(1.0)
+
+
 def test_nsga_convergence_and_inverted_generational_distance():
     _setup()
     try:
