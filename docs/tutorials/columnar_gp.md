@@ -236,8 +236,9 @@ is a random fill.
 
 ```python
 def select(individuals, sel_count):
-    cases = tools.sample_informed_cases(individuals, 20)
-    return tools.sel_lexicase(individuals, sel_count, cases=cases)
+    matrix = tools.fitness_case_matrix(individuals)
+    cases = tools.sample_informed_cases(individuals, 20, matrix=matrix)
+    return tools.sel_lexicase(individuals, sel_count, cases=cases, matrix=matrix)
 
 toolbox.register("select", select)
 ```

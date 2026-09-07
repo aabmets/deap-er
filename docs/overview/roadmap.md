@@ -26,7 +26,7 @@ surface.
 | 7 | [Non-bloating semantic variation](#7-non-bloating-semantic-variation) | `gp` | shipped |
 | 8 | [Quality-diversity archive](#8-quality-diversity-archive) | `records` | shipped |
 | 9 | [Compile and clone path](#9-compile-and-clone-path) | `gp`, `tools` | shipped |
-| 10 | [Vectorized lexicase and plexicase](#10-vectorized-lexicase-and-plexicase) | `operators` | planned |
+| 10 | [Vectorized lexicase and plexicase](#10-vectorized-lexicase-and-plexicase) | `operators` | shipped |
 | 11 | [SMS-EMOA](#11-sms-emoa) | `operators` | planned |
 | 12 | [MOEA/D and AGE-MOEA-II](#12-moead-and-age-moea-ii) | `operators` | planned |
 | 13 | [IPOP / BIPOP CMA restarts](#13-ipop-bipop-cma-restarts) | `algorithms`, `strategies` | planned |
@@ -328,9 +328,13 @@ faster, and it yields a probability that can be annealed or mixed.
 Plexicase is in scope only if item 5 is not enough and profiles
 show selection dominating evaluation.
 
-**Today.** `sel_lexicase` walks cases in Python. Informed
-down-sampling (item 5) wants the same matrix this item would
-build.
+**Today.** `fitness_case_matrix` packs ``fitness.values`` once per
+generation. `sel_lexicase`, `sel_epsilon_lexicase`, and
+`sample_informed_cases` accept optional ``matrix=`` so informed
+down-sampling and lexicase filtering share one NumPy array.
+Filtering is vectorized; golden RNG streams are unchanged.
+Plexicase remains deferred until a profile shows selection still
+dominates after downsampling (item 5) and this path.
 
 **Benefit.** When cases are numerous (many folds, many series, or
 per-point residuals), selection becomes the next bottleneck after
