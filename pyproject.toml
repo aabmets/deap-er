@@ -96,7 +96,7 @@ addopts = [
     "--import-mode=importlib",
     "--numprocesses=auto",
     "--maxprocesses=4",
-    "--dist=worksteal"
+    "--dist=loadgroup"
 ]
 pythonpath = [".", "./deap_er"]
 

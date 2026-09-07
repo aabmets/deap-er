@@ -10,5 +10,6 @@
 #
 pytest_plugins = [
     "tests.harness.allure_report_plugin",
+    "tests.harness.numba_plugin",
     "tests.harness.perf_report_plugin",
 ]
