@@ -23,7 +23,7 @@ the original toolbox. Timed hot paths versus DEAP are on the
 - Columnar genetic programming over named `float64` columns, with a
   vectorized kit, causal windows, and optional compiled backends
 - Evolution strategies (covariance matrix adaptation)
-- Multi-objective search (SPEA-II, NSGA-II, NSGA-III, MO-CMA)
+- Multi-objective search (SPEA-II, NSGA-II, NSGA-III, SMS-EMOA, MO-CMA)
 - Cooperative and competitive co-evolution
 - Parallel evaluation with multiprocessing or with
   [Ray](https://github.com/ray-project/ray)
