@@ -12,6 +12,7 @@ import numpy
 from deap_er import Fitness, creator, tools
 from deap_er.private.strategies.restart_ops import (
     apply_strategy_restart,
+    next_bipop_params,
     resize_offsprings,
     set_strategy_sigma,
 )
@@ -109,3 +110,27 @@ def test_apply_restart_multi_objective():
         assert not strategy.parents[0].fitness.is_valid()
     finally:
         _teardown_mo()
+
+
+def test_bipop_small_sigma_scales_with_sigma_large():
+    sigma_large = 0.25
+    sigmas = []
+    for seed in range(40):
+        tools.rng.seed(seed)
+        _, sigma, regime, _, _ = next_bipop_params(
+            lambda_default=8,
+            lambda_factor=2.0,
+            lambda_large=32,
+            irestart_large=2,
+            max_large_restarts=9,
+            sigma_large=sigma_large,
+            restart_count=3,
+            evals_used=10,
+            budget=10_000,
+            budget_large=100,
+            budget_small=0,
+        )
+        assert regime == "small"
+        sigmas.append(sigma)
+    assert min(sigmas) >= sigma_large * 0.01
+    assert max(sigmas) <= sigma_large
