@@ -164,7 +164,6 @@ def mut_slim_inflate(
 
 def mut_slim_deflate(
     individual: SlimTree,
-    prim_set: PrimitiveSetTyped,
 ) -> tuple[SlimTree]:
     """Remove a random delta block (SLIM deflate mutation).
 
@@ -173,7 +172,6 @@ def mut_slim_deflate(
 
     Args:
         individual: SLIM genotype to mutate in place.
-        prim_set: Primitive set argument kept for operator symmetry.
 
     Returns:
         A one-element tuple containing the mutated individual.
@@ -220,7 +218,7 @@ def mut_slim(
             gen_func=gen_func,
             mut_step=mut_step,
         )
-    return mut_slim_deflate(individual, prim_set)
+    return mut_slim_deflate(individual)
 
 
 def cx_slim_donor(
@@ -255,8 +253,7 @@ def cx_slim_donor(
     donor_idx = _pick_donor_index(slim1, slim2, best_donor)
     donor = slim1 if donor_idx == 0 else slim2
     receiver = slim2 if donor_idx == 0 else slim1
-    if not donor.deltas:
-        return slim1, slim2
-    block = donor.deltas.pop(rng.randrange(len(donor.deltas)))
-    receiver.deltas.append(block)
+    if donor.deltas:
+        block = donor.deltas.pop(rng.randrange(len(donor.deltas)))
+        receiver.deltas.append(block)
     return slim1, slim2

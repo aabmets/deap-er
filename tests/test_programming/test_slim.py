@@ -105,7 +105,7 @@ def test_slim_deflate_removes_block():
     gp.mut_slim_inflate(slim, pset, min_depth=1, max_depth=1, mut_step=0.5)
     gp.mut_slim_inflate(slim, pset, min_depth=1, max_depth=1, mut_step=0.5)
     size_before = len(slim)
-    (mutated,) = gp.mut_slim_deflate(slim, pset)
+    (mutated,) = gp.mut_slim_deflate(slim)
     assert len(mutated.deltas) == 1
     assert len(mutated) < size_before
 
@@ -114,7 +114,7 @@ def test_slim_deflate_noop_without_deltas():
     tools.rng.seed(2)
     pset = _semantic_pset()
     slim = _slim_head(pset)
-    (mutated,) = gp.mut_slim_deflate(slim, pset)
+    (mutated,) = gp.mut_slim_deflate(slim)
     assert mutated is slim
     assert mutated.deltas == []
 
@@ -190,7 +190,8 @@ def test_cx_empty_donor_deltas_noop():
     slim2.fitness = _FitnessStub(10.0)
     deltas_before = (len(slim1.deltas), len(slim2.deltas))
     child1, child2 = gp.cx_slim_donor(slim1, slim2, pset, best_donor=True)
-    assert (len(child1.deltas), len(child2.deltas)) == deltas_before
+    assert len(child1.deltas) == deltas_before[0]
+    assert len(child2.deltas) == deltas_before[1]
 
 
 def test_deflate_never_removes_head():
@@ -200,7 +201,7 @@ def test_deflate_never_removes_head():
     head_snapshot = list(slim.head)
     for step in range(3):
         gp.mut_slim_inflate(slim, pset, min_depth=1, max_depth=1, mut_step=0.1 * (step + 1))
-        gp.mut_slim_deflate(slim, pset)
+        gp.mut_slim_deflate(slim)
     assert [node.name for node in slim.head] == [node.name for node in head_snapshot]
 
 
@@ -286,7 +287,7 @@ def test_slim_deflate_without_semantic_primitives():
     pset.add_terminal(1.0)
     pset.rename_arguments(ARG0="x")
     assert len(slim.deltas) == 1
-    (mutated,) = gp.mut_slim_deflate(slim, pset)
+    (mutated,) = gp.mut_slim_deflate(slim)
     assert mutated is slim
     assert mutated.deltas == []
 
