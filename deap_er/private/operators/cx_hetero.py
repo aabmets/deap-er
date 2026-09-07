@@ -20,6 +20,7 @@ __all__: list[str] = ["cx_heterogeneous"]
 
 _SHAPE = "crossovers must be either one callable per gene or (slice, callable) pairs"
 _STEP = "crossover slices must be contiguous (step must be 1)"
+_INVERTED = "crossover slice is inverted: start must not exceed stop"
 _OVERLAP = "crossover slices must not overlap"
 _UNIT_LEN = "slice crossover must preserve unit length"
 _GENE_PAIR = "per-gene crossover must return two replacements"
@@ -27,8 +28,30 @@ _SLICE_PAIR = "slice crossover must return two sequences"
 
 
 def _is_slice_unit(item: object) -> bool:
-    """Return whether ``item`` is a ``(slice, callable)`` pair."""
-    return isinstance(item, tuple) and len(item) == 2 and isinstance(item[0], slice)
+    """Return whether ``item`` is a two-item ``(slice, callable)`` pair."""
+    return (
+        isinstance(item, (tuple, list))
+        and len(item) == 2
+        and isinstance(item[0], slice)
+    )
+
+
+def _slice_specs(crossovers: Sequence[Any]) -> Sequence[Any] | None:
+    """Return slice units, or None if ``crossovers`` is per-gene form.
+
+    A bare ``(slice, callable)`` or ``[slice, callable]`` is one unit.
+
+    Args:
+        crossovers: Caller-supplied per-gene list or slice specs.
+
+    Returns:
+        A sequence of slice units, or None for the per-gene form.
+    """
+    if _is_slice_unit(crossovers):
+        return (crossovers,)
+    if crossovers and _is_slice_unit(crossovers[0]):
+        return crossovers
+    return None
 
 
 def _require_same_length(ind1: Individual, ind2: Individual) -> int:
@@ -88,18 +111,20 @@ def _resolved_span(slc: slice, size: int) -> tuple[int, int]:
         Inclusive-start, exclusive-stop indices.
 
     Raises:
-        ValueError: If the slice step is not 1.
+        ValueError: If the slice step is not 1, or start exceeds stop.
     """
     start, stop, step = slc.indices(size)
     if step != 1:
         raise ValueError(_STEP)
+    if start > stop:
+        raise ValueError(_INVERTED)
     return start, stop
 
 
 def _apply_slices(
     ind1: Individual,
     ind2: Individual,
-    crossovers: Sequence[tuple[slice, Callable[..., Any]]],
+    crossovers: Sequence[Any],
     size: int,
 ) -> None:
     """Run each existing ``cx_*`` on its slice and write the unit back.
@@ -149,8 +174,9 @@ def cx_heterogeneous(
     """Mate two mixed-encoding individuals with per-gene or per-slice operators.
 
     Both individuals are modified in place. ``crossovers`` is either one
-    callable per gene or a sequence of ``(slice, callable)`` pairs, not
-    a mix of the two.
+    callable per gene or ``(slice, callable)`` pairs (tuple or list), not
+    a mix of the two. A single pair may be passed without wrapping it
+    in another sequence.
 
     In the per-gene form each callable receives the pair of gene values
     and must return the two replacements. In the per-slice form each
@@ -163,7 +189,8 @@ def cx_heterogeneous(
         ind1: The first individual.
         ind2: The second individual.
         crossovers: Per-gene ``(v1, v2) -> (v1', v2')`` callables, or
-            ``(slice, cx_*)`` pairs for contiguous blocks.
+            ``(slice, cx_*)`` pairs for contiguous blocks. A bare pair
+            is one slice unit.
 
     Returns:
         The two individuals after crossover.
@@ -171,13 +198,14 @@ def cx_heterogeneous(
     Raises:
         ValueError: If the individuals have different lengths, the
             per-gene list length does not match, the two shapes are
-            mixed, a slice is not contiguous, slices overlap, a
-            callable does not return a pair, or a slice operator
-            changes the unit length.
+            mixed, a slice is not contiguous or is inverted, slices
+            overlap, a callable does not return a pair, or a slice
+            operator changes the unit length.
     """
     size = _require_same_length(ind1, ind2)
-    if crossovers and _is_slice_unit(crossovers[0]):
-        _apply_slices(ind1, ind2, crossovers, size)
+    specs = _slice_specs(crossovers)
+    if specs is not None:
+        _apply_slices(ind1, ind2, specs, size)
     else:
         if len(crossovers) != size:
             raise ValueError(
