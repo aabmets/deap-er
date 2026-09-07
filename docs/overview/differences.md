@@ -410,6 +410,9 @@ evaluation is in the
     `(0, inf)` no longer maps every descriptor to cell 0, and
     `(-inf, high)` no longer crashes `descriptor_to_index` with
     `int(nan)`.
+23. `ea_generate_update_restarts` keeps the last evaluated population
+    when `generate` returns empty. The empty batch is still a stop
+    signal; it no longer overwrites a finished run with `[]`.
 
 ## Persistence
 
