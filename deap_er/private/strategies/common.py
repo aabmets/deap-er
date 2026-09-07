@@ -180,7 +180,8 @@ def sample_offspring(
         center: Mean of the search distribution.
         sigma: Standard deviation of the distribution.
         transform: Matrix that shapes the distribution, usually a
-            Cholesky factor or a scaled eigenbasis.
+            Cholesky factor or a scaled eigenbasis. A length-``dim``
+            vector scales each gene independently (separable CMA).
         lamb: Number of individuals to sample.
         dim: Dimensionality of the search space.
         ind_init: Callable that turns a sampled vector into an
@@ -195,6 +196,8 @@ def sample_offspring(
     """
 
     def _map_z(z: numpy.ndarray) -> numpy.ndarray:
+        if transform.ndim == 1:
+            return numpy.asarray(center + sigma * z * transform, dtype=float)
         return numpy.asarray(center + sigma * numpy.dot(z, transform.T), dtype=float)
 
     bounds = _bound_arrays(low, up, dim)
