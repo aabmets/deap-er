@@ -443,6 +443,8 @@ evaluation is in the
 5. `nsga_convergence` and `nsga_diversity` read ``fitness.values``
    for reference individuals. A list genome is no longer treated as
    the objective vector when fitness is set.
+6. `inv_gen_dist` uses the same fitness-first point extraction.
+   Two fronts of individuals are no longer scored as gene lists.
 
 ## Benchmarks
 
