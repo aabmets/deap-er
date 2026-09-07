@@ -11,8 +11,8 @@
 import numpy
 import pytest
 from deap_er import Fitness, Toolbox, creator, tools
+from deap_er.private.operators.sel_age_moea_2_curvature import estimate_curvature_nr
 from deap_er.private.operators.sel_age_moea_2_helpers import (
-    estimate_curvature_nr,
     geodesic_distance,
     project_on_manifold,
 )

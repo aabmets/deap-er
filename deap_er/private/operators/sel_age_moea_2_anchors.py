@@ -18,7 +18,7 @@ from numpy import ndarray
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 
-from .sel_age_moea_2_helpers import estimate_curvature_nr
+from .sel_age_moea_2_curvature import estimate_curvature_nr
 from .sel_nsga_3_helpers import find_extreme_points, find_intercepts
 
 __all__: list[str] = [
