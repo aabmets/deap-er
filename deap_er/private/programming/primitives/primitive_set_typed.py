@@ -14,6 +14,7 @@ from collections import defaultdict
 from collections.abc import Callable
 from typing import Any, cast
 
+from .argument_rename import apply_argument_renames
 from .primitive_nodes import Ephemeral, Primitive, Terminal
 
 __all__: list[str] = ["PrimitiveSetTyped"]
@@ -251,14 +252,12 @@ class PrimitiveSetTyped:
         Args:
             **kwargs: Map of current argument names to new names. Names
                 that are not current arguments are ignored.
+
+        Raises:
+            ValueError: If a new name is already an argument, or is
+                already used by a primitive or terminal.
         """
-        for i, old_name in enumerate(self.arguments):
-            if old_name in kwargs:
-                new_name = kwargs[old_name]
-                self.arguments[i] = new_name
-                self.mapping[new_name] = self.mapping[old_name]
-                self.mapping[new_name].value = new_name
-                del self.mapping[old_name]
+        apply_argument_renames(self, kwargs)
 
     @property
     def terminal_ratio(self) -> float:
