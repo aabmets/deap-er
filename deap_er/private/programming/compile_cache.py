@@ -66,6 +66,33 @@ class CompileCache:
         """Remove every cached entry."""
         self._entries.clear()
 
+    def discard_expression(self, expression: str) -> int:
+        """Drop entries whose code is ``expression`` or a lambda wrapping it.
+
+        ``compile_tree`` stores either the raw expression text or
+        ``lambda args: {expression}``. Both forms are removed.
+
+        Args:
+            expression: ``str`` of the tree or expression.
+
+        Returns:
+            The number of entries removed.
+        """
+        suffix = f": {expression}"
+        drop = [
+            key
+            for key in self._entries
+            if _code_matches(key[2] if len(key) > 2 else None, expression, suffix)
+        ]
+        for key in drop:
+            self._entries.pop(key, None)
+        return len(drop)
+
     def __len__(self) -> int:
         """Return how many entries the cache currently holds."""
         return len(self._entries)
+
+
+def _code_matches(code: Any, expression: str, suffix: str) -> bool:
+    """Return whether a cache-key code component names ``expression``."""
+    return isinstance(code, str) and (code == expression or code.endswith(suffix))

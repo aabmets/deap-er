@@ -26,7 +26,13 @@ from .opcodes import USER_BASE, interpret_tape, lower_tree
 from .primitives.primitive_nodes import Primitive
 from .primitives.primitive_set_typed import PrimitiveSetTyped
 
-__all__: list[str] = ["compile_tree", "compile_adf_tree", "build_tree_graph", "static_limit"]
+__all__: list[str] = [
+    "compile_tree",
+    "compile_adf_tree",
+    "build_tree_graph",
+    "static_limit",
+    "invalidate_compiled",
+]
 
 _COMPILE_CACHE_MAX = 1024
 _compile_cache = CompileCache(_COMPILE_CACHE_MAX)
@@ -151,6 +157,21 @@ def compile_tree(
 
     _compile_cache.set(cache_key, compiled)
     return compiled
+
+
+def invalidate_compiled(expr: Any) -> int:
+    """Drop compile-cache entries for ``expr``.
+
+    Matches the raw ``str(expr)`` and the ``lambda …: {expr}`` form
+    stored by ``compile_tree``.
+
+    Args:
+        expr: Expression whose cached compilations should be evicted.
+
+    Returns:
+        The number of cache entries removed.
+    """
+    return _compile_cache.discard_expression(str(expr))
 
 
 def compile_adf_tree(expr: GPExprTypes, prim_sets: GPTypedSets) -> Any:

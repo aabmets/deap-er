@@ -284,6 +284,12 @@ The following is extra.
 21. `PrimitiveTree` slice assignment treats a missing start as `0`.
     `tree[:]` and `tree[:n]` no longer raise `TypeError` when the
     replacement is a complete tree.
+22. `tune_ephemerals` extracts ephemeral floats and `Window` ints
+    in documented prefix order (`SlimTree`: head, then deltas),
+    runs a short boxed `Strategy` / `StrategySeparable`
+    `generate` / `update` loop, writes repaired values back, and
+    invalidates fitness plus the compile-cache entry for the old
+    expression.
 
 The columnar contract is in the
 [columnar GP tutorial](../tutorials/columnar_gp.md). Shared-array
