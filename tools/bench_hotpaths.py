@@ -47,7 +47,7 @@ REPEAT = 50
 WARMUP = 2
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 _DEFAULT_JSON = _REPO_ROOT / "reports" / "hotpath-bench.json"
-_TYPE_NAMES = ("B_FIT", "B_IND", "B_FIT_SO", "B_IND_SO", "B_FIT_GP")
+_TYPE_NAMES = ("B_FIT", "B_IND", "B_FIT_SO", "B_IND_SO", "B_FIT_GP", "B_FIT_LC", "B_IND_LC")
 _LIB_DEAP = "DEAP/deap"
 _LIB_ER = "aabmets/deap-er"
 
@@ -62,11 +62,13 @@ class _Library(Protocol):
     def make_types(self) -> None: ...
     def drop_types(self) -> None: ...
     def wrap_mo(self, genomes: list[list[float]], fits: list[tuple]) -> list: ...
+    def wrap_many_case(self, genomes: list[list[float]], fits: list[tuple]) -> list: ...
     def wrap_so(self, genomes: list[list[int]]) -> list: ...
     def sel_spea(self, population: list, count: int) -> object: ...
     def sel_nsga2(self, population: list, count: int) -> object: ...
     def sel_nsga3(self, population: list, count: int, refs: object) -> object: ...
     def sel_tournament(self, population: list, count: int, contestants: int) -> object: ...
+    def sel_lexicase(self, population: list, count: int) -> object: ...
     def new_pareto(self) -> Any: ...
     def reference_points(self) -> object: ...
     def convergence(self, front: list, optimal: list[tuple]) -> object: ...
@@ -129,6 +131,8 @@ class _DeapLib:
         deap_creator.create("B_FIT_SO", deap_base.Fitness, weights=(-1.0,))
         deap_creator.create("B_IND_SO", list, fitness=deap_creator.B_FIT_SO)
         deap_creator.create("B_FIT_GP", deap_base.Fitness, weights=(-1.0,))
+        deap_creator.create("B_FIT_LC", deap_base.Fitness, weights=tuple(-1.0 for _ in range(500)))
+        deap_creator.create("B_IND_LC", list, fitness=deap_creator.B_FIT_LC)
 
     def drop_types(self) -> None:
         _drop_creator_types(deap_creator)
@@ -137,6 +141,14 @@ class _DeapLib:
         population = []
         for genome, fit in zip(genomes, fits, strict=True):
             individual = deap_creator.B_IND(genome)
+            individual.fitness.values = fit
+            population.append(individual)
+        return population
+
+    def wrap_many_case(self, genomes: list[list[float]], fits: list[tuple]) -> list:
+        population = []
+        for genome, fit in zip(genomes, fits, strict=True):
+            individual = deap_creator.B_IND_LC(genome)
             individual.fitness.values = fit
             population.append(individual)
         return population
@@ -160,6 +172,9 @@ class _DeapLib:
 
     def sel_tournament(self, population: list, count: int, contestants: int) -> object:
         return deap_tools.selTournament(population, count, tournsize=contestants)
+
+    def sel_lexicase(self, population: list, count: int) -> object:
+        return deap_tools.selLexicase(population, count)
 
     def new_pareto(self) -> Any:
         return deap_tools.ParetoFront()
@@ -213,6 +228,8 @@ class _DeapErLib:
         er_creator.create_type("B_FIT_SO", ErFitness, weights=(-1.0,))
         er_creator.create_type("B_IND_SO", list, fitness=er_creator.B_FIT_SO)
         er_creator.create_type("B_FIT_GP", ErFitness, weights=(-1.0,))
+        er_creator.create_type("B_FIT_LC", ErFitness, weights=tuple(-1.0 for _ in range(500)))
+        er_creator.create_type("B_IND_LC", list, fitness=er_creator.B_FIT_LC)
 
     def drop_types(self) -> None:
         _drop_creator_types(er_creator)
@@ -221,6 +238,14 @@ class _DeapErLib:
         population = []
         for genome, fit in zip(genomes, fits, strict=True):
             individual = er_creator.B_IND(genome)
+            individual.fitness.values = fit
+            population.append(individual)
+        return population
+
+    def wrap_many_case(self, genomes: list[list[float]], fits: list[tuple]) -> list:
+        population = []
+        for genome, fit in zip(genomes, fits, strict=True):
+            individual = er_creator.B_IND_LC(genome)
             individual.fitness.values = fit
             population.append(individual)
         return population
@@ -244,6 +269,9 @@ class _DeapErLib:
 
     def sel_tournament(self, population: list, count: int, contestants: int) -> object:
         return er_tools.sel_tournament(population, count, contestants=contestants)
+
+    def sel_lexicase(self, population: list, count: int) -> object:
+        return er_tools.sel_lexicase(population, count)
 
     def new_pareto(self) -> Any:
         return er_tools.ParetoFront()
@@ -410,6 +438,20 @@ def _measure_compile(lib: _Library, trees: list, pset: object) -> tuple[float, f
     return first_ms, cached_ms
 
 
+def _lexicase_data(count: int, cases: int, seed: int) -> tuple[list[list[float]], list[tuple]]:
+    """Build shared genomes and many-case fitness tuples.
+
+    Args:
+        count: Number of individuals.
+        cases: Fitness case count.
+        seed: RNG seed.
+
+    Returns:
+        Genomes and matching fitness tuples.
+    """
+    return _mo_data(count, 10, cases, seed)
+
+
 def _run_library(lib: _Library) -> dict[str, float]:
     """Run every hot-path case against one library.
 
@@ -501,6 +543,15 @@ def _run_library(lib: _Library) -> dict[str, float]:
             lib.clone_one(individual)
 
     results["sel_tournament n=80 k=80"] = _mean_ms(tourney)
+
+    genes_lc, fits_lc = _lexicase_data(200, 500, 34)
+    pop_lc = lib.wrap_many_case(genes_lc, fits_lc)
+
+    def lexicase() -> None:
+        lib.seed(35)
+        lib.sel_lexicase(pop_lc, 100)
+
+    results["sel_lexicase n=200 k=100 cases=500"] = _mean_ms(lexicase)
     results["deepcopy n=60 list inds"] = _mean_ms(deepcopies)
     results["clone_individual n=60 list inds"] = _mean_ms(clones)
 

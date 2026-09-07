@@ -13,6 +13,7 @@ installed when the figure is redrawn.
 
 | Case | Relative speed |
 |:-----|---------------:|
+| `sel_lexicase` n=200 k=100 cases=500 | 64× |
 | `nsga_convergence` n=40 | 50× |
 | `sel_nsga_2` n=80 k=40 | 21× |
 | `compile_tree` 10 trees ×20 repeats | 18× |
@@ -43,6 +44,11 @@ in Python loops:
   niche assignment are vectorized. NSGA-II ranks with
   `moocore.pareto_rank`. SPEA-II density rows stay the original
   upper-triangle layout so the RNG stream is unchanged.
+- **`sel_lexicase`** — case filtering runs on a packed
+  `(n_individuals, n_cases)` matrix with NumPy boolean masks
+  instead of per-case Python list comprehensions. Optional
+  ``matrix=`` lets informed down-sampling and lexicase share one
+  array per generation.
 - **`compile_tree` repeats** — the default `eval` backend is cached
   by expression text and context identity with LRU eviction at 1024
   entries. Both libraries compile the same shared source strings. The first compile of 40 unique
