@@ -32,3 +32,18 @@ typecode `"b"`. Float genomes then raised `TypeError`.
 
 **Validator.**
 `tests/test_creator/test_creator.py::TestCreatorBuiltinsArray::test_array_instance_keeps_typecode`
+
+---
+
+## `Fitness.dominates` crashed on invalid fitness
+
+An unevaluated fitness has empty `wvalues`. The two- and three-objective
+fast paths unpacked that empty tuple, and the other lengths indexed it.
+`valid.dominates(invalid)` raised `ValueError` or `IndexError` instead of
+reporting that dominance does not hold.
+
+**Fix.** Return `False` when either side has no weighted values or the
+compared lengths differ.
+
+**Validator.**
+`tests/test_fitness.py::TestFitness::test_dominates_invalid_fitness_is_false`
