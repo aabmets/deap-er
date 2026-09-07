@@ -132,7 +132,7 @@ def make_archive_stats(elites: Iterable[Individual], num_cells: int) -> ArchiveS
     )
 
 
-def nearest_index(points: numpy.ndarray, descriptor: Sequence[float]) -> int:
+def nearest_index(points: numpy.ndarray, descriptor: Sequence[float] | numpy.ndarray) -> int:
     """Return the row of ``points`` nearest to ``descriptor``.
 
     Args:
