@@ -174,6 +174,32 @@ class ParetoFront(BaseRecordStorage):
         self.similar = similar
         super().__init__()
 
+    def _front_verdict(self, individual: Any) -> tuple[bool, bool, list[int]]:
+        """Compare ``individual`` to the current front.
+
+        Args:
+            individual: Candidate that has a fitness attribute.
+
+        Returns:
+            Whether the front dominates it, whether a twin exists, and
+            indexes of members it dominates.
+        """
+        is_dominated = False
+        dominates_one = False
+        has_twin = False
+        to_remove = []
+        for i, hof_member in enumerate(self):
+            if not dominates_one and hof_member.fitness.dominates(individual.fitness):
+                is_dominated = True
+                break
+            if individual.fitness.dominates(hof_member.fitness):
+                dominates_one = True
+                to_remove.append(i)
+            elif individual.fitness == hof_member.fitness and self.similar(individual, hof_member):
+                has_twin = True
+                break
+        return is_dominated, has_twin, to_remove
+
     def update(self, population: Sequence[Any]) -> None:
         """Add non-dominated individuals from ``population``.
 
@@ -186,21 +212,7 @@ class ParetoFront(BaseRecordStorage):
         for ind in population:
             if not hasattr(ind, "fitness"):
                 continue
-            is_dominated = False
-            dominates_one = False
-            has_twin = False
-            to_remove = []
-            for i, hof_member in enumerate(self):
-                if not dominates_one and hof_member.fitness.dominates(ind.fitness):
-                    is_dominated = True
-                    break
-                elif ind.fitness.dominates(hof_member.fitness):
-                    dominates_one = True
-                    to_remove.append(i)
-                elif ind.fitness == hof_member.fitness and self.similar(ind, hof_member):
-                    has_twin = True
-                    break
-
+            is_dominated, has_twin, to_remove = self._front_verdict(ind)
             for i in reversed(to_remove):
                 self.remove(i)
             if not is_dominated and not has_twin:
