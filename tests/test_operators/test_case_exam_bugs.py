@@ -134,3 +134,23 @@ def test_guard_empty_without_last_good_uses_held_out(ind_cls):
     pool = tools.CaseExamPool([empty], held_out=held)
     tools.guard_case_exams(pool, elites)
     assert pool[0].as_cases(4) == [3]
+
+
+def test_next_pool_honors_case_count_as_repair_floor(ind_cls):
+    elites = [_make(ind_cls, [0], (0.0, 0.0, 0.0, 0.0))]
+    tools.rng.seed(2)
+    listed = tools.next_lexicase_cases(
+        [tools.CaseExam.from_cases([], 4)],
+        elites,
+        case_count=3,
+        mut_prob=0.0,
+    )
+    tools.rng.seed(2)
+    pooled = tools.next_lexicase_cases(
+        tools.CaseExamPool([tools.CaseExam.from_cases([], 4)]),
+        elites,
+        case_count=3,
+        mut_prob=0.0,
+    )
+    assert listed == pooled
+    assert len(pooled) >= 3
