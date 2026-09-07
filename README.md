@@ -69,7 +69,31 @@ inventory:
   and [algorithms](https://aabmets.github.io/deap-er/bugfixes/algorithms/)
 - **33** capabilities DEAP does not have, including boxed CMA,
   mixed-gene mutation, logbook JSON, and
-  [columnar GP](https://aabmets.github.io/deap-er/tutorials/columnar_gp/)
+  [columnar GP](https://aabmets.github.io/deap-er/tutorials/columnar_gp/):
+  - boxed blend crossover (`cx_blend_bounded`)
+  - per-gene `mut_heterogeneous`
+  - crowding on `wvalues` (`use_weights`)
+  - `sel_tournament_dcd` for any valid `k`
+  - lexicase / ε-lexicase with `cases=`, `sample_informed_cases`, and `fitness_case_matrix`
+  - SMS-EMOA, MOEA/D, and AGE-MOEA-II selection
+  - boxed CMA (`low`/`up`, clip or resample) 
+  - IPOP/BIPOP `RestartStrategy` / `ea_generate_update_restarts`
+  - leaf-only `generate()` 
+  - weighted primitives 
+  - `call_zero` terminals 
+  - infix pretty-printer
+  - [columnar GP](https://aabmets.github.io/deap-er/tutorials/columnar_gp/):
+    `make_column_pset`, NumPy / window / pair-window / time-series
+    kits, opcode and Numba backends, `interpret_tapes`,
+    `evaluate_batch`, `case_errors`
+  - `clone_individual` 
+  - SlimGP (`SlimTree`, `mut_slim`, `cx_slim_donor`)
+  - `MultiStatistics.register(..., chapters=)` 
+  - empty Logbook header 
+  - logbook JSON 
+  - `duplicate_count`
+  - `ea_*` `log_time`, `logger`, and per-generation `fronts`
+  - MAP-Elites `GridArchive` / `ea_map_elites`
 
 The package is typed, uses snake_case, and is Apache-2.0. Hypervolume
 work delegates to [moocore](https://pypi.org/project/moocore/).
