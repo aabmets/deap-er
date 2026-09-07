@@ -129,6 +129,16 @@ class StrategyOnePlusLambda:
         self.psucc = self.tgt_sr
         update_bound_attrs(self, kwargs)
 
+    def reset_state(self, parent: Individual, sigma: float, **kwargs: Any) -> None:
+        """Reset mutable CMA state for a restart."""
+        self.parent = parent
+        self.sigma = sigma
+        self.big_c = numpy.identity(self.dim)
+        self.big_a = numpy.identity(self.dim)
+        self.pc = numpy.zeros(self.dim)
+        self.compute_params(**kwargs)
+        self.psucc = self.tgt_sr
+
     def generate(self, ind_init: Callable[..., Individual]) -> list[Individual]:
         """Sample ``offsprings`` individuals around the current parent.
 
