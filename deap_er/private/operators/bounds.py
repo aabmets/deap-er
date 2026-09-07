@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from numbers import Integral, Real
+from numbers import Integral
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -51,8 +51,11 @@ def broadcast_param(
     Raises:
         ValueError: If ``var`` is a sequence shorter than ``size``.
     """
-    if isinstance(var, Integral | Real):
+    if isinstance(var, int | float):
         return [var] * size
+    # NumPy integer scalars are Integral but not Python int.
+    if isinstance(var, Integral):
+        return [int(var)] * size
     if len(var) < size:
         raise ValueError(
             f"Argument '{name}' must be at least the size of {subject}: {len(var)} < {size}"
