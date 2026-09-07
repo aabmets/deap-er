@@ -109,7 +109,21 @@ def _box_strategy(strategy: Any, nodes: Sequence[Any]) -> None:
 
 def _merged_box(strategy: Any, nodes: Sequence[Any]) -> tuple[list[float], list[float]] | None:
     """Intersect caller ``low`` / ``up`` with per-leaf legal ranges."""
-    dim = len(nodes)
+    leaf_lo, leaf_hi, has_leaf = _collect_leaf_ranges(nodes)
+    caller_lo = getattr(strategy, "low", None)
+    caller_hi = getattr(strategy, "up", None)
+    if not has_leaf and caller_lo is None and caller_hi is None:
+        return None
+    if caller_lo is None and caller_hi is None:
+        return _open_leaf_box(leaf_lo, leaf_hi)
+    lows, highs = _broadcast_caller_box(caller_lo, caller_hi, len(nodes))
+    return _intersect_boxes(lows, highs, leaf_lo, leaf_hi)
+
+
+def _collect_leaf_ranges(
+    nodes: Sequence[Any],
+) -> tuple[list[float | None], list[float | None], bool]:
+    """Return per-leaf ranges and whether any leaf is boxed."""
     leaf_lo = []
     leaf_hi = []
     has_leaf = False
@@ -119,14 +133,25 @@ def _merged_box(strategy: Any, nodes: Sequence[Any]) -> tuple[list[float], list[
         leaf_hi.append(high)
         if low is not None or high is not None:
             has_leaf = True
-    caller_lo = getattr(strategy, "low", None)
-    caller_hi = getattr(strategy, "up", None)
-    if not has_leaf and caller_lo is None and caller_hi is None:
-        return None
-    if caller_lo is None and caller_hi is None:
-        lows = [-numpy.inf if value is None else float(value) for value in leaf_lo]
-        highs = [numpy.inf if value is None else float(value) for value in leaf_hi]
-        return lows, highs
+    return leaf_lo, leaf_hi, has_leaf
+
+
+def _open_leaf_box(
+    leaf_lo: Sequence[float | None],
+    leaf_hi: Sequence[float | None],
+) -> tuple[list[float], list[float]]:
+    """Box from leaf ranges only; missing sides stay infinite."""
+    lows = [-numpy.inf if value is None else float(value) for value in leaf_lo]
+    highs = [numpy.inf if value is None else float(value) for value in leaf_hi]
+    return lows, highs
+
+
+def _broadcast_caller_box(
+    caller_lo: Any,
+    caller_hi: Any,
+    dim: int,
+) -> tuple[list[float], list[float]]:
+    """Broadcast caller ``low`` / ``up`` to ``dim`` coordinates."""
     lows = [
         float(value)
         for value in broadcast_param("low", -numpy.inf if caller_lo is None else caller_lo, dim)
@@ -135,15 +160,37 @@ def _merged_box(strategy: Any, nodes: Sequence[Any]) -> tuple[list[float], list[
         float(value)
         for value in broadcast_param("up", numpy.inf if caller_hi is None else caller_hi, dim)
     ]
+    return lows, highs
+
+
+def _intersect_boxes(
+    lows: list[float],
+    highs: list[float],
+    leaf_lo: Sequence[float | None],
+    leaf_hi: Sequence[float | None],
+) -> tuple[list[float], list[float]]:
+    """Tighten each coordinate with the leaf range when both sides exist."""
     for index, low in enumerate(leaf_lo):
         if low is not None:
-            lows[index] = float(low) if not numpy.isfinite(lows[index]) else max(lows[index], low)
+            lows[index] = _tighten_low(lows[index], low)
         high = leaf_hi[index]
         if high is not None:
-            highs[index] = (
-                float(high) if not numpy.isfinite(highs[index]) else min(highs[index], high)
-            )
+            highs[index] = _tighten_high(highs[index], high)
     return lows, highs
+
+
+def _tighten_low(current: float, leaf: float) -> float:
+    """Raise a finite lower bound; replace an open side with the leaf."""
+    if numpy.isfinite(current):
+        return max(current, leaf)
+    return float(leaf)
+
+
+def _tighten_high(current: float, leaf: float) -> float:
+    """Lower a finite upper bound; replace an open side with the leaf."""
+    if numpy.isfinite(current):
+        return min(current, leaf)
+    return float(leaf)
 
 
 def _clipped_centroid(strategy: Any) -> numpy.ndarray:
