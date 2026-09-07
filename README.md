@@ -72,7 +72,7 @@ inventory:
   [columnar GP](https://aabmets.github.io/deap-er/tutorials/columnar_gp/):
   - boxed blend crossover (`cx_blend_bounded`)
   - boxed Gaussian mutation (`mut_gaussian_bounded`)
-  - per-gene `mut_heterogeneous`
+  - per-gene `mut_heterogeneous` / `cx_heterogeneous`
   - crowding on `wvalues` (`use_weights`)
   - `sel_tournament_dcd` for any valid `k`
   - lexicase / ε-lexicase with `cases=`, `sample_informed_cases`, and `fitness_case_matrix`

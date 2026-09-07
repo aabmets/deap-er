@@ -71,7 +71,9 @@ from the original sources.
    write the wrong genes.
 5. [`mut_heterogeneous`][deap-755] applies one mutator per gene, so a
    mixed encoding (bit + int range + choice) does not need a
-   one-off mutator.
+   one-off mutator. `cx_heterogeneous` is the matching mate
+   dispatcher: one callable per gene, or one existing `cx_*` per
+   slice.
 6. [`assign_crowding_dist`][deap-321] can crowd on `wvalues` via
    `use_weights=True`. The default, and `sel_nsga_2`, still use raw
    `values`.
