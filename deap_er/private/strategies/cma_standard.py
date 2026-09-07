@@ -180,6 +180,20 @@ class Strategy:
             self.big_bd = self.big_b * self.diag_d
         update_bound_attrs(self, kwargs)
 
+    def reset_state(
+        self,
+        centroid: Iterable[float],
+        sigma: float,
+        **kwargs: Any,
+    ) -> None:
+        """Reset mutable CMA state for a restart."""
+        self.centroid = numpy.asarray(centroid, dtype=float)
+        self.sigma = sigma
+        self.pc = numpy.zeros(self.dim)
+        self.ps = numpy.zeros(self.dim)
+        self.update_count = 0
+        self.compute_params(cm_init=numpy.identity(self.dim), **kwargs)
+
     def generate(self, ind_init: Callable[..., Individual]) -> list[Individual]:
         """Sample ``offsprings`` individuals from the current distribution.
 
