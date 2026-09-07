@@ -23,7 +23,7 @@ surface.
 | 4 | [Batch tape evaluation](#4-batch-tape-evaluation) | `gp` | shipped |
 | 5 | [Down-sampled and informed lexicase](#5-down-sampled-and-informed-lexicase) | `operators` | shipped |
 | 6 | [Case-structured evaluation helper](#6-case-structured-evaluation-helper) | utilities + docs | shipped |
-| 7 | [Non-bloating semantic variation](#7-non-bloating-semantic-variation) | `gp` | planned |
+| 7 | [Non-bloating semantic variation](#7-non-bloating-semantic-variation) | `gp` | shipped |
 | 8 | [Quality-diversity archive](#8-quality-diversity-archive) | `records` | planned |
 | 9 | [Compile and clone path](#9-compile-and-clone-path) | `gp`, `tools` | planned |
 | 10 | [Vectorized lexicase and plexicase](#10-vectorized-lexicase-and-plexicase) | `operators` | planned |
@@ -237,10 +237,12 @@ Reuse the current requirement that the primitive set expose `lf`,
 for compatibility. A small example that combines HARM with SLIM
 shows a non-bloating semantic path.
 
-**Today.** `cx_semantic` and `mut_semantic` are the classical
-wrapping operators. Each variation nests the parent in a linear
-combination, so tree size grows without bound. They are correct
-and, on long runs, unusable.
+**Today.** `mut_slim_inflate`, `mut_slim_deflate`, `mut_slim`, and
+`cx_slim_donor` implement SLIM+SIG2 inflate/deflate mutation and
+best-donor crossover (XOBDn). The `SlimTree` genotype backs those
+operators only; standard GP continues to use `PrimitiveTree`.
+`cx_semantic` and `mut_semantic` remain the classical wrapping
+operators. An example combines HARM with SLIM semantic variation.
 
 **Benefit.** Geometric semantic variation makes crossover and
 mutation geometric in the space of input–output vectors, which

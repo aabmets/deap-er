@@ -16,8 +16,9 @@ from deap_er.private.various.rng import rng
 from .generators import gen_grow
 from .primitives.primitive_nodes import Terminal
 from .primitives.primitive_set_typed import PrimitiveSetTyped
+from .primitives.primitive_tree import PrimitiveTree
 
-__all__: list[str] = ["mut_semantic", "cx_semantic"]
+__all__: list[str] = ["mut_semantic", "cx_semantic", "build_sig2_delta"]
 
 
 def _check(p_set: PrimitiveSetTyped, op: str) -> None:
@@ -33,6 +34,39 @@ def _check(p_set: PrimitiveSetTyped, op: str) -> None:
     for func in ["lf", "mul", "add", "sub"]:
         if func not in p_set.mapping:
             raise TypeError(f"A '{func}' function is required to perform semantic '{op}'.")
+
+
+def build_sig2_delta(
+    prim_set: PrimitiveSetTyped,
+    min_depth: int,
+    max_depth: int,
+    gen_func: Callable[..., Any],
+    mut_step: float,
+) -> PrimitiveTree:
+    """Build a SLIM+SIG2 delta block ``ms * (lf(tr1) - lf(tr2))``.
+
+    Args:
+        prim_set: Primitive set used to build the random trees.
+        min_depth: Minimum depth of each random tree.
+        max_depth: Maximum depth of each random tree.
+        gen_func: Tree generator.
+        mut_step: Mutation step ``ms``.
+
+    Returns:
+        Prefix tree for one semantic delta block.
+    """
+    tr1 = gen_func(prim_set, min_depth, max_depth)
+    tr2 = gen_func(prim_set, min_depth, max_depth)
+    tr1.insert(0, prim_set.mapping["lf"])
+    tr2.insert(0, prim_set.mapping["lf"])
+    delta: list[Any] = [
+        prim_set.mapping["mul"],
+        Terminal(mut_step, False, object),
+        prim_set.mapping["sub"],
+    ]
+    delta.extend(tr1)
+    delta.extend(tr2)
+    return PrimitiveTree(delta)
 
 
 def mut_semantic(
@@ -65,22 +99,9 @@ def mut_semantic(
     if mut_step is None:
         mut_step = rng.uniform(0, 2)
 
-    tr1 = gen_func(prim_set, min_depth, max_depth)
-    tr2 = gen_func(prim_set, min_depth, max_depth)
-
-    tr1.insert(0, prim_set.mapping["lf"])
-    tr2.insert(0, prim_set.mapping["lf"])
-
     new_ind = individual
     new_ind.insert(0, prim_set.mapping["add"])
-    new_ind.append(prim_set.mapping["mul"])
-
-    mutation_step = Terminal(mut_step, False, object)
-    new_ind.append(mutation_step)
-    new_ind.append(prim_set.mapping["sub"])
-
-    new_ind.extend(tr1)
-    new_ind.extend(tr2)
+    new_ind.extend(build_sig2_delta(prim_set, min_depth, max_depth, gen_func, mut_step))
 
     return (new_ind,)
 
