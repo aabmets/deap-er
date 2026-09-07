@@ -22,6 +22,38 @@ __all__: list[str] = [
     "later_front_scores",
 ]
 
+_ZERO_TOL = 1e-12
+_NR_EPS = 1e-10
+_LOG_MAX = numpy.log(numpy.finfo(float).max)
+
+
+def _positive_power_sum(point: ndarray, p: float, epsilon: float) -> float | None:
+    total = 0.0
+    for value in point:
+        if value <= 0.0:
+            continue
+        log_value = p * numpy.log(value + epsilon)
+        if log_value >= _LOG_MAX:
+            return None
+        total += float(numpy.exp(log_value))
+    return float(total)
+
+
+def _nr_power_moments(point: ndarray, p: float, epsilon: float) -> tuple[float, float] | None:
+    numerator = 0.0
+    denominator = 0.0
+    for value in point:
+        if value <= 0.0:
+            continue
+        log_value = p * numpy.log(value + epsilon)
+        if log_value >= _LOG_MAX:
+            return None
+        power = float(numpy.exp(log_value))
+        log_term = float(numpy.log(value + epsilon))
+        numerator += power * log_term
+        denominator += power
+    return float(numerator), float(denominator)
+
 
 def estimate_curvature_nr(
     point: ndarray,
@@ -47,41 +79,24 @@ def estimate_curvature_nr(
 
     p = 1.0
     past = p
-    epsilon = 1e-10
-    log_max = numpy.log(numpy.finfo(float).max)
 
     for _ in range(max_iter):
-        total = 0.0
-        for value in point:
-            if value > 0.0:
-                log_value = p * numpy.log(value + epsilon)
-                if log_value < log_max:
-                    total += numpy.exp(log_value)
-                else:
-                    return 1.0
-
+        total = _positive_power_sum(point, p, _NR_EPS)
+        if total is None:
+            return 1.0
         func = numpy.log(total) if total > 0.0 else 0.0
 
-        numerator = 0.0
-        denominator = 0.0
-        for value in point:
-            if value > 0.0:
-                log_value = p * numpy.log(value + epsilon)
-                if log_value < log_max:
-                    power = numpy.exp(log_value)
-                    log_term = numpy.log(value + epsilon)
-                    numerator += power * log_term
-                    denominator += power
-                else:
-                    return 1.0
-
-        if denominator == 0.0 or not numpy.isfinite(denominator):
+        moments = _nr_power_moments(point, p, _NR_EPS)
+        if moments is None:
+            return 1.0
+        numerator, denominator = moments
+        if abs(denominator) < _ZERO_TOL or not numpy.isfinite(denominator):
             return 1.0
         if not numpy.isfinite(numerator):
             return 1.0
 
         deriv = numerator / denominator
-        if deriv == 0.0:
+        if abs(deriv) < _ZERO_TOL:
             return 1.0
 
         p = p - func / deriv
@@ -110,7 +125,7 @@ def project_on_manifold(point: ndarray, curvature: float) -> ndarray:
     if positive.size == 0:
         return point.copy()
     dist = numpy.sum(positive**curvature) ** (1.0 / curvature)
-    if dist == 0.0:
+    if abs(dist) < _ZERO_TOL:
         return point.copy()
     return point / dist
 
