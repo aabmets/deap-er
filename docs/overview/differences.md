@@ -475,6 +475,9 @@ evaluation is in the
 7. `nsga_diversity` returns $1$ when Deb's denominator is $0$
    (several copies of one point, extremes at that point). It no
    longer raises `ZeroDivisionError`.
+8. `SortingNetwork.draw` sizes the ASCII grid with
+   $\max(\mathrm{depth}, 1)$. An empty network no longer
+   IndexErrors when writing wire labels.
 
 ## Benchmarks
 
