@@ -120,6 +120,19 @@ def test_nsga_diversity_uses_fitness_when_extremes_are_individuals():
     assert delta == pytest.approx(0.0, abs=1e-12)
 
 
+def test_inv_gen_dist_uses_fitness_when_sets_are_individuals():
+    _setup()
+    try:
+        approx = [_ind((0.1, 0.9)), _ind((0.9, 0.1))]
+        optimal = [_ind((0.0, 1.0)), _ind((1.0, 0.0))]
+        for individual in (*approx, *optimal):
+            individual[:] = [999.0, 888.0]
+        igd = tools.inv_gen_dist(optimal, approx)
+    finally:
+        _teardown()
+    assert igd == pytest.approx(0.1414213562373095, rel=1e-6)
+
+
 def test_duplicate_count_counts_twins():
     assert tools.duplicate_count([[1], [1], [2], [1]]) == 2
     assert tools.duplicate_count(["a", "bb", "a"], key=len) == 1
