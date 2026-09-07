@@ -30,6 +30,7 @@ from .private.operators.cx_real import (
     cx_uniform,
 )
 from .private.operators.mig_ring import mig_ring
+from .private.operators.mut_gaussian_bounded import mut_gaussian_bounded
 from .private.operators.mut_hetero import mut_heterogeneous
 from .private.operators.mut_various import (
     mut_es_log_normal,
@@ -84,6 +85,7 @@ __all__: list[str] = [
     "mut_es_log_normal",
     "mut_flip_bit",
     "mut_gaussian",
+    "mut_gaussian_bounded",
     "mut_heterogeneous",
     "mut_polynomial_bounded",
     "mut_shuffle_indexes",
