@@ -75,6 +75,27 @@ is empty. `harm` passes the already-evaluated `population`.
 
 ---
 
+## `rename_arguments` could shadow a primitive or duplicate a parameter
+
+`add_primitive` and `add_terminal` already reject a name that matches
+an argument. The inverse was open: `rename_arguments(ARG0="add")`
+after registering `add` overwrote the primitive in `mapping`, and
+`compile_tree` emitted `lambda add: add(...)`. Renaming two inputs
+to the same name produced `lambda x, x: ...` and raised
+`SyntaxError`.
+
+**Fix.** Reject a new name that is already an argument, or already
+present in `mapping` or `context`.
+
+**Validators.**
+
+- `tests/test_programming/test_primitives/test_primitive_set_typed.py::test_rename_arguments_rejects_name_that_matches_a_primitive`
+- `tests/test_programming/test_primitives/test_primitive_set_typed.py::test_rename_arguments_rejects_name_that_matches_a_terminal`
+- `tests/test_programming/test_primitives/test_primitive_set_typed.py::test_rename_arguments_rejects_duplicate_argument_name`
+- `tests/test_programming/test_primitives/test_primitive_set_typed.py::test_rename_arguments_rejects_column_name_that_matches_a_primitive`
+
+---
+
 ## `mut_insert` crashed when a sibling type had no terminals
 
 A legal typed set can have an intermediate type with primitives but

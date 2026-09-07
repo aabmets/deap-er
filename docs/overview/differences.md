@@ -216,7 +216,8 @@ The following is extra.
     does not crash on an empty candidate slice.
 15. `add_primitive` and `add_terminal` reject a name that matches a
     primitive-set argument, so a compiled lambda parameter cannot
-    shadow the symbol.
+    shadow the symbol. `rename_arguments` rejects the inverse: a new
+    name that is already an argument, primitive, or terminal.
 16. `mut_insert` leaves the tree unchanged when a sibling type has
     no terminals, instead of raising `IndexError`.
 17. `add_pair_window_primitives` registers causal `rolling_corr`,
