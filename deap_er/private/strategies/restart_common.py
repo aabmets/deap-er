@@ -256,7 +256,7 @@ def strategy_sigma(strategy: Any) -> float:
 def strategy_diagnostics(strategy: Any) -> tuple[float | None, float | None, float | None]:
     """Return optional condition number, sigma, and largest covariance eigenvalue."""
     if hasattr(strategy, "cond"):
-        largest = float(strategy.diag_d[-1] ** 2) if len(strategy.diag_d) else 1.0
+        largest = float(numpy.max(strategy.diag_d) ** 2) if len(strategy.diag_d) else 1.0
         return float(strategy.cond), float(strategy.sigma), largest
     if hasattr(strategy, "parent"):
         return None, float(strategy.sigma), None

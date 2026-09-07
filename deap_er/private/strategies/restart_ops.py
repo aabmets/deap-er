@@ -17,6 +17,7 @@ import numpy
 
 from deap_er.private.strategies.cma_multi_objective import StrategyMultiObjective
 from deap_er.private.strategies.cma_one_plus_lambda import StrategyOnePlusLambda
+from deap_er.private.strategies.cma_separable import StrategySeparable
 from deap_er.private.strategies.cma_standard import Strategy
 from deap_er.private.strategies.restart_common import (
     sample_centroid,
@@ -63,7 +64,7 @@ def target_met(
 
 
 def apply_strategy_restart(
-    strategy: Strategy | StrategyOnePlusLambda | StrategyMultiObjective,
+    strategy: Strategy | StrategySeparable | StrategyOnePlusLambda | StrategyMultiObjective,
     ind_init: Callable[..., Individual],
     *,
     dim: int,
@@ -86,7 +87,7 @@ def apply_strategy_restart(
         initial_center,
         best,
     )
-    if isinstance(strategy, Strategy):
+    if isinstance(strategy, Strategy | StrategySeparable):
         strategy.reset_state(center, sigma, offsprings=lamb)
         return
     if isinstance(strategy, StrategyOnePlusLambda):

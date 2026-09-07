@@ -17,6 +17,7 @@ import numpy
 
 from deap_er.private.strategies.cma_multi_objective import StrategyMultiObjective
 from deap_er.private.strategies.cma_one_plus_lambda import StrategyOnePlusLambda
+from deap_er.private.strategies.cma_separable import StrategySeparable
 from deap_er.private.strategies.cma_standard import Strategy
 from deap_er.private.strategies.restart_common import (
     RunTracker,
@@ -40,11 +41,11 @@ from deap_er.private.typedefs import Individual
 
 __all__ = ["RestartStrategy"]
 
-StrategyLike = Strategy | StrategyOnePlusLambda | StrategyMultiObjective
+StrategyLike = Strategy | StrategySeparable | StrategyOnePlusLambda | StrategyMultiObjective
 
 
 class RestartStrategy:
-    """Wrap a CMA strategy with IPOP or BIPOP restart scheduling.
+    """Wrap a standard, separable, (1+λ), or MO CMA strategy with restarts.
 
     See constructor keyword arguments for configuration. ``target_f`` is
     expressed in raw objective space for single-objective runs. The first
