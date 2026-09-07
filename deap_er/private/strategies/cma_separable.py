@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 
 from .cma_params import (
+    CmaCore,
     adapt_cma_sigma,
     apply_cma_hyperparams,
     generate_cma_offspring,
@@ -32,7 +33,7 @@ from .common import update_bound_attrs
 __all__ = ["StrategySeparable"]
 
 
-class StrategySeparable:
+class StrategySeparable(CmaCore):
     """Separable CMA-ES with a diagonal covariance (Ros and Hansen, 2008).
 
     Learns one variance per gene. Memory and the generate/update step
@@ -64,46 +65,19 @@ class StrategySeparable:
     def __init__(self, centroid: Iterable[float], sigma: float, **kwargs: Any) -> None:
         """See the class docstring."""
         init_cma_state(self, centroid, sigma)
-        self.update_count: int
-        self.centroid: numpy.ndarray
-        self.sigma: float
-        self.dim: int
-        self.pc: numpy.ndarray
-        self.ps: numpy.ndarray
-        self.chi_n: float
-        self.lamb: int
-        self.mu: int
-        self.weights: numpy.ndarray
-        self.mu_eff: float
-        self.rank_one: float
-        self.rank_mu: float
-        self.ss_cum: float
-        self.ss_dmp: float
-        self.cm_cum: float
-        self.big_c: numpy.ndarray
-        self.diag_d: numpy.ndarray
-        self.cond: float
-        self.low: Any
-        self.up: Any
-        self.bound_mode: str
-        self.resample_limit: int
         self.compute_params(**kwargs)
 
     def compute_params(self, **kwargs: Any) -> None:
-        """Recompute strategy parameters from ``kwargs``.
-
-        Called from the constructor. Call again if ``offsprings``
-        changes during evolution.
+        """Recompute λ, rates, and the diagonal ``cm_init`` vector.
 
         Args:
-            **kwargs: Optional strategy parameters. See the class
-                docstring.
+            **kwargs: Same names as ``Strategy.compute_params``, except
+                ``cm_init`` is a length-``n`` variance vector.
 
         Raises:
-            RuntimeError: If ``weights`` is not ``superlinear``,
-                ``linear``, or ``equal``.
-            ValueError: If ``cm_init`` is not a length-``n`` vector
-                of positive variances.
+            RuntimeError: If ``weights`` is unknown.
+            ValueError: If ``cm_init`` is missing, the wrong shape, or
+                not strictly positive.
         """
         apply_cma_hyperparams(self, kwargs, rank_scale=(self.dim + 2.0) / 3.0)
         if not hasattr(self, "big_c") or "cm_init" in kwargs:
@@ -123,14 +97,13 @@ class StrategySeparable:
         self.compute_params(cm_init=numpy.ones(self.dim), **kwargs)
 
     def generate(self, ind_init: Callable[..., Individual]) -> list[Individual]:
-        """Sample ``offsprings`` individuals from the current distribution.
+        """Draw ``lamb`` axis-aligned samples and apply box bounds.
 
         Args:
-            ind_init: Callable that turns a sampled vector into an
-                individual.
+            ind_init: Builds an individual from a length-``n`` vector.
 
         Returns:
-            Newly sampled individuals.
+            The sampled population.
         """
         return generate_cma_offspring(self, self.diag_d, ind_init)
 

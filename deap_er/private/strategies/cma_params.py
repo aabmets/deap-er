@@ -19,6 +19,7 @@ import numpy
 from .common import sample_offspring
 
 __all__ = [
+    "CmaCore",
     "adapt_cma_sigma",
     "apply_cma_hyperparams",
     "generate_cma_offspring",
@@ -27,6 +28,34 @@ __all__ = [
     "shift_cma_centroid",
     "update_cma_paths",
 ]
+
+
+class CmaCore:
+    """Typed mutable state shared by full-matrix and separable CMA."""
+
+    update_count: int
+    centroid: numpy.ndarray
+    sigma: float
+    dim: int
+    pc: numpy.ndarray
+    ps: numpy.ndarray
+    chi_n: float
+    lamb: int
+    mu: int
+    weights: numpy.ndarray
+    mu_eff: float
+    rank_one: float
+    rank_mu: float
+    ss_cum: float
+    ss_dmp: float
+    cm_cum: float
+    big_c: numpy.ndarray
+    diag_d: numpy.ndarray
+    cond: float
+    low: Any
+    up: Any
+    bound_mode: str
+    resample_limit: int
 
 
 def init_cma_state(strategy: Any, centroid: Any, sigma: float) -> None:
