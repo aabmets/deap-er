@@ -89,6 +89,22 @@ def test_mut_uniform_int_accepts_numpy_integer_bounds():
     assert all(0 <= gene <= 3 for gene in mutant)
 
 
+def test_bounded_operators_accept_numpy_float32_bounds():
+    low: Any = numpy.float32(0.0)
+    up: Any = numpy.float32(1.0)
+    tools.rng.seed(2)
+    (mutant,) = tools.mut_gaussian_bounded([0.5, 0.5], 0.0, 1.0, low, up, 1.0)
+    assert all(0.0 <= gene <= 1.0 for gene in mutant)
+    tools.rng.seed(3)
+    (poly,) = tools.mut_polynomial_bounded([0.5], 20.0, low, up, 1.0)
+    assert 0.0 <= poly[0] <= 1.0
+    left: Any = [0.2, 0.3]
+    right: Any = [0.8, 0.7]
+    child1, child2 = tools.cx_blend_bounded(left, right, 0.5, low, up)
+    assert all(0.0 <= gene <= 1.0 for gene in child1)
+    assert all(0.0 <= gene <= 1.0 for gene in child2)
+
+
 def test_mut_heterogeneous_applies_one_callable_per_gene():
     tools.rng.seed(6)
     individual: Any = [1, 2, 3]
