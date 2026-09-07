@@ -21,12 +21,24 @@ def test_warmup_numba_is_exported_from_gp():
 
 
 @pytest.mark.xdist_group(name="numba")
-def test_ensure_numba_cache_dir_sets_a_default(tmp_path, monkeypatch):
-    monkeypatch.chdir(tmp_path)
+def test_ensure_numba_cache_dir_uses_a_stable_absolute_path(tmp_path, monkeypatch):
+    home = tmp_path / "home"
+    home.mkdir()
+    other_cwd = tmp_path / "other_cwd"
+    other_cwd.mkdir()
+    monkeypatch.setenv("HOME", str(home))
+    monkeypatch.delenv("XDG_CACHE_HOME", raising=False)
     monkeypatch.delenv("NUMBA_CACHE_DIR", raising=False)
+    monkeypatch.chdir(other_cwd)
 
     ensure_numba_cache_dir()
 
     cache = Path(os.environ["NUMBA_CACHE_DIR"])
-    assert cache == tmp_path / ".cache" / "numba"
+    expected = (home / ".cache" / "deap-er" / "numba").resolve()
+    assert cache.is_absolute()
+    assert cache == expected
     assert cache.is_dir()
+
+    monkeypatch.chdir(tmp_path)
+    ensure_numba_cache_dir()
+    assert Path(os.environ["NUMBA_CACHE_DIR"]) == cache

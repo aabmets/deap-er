@@ -91,7 +91,7 @@ def _column_count(columns: Sequence[Any] | numpy.ndarray) -> int:
 
 
 def interpret_tape(tape: Tape, columns: Sequence[Any] | numpy.ndarray) -> Any:
-    """Run a tape over a sequence of columns.
+    """Run a tape over column inputs.
 
     Evaluates through the same functions as the default backend, so
     the two agree by construction.
@@ -99,7 +99,8 @@ def interpret_tape(tape: Tape, columns: Sequence[Any] | numpy.ndarray) -> Any:
     Args:
         tape: Tape produced by ``lower_tree``.
         columns: One array per column, in the order the primitive set
-            declares them.
+            declares them, or one packed ``(n_rows, n_columns)``
+            matrix.
 
     Returns:
         The result of the expression.
