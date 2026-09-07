@@ -69,3 +69,18 @@ in `kwargs`.
 
 **Validator.**
 `tests/test_strategies/test_cma_standard.py::test_compute_params_keeps_learned_c_unless_cm_init`
+
+---
+
+## One-sided box bounds sent restart centroids to inf/NaN
+
+`sample_centroid` drew `rng.uniform(lo, hi)` after `_bound_arrays`
+filled a missing end with $\pm\infty$. `uniform(0, \infty)` is
+`inf`; `uniform(-\infty, 1)` is `NaN`. `RestartStrategy.restart()`
+wrote that vector as the new mean.
+
+**Fix.** Replace a non-finite end with the unbounded default
+$[-5, 5]$, and expand a collapsed axis by that box width.
+
+**Validator.**
+`tests/test_strategies/test_cma_restart.py::test_restart_centroid_one_sided_bounds_stay_finite`
