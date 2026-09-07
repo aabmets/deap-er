@@ -140,6 +140,40 @@ def test_sel_team_trust_matrix_skips_value_check(three_cases, make, monkeypatch)
     assert chosen == [first]
 
 
+def test_sel_team_trust_matrix_changes_winner(three_cases, make):
+    wider = make(three_cases, [0], (0.0, 0.0, 1.0))
+    narrower = make(three_cases, [1], (1.0, 1.0, 0.0))
+    population = [wider, narrower]
+    matrix = numpy.array([[1.0, 1.0, 1.0], [0.0, 0.0, 0.0]])
+
+    assert tools.sel_team(population, 1) == [wider]
+    chosen = tools.sel_team(population, 1, matrix=matrix, trust_matrix=True)
+    assert chosen == [narrower]
+    with pytest.raises(ValueError, match="does not match"):
+        tools.sel_team(population, 1, matrix=matrix)
+
+
+def test_sel_team_duplicate_cases_covered_once(three_cases, make):
+    only_zero = make(three_cases, [0], (0.0, 1.0, 1.0))
+    only_one = make(three_cases, [1], (1.0, 0.0, 1.0))
+    population = [only_zero, only_one]
+    winners = set()
+    for seed in range(40):
+        tools.rng.seed(seed)
+        winners.add(tools.sel_team(population, 1, cases=[0, 0, 1])[0][0])
+
+    assert winners == {0, 1}
+
+
+def test_sel_team_does_not_mutate_caller_cases(three_cases, make):
+    population = _cover_pool(make, three_cases)
+    cases = [2, 0, 2]
+
+    tools.sel_team(population, 2, cases=cases)
+
+    assert cases == [2, 0, 2]
+
+
 def test_sel_team_cases_restrict_coverage(three_cases, make):
     first, second, third, generalist = _cover_pool(make, three_cases)
     population = [first, second, third, generalist]
