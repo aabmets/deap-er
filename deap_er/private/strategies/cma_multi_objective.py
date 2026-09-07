@@ -198,7 +198,7 @@ class StrategyMultiObjective:
         one_each = self.lamb == self.mu and len(self.parents) >= self.lamb
         resample = self.bound_mode == "resample" and (self.low is not None or self.up is not None)
         if resample:
-            n_dom = None if one_each else _front()
+            n_dom: list[Individual] = [] if one_each else _front()
             individuals = []
             for i in range(self.lamb):
                 p_idx = i if one_each else n_dom[rng.integers(0, len(n_dom))].ps_[1]
