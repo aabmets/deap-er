@@ -32,6 +32,7 @@ __all__: list[str] = [
     "scalar_fitness",
     "stagnation_window_size",
     "strategy_center",
+    "strategy_sigma",
     "strategy_diagnostics",
     "strategy_dim",
 ]
@@ -98,10 +99,13 @@ def sample_small_sigma() -> float:
 
 
 def scalar_fitness(ind: Individual, key: Callable[[Individual], float] | None = None) -> float:
-    """Return a scalar objective for stagnation checks."""
+    """Return a weighted scalar for stagnation checks (higher is better)."""
     if key is not None:
         return float(key(ind))
-    return float(ind.fitness.values[0])
+    wvalues = ind.fitness.wvalues
+    if len(wvalues) == 1:
+        return float(wvalues[0])
+    return float(sum(wvalues))
 
 
 class RunTracker:
@@ -130,7 +134,7 @@ class RunTracker:
         self.gen = 0
         self.best_history: list[float] = []
         self.median_history: list[float] = []
-        self.best_ever = numpy.inf
+        self.best_ever = -numpy.inf
         self.terminate = False
 
     def begin_run(self, lamb: int, sigma0: float, max_iter: int | None = None) -> None:
@@ -153,12 +157,12 @@ class RunTracker:
     ) -> None:
         """Record one generation and update termination flags."""
         values = [scalar_fitness(ind, fitness_key) for ind in population]
-        best = min(values)
+        best = max(values)
         median = float(numpy.median(values))
         self.gen += 1
         self.best_history.append(best)
         self.median_history.append(median)
-        self.best_ever = min(self.best_ever, best)
+        self.best_ever = max(self.best_ever, best)
         if self.max_iter is not None and self.gen >= self.max_iter:
             self.terminate = True
             return
@@ -192,7 +196,7 @@ class RunTracker:
         new_best = numpy.median(best_slice[-span:])
         old_med = numpy.median(med_slice[:span])
         new_med = numpy.median(med_slice[-span:])
-        return bool(new_best >= old_best and new_med >= old_med)
+        return bool(new_best <= old_best and new_med <= old_med)
 
     def _tol_fun_hit(self) -> bool:
         if len(self.best_history) < 2:
@@ -216,6 +220,15 @@ def strategy_center(strategy: Any) -> numpy.ndarray:
     if hasattr(strategy, "parent"):
         return numpy.asarray(strategy.parent, dtype=float)
     return numpy.asarray(strategy.parents[0], dtype=float)
+
+
+def strategy_sigma(strategy: Any) -> float:
+    """Return the current step size of a CMA strategy."""
+    if hasattr(strategy, "sigma") and not hasattr(strategy, "sigmas"):
+        return float(strategy.sigma)
+    if hasattr(strategy, "sigmas"):
+        return float(strategy.sigmas[0])
+    return float(strategy.sigma)
 
 
 def strategy_diagnostics(strategy: Any) -> tuple[float | None, float | None, float | None]:

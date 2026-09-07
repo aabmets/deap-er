@@ -63,6 +63,8 @@ def ea_generate_update_restarts(
     while not restart_strategy.is_done():
         t0 = time.perf_counter()
         population = toolbox.generate()
+        if not population:
+            break
         fitness = toolbox.map(toolbox.evaluate, population)
         for ind, fit in zip(population, fitness, strict=False):
             ind.fitness.values = fit

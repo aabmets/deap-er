@@ -32,7 +32,7 @@ def test_sphere_convergence():
     tools.rng.seed(0)
     strategy, toolbox = _setup()
     try:
-        restart = tools.RestartStrategy(strategy, mode="bipop", budget=50_000)
+        restart = tools.RestartStrategy(strategy, mode="bipop", budget=50_000, sigma_large=1.0)
         toolbox.register("generate", restart.generate, creator.__dict__[IND])
         toolbox.register("update", restart.update)
         pop, logbook = tools.ea_generate_update_restarts(toolbox, restart)

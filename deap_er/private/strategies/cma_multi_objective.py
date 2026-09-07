@@ -136,13 +136,13 @@ class StrategyMultiObjective:
         **kwargs: Any,
     ) -> None:
         """Reset mutable CMA state for a restart."""
-        self.parents = parents
-        pop_size = len(parents)
+        self.compute_params(**kwargs)
+        self.parents = parents[: self.mu]
+        pop_size = len(self.parents)
         self.sigmas = [sigma] * pop_size
         self.big_a = [numpy.identity(self.dim) for _ in range(pop_size)]
         self.inv_cholesky = [numpy.identity(self.dim) for _ in range(pop_size)]
         self.pc = [numpy.zeros(self.dim) for _ in range(pop_size)]
-        self.compute_params(**kwargs)
         self.psucc = [self.tgt_sr] * pop_size
 
     def update(self, population: list[Individual]) -> None:

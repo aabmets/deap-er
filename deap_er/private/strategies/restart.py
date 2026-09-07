@@ -22,13 +22,18 @@ from deap_er.private.strategies.restart_common import (
     RunTracker,
     default_lambda,
     max_iter_limit,
-    sample_centroid,
-    sample_small_lambda,
-    sample_small_sigma,
     scalar_fitness,
     strategy_center,
     strategy_diagnostics,
     strategy_dim,
+)
+from deap_er.private.strategies.restart_ops import (
+    apply_strategy_restart,
+    next_bipop_params,
+    next_ipop_params,
+    resize_offsprings,
+    set_strategy_sigma,
+    target_met,
 )
 from deap_er.private.typedefs import Individual
 
@@ -38,28 +43,11 @@ StrategyLike = Strategy | StrategyOnePlusLambda | StrategyMultiObjective
 
 
 class RestartStrategy:
-    """Wrap a CMA strategy with IPOP or BIPOP restart logic.
+    """Wrap a CMA strategy with IPOP or BIPOP restart scheduling.
 
-    Args:
-        strategy: ``Strategy``, ``StrategyOnePlusLambda``, or
-            ``StrategyMultiObjective`` instance to wrap.
-        mode: ``bipop`` (default) or ``ipop``.
-        budget: Total function-evaluation budget across all runs.
-        target_f: Optional target objective; stop when best is at or
-            below this value.
-        sigma_large: Initial step size for large / IPOP restarts.
-        lambda_factor: Multiplier applied to offspring count on each
-            large restart.
-        max_large_restarts: Cap on large-regime doublings.
-        max_restarts: Optional cap on the number of restarts.
-        stagnation_window: Median comparison window for stagnation.
-        tol_fun: Relative best-fitness improvement threshold.
-        condition_limit: Restart when ``Strategy.cond`` exceeds this.
-        tol_up_sigma: Restart when step size grows too fast vs
-            covariance.
-        restart_centroid: ``random``, ``initial``, ``best``, or a
-            callable ``(dim) -> vector``.
-        stagnation_key: Optional scalarizer for multi-objective runs.
+    See constructor keyword arguments for configuration. ``target_f`` is
+    expressed in raw objective space for single-objective runs. The first
+    run uses ``sigma_large`` as its initial step size.
     """
 
     def __init__(
@@ -109,6 +97,8 @@ class RestartStrategy:
         self._ind_init: Callable[..., Individual] | None = None
         self._initial_center = strategy_center(strategy)
         self._best: Individual | None = None
+        self._fitness_weights: tuple[float, ...] | None = None
+        self._saved_lamb: int | None = None
         self._tracker = RunTracker(
             self.dim,
             self._lambda_default,
@@ -118,6 +108,7 @@ class RestartStrategy:
             condition_limit=condition_limit,
             tol_up_sigma=tol_up_sigma,
         )
+        set_strategy_sigma(self.strategy, sigma_large)
         self._begin_run(self._lambda_default, sigma_large)
 
     @property
@@ -137,21 +128,42 @@ class RestartStrategy:
 
     @property
     def best_fitness(self) -> float:
-        """Best scalar objective seen across all runs."""
-        return self._tracker.best_ever
+        """Best raw objective seen across all runs for single-objective runs."""
+        if self._fitness_weights and len(self._fitness_weights) == 1:
+            weight = self._fitness_weights[0]
+            if weight != 0:
+                return float(self._tracker.best_ever / weight)
+        return float(self._tracker.best_ever)
+
+    def remaining_budget(self) -> int:
+        """Function evaluations left before the hard budget is reached."""
+        return max(0, self.budget - self._evals_used)
 
     def generate(self, ind_init: Callable[..., Individual]) -> list[Individual]:
-        """Sample offspring from the inner strategy."""
+        """Sample offspring from the inner strategy within the eval budget."""
         self._ind_init = ind_init
+        remaining = self.remaining_budget()
+        if remaining <= 0:
+            return []
+        requested = self.strategy.lamb
+        batch = min(requested, remaining)
+        if batch != requested:
+            self._saved_lamb = requested
+            resize_offsprings(self.strategy, batch)
         return self.strategy.generate(ind_init)
 
     def update(self, population: list[Individual]) -> None:
         """Update the inner strategy and check per-run termination."""
+        if not population:
+            self._done = True
+            return
+        if self._fitness_weights is None:
+            self._fitness_weights = population[0].fitness.weights
         self.strategy.update(population)
         self._run_evals += len(population)
         self._evals_used += len(population)
         for ind in population:
-            if self._best is None or scalar_fitness(ind, self.stagnation_key) < scalar_fitness(
+            if self._best is None or scalar_fitness(ind, self.stagnation_key) > scalar_fitness(
                 self._best, self.stagnation_key
             ):
                 self._best = ind
@@ -163,12 +175,15 @@ class RestartStrategy:
             sigma=sigma,
             largest_eig=largest,
         )
-        if self.target_f is not None and self._tracker.best_ever <= self.target_f:
+        if target_met(self.target_f, self._fitness_weights, self._tracker.best_ever):
             self._done = True
         if self._small_run_cap is not None and self._run_evals >= self._small_run_cap:
             self._tracker.terminate = True
         if self._evals_used >= self.budget:
             self._done = True
+        if self._saved_lamb is not None and self.remaining_budget() > 0:
+            resize_offsprings(self.strategy, self._saved_lamb)
+            self._saved_lamb = None
 
     def should_restart(self) -> bool:
         """Return whether the current run ended and a restart is due."""
@@ -189,15 +204,36 @@ class RestartStrategy:
         self._run_count += 1
         self._restart_count += 1
         if self.mode == "ipop":
-            lamb, sigma = self._next_ipop_params()
+            lamb, sigma, self._irestart_large = next_ipop_params(
+                self._lambda_default,
+                self.lambda_factor,
+                self._irestart_large,
+                self.max_large_restarts,
+                self.sigma_large,
+            )
             self._regime = "large"
         else:
-            lamb, sigma, self._regime = self._next_bipop_params()
+            lamb, sigma, self._regime, self._irestart_large, self._lambda_large = (
+                next_bipop_params(
+                    lambda_default=self._lambda_default,
+                    lambda_factor=self.lambda_factor,
+                    lambda_large=self._lambda_large,
+                    irestart_large=self._irestart_large,
+                    max_large_restarts=self.max_large_restarts,
+                    sigma_large=self.sigma_large,
+                    restart_count=self._restart_count,
+                    evals_used=self._evals_used,
+                    budget=self.budget,
+                    budget_large=self._budget_large,
+                    budget_small=self._budget_small,
+                )
+            )
         self._small_run_cap = (
             max(1, self._last_large_run_evals // 2) if self._regime == "small" else None
         )
         self._apply_restart(lamb, sigma)
         self._run_evals = 0
+        self._saved_lamb = None
         self._begin_run(lamb, sigma)
 
     def is_done(self) -> bool:
@@ -217,53 +253,16 @@ class RestartStrategy:
             self._budget_large += self._run_evals
             self._last_large_run_evals = self._run_evals
 
-    def _next_ipop_params(self) -> tuple[int, float]:
-        self._irestart_large = min(self._irestart_large + 1, self.max_large_restarts)
-        lamb = int(self._lambda_default * self.lambda_factor**self._irestart_large)
-        return lamb, self.sigma_large
-
-    def _next_bipop_params(self) -> tuple[int, float, Literal["large", "small"]]:
-        force_large = self._restart_count == 1 or self._evals_used >= self.budget * 0.95
-        if force_large or self._budget_small >= self._budget_large:
-            self._irestart_large = min(self._irestart_large + 1, self.max_large_restarts)
-            self._lambda_large = int(
-                self._lambda_default * self.lambda_factor**self._irestart_large
-            )
-            return self._lambda_large, self.sigma_large, "large"
-        lamb = sample_small_lambda(self._lambda_default, self._lambda_large)
-        return lamb, sample_small_sigma(), "small"
-
     def _apply_restart(self, lamb: int, sigma: float) -> None:
         if self._ind_init is None:
             raise RuntimeError("Call generate before restart.")
-        center = sample_centroid(
-            self.dim,
-            getattr(self.strategy, "low", None),
-            getattr(self.strategy, "up", None),
-            self.restart_centroid,
-            self._initial_center,
-            self._best,
+        apply_strategy_restart(
+            self.strategy,
+            self._ind_init,
+            dim=self.dim,
+            lamb=lamb,
+            sigma=sigma,
+            restart_centroid=self.restart_centroid,
+            initial_center=self._initial_center,
+            best=self._best,
         )
-        if isinstance(self.strategy, Strategy):
-            self.strategy.reset_state(center, sigma, offsprings=lamb)
-        elif isinstance(self.strategy, StrategyOnePlusLambda):
-            parent = self._ind_init(center)
-            del parent.fitness.values
-            self.strategy.reset_state(parent, sigma, offsprings=lamb)
-        else:
-            parents = []
-            for _ in range(self.strategy.mu):
-                ind = self._ind_init(
-                    sample_centroid(
-                        self.dim,
-                        self.strategy.low,
-                        self.strategy.up,
-                        self.restart_centroid,
-                        self._initial_center,
-                        self._best,
-                    )
-                )
-                del ind.fitness.values
-                parents.append(ind)
-            survivors = min(self.strategy.mu, lamb)
-            self.strategy.reset_state(parents, sigma, offsprings=lamb, survivors=survivors)
