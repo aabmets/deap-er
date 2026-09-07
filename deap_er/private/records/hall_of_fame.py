@@ -10,6 +10,7 @@
 #
 from __future__ import annotations
 
+import math
 from bisect import bisect_right
 from collections.abc import Callable, Iterator, Sequence
 from copy import deepcopy
@@ -20,6 +21,24 @@ if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 
 __all__: list[str] = ["BaseRecordStorage", "HallOfFame", "ParetoFront"]
+
+
+def _has_comparable_fitness(individual: Any) -> bool:
+    """Return whether ``individual`` has a finite, valid fitness.
+
+    Args:
+        individual: Candidate that may lack a fitness attribute.
+
+    Returns:
+        True when fitness exists, is valid, and every weighted
+        objective is finite.
+    """
+    if not hasattr(individual, "fitness"):
+        return False
+    fitness = individual.fitness
+    if not fitness.is_valid():
+        return False
+    return all(math.isfinite(float(value)) for value in fitness.wvalues)
 
 
 class BaseRecordStorage:
@@ -127,7 +146,7 @@ class HallOfFame(BaseRecordStorage):
         Args:
             individual: Candidate with or without a fitness attribute.
         """
-        if not hasattr(individual, "fitness"):
+        if not _has_comparable_fitness(individual):
             return
         if len(self) == 0:
             self.insert(individual)
@@ -148,10 +167,11 @@ class HallOfFame(BaseRecordStorage):
 
         Better individuals replace the worst members. The archive stays
         at most ``maxsize`` and skips individuals already present
-        according to ``similar``.
+        according to ``similar``. Individuals without a comparable
+        fitness (missing, invalid, or non-finite) are ignored.
 
         Args:
-            population: Individuals with a fitness attribute.
+            population: Individuals that may have a fitness attribute.
         """
         if self.maxsize == 0:
             return
@@ -205,12 +225,14 @@ class ParetoFront(BaseRecordStorage):
 
         Members dominated by a new individual are removed. Similar
         individuals with equal fitness are not added again.
+        Individuals without a comparable fitness (missing, invalid,
+        or non-finite) are ignored.
 
         Args:
-            population: Individuals with a fitness attribute.
+            population: Individuals that may have a fitness attribute.
         """
         for ind in population:
-            if not hasattr(ind, "fitness"):
+            if not _has_comparable_fitness(ind):
                 continue
             is_dominated, has_twin, to_remove = self._front_verdict(ind)
             for i in reversed(to_remove):
