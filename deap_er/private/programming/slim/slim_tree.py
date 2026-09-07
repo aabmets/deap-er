@@ -104,8 +104,8 @@ def compile_slim_tree(
         dispatch: Compiled kernel for the ``'numba'`` backend.
 
     Returns:
-        A callable if ``prim_set`` has one or more arguments,
-        otherwise the result of the evaluation.
+        A callable when ``prim_set`` has one or more arguments,
+        otherwise the evaluated scalar for the expression.
     """
     head_fn = compile_tree(slim.head, prim_set, backend=backend, dispatch=dispatch)
     if not slim.deltas:
