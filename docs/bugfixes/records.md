@@ -227,6 +227,20 @@ chapter — is still left alone.
 
 ---
 
+## GridArchive accepted non-finite ranges
+
+`parse_grid_config` required `low < high` but not finite ends.
+`(0, inf)` built a grid that mapped every finite descriptor to
+cell 0. `(-inf, 0)` and NaN bounds crashed later in
+`descriptor_to_index` with `int(nan)`.
+
+**Fix.** Reject a range whose ends are not finite.
+
+**Validator.**
+`tests/test_records/test_grid_archive_errors.py::test_non_finite_ranges_raise`
+
+---
+
 ## `MultiStatistics.compile` exhausted a generator
 
 Each chapter iterated `data`. A one-shot iterable (generator,
