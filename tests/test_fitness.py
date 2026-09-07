@@ -83,6 +83,16 @@ class TestFitness:
         assert low_second.dominates(high_second)
         assert not high_second.dominates(low_second)
 
+    @pytest.mark.parametrize("weights", [(1.0,), (1.0, 1.0), (1.0, 1.0, 1.0), (1.0, 1.0, 1.0, 1.0)])
+    def test_dominates_invalid_fitness_is_false(self, weights, monkeypatch):
+        monkeypatch.setattr(Fitness, "weights", list(weights))
+        valid = Fitness([1.0] * len(weights))
+        invalid = Fitness()
+
+        assert valid.dominates(invalid) is False
+        assert invalid.dominates(valid) is False
+        assert invalid.dominates(invalid) is False
+
     def test_comparison(self, monkeypatch):
         monkeypatch.setattr(Fitness, "weights", [1, 1, 1])
         ft1 = Fitness([2, 2, 2])
