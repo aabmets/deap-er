@@ -29,6 +29,10 @@ def duplicate_count(population: list[Any], key: Any | None = None) -> int:
     use a sort in ``O(n log n)``. Keys that are neither hashable nor
     mutually sortable fall back to list membership in ``O(n^2)``.
 
+    Hashable keys must satisfy Python's hash/equality contract: equal keys
+    must hash equally. The set path counts by hash bucket; equal keys with
+    unequal hashes are treated as distinct (unlike a pure ``==`` scan).
+
     Args:
         population: Individuals to scan.
         key: Extracts the compared value. Defaults to the identity.
