@@ -8,6 +8,7 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from .private.operators.constraint_dominates import constraint_dominates
 from .private.operators.cx_hetero import cx_heterogeneous
 from .private.operators.cx_permutation import (
     cx_ordered,
@@ -53,7 +54,6 @@ from .private.operators.sel_moead_helpers import (
     scalarization_pbi,
     scalarization_tchebycheff,
 )
-from .private.operators.constraint_dominates import constraint_dominates
 from .private.operators.sel_nsga_2 import sel_nsga_2
 from .private.operators.sel_nsga_3 import SelNSGA3WithMemory, sel_nsga_3
 from .private.operators.sel_sms_emoa import sel_sms_emoa

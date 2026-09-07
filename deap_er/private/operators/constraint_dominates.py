@@ -164,7 +164,7 @@ def constraint_dominates(
     if left != right:
         return left
     if left:
-        return ind1.fitness.dominates(ind2.fitness)
+        return bool(ind1.fitness.dominates(ind2.fitness))
     if violation is None:
         return False
     return _as_violation(violation(ind1)) < _as_violation(violation(ind2))
