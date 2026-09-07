@@ -22,6 +22,25 @@ if TYPE_CHECKING:
 __all__: list[str] = ["nsga_diversity", "nsga_convergence", "inv_gen_dist", "duplicate_count"]
 
 
+def _objective_row(point: Any) -> tuple[Any, ...]:
+    """Return objective values from an individual or a raw vector.
+
+    Args:
+        point: An individual with ``fitness.values``, or a sequence of
+            objective coordinates.
+
+    Returns:
+        The fitness values when present and non-empty, otherwise
+        ``tuple(point)``.
+    """
+    fitness = getattr(point, "fitness", None)
+    if fitness is not None:
+        values = getattr(fitness, "values", ())
+        if values:
+            return tuple(values)
+    return tuple(point)
+
+
 def duplicate_count(population: list[Any], key: Any | None = None) -> int:
     """Return how many individuals are duplicates of an earlier one.
 
@@ -75,7 +94,9 @@ def nsga_diversity(population: list[Individual], first: Individual, last: Indivi
 
     ``population`` is the front to score. ``first`` and ``last`` are
     the extreme points of the optimal Pareto front, as in Deb's
-    original NSGA-II article. Smaller values indicate better spread.
+    original NSGA-II article. Each extreme may be an individual
+    (objectives from ``fitness.values``) or a raw objective vector.
+    Smaller values indicate better spread.
 
     Args:
         population: Pareto front to evaluate.
@@ -86,8 +107,10 @@ def nsga_diversity(population: list[Individual], first: Individual, last: Indivi
         The diversity metric of the front.
     """
     ordered = sorted(population, key=lambda ind: ind.fitness.values[0])
-    df = hypot(ordered[0].fitness.values[0] - first[0], ordered[0].fitness.values[1] - first[1])
-    dl = hypot(ordered[-1].fitness.values[0] - last[0], ordered[-1].fitness.values[1] - last[1])
+    start = _objective_row(first)
+    end = _objective_row(last)
+    df = hypot(ordered[0].fitness.values[0] - start[0], ordered[0].fitness.values[1] - start[1])
+    dl = hypot(ordered[-1].fitness.values[0] - end[0], ordered[-1].fitness.values[1] - end[1])
 
     def fn(f_: Individual, s_: Individual) -> float:
         return hypot(
@@ -110,8 +133,9 @@ def nsga_convergence(population: list[Individual], optimal: list[Individual]) ->
     """Return the NSGA-II convergence metric of a Pareto front.
 
     ``population`` is the front to score and ``optimal`` is the true
-    Pareto front, as in Deb's original NSGA-II article. Smaller values
-    indicate closer solutions.
+    Pareto front, as in Deb's original NSGA-II article. Each reference
+    point may be an individual or a raw objective vector. Smaller
+    values indicate closer solutions.
 
     Args:
         population: Pareto front to evaluate.
@@ -121,7 +145,7 @@ def nsga_convergence(population: list[Individual], optimal: list[Individual]) ->
         The convergence metric of the front.
     """
     front = numpy.asarray([ind.fitness.values for ind in population], dtype=float)
-    truth = numpy.asarray([tuple(opt) for opt in optimal], dtype=float)
+    truth = numpy.asarray([_objective_row(opt) for opt in optimal], dtype=float)
     minima = numpy.min(spatial.distance.cdist(front, truth), axis=1)
     return float(numpy.mean(minima))
 
