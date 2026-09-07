@@ -50,7 +50,10 @@ def sel_sms_emoa(
             and kept fixed for the whole truncation pass.
 
     Returns:
-        The selected individuals, ordered by Pareto front.
+        The selected individuals. Complete Pareto fronts appear first;
+        survivors from the truncated critical front keep their relative
+        list order after greedy removal (unlike ``sel_nsga_2``, they
+        are not crowding-sorted within the front).
     """
     if not individuals or sel_count <= 0:
         return []

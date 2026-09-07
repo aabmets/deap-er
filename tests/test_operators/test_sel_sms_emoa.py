@@ -41,6 +41,11 @@ def test_sel_count_zero_returns_empty(multi_obj, make):
     assert tools.sel_sms_emoa(population, 0) == []
 
 
+def test_sel_count_negative_returns_empty(multi_obj, make):
+    population = _critical_population(multi_obj, make)
+    assert tools.sel_sms_emoa(population, -1) == []
+
+
 def test_returns_requested_count(multi_obj, make):
     population = _critical_population(multi_obj, make)
     chosen = tools.sel_sms_emoa(population, 4)
@@ -115,7 +120,7 @@ def test_three_objectives(multi_obj, make):
             make(ind_cls, [3], (1.0, 1.0, 1.0)),
         ]
         chosen = tools.sel_sms_emoa(population, 2)
-        assert len(chosen) == 2
+        assert [ind[0] for ind in chosen] == [1, 2]
     finally:
         del creator.__dict__["SMS3_FIT"]
         del creator.__dict__["SMS3_IND"]
@@ -126,11 +131,12 @@ def test_steady_state_single_removal(multi_obj, make):
     offspring = make(multi_obj, [99], (4.5, 4.5))
     pool = parents + [offspring]
     chosen = tools.sel_sms_emoa(pool, 4)
-    assert len(chosen) == 4
+    assert [ind[0] for ind in chosen] == [0, 1, 2, 3]
     assert offspring not in chosen
 
 
 def test_sms_emoa_zdt1():
+    tools.rng.seed(8915)
     creator.create_type(FIT, Fitness, weights=(-1.0, -1.0))
     creator.create_type(IND, list, fitness=creator.__dict__[FIT])
     try:
