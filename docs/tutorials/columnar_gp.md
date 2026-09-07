@@ -124,6 +124,15 @@ gp.add_window_ephemeral(pset, "window", 2, 64)
 The bounds are inclusive. The name must be unique across the process,
 because a primitive set stores ephemeral types by name.
 
+After the shape of a tree is fixed, `tune_ephemerals` can polish
+those numeric leaves with a few boxed CMA `generate` / `update`
+steps. Walk order is prefix list order — on a `SlimTree`, `head`
+then each delta. Window values are rounded and clamped back to
+the inclusive `[low, high]` the ephemeral was registered with.
+Evaluation stays on the caller: pass `evaluate`, or
+`evaluate_batch` to score a pack of clones. This is a local
+polish, not a second full ES run.
+
 `add_pair_window_primitives` is an optional second kit for two series
 and one `Window`: `rolling_corr`, `rolling_cov`, and `rolling_beta`.
 Moments use the same population divisor as `rolling_std`. Beta is the
