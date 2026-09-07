@@ -20,6 +20,56 @@ from deap_er.private.various.clone import clone_individual
 __all__: list[str] = ["mig_ring"]
 
 
+def _claim_vacancies(population: list[Individual], dest_slots: list[Individual]) -> list[int]:
+    taken: set[int] = set()
+    vacancies: list[int] = []
+    for immigrant in dest_slots:
+        indx = next(
+            (j for j, member in enumerate(population) if member is immigrant and j not in taken),
+            None,
+        )
+        if indx is None:
+            indx = next(
+                (j for j in range(len(population)) if j not in taken),
+                None,
+            )
+            if indx is None:
+                break
+        taken.add(indx)
+        vacancies.append(indx)
+    return vacancies
+
+
+def _incoming_filled(
+    emigrants: list[list[Individual]],
+    vacancies: list[list[int]],
+    mig_indices: list[int],
+) -> list[int]:
+    incoming = [0] * len(emigrants)
+    for from_deme, to_deme in enumerate(mig_indices):
+        filled = min(len(emigrants[from_deme]), len(vacancies[to_deme]))
+        incoming[to_deme] = max(incoming[to_deme], filled)
+    return incoming
+
+
+def _place_emigrants(
+    populations: list[list[Individual]],
+    emigrants: list[list[Individual]],
+    vacancies: list[list[int]],
+    mig_indices: list[int],
+    incoming_filled: list[int],
+    replacement: Callable[..., Any] | None,
+) -> None:
+    for from_deme, to_deme in enumerate(mig_indices):
+        for offset, (indx, immigrant) in enumerate(
+            zip(vacancies[to_deme], emigrants[from_deme], strict=False)
+        ):
+            mover = immigrant
+            if replacement is None and offset >= incoming_filled[from_deme]:
+                mover = clone_individual(immigrant)
+            populations[to_deme][indx] = mover
+
+
 def mig_ring(
     populations: list[list[Individual]],
     mig_count: int,
@@ -65,36 +115,14 @@ def mig_ring(
         else:
             emigrants[from_deme].extend(clone_individual(ind) for ind in selected)
             dest_slots = replacement(populations[from_deme], mig_count)
-        taken: set[int] = set()
-        for immigrant in dest_slots:
-            indx = next(
-                (
-                    j
-                    for j, member in enumerate(populations[from_deme])
-                    if member is immigrant and j not in taken
-                ),
-                None,
-            )
-            if indx is None:
-                indx = next(
-                    (j for j in range(len(populations[from_deme])) if j not in taken),
-                    None,
-                )
-                if indx is None:
-                    break
-            taken.add(indx)
-            vacancies[from_deme].append(indx)
+        vacancies[from_deme] = _claim_vacancies(populations[from_deme], dest_slots)
 
-    incoming_filled = [0] * nbr_demes
-    for from_deme, to_deme in enumerate(mig_indices):
-        filled = min(len(emigrants[from_deme]), len(vacancies[to_deme]))
-        if filled > incoming_filled[to_deme]:
-            incoming_filled[to_deme] = filled
-
-    for from_deme, to_deme in enumerate(mig_indices):
-        for offset, (indx, immigrant) in enumerate(
-            zip(vacancies[to_deme], emigrants[from_deme], strict=False)
-        ):
-            if replacement is None and offset >= incoming_filled[from_deme]:
-                immigrant = clone_individual(immigrant)
-            populations[to_deme][indx] = immigrant
+    incoming_filled = _incoming_filled(emigrants, vacancies, mig_indices)
+    _place_emigrants(
+        populations,
+        emigrants,
+        vacancies,
+        mig_indices,
+        incoming_filled,
+        replacement,
+    )
