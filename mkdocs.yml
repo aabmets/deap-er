@@ -124,3 +124,14 @@ nav:
       - Genetic Programming: reference/gp.md
       - Persistence: reference/persistence.md
       - Type Aliases: reference/aliases.md
+  - Bugfixes:
+      - DEAP issues: bugfixes/deap_fixes.md
+      - Algorithms: bugfixes/algorithms.md
+      - Benchmarks: bugfixes/benchmarks.md
+      - Creator: bugfixes/creator.md
+      - Genetic programming: bugfixes/gp.md
+      - Operators: bugfixes/operators.md
+      - Persistence: bugfixes/persistence.md
+      - Records: bugfixes/records.md
+      - Strategies: bugfixes/strategies.md
+      - Utilities: bugfixes/utilities.md

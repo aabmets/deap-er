@@ -57,9 +57,16 @@ Same toolbox model. Counted from the
 inventory:
 
 - **18** still-open [DEAP](https://github.com/DEAP/deap) issues
-  implemented (some older than a decade)
-- **36** correctness bugs fixed — operators, GP, CMA, records,
-  checkpoints, and published benchmarks
+  [implemented](https://aabmets.github.io/deap-er/bugfixes/deap_fixes/) (some older than a decade)
+- **36** correctness bugs fixed — [operators](https://aabmets.github.io/deap-er/bugfixes/operators/),
+  [GP](https://aabmets.github.io/deap-er/bugfixes/gp/),
+  [CMA](https://aabmets.github.io/deap-er/bugfixes/strategies/),
+  [records](https://aabmets.github.io/deap-er/bugfixes/records/),
+  [checkpoints](https://aabmets.github.io/deap-er/bugfixes/persistence/),
+  published [benchmarks](https://aabmets.github.io/deap-er/bugfixes/benchmarks/),
+  [creator](https://aabmets.github.io/deap-er/bugfixes/creator/),
+  [utilities](https://aabmets.github.io/deap-er/bugfixes/utilities/),
+  and [algorithms](https://aabmets.github.io/deap-er/bugfixes/algorithms/)
 - **33** capabilities DEAP does not have, including boxed CMA,
   mixed-gene mutation, logbook JSON, and
   [columnar GP](https://aabmets.github.io/deap-er/tutorials/columnar_gp/)

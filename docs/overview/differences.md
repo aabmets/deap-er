@@ -6,9 +6,16 @@ a drop-in rename. Function names, parameter order, and a few contracts
 changed. Same toolbox model. Counted from the sections below:
 
 - **18** still-open [DEAP](https://github.com/DEAP/deap) issues
-  implemented (some older than a decade)
-- **36** correctness bugs fixed — operators, GP, CMA, records,
-  checkpoints, and published benchmarks
+  [implemented](../bugfixes/deap_fixes.md) (some older than a decade)
+- **36** correctness bugs fixed — [operators](../bugfixes/operators.md),
+  [GP](../bugfixes/gp.md),
+  [CMA](../bugfixes/strategies.md),
+  [records](../bugfixes/records.md),
+  [checkpoints](../bugfixes/persistence.md),
+  published [benchmarks](../bugfixes/benchmarks.md),
+  [creator](../bugfixes/creator.md),
+  [utilities](../bugfixes/utilities.md),
+  and [algorithms](../bugfixes/algorithms.md)
 - **33** capabilities DEAP does not have, including boxed CMA,
   mixed-gene mutation, logbook JSON, and
   [columnar GP](../tutorials/columnar_gp.md)
