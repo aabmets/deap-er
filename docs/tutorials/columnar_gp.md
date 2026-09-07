@@ -300,9 +300,11 @@ def select(individuals, sel_count):
     return tools.sel_lexicase(individuals, sel_count, cases=cases, matrix=matrix)
 ```
 
-Walk-forward or chronological splits stay on the caller. The
-library only mutates given segments and guards an empty or
-all-solved exam.
+The default path and `informed=False` both keep that varied
+winner. `informed=True` only lets the guard fill an empty or
+collapsed exam with `sample_informed_cases`. Walk-forward or
+chronological splits stay on the caller. The library only
+mutates given segments and guards an empty or all-solved exam.
 
 ## Case-structured fitness
 
