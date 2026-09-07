@@ -12,13 +12,15 @@ import numpy
 import pytest
 from deap_er import gp, tools
 from deap_er.private.programming.numba import numba_ops
+from deap_er.private.programming.numba.numba_batch import compiled_batch_kernels
+from tests.harness.numba_dispatch import BATCH_TRIPLE, consumer_dispatch
 
 pytestmark = pytest.mark.skipif(
     not gp.numba_available(), reason="the optional numba extra is not installed"
 )
 
 COLUMNS = ["first", "second", "third"]
-TRIPLE = gp.USER_BASE + 81
+TRIPLE = BATCH_TRIPLE
 
 
 def _kit(window_name):
@@ -65,20 +67,6 @@ def _lower_trees(pset, count, seed=29):
 
 def _triple(value):
     return 3.0 * numpy.asarray(value, dtype=numpy.float64)
-
-
-def _dispatch():
-    import numba
-
-    @numba.njit(cache=False, nogil=True, error_model="numpy")
-    def dispatch(op, sp, stack, columns, constants, scratch):
-        if op == TRIPLE:
-            for index in range(columns.shape[0]):
-                stack[sp - 1, index] = 3.0 * stack[sp - 1, index]
-            return sp
-        return -1
-
-    return dispatch
 
 
 def test_interpret_tapes_numba_matches_bind_tape():
@@ -174,13 +162,14 @@ def test_a_consumer_kernel_runs_in_a_mixed_batch():
     )
     builtin = gp.lower_tree(gp.PrimitiveTree([mapping["vneg"], mapping["second"]]), pset)
     columns = _samples()
+    dispatch = consumer_dispatch()
 
     for flag in (False, True):
         actual = gp.interpret_tapes(
             [custom, builtin],
             _matrix(columns),
             backend="numba",
-            dispatch=_dispatch(),
+            dispatch=dispatch,
             parallel=flag,
         )
         numpy.testing.assert_allclose(actual[0], 3.0 * columns[0], equal_nan=True)
@@ -249,14 +238,13 @@ def test_interpret_tapes_accepts_a_generator_of_tapes():
 
 
 def test_a_serial_batch_does_not_compile_the_parallel_kernel():
-    from deap_er.private.programming.numba import numba_batch
-
     pset = _kit("BATCH_NUMBA_SERIAL_ONLY")
     columns = _samples()
     tape = gp.lower_tree(gp.PrimitiveTree([pset.mapping["first"]]), pset)
-    numba_batch._batch.clear()
+    before = compiled_batch_kernels()
 
     gp.interpret_tapes([tape], _matrix(columns), backend="numba")
 
-    assert "many" in numba_batch._batch
-    assert "many_parallel" not in numba_batch._batch
+    after = compiled_batch_kernels()
+    assert "many" in after
+    assert "many_parallel" not in (after - before)

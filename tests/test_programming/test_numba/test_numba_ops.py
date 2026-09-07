@@ -12,14 +12,14 @@ import numpy
 import pytest
 from deap_er import gp, tools
 from deap_er.private.programming.numba import numba_ops
+from tests.harness.numba_dispatch import OPS_TRIPLE, SCRATCH_USER, consumer_dispatch
 
 pytestmark = pytest.mark.skipif(
     not gp.numba_available(), reason="the optional numba extra is not installed"
 )
 
 COLUMNS = ["first", "second", "third"]
-TRIPLE = gp.USER_BASE + 61
-SCRATCH_USER = gp.USER_BASE + 63
+TRIPLE = OPS_TRIPLE
 
 
 def _kit(window_name):
@@ -48,20 +48,6 @@ def _as_column(value, size):
 
 def _triple(value):
     return 3.0 * numpy.asarray(value, dtype=numpy.float64)
-
-
-def _dispatch():
-    import numba
-
-    @numba.njit(cache=False, nogil=True, error_model="numpy")
-    def dispatch(op, sp, stack, columns, constants, scratch):
-        if op == TRIPLE:
-            for index in range(columns.shape[0]):
-                stack[sp - 1, index] = 3.0 * stack[sp - 1, index]
-            return sp
-        return -1
-
-    return dispatch
 
 
 def test_the_numba_backend_matches_the_default_backend():
@@ -131,7 +117,7 @@ def test_a_consumer_kernel_runs_through_the_dispatcher():
     columns = _samples()
 
     expected = gp.compile_tree(tree, pset)(*columns)
-    actual = gp.compile_tree(tree, pset, backend="numba", dispatch=_dispatch())(*columns)
+    actual = gp.compile_tree(tree, pset, backend="numba", dispatch=consumer_dispatch())(*columns)
 
     numpy.testing.assert_allclose(actual, expected, equal_nan=True)
 
@@ -194,19 +180,7 @@ def test_a_kernel_may_use_the_free_stack_row():
     tree = gp.PrimitiveTree([mapping["numba_ops_scratch_user"], mapping["first"]])
     columns = _samples()
 
-    import numba
-
-    @numba.njit(cache=False, nogil=True, error_model="numpy")
-    def dispatch(op, sp, stack, columns, constants, scratch):
-        if op == SCRATCH_USER:
-            for index in range(columns.shape[0]):
-                stack[sp, index] = 3.0 * stack[sp - 1, index]
-            for index in range(columns.shape[0]):
-                stack[sp - 1, index] = stack[sp, index]
-            return sp
-        return -1
-
-    result = gp.compile_tree(tree, pset, backend="numba", dispatch=dispatch)(*columns)
+    result = gp.compile_tree(tree, pset, backend="numba", dispatch=consumer_dispatch())(*columns)
 
     numpy.testing.assert_allclose(result, 3.0 * columns[0], equal_nan=True)
 
