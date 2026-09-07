@@ -7,7 +7,7 @@ changed. Same toolbox model. Counted from the sections below:
 
 - **18** still-open [DEAP](https://github.com/DEAP/deap) issues
   [implemented](../bugfixes/deap_fixes.md) (some older than a decade)
-- **37** correctness bugs fixed — [operators](../bugfixes/operators.md),
+- **36** correctness bugs fixed — [operators](../bugfixes/operators.md),
   [GP](../bugfixes/gp.md),
   [CMA](../bugfixes/strategies.md),
   [records](../bugfixes/records.md),
