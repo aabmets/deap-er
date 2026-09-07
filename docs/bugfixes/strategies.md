@@ -100,3 +100,18 @@ there are none).
 
 **Validator.**
 `tests/test_strategies/test_cma_multi_objective_bugfix.py::test_generate_after_partial_valid_when_lambda_equals_mu`
+
+---
+
+## Restart `TolFun` stopped after two equal generation-bests
+
+`RunTracker._tol_fun_hit` compared only the first and last of a
+2-generation span with a $10^{-12}$ relative tolerance. Two equal
+generation-bests — common on a plateau or after box clipping —
+terminated the run at generation 2 and forced an IPOP/BIPOP restart.
+
+**Fix.** Require Hansen's $10 + 30n/\lambda$ history, then stop only
+if that window's best-of-generation range is below `tol_fun`.
+
+**Validator.**
+`tests/test_strategies/test_cma_restart.py::test_run_tracker_equal_bests_do_not_stop_at_generation_two`
