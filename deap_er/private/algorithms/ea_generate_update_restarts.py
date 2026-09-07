@@ -20,6 +20,65 @@ from deap_er.private.typedefs import EvoAlgoResult, EvoRecords, EvoStats, Indivi
 __all__ = ["ea_generate_update_restarts"]
 
 
+def _evaluate_population(toolbox: Toolbox, population: list[Individual]) -> None:
+    fitness = toolbox.map(toolbox.evaluate, population)
+    for ind, fit in zip(population, fitness, strict=False):
+        ind.fitness.values = fit
+
+
+def _restart_log_extra(
+    restart_strategy: RestartStrategy,
+    log_restarts: bool,
+) -> dict[str, Any]:
+    if not log_restarts:
+        return {}
+    inner = restart_strategy.strategy
+    return {
+        "restart": restart_strategy.restart_count,
+        "regime": restart_strategy.regime or "initial",
+        "lambda": getattr(inner, "lamb", None),
+        "evals": restart_strategy.evals_used,
+    }
+
+
+def _record_restart_generation(
+    logbook: Any,
+    gen: int,
+    population: list[Individual],
+    *,
+    hof: EvoRecords | None,
+    stats: EvoStats | None,
+    duration: float | None,
+    fronts: list[Any] | None,
+    extra: dict[str, Any],
+) -> None:
+    record_generation(
+        logbook,
+        gen,
+        len(population),
+        population=population,
+        offspring=population,
+        hof=hof,
+        stats=stats,
+        verbose=False,
+        logger=None,
+        duration=duration,
+        fronts=fronts,
+    )
+    if extra:
+        logbook[-1].update(extra)
+
+
+def _log_verbose(logbook: Any, verbose: bool, logger: Logger | None) -> None:
+    if not verbose:
+        return
+    text = logbook.stream
+    if logger is not None:
+        logger.info(text)
+    else:
+        print(text)
+
+
 def ea_generate_update_restarts(
     toolbox: Toolbox,
     restart_strategy: RestartStrategy,
@@ -65,46 +124,21 @@ def ea_generate_update_restarts(
         population = toolbox.generate()
         if not population:
             break
-        fitness = toolbox.map(toolbox.evaluate, population)
-        for ind, fit in zip(population, fitness, strict=False):
-            ind.fitness.values = fit
-
+        _evaluate_population(toolbox, population)
         restart_strategy.update(population)
         gen += 1
         duration = time.perf_counter() - t0 if log_time else None
-
-        extra: dict[str, Any] = {}
-        if log_restarts:
-            inner = restart_strategy.strategy
-            extra = {
-                "restart": restart_strategy.restart_count,
-                "regime": restart_strategy.regime or "initial",
-                "lambda": getattr(inner, "lamb", None),
-                "evals": restart_strategy.evals_used,
-            }
-
-        record_generation(
+        _record_restart_generation(
             logbook,
             gen,
-            len(population),
-            population=population,
-            offspring=population,
+            population,
             hof=hof,
             stats=stats,
-            verbose=False,
-            logger=logger,
             duration=duration,
             fronts=fronts,
+            extra=_restart_log_extra(restart_strategy, log_restarts),
         )
-        if extra:
-            logbook[-1].update(extra)
-        if verbose:
-            text = logbook.stream
-            if logger is not None:
-                logger.info(text)
-            else:
-                print(text)
-
+        _log_verbose(logbook, verbose, logger)
         if restart_strategy.is_done():
             break
         if restart_strategy.should_restart():
