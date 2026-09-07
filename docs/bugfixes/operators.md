@@ -246,7 +246,12 @@ indices (`StopIteration`). Unequal island sizes are a valid ring.
 
 **Fix.** Stop claiming vacancies once every dest slot is taken.
 Pair incoming emigrants with dest vacancies by `zip`, so extras
-on either side are left in place.
+on either side are left in place. When `replacement` is omitted
+and a home vacancy is not filled, clone that emigrant before
+writing it into another island so two demes do not share one
+object.
 
 **Validator.**
 `tests/test_operators/test_mig_ring.py::test_mig_ring_unequal_deme_sizes_completes`
+and
+`tests/test_operators/test_mig_ring.py::test_mig_ring_unequal_ring_does_not_alias_across_demes`
