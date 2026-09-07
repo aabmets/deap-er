@@ -129,6 +129,22 @@ class StrategyMultiObjective:
         self.thresh_sr = kwargs.get("thresh_sr", 0.44)
         update_bound_attrs(self, kwargs)
 
+    def reset_state(
+        self,
+        parents: list[Individual],
+        sigma: float,
+        **kwargs: Any,
+    ) -> None:
+        """Reset mutable CMA state for a restart."""
+        self.compute_params(**kwargs)
+        self.parents = parents[: self.mu]
+        pop_size = len(self.parents)
+        self.sigmas = [sigma] * pop_size
+        self.big_a = [numpy.identity(self.dim) for _ in range(pop_size)]
+        self.inv_cholesky = [numpy.identity(self.dim) for _ in range(pop_size)]
+        self.pc = [numpy.zeros(self.dim) for _ in range(pop_size)]
+        self.psucc = [self.tgt_sr] * pop_size
+
     def update(self, population: list[Individual]) -> None:
         """Select new parents and update each parent's CMA parameters.
 
