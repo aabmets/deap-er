@@ -84,3 +84,19 @@ $[-5, 5]$, and expand a collapsed axis by that box width.
 
 **Validator.**
 `tests/test_strategies/test_cma_restart.py::test_restart_centroid_one_sided_bounds_stay_finite`
+
+---
+
+## MO-CMA `generate` assumed `len(parents) = λ = μ`
+
+`update` keeps only candidates with valid fitness. When fewer than
+`μ` are valid, the parent set shrinks. The next `generate` still
+did `parents[i]` for `i in range(λ)` whenever `λ = μ`, and raised
+`IndexError`.
+
+**Fix.** Pair one child per parent only when enough parents exist.
+Otherwise sample from the available parents (or return `[]` if
+there are none).
+
+**Validator.**
+`tests/test_strategies/test_cma_multi_objective_bugfix.py::test_generate_after_partial_valid_when_lambda_equals_mu`
