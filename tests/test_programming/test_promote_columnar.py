@@ -9,6 +9,7 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import numpy
+import pytest
 from deap_er import gp
 
 
@@ -85,6 +86,52 @@ def test_window_subtree_bakes_the_length():
     numpy.testing.assert_allclose(gp.compile_tree(call, pset, backend="opcode")(column), expected)
     tape = gp.lower_tree(call, pset)
     assert not numpy.any(tape.opcodes >= gp.USER_BASE)
+
+
+def test_evict_inner_keeps_outer_tape_on_builtins():
+    pset = _column_set()
+    inner = gp.promote_subtree(pset, gp.PrimitiveTree.from_string("vadd(x, y)", pset))
+    outer = gp.promote_subtree(pset, gp.PrimitiveTree.from_string(f"vmul({inner}(x, y), x)", pset))
+    gp.promote_subtree(pset, gp.PrimitiveTree.from_string("vsub(x, y)", pset), max_library=2)
+    assert inner not in gp.promoted_names(pset)
+    assert outer in gp.promoted_names(pset)
+    tree = gp.PrimitiveTree.from_string(f"{outer}(x, y)", pset)
+    tape = gp.lower_tree(tree, pset)
+    assert not numpy.any(tape.opcodes >= gp.USER_BASE)
+    first, second = _samples()
+    expected = (first + second) * first
+    numpy.testing.assert_allclose(gp.compile_tree(tree, pset)(first, second), expected)
+    numpy.testing.assert_allclose(
+        gp.compile_tree(tree, pset, backend="opcode")(first, second), expected
+    )
+
+
+def test_failed_columnar_promote_does_not_orphan_opcode():
+    pset = _column_set()
+    first = gp.promote_subtree(pset, gp.PrimitiveTree.from_string("vadd(x, y)", pset))
+    bound = dict(gp.numba_opcodes())
+    with pytest.raises(ValueError, match="weight"):
+        gp.promote_subtree(
+            pset,
+            gp.PrimitiveTree.from_string("vmul(x, y)", pset),
+            max_library=1,
+            weight=0.0,
+        )
+    assert gp.promoted_names(pset) == [first]
+    assert gp.numba_opcodes() == bound
+
+
+def test_promote_rejects_a_window_that_is_not_a_leaf():
+    pset = gp.make_column_pset(["x"])
+    gp.add_window_primitives(pset)
+    gp.add_window_ephemeral(pset, "win", 3, 3)
+    pset.add_primitive(min, [gp.Window, gp.Window], gp.Window, "wmin")
+    window = pset.terminals[gp.Window][0]
+    tree = gp.PrimitiveTree(
+        [pset.mapping["rolling_mean"], pset.mapping["x"], pset.mapping["wmin"], window(), window()]
+    )
+    with pytest.raises(ValueError, match="must be a leaf"):
+        gp.promote_subtree(pset, tree)
 
 
 def test_eviction_keeps_builtin_columnar_primitives():
