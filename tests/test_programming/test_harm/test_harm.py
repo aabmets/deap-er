@@ -171,3 +171,37 @@ def test_harm_compiles_statistics_into_the_logbook(toolbox):
     )
 
     assert logbook.select("max") == [7, 7, 7, 3]
+
+
+def test_harm_rejects_unknown_kwargs(toolbox):
+    with pytest.raises(TypeError, match="unexpected"):
+        gp.harm(
+            toolbox,
+            _seeded_population(toolbox),
+            generations=0,
+            cx_prob=0.5,
+            mut_prob=0.1,
+            bogus=1,
+        )
+
+
+def test_harm_verbose_prints_and_default_model_size(toolbox, capsys):
+    population = toolbox.population(size=8)
+    gp.harm(
+        toolbox,
+        population,
+        generations=0,
+        cx_prob=0.5,
+        mut_prob=0.1,
+        verbose=True,
+    )
+    gp.harm(
+        toolbox,
+        population,
+        generations=1,
+        cx_prob=0.5,
+        mut_prob=0.1,
+        nb_model=20,
+        verbose=True,
+    )
+    assert capsys.readouterr().out
