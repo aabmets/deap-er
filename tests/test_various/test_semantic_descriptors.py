@@ -122,8 +122,9 @@ def test_semantic_valid_mask_rejects_two_dimensional_valid():
 
 def test_semantic_descriptors_rejects_unknown_or_incomplete_kind():
     matrix = numpy.zeros((1, 2))
+    unknown_kind = cast(Any, "latent")
     with pytest.raises(ValueError, match="unknown descriptor kind"):
-        tools.semantic_descriptors(matrix, kind=cast(Any, "latent"))
+        tools.semantic_descriptors(matrix, kind=unknown_kind)
     with pytest.raises(ValueError, match="target and ranges"):
         tools.semantic_descriptors(matrix, kind="solve")
     with pytest.raises(ValueError, match="requires basis"):
