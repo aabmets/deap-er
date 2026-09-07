@@ -395,6 +395,10 @@ evaluation is in the
     whose fitness is missing, invalid, or non-finite. An unevaluated
     creator individual no longer occupies a slot. NaN no longer
     sorts to the front of `keys` as if it were the best member.
+21. `Logbook.pop` pairs a row without `gen` positionally when the
+    chapter is the same length as the parent. Deleting that row no
+    longer leaves chapter values behind or blanks the remaining
+    cells.
 
 ## Persistence
 
