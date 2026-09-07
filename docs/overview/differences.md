@@ -274,7 +274,10 @@ evaluation is in the
 7. `HallOfFame.update` inserts into an empty archive, no-ops at
    `maxsize=0`, and replaces a similar member when the new individual
    is strictly better.
-8. `HallOfFame.remove` raises `IndexError` on an out-of-range index
+8. `ParetoFront.update` skips an individual that has no `fitness`
+   instead of raising `AttributeError` after the front already holds
+   a member.
+9. `HallOfFame.remove` raises `IndexError` on an out-of-range index
    instead of desynchronizing `keys` and `items`.
 9. `Logbook.pop` normalizes a negative index before comparing it to
    the stream cursor.

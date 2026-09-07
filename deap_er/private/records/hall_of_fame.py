@@ -184,6 +184,8 @@ class ParetoFront(BaseRecordStorage):
             population: Individuals with a fitness attribute.
         """
         for ind in population:
+            if not hasattr(ind, "fitness"):
+                continue
             is_dominated = False
             dominates_one = False
             has_twin = False
