@@ -111,6 +111,7 @@ nav:
       - Evolution Strategies:
           - Standard CMA: examples/evolution_strategies/cma_strat.md
           - Boxed CMA: examples/evolution_strategies/cma_boxed.md
+          - Separable CMA: examples/evolution_strategies/cma_separable.md
           - CMA restarts: examples/evolution_strategies/cma_restarts.md
           - Multi-Objective CMA: examples/evolution_strategies/mo_cma_strat.md
           - Custom Strategy: examples/evolution_strategies/custom_strat.md

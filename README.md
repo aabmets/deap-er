@@ -78,6 +78,7 @@ inventory:
   - lexicase / ε-lexicase with `cases=`, `sample_informed_cases`, and `fitness_case_matrix`
   - SMS-EMOA, MOEA/D, and AGE-MOEA-II selection
   - boxed CMA (`low`/`up`, clip or resample) 
+  - separable CMA (`StrategySeparable`)
   - IPOP/BIPOP `RestartStrategy` / `ea_generate_update_restarts`
   - leaf-only `generate()` 
   - weighted primitives 

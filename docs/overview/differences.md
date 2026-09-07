@@ -171,6 +171,11 @@ from the original sources.
    stops only if that window's best-of-generation range is below
    `tol_fun`. Two equal generation-bests no longer terminate at
    generation 2.
+8. `StrategySeparable` is separable CMA (Ros and Hansen, 2008): $C$
+   stays a length-$n$ diagonal, sampling and the update are $O(n)$,
+   and default $c_1$ / $c_\mu$ are the full-matrix rates scaled by
+   $(n + 2) / 3$. The `generate` / `update` surface, including
+   `low` / `up`, matches `Strategy`. `RestartStrategy` can wrap it.
 
 ## Genetic programming
 

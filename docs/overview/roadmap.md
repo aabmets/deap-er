@@ -35,7 +35,7 @@ surface.
 | 16 | [Bounded Gaussian mutation](#16-bounded-gaussian-mutation) | `operators` | shipped |
 | 17 | [Differential evolution operators](#17-differential-evolution-operators) | `operators` | planned |
 | 18 | [Constraint-dominance selection](#18-constraint-dominance-selection) | `operators` | planned |
-| 19 | [Sep-CMA](#19-sep-cma) | `strategies` | planned |
+| 19 | [Sep-CMA](#19-sep-cma) | `strategies` | shipped |
 | 20 | [CVT / unstructured MAP-Elites](#20-cvt-unstructured-map-elites) | `records` | planned |
 
 Shipping an item updates this page and the matching tutorial or
@@ -408,13 +408,13 @@ grows $\lambda$ and resets the CMA state on stagnation
 (`Strategy`, `StrategyOnePlusLambda`, `StrategyMultiObjective`);
 it does not add a new covariance-update variant.
 
-**Today.** ``RestartStrategy`` wraps ``Strategy``, ``StrategyOnePlusLambda``,
-and ``StrategyMultiObjective`` with IPOP or BIPOP restart scheduling
-(BBOB-style stagnation, λ doubling, and small-regime sampling).
-``ea_generate_update_restarts`` runs until the evaluation budget is
-spent. Box constraints from the inner strategy are preserved.
-LM-CMA and learned step-size controllers stay off the list.
-High-dimension Sep-CMA is [item 19](#19-sep-cma).
+**Today.** ``RestartStrategy`` wraps ``Strategy``, ``StrategySeparable``,
+``StrategyOnePlusLambda``, and ``StrategyMultiObjective`` with IPOP
+or BIPOP restart scheduling (BBOB-style stagnation, λ doubling, and
+small-regime sampling). ``ea_generate_update_restarts`` runs until
+the evaluation budget is spent. Box constraints from the inner
+strategy are preserved. LM-CMA and learned step-size controllers
+stay off the list. High-dimension Sep-CMA is [item 19](#19-sep-cma).
 
 **Benefit.** This is how CMA is used on hard landscapes: enlarge
 the population, reset the model, continue. ES users stop writing
@@ -556,9 +556,11 @@ correlations. Memory and update drop from $O(n^2)$ / $O(n^3)$ to
 $O(n)$. Same `generate` / `update` surface, including the existing
 `low` / `up` box. `RestartStrategy` can wrap it.
 
-**Today.** `Strategy` learns a full $n \times n$ covariance. That
-is the wall around hundreds of dimensions. Item 13 already named
-Sep-CMA as the only plausible next CMA variant.
+**Today.** `StrategySeparable` learns a length-$n$ diagonal $C$
+(Ros and Hansen, 2008). Default `rank_one` / `rank_mu` are the
+`Strategy` defaults scaled by $(n + 2) / 3$. `generate` / `update`,
+`low` / `up`, and `RestartStrategy` match the other CMA strategies.
+`Strategy` still owns the full matrix.
 
 **Benefit.** High-dimension continuous search keeps a CMA-shaped
 strategy when a full matrix no longer fits. Weaker when variables
