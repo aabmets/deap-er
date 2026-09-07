@@ -341,6 +341,11 @@ evaluation is in the
 17. `GridArchive.add` rejects a non-finite first weighted objective.
     NaN or infinity no longer replaces a finite elite or occupies an
     empty cell.
+18. `CvtArchive` and `UnstructuredArchive` sit next to `GridArchive`.
+    CVT keeps one elite per k-means / caller centroid; unstructured
+    adds a point that is far enough from every member or replaces
+    the nearest neighbor. `cvt_centroids` builds the CVT tessellation
+    from a behavior sample. `ea_map_elites` accepts either archive.
 
 ## Persistence
 

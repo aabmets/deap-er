@@ -36,7 +36,7 @@ surface.
 | 17 | [Differential evolution operators](#17-differential-evolution-operators) | `operators` | shipped |
 | 18 | [Constraint-dominance selection](#18-constraint-dominance-selection) | `operators` | shipped |
 | 19 | [Sep-CMA](#19-sep-cma) | `strategies` | shipped |
-| 20 | [CVT / unstructured MAP-Elites](#20-cvt-unstructured-map-elites) | `records` | planned |
+| 20 | [CVT / unstructured MAP-Elites](#20-cvt-unstructured-map-elites) | `records` | shipped |
 
 Shipping an item updates this page and the matching tutorial or
 reference stub. Items 16–20 are the remaining toolbox-shaped holes
@@ -597,9 +597,14 @@ far enough from existing members, or replace a neighbor. Same
 `add` / `random_elites` surface; `ea_map_elites` can take either
 archive.
 
-**Today.** `GridArchive` cuts each behavior axis into equal bins.
-That wastes cells in empty corners and fits poorly when the
-descriptor is not a nice box.
+**Today.** `CvtArchive` assigns each descriptor to the nearest of
+$k$ centroids (caller-supplied, or `cvt_centroids` / `from_samples`
+via k-means). `UnstructuredArchive` adds a candidate when it is far
+enough from every elite, otherwise replaces the nearest neighbor if
+it is strictly fitter; optional `max_elites` caps growth.
+`ea_map_elites` accepts either archive through the same
+`add` / `random_elites` / `stats` surface as `GridArchive`. Fitness
+stays on `ind.fitness`; the caller still supplies the descriptor.
 
 **Benefit.** The usual next MAP-Elites data structure when
 descriptors are irregular. Diversity stays in *behavior*, not
