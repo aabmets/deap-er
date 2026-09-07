@@ -11,6 +11,7 @@
 from .algorithms import *
 from .benchmarks import *
 from .operators import *
+from .private.various.case_errors import *
 from .private.various.clone import *
 from .private.various.constraints import *
 from .private.various.decorators import *
