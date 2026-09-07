@@ -93,31 +93,30 @@ def test_mut_de_empty_individual_is_noop():
 
 
 def test_mut_de_rejects_short_donor():
+    individual = _ind(0.0, 0.0, 0.0)
+    short_a = _ind(1.0, 1.0)
+    donor_b = _ind(1.0, 1.0, 1.0)
+    donor_c = _ind(1.0, 1.0, 1.0)
     with pytest.raises(ValueError, match="Donors a, b, and c"):
-        tools.mut_de(
-            _ind(0.0, 0.0, 0.0), _ind(1.0, 1.0), _ind(1.0, 1.0, 1.0), _ind(1.0, 1.0, 1.0), 1.0, 1.0
-        )
+        tools.mut_de(individual, short_a, donor_b, donor_c, 1.0, 1.0)
 
 
 def test_mut_de_rejects_half_bounds():
+    individual = _ind(0.0, 0.0)
+    donor_a = _ind(1.0, 1.0)
+    donor_b = _ind(2.0, 2.0)
+    donor_c = _ind(0.0, 0.0)
     with pytest.raises(ValueError, match="low"):
-        tools.mut_de(
-            _ind(0.0, 0.0), _ind(1.0, 1.0), _ind(2.0, 2.0), _ind(0.0, 0.0), 1.0, 1.0, low=0.0
-        )
+        tools.mut_de(individual, donor_a, donor_b, donor_c, 1.0, 1.0, low=0.0)
 
 
 def test_mut_de_rejects_short_bound_sequence():
+    individual = _ind(0.0, 0.0)
+    donor_a = _ind(1.0, 1.0)
+    donor_b = _ind(2.0, 2.0)
+    donor_c = _ind(0.0, 0.0)
     with pytest.raises(ValueError, match="low"):
-        tools.mut_de(
-            _ind(0.0, 0.0),
-            _ind(1.0, 1.0),
-            _ind(2.0, 2.0),
-            _ind(0.0, 0.0),
-            1.0,
-            1.0,
-            low=[0.0],
-            up=1.0,
-        )
+        tools.mut_de(individual, donor_a, donor_b, donor_c, 1.0, 1.0, low=[0.0], up=1.0)
 
 
 def test_mut_de_clamps_written_genes():

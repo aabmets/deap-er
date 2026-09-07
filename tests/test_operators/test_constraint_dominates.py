@@ -94,16 +94,19 @@ def test_requires_a_constraint_callable(multi_obj, make):
 
 def test_rejects_non_callable_kwargs(multi_obj, make):
     ind = make(multi_obj, [0], (1.0, 1.0))
+    not_feasible = cast(Any, True)
+    not_violation = cast(Any, 1.0)
     with pytest.raises(TypeError, match="feasible"):
-        tools.constraint_dominates(ind, ind, feasible=cast(Any, True))
+        tools.constraint_dominates(ind, ind, feasible=not_feasible)
     with pytest.raises(TypeError, match="violation"):
-        tools.constraint_dominates(ind, ind, violation=cast(Any, 1.0))
+        tools.constraint_dominates(ind, ind, violation=not_violation)
 
 
 def test_rejects_non_scalar_and_nonfinite_violation(multi_obj, make):
     ind = make(multi_obj, [0], (1.0, 1.0))
+    vector_violation = cast(Any, lambda _ind: (1.0, 2.0))
     with pytest.raises(TypeError, match="real scalar"):
-        tools.constraint_dominates(ind, ind, violation=cast(Any, lambda _ind: (1.0, 2.0)))
+        tools.constraint_dominates(ind, ind, violation=vector_violation)
     with pytest.raises(ValueError, match="finite"):
         tools.constraint_dominates(ind, ind, violation=lambda _ind: math.nan)
 

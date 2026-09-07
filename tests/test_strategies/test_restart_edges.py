@@ -60,7 +60,8 @@ def test_best_fitness_and_max_restarts():
         for individual in population:
             individual.fitness.values = tools.bm_sphere(individual)
         restart.update(population)
-        assert restart.best_fitness == restart.best_fitness
+        expected = min(individual.fitness.values[0] for individual in population)
+        assert restart.best_fitness == expected
         assert restart.should_restart() is False
         assert restart.is_done() or restart.evals_used > 0
     finally:
