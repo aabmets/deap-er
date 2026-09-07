@@ -164,6 +164,8 @@ def inv_gen_dist(ind1: Individual, ind2: Individual) -> Any:
         The average distance from each point in ``ind2`` to the
         nearest point in ``ind1``.
     """
-    distances = spatial.distance.cdist(list(ind1), list(ind2))
+    first = numpy.asarray([_objective_row(point) for point in ind1], dtype=float)
+    second = numpy.asarray([_objective_row(point) for point in ind2], dtype=float)
+    distances = spatial.distance.cdist(first, second)
     minima = numpy.min(distances, axis=0)
     return numpy.average(minima)

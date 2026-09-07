@@ -118,3 +118,20 @@ fitness; otherwise keep the raw-vector path used by existing tests.
 
 - `tests/test_various/test_metrics.py::test_nsga_convergence_uses_fitness_when_optimal_are_individuals`
 - `tests/test_various/test_metrics.py::test_nsga_diversity_uses_fitness_when_extremes_are_individuals`
+
+---
+
+## `inv_gen_dist` read genomes instead of fitness
+
+`nsga_convergence` scores fronts with ``fitness.values`` but IGD
+used ``list(ind)``. For a list individual that is the genome. A
+front of individuals whose genes differ from objectives silently
+returned the wrong distance (often $0$ when every genome was
+overwritten to the same dummy values).
+
+**Fix.** Build both point sets with the same ``_objective_row``
+helper: ``fitness.values`` when present and non-empty, otherwise
+the raw-vector path used by existing tests.
+
+**Validator.**
+`tests/test_various/test_metrics.py::test_inv_gen_dist_uses_fitness_when_sets_are_individuals`
