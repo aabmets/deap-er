@@ -227,6 +227,24 @@ def evaluate_batch(individuals):
     return [score(predicted[i], target) for i in index]
 ```
 
+When new rows arrive, grow the packed table and **rescore the full
+matrix**. Do not score only the new rows: a causal window needs the
+preceding samples, and a suffix-only call treats the first new row as
+$t = 0$ (warmup `nan`s land on the wrong bars).
+
+```python
+matrix = numpy.vstack([matrix, new_rows])
+for ind in population:
+    del ind.fitness.values
+# evaluate_batch calls interpret_tapes(tapes, matrix) on the full pack
+```
+
+New rows are the present. A program must not see a row that has not
+arrived. After the append, prefix outputs of a causal tree match the
+scores from before the append. Use `case_errors(..., valid=)` for
+hidden warmup / `vwhere`, same as a static book. Persist the caller
+loop with `Checkpoint.range`. There is no streaming daemon.
+
 If `score` returns a vector of case errors, lexicase can filter on a
 subset rebuilt each generation. Do not freeze `cases=` on the
 toolbox. A case is solved when its value is exactly $0$. Continuous

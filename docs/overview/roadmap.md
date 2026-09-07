@@ -41,15 +41,15 @@ surface.
 | 22 | [Semantic search space](#22-semantic-search-space) | `gp`, `records` | planned |
 | 23 | [Co-evolving cases](#23-co-evolving-cases) | `operators`, `records` | planned |
 | 24 | [Memetic constants](#24-memetic-constants) | `gp`, `strategies` | planned |
-| 25 | [Streaming and island ecology](#25-streaming-and-island-ecology) | `algorithms` | planned |
+| 25 | [Streaming and island ecology](#25-streaming-and-island-ecology) | `algorithms` | shipped |
 | 26 | [Program teams](#26-program-teams) | `operators` | shipped |
 
 Shipping an item updates this page and the matching tutorial or
 reference stub. Items 15–20 are the toolbox-shaped holes after
-the first backlog; they are shipped. Items 21–25 compose pieces
+the first backlog; they are shipped. Items 21–24 compose pieces
 that already shipped (tapes, SlimGP, lexicase, archives, CMA)
-into a longer program-search loop. Item 26 is shipped. Still not
-a second genome family.
+into a longer program-search loop. Items 25 and 26 are shipped.
+Still not a second genome family.
 
 !!! note
     deap-er stays a pure-Python package. Native work remains an
@@ -833,9 +833,18 @@ Related: [Strategies](../reference/strategies.md),
    → vary → select on each deme, then migrate. Different
    *pressures*, not different topologies.
 
-**Today.** A run is `for gen in range(ngen)` on one toolbox
-and one fixed matrix. `mig_ring` exists; nothing steps
-unlike demes.
+**Today.** `step_islands(demes, migrate=...)` runs evaluate →
+vary → select on each deme, then an optional `migrate`
+(usually `mig_ring`). Each deme has its own toolbox, so
+lexicase, SMS-EMOA, or a MAP-Elites `vary` / `select` pair
+can apply different pressures on the same generation.
+Append-only evaluation is a documented recipe: grow the
+packed `(rows, columns)` matrix, invalidate fitness, and
+rescore with `interpret_tapes` on the full pack. A
+suffix-only score is not a library path — window warmup
+would be wrong without history. Migrants keep fitness when
+`eval_keys` agree; distinct keys clear immigrant fitness.
+`Checkpoint.range` is the caller loop. No Ray/GPU daemon.
 
 **Benefit.** Evolution can sit on a pipe, and a population
 can disagree about what “good” means. Specialists survive
