@@ -137,3 +137,13 @@ def test_semantic_trust_matrix_requires_valid_fitness(ind_cls):
         tools.semantic_moments(matrix, individuals=[bare], trust_matrix=False)
     trusted = tools.semantic_moments(matrix, individuals=[bare], trust_matrix=True)
     assert trusted.shape == (1, 4)
+
+
+def test_semantic_pca_basis_raises_when_every_column_is_dropped():
+    matrix = numpy.array([[1.0, 2.0, 3.0], [4.0, 5.0, 6.0]])
+    valid = numpy.zeros(3, dtype=bool)
+    with pytest.raises(ValueError, match="finite row on kept columns"):
+        tools.semantic_pca_basis(matrix, 2, valid=valid)
+    target = numpy.array([math.nan, math.inf, -math.inf])
+    with pytest.raises(ValueError, match="finite row on kept columns"):
+        tools.semantic_pca_basis(matrix, 2, target=target)
