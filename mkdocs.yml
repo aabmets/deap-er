@@ -99,13 +99,18 @@ nav:
           - N-Queens: examples/genetic_algorithms/nqueens.md
           - Differential Evolution: examples/genetic_algorithms/diff_evo.md
           - Sorting Networks: examples/genetic_algorithms/sorting_net.md
+          - Mixed Encoding: examples/genetic_algorithms/mixed_encoding.md
+          - Multi-Objective ZDT1: examples/genetic_algorithms/zdt_mo.md
+          - MAP-Elites: examples/genetic_algorithms/map_elites.md
       - Genetic Programming:
           - Even-Parity: examples/genetic_programming/even_parity.md
           - Artificial Ant: examples/genetic_programming/art_ant.md
           - Symbolic Regression: examples/genetic_programming/symb_regr.md
+          - Informed Lexicase: examples/genetic_programming/lexicase.md
           - Columnar Programs: examples/genetic_programming/columnar_gp.md
       - Evolution Strategies:
           - Standard CMA: examples/evolution_strategies/cma_strat.md
+          - Boxed CMA: examples/evolution_strategies/cma_boxed.md
           - CMA restarts: examples/evolution_strategies/cma_restarts.md
           - Multi-Objective CMA: examples/evolution_strategies/mo_cma_strat.md
           - Custom Strategy: examples/evolution_strategies/custom_strat.md

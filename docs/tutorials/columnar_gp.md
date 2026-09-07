@@ -345,5 +345,6 @@ time.
 ## Related
 
 - [Columnar Programs example](../examples/genetic_programming/columnar_gp.md)
+  (includes the [batch evaluation](../examples/genetic_programming/columnar_gp.md#batch-evaluation) script)
 - [Multiprocessing](multiprocessing.md)
 - [Genetic Programming reference](../reference/gp.md)

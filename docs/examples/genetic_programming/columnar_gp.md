@@ -10,3 +10,13 @@ walkthrough of the pieces used here.
 ```python
 --8<-- "examples/genetic_programming/columnar_gp.py"
 ```
+
+## Batch evaluation
+
+The same columnar contract, scored with `evaluate_batch`, `interpret_tapes`,
+and per-fold `case_errors`. Pair-window and time-series primitives are on
+the primitive set.
+
+```python
+--8<-- "examples/genetic_programming/columnar_batch.py"
+```
