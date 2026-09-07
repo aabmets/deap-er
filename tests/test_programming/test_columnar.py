@@ -75,3 +75,57 @@ def test_type_tags_are_distinct_classes():
     assert all(isinstance(tag, type) for tag in tags)
     assert len({*tags}) == 3
     assert not any(issubclass(one, other) for one in tags for other in tags if one is not other)
+
+
+def _window_pset() -> gp.PrimitiveSetTyped:
+    pset = gp.make_column_pset(["price"])
+    gp.add_numpy_primitives(pset)
+    gp.add_window_primitives(pset)
+    return pset
+
+
+def test_from_string_accepts_a_window_integer_leaf():
+    pset = _window_pset()
+    tree = gp.PrimitiveTree.from_string("rolling_mean(price, 3)", pset)
+
+    assert tree[-1].ret is gp.Window
+    assert tree[-1].value == 3
+    assert str(tree) == "rolling_mean(price, 3)"
+
+
+def test_stringified_window_tree_round_trips():
+    pset = _window_pset()
+    original = gp.PrimitiveTree(
+        [pset.mapping["rolling_mean"], pset.mapping["price"], gp.Terminal(3, False, gp.Window)]
+    )
+
+    restored = gp.PrimitiveTree.from_string(str(original), pset)
+
+    assert str(restored) == str(original)
+    assert restored[-1].ret is gp.Window
+    assert restored[-1].value == 3
+
+
+def test_opcode_backend_compiles_a_stringified_window_tree():
+    pset = _window_pset()
+    original = gp.PrimitiveTree(
+        [pset.mapping["delay"], pset.mapping["price"], gp.Terminal(2, False, gp.Window)]
+    )
+    text = str(original)
+    column = numpy.arange(8, dtype=numpy.float64)
+    gp.clear_compile_cache()
+
+    expected = gp.compile_tree(text, pset)(column)
+    actual = gp.compile_tree(text, pset, backend="opcode")(column)
+
+    numpy.testing.assert_allclose(actual, expected, equal_nan=True)
+    numpy.testing.assert_allclose(actual, gp.delay(column, 2), equal_nan=True)
+
+
+def test_from_string_rejects_a_non_integer_window_literal():
+    pset = _window_pset()
+
+    with pytest.raises(TypeError, match="does not match"):
+        gp.PrimitiveTree.from_string("rolling_mean(price, 3.5)", pset)
+    with pytest.raises(TypeError, match="return type"):
+        gp.PrimitiveTree.from_string("rolling_mean(price, True)", pset)

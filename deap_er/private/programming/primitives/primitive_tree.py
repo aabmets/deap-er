@@ -17,6 +17,7 @@ from collections import deque
 from collections.abc import Iterable
 from typing import Any, cast, override
 
+from ..columnar import Window
 from .primitive_nodes import Primitive, Terminal
 from .primitive_set_typed import PrimitiveSetTyped
 
@@ -51,6 +52,10 @@ def primitive_from_token(
 def terminal_from_token(token: str, ret_type: type | None) -> Terminal:
     """Parse an unregistered token as a Python literal terminal.
 
+    A ``Window`` slot accepts a Python ``int`` literal. ``Window`` is a
+    type tag whose runtime value is ``int``, and ``str(tree)`` writes
+    those leaves as integers.
+
     Args:
         token: Literal text from the expression.
         ret_type: Expected type, or None to take the literal's type.
@@ -68,11 +73,18 @@ def terminal_from_token(token: str, ret_type: type | None) -> Terminal:
         raise TypeError(f"Unable to evaluate terminal: {token}.") from err
     if ret_type is None:
         ret_type = type(value)
-    if not issubclass(type(value), ret_type):
+    if not _literal_matches(value, ret_type):
         raise TypeError(
             f"Terminal {value} type {type(value)} does not match the expected one: {ret_type}."
         )
     return Terminal(value, False, ret_type)
+
+
+def _literal_matches(value: Any, ret_type: type) -> bool:
+    """Return whether a parsed literal may occupy ``ret_type``."""
+    if ret_type is Window:
+        return type(value) is int
+    return issubclass(type(value), ret_type)
 
 
 class PrimitiveTree(list[Any]):
@@ -168,6 +180,7 @@ class PrimitiveTree(list[Any]):
             TypeError: If a token is not a registered primitive
                 and is not a Python literal, or if a primitive or
                 terminal type does not match the expected type.
+                A ``Window`` slot accepts an ``int`` literal.
         """
         tokens = re.split("[ \t\n\r\f\v(),]", string)
         expr = []
