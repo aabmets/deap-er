@@ -170,7 +170,7 @@ def build() -> tuple[Any, Any]:
     except ImportError as err:
         raise ImportError(_MISSING) from err
 
-    jit = numba.njit(cache=False, nogil=True, error_model="numpy")
+    jit = numba.njit(cache=True, nogil=True, error_model="numpy")
     # Numba compiles these from bytecode, so the CPython tracer never
     # sees them. The parity tests exercise every instruction.
     for module, names in JIT_GROUPS:

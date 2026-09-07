@@ -18,6 +18,8 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 __pycache__/
 *.py[cod]
 *$py.class
+*.nbi
+*.nbc
 
 # Distribution / packaging
 .Python
