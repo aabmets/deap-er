@@ -250,3 +250,21 @@ Each chapter iterated `data`. A one-shot iterable (generator,
 
 **Validator.**
 `tests/test_records/test_statistics.py::TestStatistics::test_multi_statistics_compile_consumes_generator_once`
+
+---
+
+## `clear` left chapter rows and the stream cursor
+
+`pop` and `__delitem__` keep chapters and `buff_index` aligned.
+`list.clear` does not go through those methods. After `clear()`,
+chapters still held every generation. After a stream, `clear()`,
+and a new `record`, `stream` started at the stale cursor and
+returned no rows.
+
+**Fix.** `clear` deletes every parent row through `__delitem__`
+(the same chapter and cursor rules as `del logbook[:]`).
+
+**Validators.**
+
+- `tests/test_records/test_logbook_edges.py::test_clear_removes_chapter_rows`
+- `tests/test_records/test_logbook_edges.py::test_clear_after_stream_does_not_drop_new_rows`
