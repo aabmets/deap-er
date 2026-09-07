@@ -146,7 +146,9 @@ def test_add_rejects_non_finite_fitness(ind_cls):
     archive = tools.GridArchive(ranges=[(0.0, 1.0)], bins=4)
     archive.add(_individual(ind_cls, [0], 2.0), (0.1,))
     assert archive.add(_individual(ind_cls, [9], math.nan), (0.1,)) is False
-    assert archive.elite_at((0.1,))[0] == 0
+    elite = archive.elite_at((0.1,))
+    assert elite is not None
+    assert elite[0] == 0
     empty = tools.GridArchive(ranges=[(0.0, 1.0)], bins=4)
     assert empty.add(_individual(ind_cls, [1], math.inf), (0.1,)) is False
     assert len(empty) == 0
