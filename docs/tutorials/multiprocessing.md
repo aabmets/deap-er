@@ -93,6 +93,29 @@ default on Windows and macOS, place the arrays in
 [shared memory](https://docs.python.org/3/library/multiprocessing.shared_memory.html)
 or a `numpy.memmap` and have each worker attach to them once at import.
 
+## Numba workers
+
+On platforms that start workers by spawning, each child process pays
+for the Numba interpreter unless it is warmed from disk. Set
+`NUMBA_CACHE_DIR` to a directory every worker can read and write, or
+let `gp.warmup_numba()` create `~/.cache/deap-er/numba` (or
+`$XDG_CACHE_HOME/deap-er/numba`) when the variable is unset. Register
+a pool initializer so the interpreter is specialized before the first
+evaluation:
+
+```python
+def init_worker():
+    gp.warmup_numba()
+
+with multiprocessing.Pool(initializer=init_worker) as pool:
+    toolbox.register("map", pool.map)
+    # Execute the evolution
+```
+
+Pass the same `dispatch` kernel to `warmup_numba(dispatch=...)` when
+the primitive set uses consumer opcodes. Give consumer kernels
+`cache=True` so workers reload them from disk as well.
+
 ## Evaluating a whole generation at once
 
 Some evaluations are faster when the entire generation is handed over

@@ -109,10 +109,9 @@ def _run_opcode(tapes: tuple[Tape, ...], matrix: numpy.ndarray) -> numpy.ndarray
     """
     _reject_consumer(tapes)
     rows = matrix.shape[0]
-    parts = [matrix[:, column] for column in range(matrix.shape[1])]
     out = numpy.empty((len(tapes), rows), dtype=numpy.float64)
     for index, tape in enumerate(tapes):
-        _write_opcode_row(out, index, interpret_tape(tape, parts), rows)
+        _write_opcode_row(out, index, interpret_tape(tape, matrix), rows)
     return out
 
 
