@@ -112,8 +112,8 @@ from the original sources.
     genes, so a length-1 individual no longer hits an empty `randint`
     interval or a two-cut `sample` on a one-gene permutation.
 15. `broadcast_param` treats `numbers.Integral` and `numbers.Real` as
-    scalars, so a NumPy integer bound no longer raises `TypeError`
-    from `len()` on `numpy.int64`.
+    scalars, so a NumPy integer or `float32` / `float16` bound no
+    longer raises `TypeError` from `len()` on a NumPy scalar.
 16. `sel_lexicase` and `sel_epsilon_lexicase` accept `cases=` to
     filter on a per-generation subset of fitness indices. Defaults
     still use every case. `sample_informed_cases` builds that subset

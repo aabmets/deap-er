@@ -255,3 +255,21 @@ object.
 `tests/test_operators/test_mig_ring.py::test_mig_ring_unequal_deme_sizes_completes`
 and
 `tests/test_operators/test_mig_ring.py::test_mig_ring_unequal_ring_does_not_alias_across_demes`
+
+---
+
+## NumPy `float32` bounds still crashed `broadcast_param`
+
+The Integral patch left `numbers.Real` unimplemented.
+`numpy.float32` is not a `float` subclass, so
+`mut_gaussian_bounded(..., np.float32(0.0), np.float32(1.0), …)`,
+`mut_polynomial_bounded`, and `cx_blend_bounded` still called
+`len()` and raised `TypeError`. The inventory already claimed
+Real scalars.
+
+**Fix.** After `Integral`, treat remaining `numbers.Real` values
+as a broadcast scalar (`float(var)`). 1-D bound sequences are
+unchanged.
+
+**Validator.**
+`tests/test_operators/test_mut_various.py::test_bounded_operators_accept_numpy_float32_bounds`
