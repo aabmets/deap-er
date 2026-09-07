@@ -7,7 +7,7 @@ changed. Same toolbox model. Counted from the sections below:
 
 - **18** still-open [DEAP](https://github.com/DEAP/deap) issues
   [implemented](../bugfixes/deap_fixes.md) (some older than a decade)
-- **36** correctness bugs fixed — [operators](../bugfixes/operators.md),
+- **48** correctness bugs fixed — [operators](../bugfixes/operators.md),
   [GP](../bugfixes/gp.md),
   [CMA](../bugfixes/strategies.md),
   [records](../bugfixes/records.md),
@@ -109,7 +109,10 @@ from the original sources.
     `mut_shuffle_indexes` no-op when a parent is shorter than two
     genes, so a length-1 individual no longer hits an empty `randint`
     interval or a two-cut `sample` on a one-gene permutation.
-15. `sel_lexicase` and `sel_epsilon_lexicase` accept `cases=` to
+15. `broadcast_param` treats `numbers.Integral` and `numbers.Real` as
+    scalars, so a NumPy integer bound no longer raises `TypeError`
+    from `len()` on `numpy.int64`.
+16. `sel_lexicase` and `sel_epsilon_lexicase` accept `cases=` to
     filter on a per-generation subset of fitness indices. Defaults
     still use every case. `sample_informed_cases` builds that subset
     by farthest-first traversal of Hamming distances between case
@@ -117,16 +120,16 @@ from the original sources.
     `fitness_case_matrix` packs `fitness.values` into a dense matrix;
     optional `matrix=` and `trust_matrix=` let lexicase and informed
     down-sampling reuse one pack per generation.
-16. `sel_sms_emoa` reduces a pool by non-dominated sorting, then
+17. `sel_sms_emoa` reduces a pool by non-dominated sorting, then
     removes the least hypervolume contributor on the critical front
     until the quota is met. Optional `ref_point` follows the same
     minimization-space convention as `hypervolume` and `least_contrib`.
     Works on `parents + offspring` or steady-state `parents + [child]`.
-17. `sel_moead` and `SelMOEADWithMemory` pick one winner per
+18. `sel_moead` and `SelMOEADWithMemory` pick one winner per
     decomposition weight from `uniform_reference_points`, using
     Tchebycheff or PBI scalarization with Pareto-rank-aware tie
     breaks and NSGA-II-style crowding on the fill pass.
-18. `sel_age_moea_2` and `SelAGE2WithMemory` advance front by front:
+19. `sel_age_moea_2` and `SelAGE2WithMemory` advance front by front:
     geodesic diversity on partial $F_1$, inverse Minkowski on later
     partial fronts, with Newton–Raphson curvature on the first front.
 
@@ -151,10 +154,19 @@ from the original sources.
    $\lambda \neq \mu$, so several children of the same parent do not
    stack $\sigma$ updates. `generate` samples every parent if any
    parent fitness is invalid; `update` ranks only valid fitnesses.
+   When fewer than $\lambda$ parents remain, children are sampled
+   from the available set instead of indexing past the last parent.
 5. `RestartStrategy` wraps standard, $(1+\lambda)$, or MO-CMA with
    IPOP or BIPOP restart scheduling. `ea_generate_update_restarts`
    runs the generate/update loop and logs restart regime, population
    size, and evaluation budget each generation.
+6. `sample_centroid` replaces a non-finite box end with the
+   unbounded default $[-5, 5]$, so a one-sided bound no longer
+   writes `inf` or `NaN` as an IPOP/BIPOP restart mean.
+7. Restart `TolFun` needs Hansen's $10 + 30n/\lambda$ history, then
+   stops only if that window's best-of-generation range is below
+   `tol_fun`. Two equal generation-bests no longer terminate at
+   generation 2.
 
 ## Genetic programming
 
@@ -197,8 +209,10 @@ The following is extra.
    interpreter.
 9. Algorithms call `toolbox.evaluate_batch(invalids)` when that
    operator is registered, otherwise `toolbox.map(toolbox.evaluate,
-   invalids)`. A generation can be scored against one shared matrix
-   without changing `map`'s contract.
+   invalids)`. `ea_generate_update` and `ea_generate_update_restarts`
+   go through the same `evaluate_invalid` path. A generation can be
+   scored against one shared matrix without changing `map`'s
+   contract.
 10. `tools.clone_individual` shallow-copies a list/array individual
     and deepcopies only the fitness. GP toolboxes should register it;
     the default Toolbox clone remains `deepcopy`.
@@ -279,31 +293,31 @@ evaluation is in the
    a member.
 9. `HallOfFame.remove` raises `IndexError` on an out-of-range index
    instead of desynchronizing `keys` and `items`.
-9. `Logbook.pop` normalizes a negative index before comparing it to
-   the stream cursor.
-10. `Logbook.pop` removes the chapter row that shares that
+10. `Logbook.pop` normalizes a negative index before comparing it to
+    the stream cursor.
+11. `Logbook.pop` removes the chapter row that shares that
     generation, so `pop(i)` and `del logbook[i]` stay aligned.
-11. `Logbook.__delitem__` removes the chapter row that shares the
+12. `Logbook.__delitem__` removes the chapter row that shares the
     same generation — including a later occurrence of a repeated
     `gen` and every index in a slice — not the same list index.
-12. `Logbook.stream` and `str` pair chapter cells by `gen`. A
+13. `Logbook.stream` and `str` pair chapter cells by `gen`. A
     generation recorded without a chapter no longer shifts later
     values onto the wrong row or IndexErrors once the stream cursor
     is past the shorter chapter.
-13. `History.update` records every member of a batch. A single
+14. `History.update` records every member of a batch. A single
     individual without `history_index` no longer orphans the rest.
-14. `GridArchive` tessellates behavior descriptors into a MAP-Elites
+15. `GridArchive` tessellates behavior descriptors into a MAP-Elites
     grid: `add` keeps the best individual per cell, `random_elites`
     samples parent copies, and `stats` reports coverage and
     `qd_score`. `ea_map_elites` drives evaluate → archive → `var_or`
     and logs archive metrics each generation. Fitness stays on
     `ind.fitness`; behavior measurement stays on the caller.
-15. `var_or` mates two clones of the only parent when the pool has a
+16. `var_or` mates two clones of the only parent when the pool has a
     single individual, so $(1,\lambda)$ / $(1+\lambda)$ with
     `cx_prob > 0` no longer raises `ValueError` on `sample(..., 2)`.
     `ea_mu_comma_lambda` with `survivors=1` can run past generation
     one.
-16. `GridArchive.add` rejects a non-finite first weighted objective.
+17. `GridArchive.add` rejects a non-finite first weighted objective.
     NaN or infinity no longer replaces a finite elite or occupies an
     empty cell.
 

@@ -58,7 +58,7 @@ inventory:
 
 - **18** still-open [DEAP](https://github.com/DEAP/deap) issues
   [implemented](https://aabmets.github.io/deap-er/bugfixes/deap_fixes/) (some older than a decade)
-- **36** correctness bugs fixed — [operators](https://aabmets.github.io/deap-er/bugfixes/operators/),
+- **48** correctness bugs fixed — [operators](https://aabmets.github.io/deap-er/bugfixes/operators/),
   [GP](https://aabmets.github.io/deap-er/bugfixes/gp/),
   [CMA](https://aabmets.github.io/deap-er/bugfixes/strategies/),
   [records](https://aabmets.github.io/deap-er/bugfixes/records/),
