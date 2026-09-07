@@ -76,13 +76,12 @@ def semantic_pca_basis(
         raise ValueError("n_dims must be positive")
     packed = as_semantic_matrix(matrix)
     keep = semantic_column_keep(packed.shape[1], valid, target)
+    if not numpy.any(keep):
+        raise ValueError("semantic_pca_basis needs at least one finite row on kept columns")
     kept = packed[:, keep]
-    if kept.size:
-        finite_rows = numpy.all(numpy.isfinite(kept), axis=1)
-    else:
-        finite_rows = numpy.zeros(0, dtype=bool)
+    finite_rows = numpy.all(numpy.isfinite(kept), axis=1)
     kept = kept[finite_rows]
-    if kept.shape[0] == 0 or kept.shape[1] == 0:
+    if kept.shape[0] == 0:
         raise ValueError("semantic_pca_basis needs at least one finite row on kept columns")
     center_keep = kept.mean(axis=0)
     _, _, vt = numpy.linalg.svd(kept - center_keep, full_matrices=False)
