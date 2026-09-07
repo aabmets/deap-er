@@ -11,7 +11,6 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable
-from math import sqrt
 from typing import TYPE_CHECKING, Any
 
 import numpy
@@ -19,8 +18,16 @@ import numpy
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 
-from .cma_params import apply_cma_hyperparams
-from .common import sample_offspring, update_bound_attrs
+from .cma_params import (
+    adapt_cma_sigma,
+    apply_cma_hyperparams,
+    generate_cma_offspring,
+    init_cma_state,
+    reset_cma_state,
+    shift_cma_centroid,
+    update_cma_paths,
+)
+from .common import update_bound_attrs
 
 __all__ = ["Strategy"]
 
@@ -82,17 +89,14 @@ class Strategy:
 
     def __init__(self, centroid: Iterable[float], sigma: float, **kwargs: Any) -> None:
         """See the class docstring."""
-        self.update_count = 0
-        self.centroid = numpy.array(centroid)
-        self.sigma = sigma
-
-        self.dim = len(self.centroid)
-        self.pc = numpy.zeros(self.dim)
-        self.ps = numpy.zeros(self.dim)
-
-        temp = 1 - 1.0 / (4.0 * self.dim) + 1.0 / (21.0 * self.dim**2)
-        self.chi_n = sqrt(self.dim) * temp
-
+        init_cma_state(self, centroid, sigma)
+        self.update_count: int
+        self.centroid: numpy.ndarray
+        self.sigma: float
+        self.dim: int
+        self.pc: numpy.ndarray
+        self.ps: numpy.ndarray
+        self.chi_n: float
         self.lamb: int
         self.mu: int
         self.weights: numpy.ndarray
@@ -146,11 +150,7 @@ class Strategy:
         **kwargs: Any,
     ) -> None:
         """Reset mutable CMA state for a restart."""
-        self.centroid = numpy.asarray(centroid, dtype=float)
-        self.sigma = sigma
-        self.pc = numpy.zeros(self.dim)
-        self.ps = numpy.zeros(self.dim)
-        self.update_count = 0
+        reset_cma_state(self, centroid, sigma)
         self.compute_params(cm_init=numpy.identity(self.dim), **kwargs)
 
     def generate(self, ind_init: Callable[..., Individual]) -> list[Individual]:
@@ -163,18 +163,7 @@ class Strategy:
         Returns:
             Newly sampled individuals.
         """
-        return sample_offspring(
-            self.centroid,
-            self.sigma,
-            self.big_bd,
-            self.lamb,
-            self.dim,
-            ind_init,
-            low=self.low,
-            up=self.up,
-            bound_mode=self.bound_mode,
-            resample_limit=self.resample_limit,
-        )
+        return generate_cma_offspring(self, self.big_bd, ind_init)
 
     def update(self, population: list[Individual]) -> None:
         """Update centroid, step-size, and covariance from ``population``.
@@ -185,24 +174,9 @@ class Strategy:
         Args:
             population: Evaluated individuals from ``generate``.
         """
-        population.sort(key=lambda ind: ind.fitness, reverse=True)
-
-        old_centroid = self.centroid
-        self.centroid = numpy.dot(self.weights, numpy.asarray(population[0 : self.mu]))
-
-        c_diff = self.centroid - old_centroid
-
-        temp_1 = sqrt(self.ss_cum * (2 - self.ss_cum) * self.mu_eff)
-        temp_2 = numpy.dot(self.big_b, (1.0 / self.diag_d) * numpy.dot(self.big_b.T, c_diff))
-        self.ps = (1 - self.ss_cum) * self.ps + temp_1 / self.sigma * temp_2
-
-        temp_1 = sqrt(1.0 - (1.0 - self.ss_cum) ** (2.0 * (self.update_count + 1.0)))
-        temp_2 = numpy.linalg.norm(self.ps) / temp_1 / self.chi_n < (1.4 + 2.0 / (self.dim + 1.0))
-        hsig = float(temp_2)
-
-        temp_1 = sqrt(self.cm_cum * (2 - self.cm_cum) * self.mu_eff)
-        self.pc = (1 - self.cm_cum) * self.pc + hsig * temp_1 / self.sigma * c_diff
-
+        old_centroid, c_diff = shift_cma_centroid(self, population)
+        y_mean = numpy.dot(self.big_b, (1.0 / self.diag_d) * numpy.dot(self.big_b.T, c_diff))
+        hsig = update_cma_paths(self, c_diff, y_mean)
         ar_tmp = population[0 : self.mu] - old_centroid
         temp_0 = (1 - hsig) * self.rank_one * self.cm_cum * (2 - self.cm_cum)
         temp_1 = 1 - self.rank_one - self.rank_mu + temp_0
@@ -211,10 +185,7 @@ class Strategy:
         self.big_c = (
             temp_1 * self.big_c + self.rank_one * temp_2 + self.rank_mu * temp_3 / self.sigma**2
         )
-
-        temp = numpy.linalg.norm(self.ps) / self.chi_n - 1.0
-        self.sigma *= numpy.exp(temp * self.ss_cum / self.ss_dmp)
-
+        adapt_cma_sigma(self)
         self.diag_d, self.big_b = numpy.linalg.eigh(self.big_c)
         indx = numpy.argsort(self.diag_d)
 

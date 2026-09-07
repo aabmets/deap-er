@@ -1,15 +1,17 @@
-import numpy
 from deap_er import Fitness, Toolbox, creator, tools
 
 tools.rng.seed(1234)
 
+DIM = 100
+GENS = 250
+TARGET = 1e-6
 
-def setup():
+
+def make_toolbox():
     creator.create_type("FitnessMin", Fitness, weights=(-1.0,))
     creator.create_type("Individual", list, fitness=creator.FitnessMin)
-    dim = 100
     strategy = tools.StrategySeparable(
-        centroid=[3.0] * dim,
+        centroid=[3.0] * DIM,
         sigma=3.0,
         offsprings=80,
         low=-5.0,
@@ -19,31 +21,17 @@ def setup():
     toolbox.register("evaluate", tools.bm_sphere)
     toolbox.register("generate", strategy.generate, creator.Individual)
     toolbox.register("update", strategy.update)
-
-    stats = tools.Statistics(lambda ind: ind.fitness.values)
-    stats.register("avg", numpy.mean)
-    stats.register("min", numpy.min)
-
-    return toolbox, stats
-
-
-def print_results(best_ind):
-    if best_ind.fitness.values >= (1e-6,):
-        raise RuntimeError("Evolution failed to converge.")
-    print("\nEvolution converged correctly.")
+    return toolbox
 
 
 def main():
-    toolbox, stats = setup()
+    toolbox = make_toolbox()
     hof = tools.HallOfFame(1)
-    tools.ea_generate_update(
-        toolbox,
-        generations=250,
-        hof=hof,
-        stats=stats,
-        verbose=True,
-    )
-    print_results(hof[0])
+    tools.ea_generate_update(toolbox, generations=GENS, hof=hof, verbose=True)
+    best = hof[0].fitness.values[0]
+    if best >= TARGET:
+        raise RuntimeError("Separable CMA did not reach the sphere target.")
+    print(f"Reached sphere fitness {best:.3e} in {DIM} dimensions.")
 
 
 if __name__ == "__main__":
