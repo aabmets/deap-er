@@ -104,3 +104,39 @@ def test_pf1_uses_squared_distance_and_alt1_move_severity():
     value = tools.MPFuncs.pf1((0.0, 3.0), (0.0, 0.0), 50.0, 0.1)
     assert value == pytest.approx(50.0 / (1.0 + 0.1 * 9.0))
     assert tools.MPConfigs.ALT1["move_severity"] == 1.5
+
+
+def test_pf2_and_pf3_match_closed_forms():
+    assert tools.MPFuncs.pf2((3.0, 0.0), (0.0, 0.0), 50.0, 2.0) == pytest.approx(44.0)
+    assert tools.MPFuncs.pf3((3.0, 4.0), (0.0, 0.0), 2.0) == pytest.approx(50.0)
+
+
+def test_multiple_peak_functions_and_random_heights_widths():
+    tools.rng.seed(3)
+    landscape = MovingPeaks(
+        dimensions=2,
+        npeaks=2,
+        pfunc=[tools.MPFuncs.pf1, tools.MPFuncs.pf2, tools.MPFuncs.pf3],
+        uniform_height=0,
+        uniform_width=0,
+        period=1,
+        bfunc=lambda _x: 1.0,
+    )
+
+    first = landscape([10.0, 10.0])
+    second = landscape([10.0, 10.0], count=False)
+
+    assert landscape.current_error is not None
+    assert landscape.offline_error >= 0.0
+    assert first[0] >= 1.0
+    assert isinstance(second[0], float)
+    assert landscape.sorted_maxima
+    assert len(landscape.peaks_function) == 2
+
+
+def test_matching_peak_function_list_is_kept_in_order():
+    funcs = [tools.MPFuncs.pf1, tools.MPFuncs.pf2]
+    landscape = MovingPeaks(dimensions=1, npeaks=2, pfunc=funcs)
+
+    assert landscape.peaks_function == funcs
+    assert landscape.pfunc_pool == tuple(funcs)

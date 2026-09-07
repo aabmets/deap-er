@@ -11,6 +11,7 @@
 import numpy
 import pytest
 from deap_er import Fitness, creator, tools
+from deap_er.private.various.hypervolume import minimized_points
 
 FIT = "HV_FIT"
 IND = "HV_IND"
@@ -56,6 +57,7 @@ class TestHypervolume:
     def test_empty(self):
         assert tools.hypervolume(numpy.array([])) == 0.0
         assert tools.hypervolume([]) == 0.0
+        assert minimized_points([]).shape == (0, 0)
 
     def test_population(self):
         _setup()
