@@ -95,6 +95,68 @@ def test_subproblem_assignment():
         del creator.__dict__[ind_name]
 
 
+def test_sel_moead_returns_exact_sel_count_with_crowding_fill():
+    fit_name = "MOEAD_FILL_FIT"
+    ind_name = "MOEAD_FILL_IND"
+    creator.create_type(fit_name, Fitness, weights=(-1.0, -1.0))
+    creator.create_type(ind_name, list, fitness=creator.__dict__[fit_name])
+    try:
+        pop = []
+        for genes, values in (
+            ([0.0], (0.01, 0.02)),
+            ([1.0], (0.0, 1.0)),
+            ([2.0], (1.0, 0.0)),
+            ([3.0], (0.2, 0.8)),
+            ([4.0], (0.3, 0.7)),
+            ([5.0], (0.4, 0.6)),
+            ([6.0], (0.5, 0.5)),
+            ([7.0], (2.0, 2.0)),
+            ([8.0], (2.1, 2.1)),
+            ([9.0], (2.2, 2.2)),
+        ):
+            ind = creator.__dict__[ind_name](genes)
+            ind.fitness.values = values
+            pop.append(ind)
+
+        weights = numpy.array([[1.0, 0.0], [0.0, 1.0]])
+        chosen = tools.sel_moead(pop, 6, weights)
+        assert len(chosen) == 6
+    finally:
+        del creator.__dict__[fit_name]
+        del creator.__dict__[ind_name]
+
+
+def test_sel_moead_prefers_lower_front_for_subproblem():
+    fit_name = "MOEAD_RANK_FIT"
+    ind_name = "MOEAD_RANK_IND"
+    creator.create_type(fit_name, Fitness, weights=(-1.0, -1.0))
+    creator.create_type(ind_name, list, fitness=creator.__dict__[fit_name])
+    try:
+        front0 = []
+        for genes, values in (
+            ([0.0], (0.0, 1.0)),
+            ([1.0], (1.0, 0.0)),
+            ([2.0], (0.4, 0.4)),
+        ):
+            ind = creator.__dict__[ind_name](genes)
+            ind.fitness.values = values
+            front0.append(ind)
+
+        dominated = creator.__dict__[ind_name]([3.0])
+        dominated.fitness.values = (0.5, 0.5)
+        dominated2 = creator.__dict__[ind_name]([4.0])
+        dominated2.fitness.values = (0.6, 0.6)
+        pop = front0 + [dominated, dominated2]
+
+        weights = numpy.array([[0.5, 0.5]])
+        chosen = tools.sel_moead(pop, 1, weights)
+        assert len(chosen) == 1
+        assert id(chosen[0]) == id(front0[2])
+    finally:
+        del creator.__dict__[fit_name]
+        del creator.__dict__[ind_name]
+
+
 def test_oversize_sel_count_returns_full_pool(multi_obj, make):
     weights = tools.uniform_reference_points(2, 4)
     pop = [make(multi_obj, [float(i)], (float(i) * 0.1, 1.0 - float(i) * 0.1)) for i in range(4)]

@@ -19,6 +19,7 @@ __all__: list[str] = [
     "geodesic_distance",
     "geodesic_distance_matrix",
     "survival_scores",
+    "later_front_scores",
 ]
 
 
@@ -216,3 +217,32 @@ def survival_scores(
     convergence = numpy.linalg.norm(front - ideal_point, ord=curvature, axis=1)
     scores = scores + 1.0 / (convergence + 1e-8)
     return scores
+
+
+def later_front_scores(
+    front: ndarray,
+    best_point: ndarray,
+    intercepts: ndarray,
+    curvature: float,
+) -> ndarray:
+    """Score a non-first front by inverse Minkowski distance to the ideal.
+
+    Later fronts reuse the normalization hyperplane estimated from the
+    first non-dominated front, matching AGE-MOEA-II / pymoo behavior.
+
+    Args:
+        front: Raw objective matrix with shape ``(n, m)``.
+        best_point: Ideal point with shape ``(m,)``.
+        intercepts: Axis intercepts from the first front.
+        curvature: Estimated front curvature ``p``.
+
+    Returns:
+        Survival score per row; higher is better.
+    """
+    denom = intercepts - best_point
+    denom = numpy.where(numpy.abs(denom) < 1e-12, 1.0, denom)
+    normalized = (front - best_point) / denom
+    ideal = numpy.zeros(front.shape[1])
+    dist = numpy.linalg.norm(normalized - ideal, ord=curvature, axis=1)
+    dist[dist < 1e-8] = 1e-8
+    return 1.0 / dist

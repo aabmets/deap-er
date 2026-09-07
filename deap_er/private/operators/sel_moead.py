@@ -10,6 +10,7 @@
 #
 from __future__ import annotations
 
+from itertools import chain
 from operator import attrgetter
 from typing import TYPE_CHECKING, Literal
 
@@ -51,9 +52,22 @@ def _minimize_fitness(individuals: list[Individual]) -> ndarray:
 
 def _update_ideal_point(fitness: ndarray, ideal_point: ndarray | None) -> ndarray:
     current = numpy.min(fitness, axis=0)
-    if ideal_point is None:
+    if ideal_point is None or ideal_point.size == 0:
         return current
-    return numpy.minimum(current, ideal_point)
+    finite = ideal_point[numpy.isfinite(ideal_point)]
+    if finite.size == 0:
+        return current
+    return numpy.minimum(current, finite)
+
+
+def _pareto_ranks(individuals: list[Individual]) -> ndarray:
+    fronts = sort_non_dominated(individuals, len(individuals))
+    ranks = numpy.full(len(individuals), len(individuals), dtype=numpy.int64)
+    index_map = {id(ind): idx for idx, ind in enumerate(individuals)}
+    for rank, front in enumerate(fronts):
+        for ind in front:
+            ranks[index_map[id(ind)]] = rank
+    return ranks
 
 
 def _select_by_subproblems(
@@ -63,13 +77,14 @@ def _select_by_subproblems(
     ideal_point: ndarray,
     scalar_fn: ScalarizationFn,
     sel_count: int,
+    ranks: ndarray,
 ) -> list[Individual]:
     n_weights = min(sel_count, len(weights))
     scalar = scalar_fn(fitness, weights[:n_weights], ideal_point)
     chosen: list[Individual] = []
     used = numpy.zeros(len(individuals), dtype=numpy.bool)
     for niche in range(n_weights):
-        order = numpy.argsort(scalar[:, niche], kind="stable")
+        order = numpy.lexsort((scalar[:, niche], ranks))
         for idx in order:
             if not used[idx]:
                 used[idx] = True
@@ -85,18 +100,23 @@ def _fill_with_crowding(
 ) -> list[Individual]:
     if len(chosen) >= sel_count:
         return chosen[:sel_count]
-    remaining = sel_count - len(chosen)
+    need = sel_count - len(chosen)
     chosen_ids = {id(ind) for ind in chosen}
     pool = [ind for ind in individuals if id(ind) not in chosen_ids]
     if not pool:
         return chosen
-    pareto_fronts = sort_non_dominated(pool, remaining)
-    for front in pareto_fronts:
+
+    fronts = sort_non_dominated(pool, need)
+    for front in fronts:
         assign_crowding_dist(front)
-    last = pareto_fronts[-1]
-    attr = attrgetter("fitness.crowding_dist")
-    sorted_front = sorted(last, key=attr, reverse=True)
-    chosen.extend(sorted_front[:remaining])
+
+    extra = list(chain(*fronts[:-1]))
+    still_need = need - len(extra)
+    if still_need > 0 and fronts:
+        attr = attrgetter("fitness.crowding_dist")
+        sorted_last = sorted(fronts[-1], key=attr, reverse=True)
+        extra.extend(sorted_last[:still_need])
+    chosen.extend(extra)
     return chosen[:sel_count]
 
 
@@ -158,9 +178,10 @@ def sel_moead(
     """Select the next generation with MOEA/D decomposition.
 
     Each weight vector defines a scalar subproblem. ``weights`` is
-    typically ``uniform_reference_points``. When fewer than
-    ``sel_count`` unique winners exist, remaining slots are filled
-    with crowding distance on the leftover pool.
+    typically ``uniform_reference_points``. Subproblem winners
+    prefer lower Pareto ranks; remaining slots are filled from
+    complete lower fronts, then crowding distance on the last
+    partial front of the leftover pool.
 
     Args:
         individuals: Individuals to select from.
@@ -184,16 +205,20 @@ def sel_moead(
 
     fitness = _minimize_fitness(individuals)
     scalar_fn = _resolve_scalarization(scalarization, theta)
+    ranks = _pareto_ranks(individuals)
 
     prior = None
     if ideal_point is not None:
         prior = numpy.asarray(ideal_point, dtype=float).reshape(-1)
+        prior = prior[numpy.isfinite(prior)]
     elif isinstance(_memory, SelMOEADWithMemory):
         prior = numpy.asarray(_memory.ideal_point, dtype=float).reshape(-1)
         prior = prior[numpy.isfinite(prior)]
 
     z_star = _update_ideal_point(fitness, prior)
-    chosen = _select_by_subproblems(individuals, fitness, weights, z_star, scalar_fn, sel_count)
+    chosen = _select_by_subproblems(
+        individuals, fitness, weights, z_star, scalar_fn, sel_count, ranks
+    )
     chosen = _fill_with_crowding(individuals, chosen, sel_count)
 
     if isinstance(_memory, SelMOEADWithMemory):

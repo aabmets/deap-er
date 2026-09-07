@@ -10,7 +10,6 @@
 #
 from __future__ import annotations
 
-from itertools import chain
 from typing import TYPE_CHECKING
 
 import numpy
@@ -20,7 +19,11 @@ if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 from deap_er.private.various.sort_non_dominated import sort_non_dominated
 
-from .sel_age_moea_2_helpers import estimate_curvature_nr, survival_scores
+from .sel_age_moea_2_helpers import (
+    estimate_curvature_nr,
+    later_front_scores,
+    survival_scores,
+)
 from .sel_nsga_3_helpers import find_extreme_points, find_intercepts
 
 __all__: list[str] = ["sel_age_moea_2", "SelAGE2WithMemory"]
@@ -31,15 +34,15 @@ def _normalize_front(
     best_point: ndarray,
     worst_point: ndarray,
     extreme_points: ndarray | None,
-) -> tuple[ndarray, ndarray, ndarray]:
-    best = numpy.min(fitness, axis=0) if best_point is None else best_point
-    worst = numpy.max(fitness, axis=0) if worst_point is None else worst_point
+) -> tuple[ndarray, ndarray, ndarray, ndarray]:
+    best = best_point
+    worst = worst_point
     extreme = find_extreme_points(fitness, best, extreme_points)
     intercepts = find_intercepts(extreme, best, worst, worst)
     denom = intercepts - best
     denom = numpy.where(numpy.abs(denom) < 1e-12, 1.0, denom)
     normalized = (fitness - best) / denom
-    return normalized, best, worst
+    return normalized, best, worst, intercepts
 
 
 def find_extreme_indexes(fitness: ndarray, best_point: ndarray) -> ndarray:
@@ -62,22 +65,68 @@ def find_extreme_indexes(fitness: ndarray, best_point: ndarray) -> ndarray:
 def _reference_index(front: ndarray, extreme_indexes: ndarray) -> int:
     distances = numpy.linalg.norm(front, axis=1)
     distances[extreme_indexes] = numpy.inf
+    if not numpy.any(numpy.isfinite(distances)):
+        return 0
     return int(numpy.argmin(distances))
 
 
-def _geometry_from_first_front(
+def _merge_best(fitness: ndarray, anchor: ndarray | None) -> ndarray:
+    if anchor is None:
+        return numpy.min(fitness, axis=0)
+    row = numpy.asarray(anchor, dtype=float).reshape(1, -1)
+    return numpy.min(numpy.vstack((fitness, row)), axis=0)
+
+
+def _merge_worst(fitness: ndarray, anchor: ndarray | None) -> ndarray:
+    if anchor is None:
+        return numpy.max(fitness, axis=0)
+    row = numpy.asarray(anchor, dtype=float).reshape(1, -1)
+    return numpy.max(numpy.vstack((fitness, row)), axis=0)
+
+
+def _estimate_geometry(
     first_front: ndarray,
-    best_point: ndarray,
-    worst_point: ndarray,
+    best: ndarray,
+    worst: ndarray,
     extreme_points: ndarray | None,
     nr_tol: float,
     nr_max_iter: int,
-) -> tuple[float, ndarray, ndarray]:
-    normalized, best, worst = _normalize_front(first_front, best_point, worst_point, extreme_points)
+) -> tuple[float, ndarray]:
+    normalized, _, _, intercepts = _normalize_front(first_front, best, worst, extreme_points)
     extreme_idx = find_extreme_indexes(first_front, best)
     ref = _reference_index(normalized, extreme_idx)
     curvature = estimate_curvature_nr(normalized[ref], normalized.shape[1], nr_tol, nr_max_iter)
-    return curvature, best, worst
+    return curvature, intercepts
+
+
+def _front_survival_scores(
+    front_fitness: ndarray,
+    front_index: int,
+    best: ndarray,
+    worst: ndarray,
+    intercepts: ndarray,
+    curvature: float,
+    extreme_points: ndarray | None,
+) -> ndarray:
+    if front_index == 0:
+        normalized, _, _, _ = _normalize_front(front_fitness, best, worst, extreme_points)
+        extreme_idx = find_extreme_indexes(front_fitness, best)
+        return survival_scores(normalized, numpy.zeros(normalized.shape[1]), extreme_idx, curvature)
+    return later_front_scores(front_fitness, best, intercepts, curvature)
+
+
+def _update_memory(
+    memory: SelAGE2WithMemory,
+    best: ndarray,
+    worst: ndarray,
+    first_front: ndarray,
+    extreme_points: ndarray | None,
+    curvature: float,
+) -> None:
+    memory.best_point = numpy.asarray(best).reshape((1, -1))
+    memory.worst_point = numpy.asarray(worst).reshape((1, -1))
+    memory.extreme_points = find_extreme_points(first_front, best, extreme_points)
+    memory.curvature = curvature
 
 
 class SelAGE2WithMemory:
@@ -128,10 +177,13 @@ def sel_age_moea_2(
 ) -> list[Individual]:
     """Select the next generation with AGE-MOEA-II.
 
-    Non-dominated sorting fills complete fronts first. Remaining
-    slots on the last partial front use geometry-aware survival
-    scores based on Newton-Raphson curvature estimation and
-    geodesic diversity.
+    Follows the environmental-selection loop of Panichella (GECCO
+    2022, Algorithm 2): non-dominated fronts are processed in order;
+    when a front does not fit entirely, survivors are chosen by
+    geometry-aware scores. The first front uses Newton-Raphson
+    curvature and geodesic diversity; later fronts reuse the first
+    front normalization and rank by inverse Minkowski distance to the
+    ideal point.
 
     Args:
         individuals: Individuals to select from.
@@ -153,48 +205,54 @@ def sel_age_moea_2(
     if not individuals or sel_count <= 0:
         return []
     if sel_count >= len(individuals):
+        if isinstance(_memory, SelAGE2WithMemory):
+            fitness = -numpy.array([ind.fitness.wvalues for ind in individuals], dtype=float)
+            best = _merge_best(fitness, best_point)
+            worst = _merge_worst(fitness, worst_point)
+            first_front = fitness
+            curvature, _ = _estimate_geometry(
+                first_front, best, worst, extreme_points, nr_tol, nr_max_iter
+            )
+            _update_memory(_memory, best, worst, first_front, extreme_points, curvature)
         return list(individuals)
 
     pareto_fronts = sort_non_dominated(individuals, sel_count)
     fitness = -numpy.array([ind.fitness.wvalues for ind in individuals], dtype=float)
     index_map = {id(ind): idx for idx, ind in enumerate(individuals)}
 
-    if best_point is not None and worst_point is not None:
-        best = numpy.min(numpy.vstack((fitness, best_point.reshape(1, -1))), axis=0)
-        worst = numpy.max(numpy.vstack((fitness, worst_point.reshape(1, -1))), axis=0)
-    else:
-        best = numpy.min(fitness, axis=0)
-        worst = numpy.max(fitness, axis=0)
+    best = _merge_best(fitness, best_point)
+    worst = _merge_worst(fitness, worst_point)
 
     first_indices = [index_map[id(ind)] for ind in pareto_fronts[0]]
     first_front = fitness[first_indices]
-    curvature, best, worst = _geometry_from_first_front(
-        first_front,
-        best,
-        worst,
-        extreme_points,
-        nr_tol,
-        nr_max_iter,
+    curvature, intercepts = _estimate_geometry(
+        first_front, best, worst, extreme_points, nr_tol, nr_max_iter
     )
 
-    chosen = list(chain(*pareto_fronts[:-1]))
-    remaining = sel_count - len(chosen)
-    if remaining <= 0:
-        return chosen[:sel_count]
+    chosen: list[Individual] = []
+    for front_index, front in enumerate(pareto_fronts):
+        if len(chosen) >= sel_count:
+            break
+        if len(chosen) + len(front) <= sel_count:
+            chosen.extend(front)
+            continue
 
-    last_front = pareto_fronts[-1]
-    last_indices = numpy.array([index_map[id(ind)] for ind in last_front], dtype=int)
-    last_fitness = fitness[last_indices]
-    normalized, _, _ = _normalize_front(last_fitness, best, worst, None)
-    extreme_last = find_extreme_indexes(last_fitness, best)
-    scores = survival_scores(normalized, numpy.zeros(normalized.shape[1]), extreme_last, curvature)
-    order = numpy.argsort(scores)[::-1]
-    chosen.extend(last_front[idx] for idx in order[:remaining])
+        remaining = sel_count - len(chosen)
+        front_indices = numpy.array([index_map[id(ind)] for ind in front], dtype=int)
+        front_fitness = fitness[front_indices]
+        scores = _front_survival_scores(
+            front_fitness,
+            front_index,
+            best,
+            worst,
+            intercepts,
+            curvature,
+            extreme_points,
+        )
+        order = numpy.argsort(scores)[::-1]
+        chosen.extend(front[idx] for idx in order[:remaining])
 
     if isinstance(_memory, SelAGE2WithMemory):
-        _memory.best_point = numpy.asarray(best).reshape((1, -1))
-        _memory.worst_point = numpy.asarray(worst).reshape((1, -1))
-        _memory.extreme_points = find_extreme_points(first_front, best, extreme_points)
-        _memory.curvature = curvature
+        _update_memory(_memory, best, worst, first_front, extreme_points, curvature)
 
-    return chosen
+    return chosen[:sel_count]
