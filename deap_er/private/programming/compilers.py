@@ -146,9 +146,17 @@ def compile_tree(
 
     Raises:
         MemoryError: If evaluation exceeds the recursion limit.
+        NameError: If ``expr`` holds a primitive missing from
+            ``prim_set.context``.
         ValueError: If the backend is unknown, or if a tape backend
             cannot lower the expression.
     """
+    if not isinstance(expr, str):
+        for node in expr:
+            if isinstance(node, Primitive) and node.name not in prim_set.context:
+                raise NameError(
+                    f"The primitive '{node.name}' is not registered on the primitive set."
+                )
     code = str(expr)
     if len(prim_set.arguments) > 0:
         args = ",".join(prim_set.arguments)
