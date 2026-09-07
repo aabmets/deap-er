@@ -16,7 +16,7 @@ from copy import deepcopy
 from typing import TYPE_CHECKING, Any
 
 import numpy
-from scipy.spatial import cKDTree
+from scipy.spatial import KDTree
 
 from deap_er.private.records.archive_common import (
     ArchiveStats,
@@ -52,7 +52,7 @@ class CvtArchive:
         self._centroids = parse_centroids(centroids)
         self._cells: dict[int, Individual] = {}
         self._tree = (
-            cKDTree(self._centroids) if self._centroids.shape[0] >= KDTREE_MIN_CENTROIDS else None
+            KDTree(self._centroids) if self._centroids.shape[0] >= KDTREE_MIN_CENTROIDS else None
         )
 
     @classmethod
@@ -100,7 +100,7 @@ class CvtArchive:
 
         Archives with fewer than 512 centroids break ties by
         lowest index. Larger archives follow
-        ``scipy.spatial.cKDTree.query`` order.
+        ``scipy.spatial.KDTree.query`` order.
 
         Args:
             descriptor: Continuous behavior coordinates.
@@ -123,7 +123,7 @@ class CvtArchive:
 
         Archives with fewer than :data:`KDTREE_MIN_CENTROIDS` cells use
         :func:`nearest_index` (lowest-index ties). Larger archives use
-        ``cKDTree.query`` order.
+        ``KDTree.query`` order.
 
         Args:
             descriptor: Continuous behavior coordinates.
