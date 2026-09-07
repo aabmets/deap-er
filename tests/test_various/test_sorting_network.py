@@ -57,3 +57,13 @@ def test_sorting_network_draw_empty_network_labels_wires():
     assert "0" in diagram
     assert "3" in diagram
     assert "o" in diagram
+
+
+def test_sorting_network_draw_single_level_includes_comparators():
+    network = tools.SortingNetwork(2, [(0, 1)])
+    assert network.depth == 1
+    diagram = network.draw()
+    assert "0" in diagram
+    assert "1" in diagram
+    assert "o" in diagram
+    assert "x" in diagram
