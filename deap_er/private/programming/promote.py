@@ -36,6 +36,7 @@ from .promote_store import (
     next_promo_name,
     note_promoted_use,
     promoted_names,
+    register_promoted,
     rollback_promote,
 )
 
@@ -121,10 +122,7 @@ def promote_subtree(
         while len(library.records) >= max_library:
             detached.append(detach_least_used(prim_set, library))
         name = next_promo_name(prim_set, library, prefix)
-        if isinstance(prim_set, PrimitiveSet):
-            prim_set.add_primitive(func, len(in_types), name=name, weight=weight)
-        else:
-            prim_set.add_primitive(func, in_types, nodes[0].ret, name=name, weight=weight)
+        register_promoted(prim_set, func, in_types, nodes[0].ret, name, weight)
         opcode = next_columnar_opcode(name) if columnar else None
         library.records[name] = PromotedRecord(
             name=name,
