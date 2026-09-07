@@ -273,3 +273,17 @@ unchanged.
 
 **Validator.**
 `tests/test_operators/test_mut_various.py::test_bounded_operators_accept_numpy_float32_bounds`
+
+---
+
+## `sel_best` / `sel_worst` treated a negative `sel_count` as a slice
+
+`sorted(...)[:sel_count]` uses Python's negative-index slice.
+`sel_best(pop, -1)` returned every individual except the worst
+instead of `[]`. `sel_random`, roulette, and NSGA-II already treat
+`sel_count <= 0` as empty.
+
+**Fix.** Return `[]` when `sel_count <= 0` before sorting.
+
+**Validator.**
+`tests/test_operators/test_sel_various.py::test_best_and_worst_non_positive_count_returns_empty`

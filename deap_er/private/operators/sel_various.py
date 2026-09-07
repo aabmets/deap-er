@@ -65,12 +65,15 @@ def sel_best(
 
     Args:
         individuals: Individuals to select from.
-        sel_count: Number of individuals to select.
+        sel_count: Number of individuals to select. ``sel_count <= 0``
+            returns an empty list.
         fit_attr: Attribute used as the selection criterion.
 
     Returns:
         The selected individuals.
     """
+    if sel_count <= 0:
+        return []
     key = attrgetter(fit_attr)
     return sorted(individuals, key=key, reverse=True)[:sel_count]
 
@@ -82,12 +85,15 @@ def sel_worst(
 
     Args:
         individuals: Individuals to select from.
-        sel_count: Number of individuals to select.
+        sel_count: Number of individuals to select. ``sel_count <= 0``
+            returns an empty list.
         fit_attr: Attribute used as the selection criterion.
 
     Returns:
         The selected individuals.
     """
+    if sel_count <= 0:
+        return []
     key = attrgetter(fit_attr)
     return sorted(individuals, key=key)[:sel_count]
 
