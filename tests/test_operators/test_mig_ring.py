@@ -115,6 +115,23 @@ def test_mig_ring_duplicate_slots_use_distinct_vacancies(ind_cls):
     assert changed == 2
 
 
+def test_mig_ring_duplicate_emigrants_do_not_alias_in_dest(ind_cls):
+    def pick_first_twice(population, count):
+        return [population[0]] * count
+
+    demes = _demes(ind_cls, nbr_demes=2, size=3)
+
+    tools.mig_ring(demes, 2, pick_first_twice)
+
+    for deme in demes:
+        assert len({id(member) for member in deme}) == len(deme)
+
+    dest_copies = [member for member in demes[1] if member[0] == 10]
+    assert len(dest_copies) == 2
+    dest_copies[0][0] = 999
+    assert dest_copies[1][0] == 10
+
+
 def test_mig_ring_overlapping_destinations_completes(ind_cls):
     demes = _demes(ind_cls, nbr_demes=3, size=3)
 
