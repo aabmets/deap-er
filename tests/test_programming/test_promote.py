@@ -142,13 +142,32 @@ def test_promote_and_clear_compile_cache_drop_entries():
     name = gp.promote_subtree(pset, gp.PrimitiveTree.from_string("add(ARG0, ARG0)", pset))
     assert len(_compile_cache) == 0
     promo = gp.PrimitiveTree.from_string(f"{name}(ARG0)", pset)
-    assert gp.compile_tree(promo, pset)(4) == 8
+    old_fn = gp.compile_tree(promo, pset)
+    assert old_fn(4) == 8
     gp.promote_subtree(pset, tree, max_library=1)
-    with pytest.raises((NameError, TypeError)):
-        gp.compile_tree(promo, pset)(4)
+    assert name not in pset.context
+    with pytest.raises(NameError, match=name):
+        gp.compile_tree(promo, pset)
     gp.compile_tree(tree, pset)
     gp.clear_compile_cache()
     assert len(_compile_cache) == 0
+
+
+def test_failed_promote_rolls_back_eviction():
+    pset = _typed_set()
+    first = gp.promote_subtree(pset, gp.PrimitiveTree.from_string("add(ARG0, ARG1)", pset))
+    bound = dict(gp.numba_opcodes())
+    with pytest.raises(ValueError, match="weight"):
+        gp.promote_subtree(
+            pset,
+            gp.PrimitiveTree.from_string("mul(ARG0, ARG1)", pset),
+            max_library=1,
+            weight=0.0,
+        )
+    assert gp.promoted_names(pset) == [first]
+    assert first in pset.mapping
+    assert first in pset.context
+    assert gp.numba_opcodes() == bound
 
 
 def test_mutation_increments_promoted_use():
