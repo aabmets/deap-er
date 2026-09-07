@@ -179,8 +179,9 @@ def test_random_elites_without_replacement_requires_enough_elites(ind_cls):
 
 def test_wrong_descriptor_length_raises(ind_cls):
     archive = tools.GridArchive(ranges=[(0.0, 1.0), (0.0, 1.0)], bins=2)
+    individual = _individual(ind_cls, [0], 1.0)
     with pytest.raises(ValueError):
-        archive.add(_individual(ind_cls, [0], 1.0), (0.1,))
+        archive.add(individual, (0.1,))
 
 
 def test_uniform_bins_int_constructor(ind_cls):
