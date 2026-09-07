@@ -140,7 +140,13 @@ def promote_subtree(
     tree = expr if isinstance(expr, PrimitiveTree) else PrimitiveTree(expr)
     if index < 0 or index >= len(tree):
         raise IndexError(f"Subtree index {index} is outside the expression.")
-    nodes = list(tree[tree.search_subtree(index)])
+    try:
+        bound = tree.search_subtree(index)
+    except IndexError as err:
+        raise ValueError("The extracted nodes are not a complete typed tree.") from err
+    if index == 0 and bound.stop != len(tree):
+        raise ValueError("The extracted nodes are not a complete typed tree.")
+    nodes = list(tree[bound])
     validate_subtree(nodes, prim_set)
     used = used_arguments(nodes, prim_set)
     if isinstance(prim_set, PrimitiveSet) and not used:
@@ -153,7 +159,10 @@ def promote_subtree(
         evict_least_used(prim_set, library)
     name = next_promo_name(prim_set, library, prefix)
     opcode = bind_if_columnar(name, body, in_types, nodes[0].ret, prim_set)
-    prim_set.add_primitive(func, in_types, nodes[0].ret, name=name, weight=weight)
+    if isinstance(prim_set, PrimitiveSet):
+        prim_set.add_primitive(func, len(in_types), name=name, weight=weight)
+    else:
+        prim_set.add_primitive(func, in_types, nodes[0].ret, name=name, weight=weight)
     library.records[name] = PromotedRecord(
         name=name,
         uses=0,
@@ -177,9 +186,9 @@ def library_of(prim_set: PrimitiveSetTyped) -> PromotedLibrary:
         The set's ``promoted_library``.
     """
     library = getattr(prim_set, "promoted_library", None)
-    if library is None:
+    if not isinstance(library, PromotedLibrary):
         library = PromotedLibrary()
-        prim_set.promoted_library = library  # attached on first promote; not a typed field
+        object.__setattr__(prim_set, "promoted_library", library)
     return library
 
 

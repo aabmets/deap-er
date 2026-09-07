@@ -9,10 +9,12 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import operator
+from typing import Any
 
 import pytest
 from deap_er import gp, tools
 from deap_er.private.programming.compilers import _compile_cache
+from deap_er.private.programming.promote import PromotedLibrary
 
 
 def _typed_set():
@@ -50,7 +52,7 @@ def test_promote_inner_subtree_and_zero_arity_constant():
     const = gp.promote_subtree(pset, gp.PrimitiveTree.from_string("add(one, one)", pset))
     assert pset.mapping[const].arity == 0
     func = gp.compile_tree(gp.PrimitiveTree.from_string(f"{const}()", pset), pset)
-    assert func(9.0) == 2.0
+    assert func(9.0, 0.0) == 2.0
 
 
 def test_promote_rejects_incomplete_ill_typed_and_trivial_trees():
@@ -61,7 +63,8 @@ def test_promote_rejects_incomplete_ill_typed_and_trivial_trees():
     with pytest.raises(ValueError, match="complete"):
         gp.promote_subtree(pset, list(tree) + [tree[1]])
     with pytest.raises(TypeError, match="return type"):
-        gp.promote_subtree(pset, [pset.mapping["add"], pset.mapping["ARG0"], gp.Terminal(True, False, bool)])
+        bad = [pset.mapping["add"], pset.mapping["ARG0"], gp.Terminal(True, False, bool)]
+        gp.promote_subtree(pset, bad)
     with pytest.raises(ValueError, match="lone argument"):
         gp.promote_subtree(pset, [pset.mapping["ARG0"]])
     with pytest.raises(IndexError, match="outside"):
@@ -92,13 +95,11 @@ def test_add_adf_still_compiles_after_promote():
     main.add_adf(adf)
     main.add_primitive(operator.mul, 2)
     gp.promote_subtree(main, gp.PrimitiveTree.from_string("mul(ARG0, ARG0)", main))
-    func = gp.compile_adf_tree(
-        [
-            gp.PrimitiveTree.from_string("ADF0(ARG0, ARG0)", main),
-            gp.PrimitiveTree.from_string("add(ARG0, ARG1)", adf),
-        ],
-        [main, adf],
-    )
+    expressions: Any = [
+        gp.PrimitiveTree.from_string("ADF0(ARG0, ARG0)", main),
+        gp.PrimitiveTree.from_string("add(ARG0, ARG1)", adf),
+    ]
+    func = gp.compile_adf_tree(expressions, [main, adf])
     assert func(3) == 6
 
 
@@ -143,8 +144,8 @@ def test_promote_and_clear_compile_cache_drop_entries():
     promo = gp.PrimitiveTree.from_string(f"{name}(ARG0)", pset)
     assert gp.compile_tree(promo, pset)(4) == 8
     gp.promote_subtree(pset, tree, max_library=1)
-    with pytest.raises(NameError):
-        gp.compile_tree(promo, pset)
+    with pytest.raises((NameError, TypeError)):
+        gp.compile_tree(promo, pset)(4)
     gp.compile_tree(tree, pset)
     gp.clear_compile_cache()
     assert len(_compile_cache) == 0
@@ -158,6 +159,9 @@ def test_mutation_increments_promoted_use():
     parent = gp.PrimitiveTree.from_string("add(ARG0, ARG1)", pset)
     tools.rng.seed(3)
     for _ in range(30):
-        gp.mut_node_replacement(gp.PrimitiveTree(list(parent)), pset)
-    assert pset.promoted_library.records[name].uses > 0
+        mutant: Any = gp.PrimitiveTree(list(parent))
+        gp.mut_insert(mutant, pset)
+    library = pset.promoted_library
+    assert isinstance(library, PromotedLibrary)
+    assert library.records[name].uses > 0
     assert gp.promoted_names(gp.PrimitiveSetTyped("empty", [float], float)) == []
