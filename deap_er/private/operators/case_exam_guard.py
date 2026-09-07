@@ -60,7 +60,8 @@ def guard_case_exams(
         solved: Optional solve predicate. See :func:`score_case_exams`.
         held_out: Caller-marked exam injected on collapse. A pool's
             ``held_out`` is used when this argument is omitted.
-        min_cases: Minimum catalog size after a repair.
+        min_cases: Minimum catalog size after a repair. Combined with
+            a pool's ``min_cases`` by taking the larger floor.
         mode: Difficulty used to detect collapse. ``hamming`` keeps a
             specialist subset that ``unsolved`` would treat as solved.
         informed: When ``True``, empty or still-collapsed exams may be
@@ -80,7 +81,9 @@ def guard_case_exams(
         raise ValueError("every individual must have a valid fitness of the same length")
     items, pool = bound_case_exams(exams, n_cases)
     extra = held_out if held_out is not None else (pool.held_out if pool else None)
-    floor = pool.min_cases if pool is not None else min_cases
+    floor = min_cases
+    if pool is not None:
+        floor = max(floor, pool.min_cases)
     last_good = pool.last_good if pool is not None else None
     for exam in items:
         _repair_case_exam(

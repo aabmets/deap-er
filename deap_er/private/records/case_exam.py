@@ -70,7 +70,7 @@ class CaseExam:
             self._ranges = None
             return
         self._mask = None
-        self._ranges = [tuple(pair) for pair in ranges or ()]
+        self._ranges = [tuple(pair) for pair in (ranges if ranges is not None else ())]
 
     @classmethod
     def from_cases(cls, cases: Sequence[int], n_cases: int) -> CaseExam:
