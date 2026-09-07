@@ -18,7 +18,9 @@ import numpy
 __all__ = ["apply_cma_hyperparams"]
 
 
-def apply_cma_hyperparams(strategy: Any, kwargs: dict[str, Any], *, rank_scale: float = 1.0) -> None:
+def apply_cma_hyperparams(
+    strategy: Any, kwargs: dict[str, Any], *, rank_scale: float = 1.0
+) -> None:
     """Set λ, μ, weights, and CMA learning rates on ``strategy``.
 
     Default ``rank_one`` and ``rank_mu`` are multiplied by ``rank_scale``
