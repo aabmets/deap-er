@@ -225,3 +225,83 @@ def test_informed_cases_matrix_matches_default(error_cases, make):
         tools.rng.seed(seed)
         packed = tools.sample_informed_cases(population, 2, matrix=matrix)
         assert default == packed
+
+
+def test_lexicase_unevaluated_fitness_random_draw(single_obj):
+    """Unevaluated individuals (zero cases) draw from the pool without error."""
+    ind = single_obj([0])
+    population = [ind]
+
+    tools.rng.seed(7)
+    chosen = tools.sel_lexicase(population, 3)
+
+    assert len(chosen) == 3
+    assert all(item is ind for item in chosen)
+
+
+def test_epsilon_lexicase_unevaluated_fitness_random_draw(single_obj):
+    ind = single_obj([0])
+    population = [ind]
+
+    tools.rng.seed(7)
+    chosen = tools.sel_epsilon_lexicase(population, 3)
+
+    assert len(chosen) == 3
+    assert all(item is ind for item in chosen)
+
+
+def test_lexicase_empty_pool_with_positive_sel_count_raises_index_error():
+    with pytest.raises(IndexError):
+        tools.sel_lexicase([], 1)
+
+
+def test_epsilon_lexicase_empty_pool_with_positive_sel_count_raises_index_error():
+    with pytest.raises(IndexError):
+        tools.sel_epsilon_lexicase([], 1)
+
+
+def test_lexicase_nan_fitness_falls_back_to_pool(multi_obj, make):
+    nan_ind = make(multi_obj, [0], (float("nan"), 0.0))
+    other = make(multi_obj, [1], (1.0, 0.0))
+    population = [nan_ind, other]
+
+    tools.rng.seed(0)
+    chosen = tools.sel_lexicase(population, 5)
+
+    assert len(chosen) == 5
+    assert all(ind in population for ind in chosen)
+
+
+def test_lexicase_trust_matrix_skips_value_check(multi_obj, make, monkeypatch):
+    population = [make(multi_obj, [0], (1.0, 2.0))]
+    matrix = numpy.array([[9.0, 8.0]])
+
+    calls: list[str] = []
+
+    def _spy_pack(*args, **kwargs):
+        calls.append("pack")
+        raise AssertionError("fitness_case_matrix should not run during trust validation")
+
+    monkeypatch.setattr(
+        "deap_er.private.operators.sel_lexicase_matrix.fitness_case_matrix",
+        _spy_pack,
+    )
+
+    tools.sel_lexicase(population, 1, matrix=matrix, trust_matrix=True)
+
+    assert calls == []
+
+
+def test_validate_case_matrix_does_not_repack(multi_obj, make, monkeypatch):
+    population = [make(multi_obj, [0], (1.0, 2.0))]
+    matrix = tools.fitness_case_matrix(population)
+
+    def _spy_pack(*args, **kwargs):
+        raise AssertionError("fitness_case_matrix should not run during validate")
+
+    monkeypatch.setattr(
+        "deap_er.private.operators.sel_lexicase_matrix.fitness_case_matrix",
+        _spy_pack,
+    )
+
+    tools.sel_lexicase(population, 1, matrix=matrix)
