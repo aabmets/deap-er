@@ -80,7 +80,9 @@ def guard_case_exams(
     if n_cases == 0:
         raise ValueError("every individual must have a valid fitness of the same length")
     items, pool = bound_case_exams(exams, n_cases)
-    extra = held_out if held_out is not None else (pool.held_out if pool else None)
+    extra = held_out
+    if extra is None and pool is not None:
+        extra = pool.held_out
     floor = min_cases
     if pool is not None:
         floor = max(floor, pool.min_cases)

@@ -144,12 +144,16 @@ def test_next_informed_true_on_healthy_exam_does_not_resample(ind_cls):
     assert cases == [0, 2]
 
 
-def test_next_empty_exams_or_elites_raises(ind_cls):
+def test_next_empty_exams_raises(ind_cls):
     elites = [_make(ind_cls, [0], (0.0, 1.0, 1.0, 1.0))]
     with pytest.raises(ValueError, match="non-empty"):
         tools.next_lexicase_cases([], elites, mut_prob=0.0)
+
+
+def test_score_empty_elites_raises(ind_cls):
+    exam = tools.CaseExam.from_cases([0], 4)
     with pytest.raises(ValueError, match="non-empty"):
-        tools.score_case_exams([tools.CaseExam.from_cases([0], 4)], [])
+        tools.score_case_exams([exam], [])
 
 
 def test_score_unknown_mode_raises(ind_cls):
