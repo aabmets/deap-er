@@ -124,3 +124,15 @@ def test_expression_key_falls_back_when_a_tree_is_not_hashable():
     pset = gp.PrimitiveSet("main", 1)
     slim = gp.SlimTree([pset.mapping["ARG0"]])
     assert expression_key(slim) == str(slim)
+
+
+def test_compile_tree_symbolic_and_repr_leaves_do_not_share_cache():
+    pset = gp.PrimitiveSet("main", 0)
+    pset.context["x"] = 7
+    named = gp.PrimitiveTree([gp.Terminal("x", True, object)])
+    literal = gp.PrimitiveTree([gp.Terminal("x", False, object)])
+
+    assert str(named) == "x"
+    assert str(literal) == "'x'"
+    assert gp.compile_tree(named, pset) == 7
+    assert gp.compile_tree(literal, pset) == "x"
