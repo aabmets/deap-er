@@ -21,6 +21,7 @@ from .private.operators.cx_point import (
     cx_two_point,
     cx_two_point_copy,
 )
+from .private.operators.cx_hetero import cx_heterogeneous
 from .private.operators.cx_real import (
     cx_blend,
     cx_blend_bounded,
@@ -81,6 +82,7 @@ __all__: list[str] = [
     "cx_simulated_binary",
     "cx_simulated_binary_bounded",
     "cx_uniform",
+    "cx_heterogeneous",
     "mig_ring",
     "mut_es_log_normal",
     "mut_flip_bit",

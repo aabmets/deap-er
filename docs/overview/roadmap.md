@@ -31,7 +31,7 @@ surface.
 | 12 | [MOEA/D and AGE-MOEA-II](#12-moead-and-age-moea-ii) | `operators` | shipped |
 | 13 | [IPOP / BIPOP CMA restarts](#13-ipop-bipop-cma-restarts) | `algorithms`, `strategies` | shipped |
 | 14 | [Linear-time duplicate count](#14-linear-time-duplicate-count) | `tools` | shipped |
-| 15 | [Heterogeneous crossover](#15-heterogeneous-crossover) | `operators` | planned |
+| 15 | [Heterogeneous crossover](#15-heterogeneous-crossover) | `operators` | shipped |
 | 16 | [Bounded Gaussian mutation](#16-bounded-gaussian-mutation) | `operators` | shipped |
 | 17 | [Differential evolution operators](#17-differential-evolution-operators) | `operators` | planned |
 | 18 | [Constraint-dominance selection](#18-constraint-dominance-selection) | `operators` | planned |
@@ -39,7 +39,7 @@ surface.
 | 20 | [CVT / unstructured MAP-Elites](#20-cvt-unstructured-map-elites) | `records` | planned |
 
 Shipping an item updates this page and the matching tutorial or
-reference stub. Items 15–20 are the remaining toolbox-shaped holes
+reference stub. Items 16–20 are the remaining toolbox-shaped holes
 after the first backlog shipped — not a second genome family.
 
 !!! note
@@ -455,10 +455,13 @@ bit + int range + choice + boxed real — does not need a one-off
 `mate()`. Each callable receives the pair of gene values and
 returns the two replacements. The individual is modified in place.
 
-**Today.** `mut_heterogeneous` applies one mutator per gene. The
+**Today.** `cx_heterogeneous` dispatches one crossover per gene
+(`callable(v1, v2) -> (v1', v2')`) or one existing `cx_*` per
+slice. Both parents are modified in place. The
 [mixed-encoding example](../examples/genetic_algorithms/mixed_encoding.md)
-still writes a custom `mate()` that swaps the discrete genes and
-blend-crosses the floats.
+registers uniform swap on the discrete prefix and
+`cx_blend_bounded` on the boxed tail. `mut_heterogeneous` is
+unchanged.
 
 **Benefit.** Mixed genomes already have a mutator. Crossover is the
 missing pair. Callers stop forking `mate()` every time the

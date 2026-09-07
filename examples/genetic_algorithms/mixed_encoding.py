@@ -1,3 +1,5 @@
+from functools import partial
+
 import numpy
 from deap_er import Fitness, Toolbox, creator, tools
 
@@ -42,18 +44,10 @@ def nudge_real(gene):
 
 
 MUTATORS = (flip_bit, nudge_qty, redraw_material, nudge_real, nudge_real)
-
-
-def mate(ind1, ind2):
-    for i in range(N_DISCRETE):
-        if tools.rng.random() < 0.5:
-            ind1[i], ind2[i] = ind2[i], ind1[i]
-    floats1 = list(ind1[N_DISCRETE:])
-    floats2 = list(ind2[N_DISCRETE:])
-    tools.cx_blend_bounded(floats1, floats2, alpha=0.5, low=LOW, up=UP)
-    ind1[N_DISCRETE:] = floats1
-    ind2[N_DISCRETE:] = floats2
-    return ind1, ind2
+CROSSOVERS = (
+    (slice(0, N_DISCRETE), partial(tools.cx_uniform, cx_prob=0.5)),
+    (slice(N_DISCRETE, None), partial(tools.cx_blend_bounded, alpha=0.5, low=LOW, up=UP)),
+)
 
 
 def evaluate(individual):
@@ -74,7 +68,7 @@ def setup():
         (attr_flag, attr_qty, attr_material, attr_real, attr_real),
     )
     toolbox.register("population", tools.init_repeat, list, toolbox.individual)
-    toolbox.register("mate", mate)
+    toolbox.register("mate", tools.cx_heterogeneous, crossovers=CROSSOVERS)
     toolbox.register("mutate", tools.mut_heterogeneous, mutators=MUTATORS, mut_prob=0.3)
     toolbox.register("select", tools.sel_tournament, contestants=3)
     toolbox.register("evaluate", evaluate)
