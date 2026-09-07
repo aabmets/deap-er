@@ -8,6 +8,7 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from pathlib import Path
 from typing import Any
 
 from . import (
@@ -32,6 +33,18 @@ _MISSING = (
 )
 
 _built: dict[str, Any] = {}
+
+
+def ensure_numba_cache_dir() -> None:
+    """Point Numba at a writable on-disk cache when none is configured."""
+    import os
+
+    if os.environ.get("NUMBA_CACHE_DIR"):
+        return
+    cache = Path.cwd() / ".cache" / "numba"
+    cache.mkdir(parents=True, exist_ok=True)
+    os.environ["NUMBA_CACHE_DIR"] = str(cache)
+
 
 JIT_GROUPS: tuple[tuple[Any, tuple[str, ...]], ...] = (
     (
@@ -165,6 +178,7 @@ def build() -> tuple[Any, Any]:
     """
     if "run" in _built:
         return _built["run"], _built["idle"]
+    ensure_numba_cache_dir()
     try:
         import numba  # optional extra, imported only when the backend is asked for
     except ImportError as err:

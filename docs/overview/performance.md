@@ -44,8 +44,8 @@ in Python loops:
   `moocore.pareto_rank`. SPEA-II density rows stay the original
   upper-triangle layout so the RNG stream is unchanged.
 - **`compile_tree` repeats** — the default `eval` backend is cached
-  by expression text and context identity. Both libraries compile
-  the same shared source strings. The first compile of 40 unique
+  by expression text and context identity with LRU eviction at 1024
+  entries. Both libraries compile the same shared source strings. The first compile of 40 unique
   trees is slightly ahead of DEAP; repeating the same ten trees is
   about 18× faster.
 - **`clone_individual`** — a shallow copy of a `list` / `array.array`

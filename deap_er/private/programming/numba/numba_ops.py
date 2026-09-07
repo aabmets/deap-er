@@ -8,18 +8,19 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
 from typing import Any
 
 import numpy
 
 from ..columnar import make_column_pset
+from ..matrix_pack import as_matrix
 from ..numpy.numpy_ops import add_numpy_primitives
 from ..opcodes import USER_BASE, lower_tree
 from ..primitives.primitive_tree import PrimitiveTree
 from ..tape import Tape
 from ..tape_batch import interpret_tapes
-from .numba_compile import build
+from .numba_compile import build, ensure_numba_cache_dir
 
 __all__: list[str] = [
     "USER_DISPATCH_SIGNATURE",
@@ -96,32 +97,6 @@ def reserve(depth: int, rows: int) -> tuple[numpy.ndarray, numpy.ndarray]:
     return stack[: depth + 1], _workspace["scratch"]
 
 
-def _as_matrix(columns: Sequence[Any], expected: int) -> numpy.ndarray:
-    """Pack the arguments of a compiled tree into one contiguous matrix.
-
-    Args:
-        columns: Either one two-dimensional matrix, or one array per
-            column.
-        expected: Number of columns the tape expects.
-
-    Returns:
-        A C-contiguous ``(n_rows, n_columns)`` ``float64`` matrix.
-
-    Raises:
-        ValueError: If the column count does not match the tape.
-    """
-    if len(columns) == 1 and numpy.ndim(columns[0]) == 2:
-        matrix = numpy.ascontiguousarray(columns[0], dtype=numpy.float64)
-    else:
-        if len(columns) != expected:
-            raise ValueError(f"The tape expects {expected} columns, got {len(columns)}.")
-        parts = [numpy.asarray(column, dtype=numpy.float64) for column in columns]
-        matrix = numpy.ascontiguousarray(numpy.stack(parts, axis=1))
-    if matrix.shape[1] != expected:
-        raise ValueError(f"The tape expects {expected} columns, got {matrix.shape[1]}.")
-    return matrix
-
-
 def bind_tape(tape: Tape, dispatch: Any = None) -> Callable[..., numpy.ndarray]:
     """Bind a tape to the compiled interpreter.
 
@@ -165,7 +140,7 @@ def bind_tape(tape: Tape, dispatch: Any = None) -> Callable[..., numpy.ndarray]:
         dispatch = idle
 
     def call(*columns: Any) -> numpy.ndarray:
-        matrix = _as_matrix(columns, tape.columns)
+        matrix = as_matrix(columns, tape.columns)
         stack, scratch = reserve(tape.depth, matrix.shape[0])
         run(
             tape.opcodes,
@@ -187,6 +162,10 @@ def warmup_numba(*, parallel: bool = False, dispatch: Any = None) -> None:
 
     Runs a trivial column-load tape so the interpreter and the serial
     batch kernel are specialized before the first real evaluation.
+    When ``NUMBA_CACHE_DIR`` is unset, a writable directory under
+    ``.cache/numba`` in the current working directory is used so
+    spawned workers can reload the interpreter from disk instead of
+    recompiling it.
 
     Args:
         parallel: If True, also specialize the ``prange`` batch kernel.
@@ -196,6 +175,7 @@ def warmup_numba(*, parallel: bool = False, dispatch: Any = None) -> None:
     Raises:
         ImportError: If the ``numba`` extra is not installed.
     """
+    ensure_numba_cache_dir()
     pset = make_column_pset(["first"])
     add_numpy_primitives(pset)
     tape = lower_tree(PrimitiveTree([pset.mapping["first"]]), pset)
