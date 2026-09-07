@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from math import isclose
 from numbers import Integral
 from typing import TYPE_CHECKING
 
@@ -26,7 +27,7 @@ type CaseSolved = Callable[[Individual, int], bool]
 
 
 def _default_solved(individual: Individual, case: int) -> bool:
-    return bool(individual.fitness.values[case] == 0.0)
+    return isclose(individual.fitness.values[case], 0.0, abs_tol=1e-12)
 
 
 def _solve_matrix(individuals: list[Individual], n_cases: int, solved: CaseSolved) -> numpy.ndarray:
@@ -79,9 +80,9 @@ def sample_informed_cases(
     farthest from the nearest already-chosen case. Ties, including a
     tail of zero distances, are broken at random.
 
-    A case is solved when ``fitness.values[case] == 0.0``, matching
-    an error of zero. Maximize-only scores and continuous residuals
-    that never hit zero need ``solved``.
+    A case is solved when ``fitness.values[case]`` is within ``1e-12``
+    of zero. Maximize-only scores and larger residuals need
+    ``solved``.
 
     Args:
         individuals: Population whose fitness vectors supply solve bits.
