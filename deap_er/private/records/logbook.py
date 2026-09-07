@@ -87,7 +87,8 @@ class Logbook(list[dict[str, Any]]):
         """Remove and return the entry at ``index``.
 
         The stream cursor is moved back when the removed entry has
-        already been streamed.
+        already been streamed. The chapter row that shares ``gen``
+        is removed from every chapter.
 
         Args:
             index: Position of the entry to remove.
@@ -98,6 +99,14 @@ class Logbook(list[dict[str, Any]]):
         idx = int(index)
         if idx < 0:
             idx += len(self)
+        if 0 <= idx < len(self):
+            generation = self[idx].get("gen")
+            for chapter in self.chapters.values():
+                if not chapter:
+                    continue
+                match = self.chapter_index_for_generation(chapter, generation, idx)
+                if match is not None:
+                    chapter.pop(match)
         if idx < self.buff_index:
             self.buff_index -= 1
         return super().pop(idx)
@@ -109,7 +118,7 @@ class Logbook(list[dict[str, Any]]):
             key: Slice of entries to remove.
         """
         for i in sorted(range(*key.indices(len(self))), reverse=True):
-            self._delete_index(i)
+            self.pop(i)
 
     def chapter_index_for_generation(
         self, chapter: "Logbook", generation: Any, parent_index: int
@@ -135,32 +144,13 @@ class Logbook(list[dict[str, Any]]):
             return None
         return matches[-remaining]
 
-    def _delete_index(self, key: SupportsIndex) -> None:
-        """Delete one entry and the matching generation from every chapter.
-
-        Args:
-            key: Position of the entry to remove.
-        """
-        idx = int(key)
-        if idx < 0:
-            idx += len(self)
-        record = self[idx] if 0 <= idx < len(self) else {}
-        generation = record.get("gen")
-        for chapter in self.chapters.values():
-            if not chapter:
-                continue
-            match = self.chapter_index_for_generation(chapter, generation, idx)
-            if match is not None:
-                chapter.pop(match)
-        self.pop(key)
-
     @override
     def __delitem__(self, key: SupportsIndex | slice, /) -> None:
         """Delete an entry and the same index from every chapter."""
         if isinstance(key, slice):
             self._delete_slice(key)
         else:
-            self._delete_index(key)
+            self.pop(key)
 
     def __txt__(self, start_index: int) -> list[str]:
         """Format rows from ``start_index`` as aligned column strings.
