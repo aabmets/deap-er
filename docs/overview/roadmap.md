@@ -46,10 +46,10 @@ surface.
 
 Shipping an item updates this page and the matching tutorial or
 reference stub. Items 15–20 are the toolbox-shaped holes after
-the first backlog; they are shipped. Items 21–26 compose pieces
+the first backlog; they are shipped. Items 21–25 compose pieces
 that already shipped (tapes, SlimGP, lexicase, archives, CMA)
-into a longer program-search loop. Still not a second genome
-family.
+into a longer program-search loop. Item 26 is shipped. Still not
+a second genome family.
 
 !!! note
     deap-er stays a pure-Python package. Native work remains an
