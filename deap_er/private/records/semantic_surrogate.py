@@ -184,7 +184,10 @@ class SemanticSurrogate:
         row = numpy.asarray(query, dtype=numpy.float64)
         if row.ndim != 1 or row.shape[0] != packed.shape[1]:
             raise ValueError(f"query must have shape ({packed.shape[1]},), got {row.shape}")
-        keep = numpy.ones(packed.shape[1], dtype=bool) if mask is None else numpy.asarray(mask, dtype=bool)
+        if mask is None:
+            keep = numpy.ones(packed.shape[1], dtype=bool)
+        else:
+            keep = numpy.asarray(mask, dtype=bool)
         if keep.ndim != 1 or keep.shape[0] != packed.shape[1]:
             raise ValueError("valid must be a one-dimensional mask matching the series length")
         keep = keep & numpy.isfinite(row)

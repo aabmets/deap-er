@@ -9,6 +9,7 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import math
+from typing import Any, cast
 
 import numpy
 import pytest
@@ -38,7 +39,12 @@ def _row_moments(row: numpy.ndarray, valid: numpy.ndarray | None = None) -> list
     if not numpy.any(mask):
         return [math.nan, math.nan, math.nan, math.nan]
     values = row[mask]
-    return [float(values.mean()), float(values.std(ddof=0)), float(values.min()), float(values.max())]
+    return [
+        float(values.mean()),
+        float(values.std(ddof=0)),
+        float(values.min()),
+        float(values.max()),
+    ]
 
 
 def test_semantic_moments_match_row_oracle():
@@ -117,7 +123,7 @@ def test_semantic_valid_mask_rejects_two_dimensional_valid():
 def test_semantic_descriptors_rejects_unknown_or_incomplete_kind():
     matrix = numpy.zeros((1, 2))
     with pytest.raises(ValueError, match="unknown descriptor kind"):
-        tools.semantic_descriptors(matrix, kind="latent")
+        tools.semantic_descriptors(matrix, kind=cast(Any, "latent"))
     with pytest.raises(ValueError, match="target and ranges"):
         tools.semantic_descriptors(matrix, kind="solve")
     with pytest.raises(ValueError, match="requires basis"):
