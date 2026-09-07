@@ -125,7 +125,7 @@ def test_empty_generate_keeps_last_evaluated_population():
     try:
         restart = tools.RestartStrategy(strategy, mode="ipop", budget=200, sigma_large=1.0)
         calls = {"n": 0}
-        last_batch: list = []
+        last_batch = []
 
         def generate():
             calls["n"] += 1
@@ -143,9 +143,8 @@ def test_empty_generate_keeps_last_evaluated_population():
 
         assert calls["n"] == 3
         assert logbook.select("gen") == [1, 2]
-        assert population is not last_batch
-        assert population == last_batch
-        assert len(population) > 0
+        assert len(population) == len(last_batch) > 0
+        assert {id(ind) for ind in population} == {id(ind) for ind in last_batch}
         assert all(ind.fitness.is_valid() for ind in population)
     finally:
         _teardown()
