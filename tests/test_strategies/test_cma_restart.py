@@ -74,6 +74,27 @@ def test_run_tracker_stagnation():
         _teardown()
 
 
+def test_run_tracker_equal_bests_do_not_stop_at_generation_two():
+    creator.create_type(FIT, Fitness, weights=(-1.0,))
+    creator.create_type(IND, list, fitness=creator.__dict__[FIT])
+    try:
+        tracker = RunTracker(5, 10, 2.0)
+        tracker.begin_run(10, 2.0, max_iter=10_000)
+        for _ in range(2):
+            ind = creator.__dict__[IND]([1.0] * 5)
+            ind.fitness.values = (1.0,)
+            tracker.observe([ind])
+        assert not tracker.terminate
+        need = 10 + int(30 * 5 / 10)
+        for _ in range(need - 2):
+            ind = creator.__dict__[IND]([1.0] * 5)
+            ind.fitness.values = (1.0,)
+            tracker.observe([ind])
+        assert tracker.terminate
+    finally:
+        _teardown()
+
+
 def test_ipop_doubles_lambda_on_restart():
     strategy, toolbox = _setup_min(offsprings=8)
     try:
