@@ -82,8 +82,10 @@ def test_polynomial_bounded_out_of_box_stays_finite():
 
 def test_mut_uniform_int_accepts_numpy_integer_bounds():
     individual: Any = [0, 0, 0]
+    low: Any = numpy.int64(0)
+    up: Any = numpy.int64(3)
     tools.rng.seed(1)
-    (mutant,) = tools.mut_uniform_int(individual, numpy.int64(0), numpy.int64(3), 1.0)
+    (mutant,) = tools.mut_uniform_int(individual, low, up, 1.0)
     assert all(0 <= gene <= 3 for gene in mutant)
 
 
