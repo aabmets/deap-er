@@ -15,7 +15,7 @@ from typing import Any
 from deap_er.private.toolbox import Toolbox
 from deap_er.private.typedefs import EvoAlgoResult, EvoRecords, EvoStats, Individual
 
-from .loop import new_logbook, record_generation
+from .loop import evaluate_invalid, new_logbook, record_generation
 
 __all__ = ["ea_generate_update"]
 
@@ -54,10 +54,7 @@ def ea_generate_update(
     for gen in range(1, generations + 1):
         t0 = time.perf_counter()
         population = toolbox.generate()
-
-        fitness = toolbox.map(toolbox.evaluate, population)
-        for ind, fit in zip(population, fitness, strict=False):
-            ind.fitness.values = fit
+        nevals = evaluate_invalid(toolbox, population)
 
         toolbox.update(population)
         duration = time.perf_counter() - t0 if log_time else None
@@ -65,7 +62,7 @@ def ea_generate_update(
         record_generation(
             logbook,
             gen,
-            len(population),
+            nevals,
             population=population,
             offspring=population,
             hof=hof,

@@ -28,6 +28,32 @@ def _teardown():
     del creator.__dict__[IND]
 
 
+def test_generate_update_restarts_uses_evaluate_batch_when_registered():
+    tools.rng.seed(0)
+    strategy, toolbox = _setup(dim=3)
+    try:
+        batches = []
+
+        def evaluate_batch(individuals):
+            batches.append(len(individuals))
+            return [tools.bm_sphere(ind) for ind in individuals]
+
+        def forbidden_map(*_args, **_kwargs):
+            raise AssertionError("map must not be used while evaluate_batch is registered")
+
+        restart = tools.RestartStrategy(strategy, mode="ipop", budget=12, sigma_large=1.0)
+        toolbox.register("evaluate_batch", evaluate_batch)
+        toolbox.register("map", forbidden_map)
+        toolbox.register("generate", restart.generate, creator.__dict__[IND])
+        toolbox.register("update", restart.update)
+        _, logbook = tools.ea_generate_update_restarts(toolbox, restart, log_restarts=False)
+
+        assert batches
+        assert sum(batches) == sum(logbook.select("nevals"))
+    finally:
+        _teardown()
+
+
 def test_sphere_convergence():
     tools.rng.seed(0)
     strategy, toolbox = _setup()
