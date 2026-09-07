@@ -72,6 +72,33 @@ def test_double_tournament_favours_smaller_individuals(single_obj, make):
     assert sum(len(ind) == 20 for ind in chosen) < sum(len(ind) == 1 for ind in chosen)
 
 
+def test_sel_tournament_single_and_large_contestants(single_obj, make):
+    population = [make(single_obj, [i], (float(i),)) for i in range(8)]
+    tools.rng.seed(8)
+    singles = tools.sel_tournament(population, rounds=5, contestants=1)
+    tools.rng.seed(9)
+    large = tools.sel_tournament(population, rounds=4, contestants=5)
+
+    assert len(singles) == 5
+    assert all(ind in population for ind in singles)
+    assert len(large) == 4
+    assert all(ind in population for ind in large)
+
+
+def test_sel_tournament_rejects_non_positive_contestants(single_obj, make):
+    population = [make(single_obj, [0], (1.0,))]
+    with pytest.raises(ValueError, match="at least 1"):
+        tools.sel_tournament(population, rounds=1, contestants=0)
+
+
+def test_double_tournament_rejects_parsimony_outside_range(single_obj, make):
+    population = [make(single_obj, [0], (1.0,))]
+    with pytest.raises(ValueError, match="Parsimony"):
+        tools.sel_double_tournament(
+            population, rounds=1, fitness_size=2, parsimony_size=0.5, fitness_first=True
+        )
+
+
 def test_tournament_dcd_returns_exact_count_and_rejects_oversize(multi_obj, make):
     population = [make(multi_obj, [i], (float(i), float(10 - i))) for i in range(10)]
     tools.assign_crowding_dist(population)
