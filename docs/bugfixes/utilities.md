@@ -150,3 +150,20 @@ the raw-vector path used by existing tests.
 
 **Validator.**
 `tests/test_various/test_metrics.py::test_inv_gen_dist_uses_fitness_when_sets_are_individuals`
+
+---
+
+## `SortingNetwork.draw` crashed on an empty network
+
+A network with no comparators has `depth == 0`. `draw()` built each
+wire as `["-"] * 7 * depth`, which is an empty list, then wrote the
+wire index and `" o"` into cells 0 and 1. `SortingNetwork(4)` is a
+valid object; `draw()` raised `IndexError` instead of showing the
+wires.
+
+**Fix.** Size the ASCII grid with `max(depth, 1)` so an empty network
+still has room for the labels. Comparator columns stay at
+`(index + 1) * 6` when depth is positive.
+
+**Validator.**
+`tests/test_various/test_sorting_network.py::test_sorting_network_draw_empty_network_labels_wires`

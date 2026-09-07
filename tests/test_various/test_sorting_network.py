@@ -48,3 +48,12 @@ def test_sorting_network_evaluate_provided_cases_against_sorted_original():
     assert network.evaluate() == 0
     assert network.evaluate([[2, 0, 0, 0]]) == 0
     assert network.evaluate([[3, 1, 4, 2]]) == 0
+
+
+def test_sorting_network_draw_empty_network_labels_wires():
+    network = tools.SortingNetwork(4)
+    assert network.depth == 0
+    diagram = network.draw()
+    assert "0" in diagram
+    assert "3" in diagram
+    assert "o" in diagram
