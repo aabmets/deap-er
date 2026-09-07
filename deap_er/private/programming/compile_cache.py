@@ -23,8 +23,10 @@ def expression_key(expr: Any) -> str | tuple[Any, ...]:
     """Return the cache fragment that identifies ``expr``.
 
     Source text is stored as-is. A tree is stored as
-    ``(name, value, arity, call_zero)`` per node so a cache hit does
-    not have to render Python. An unhashable leaf or a non-iterable
+    ``(name, value, arity, call_zero, formatted)`` per node so a cache
+    hit does not have to render the full expression. ``formatted`` is
+    the leaf ``format()`` text, which keeps symbolic and ``repr``
+    terminals distinct. An unhashable leaf or a non-iterable
     expression falls back to ``str(expr)``.
 
     Args:
@@ -37,19 +39,25 @@ def expression_key(expr: Any) -> str | tuple[Any, ...]:
     if isinstance(expr, str):
         return expr
     try:
-        key = tuple(
-            (
-                getattr(node, "name", None),
-                getattr(node, "value", None),
-                getattr(node, "arity", 0),
-                getattr(node, "call_zero", False),
-            )
-            for node in expr
-        )
+        key = tuple(_node_key(node) for node in expr)
         hash(key)
         return key
     except TypeError:
         return str(expr)
+
+
+def _node_key(node: Any) -> tuple[Any, ...]:
+    """Return the cache fragment for one prefix-order node."""
+    name = getattr(node, "name", None)
+    value = getattr(node, "value", None)
+    arity = getattr(node, "arity", 0)
+    call_zero = getattr(node, "call_zero", False)
+    formatted = name
+    if arity == 0:
+        formatter = getattr(node, "format", None)
+        if callable(formatter):
+            formatted = formatter()
+    return (name, value, arity, call_zero, formatted)
 
 
 def compile_cache_key(
