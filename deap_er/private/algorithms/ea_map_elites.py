@@ -23,6 +23,25 @@ from .variation import var_or
 __all__: list[str] = ["ea_map_elites"]
 
 
+def _parent_pool(
+    archive: GridArchive,
+    initial: list[Individual],
+    batch_size: int,
+    cx_prob: float,
+) -> list[Individual]:
+    """Build a parent list large enough for ``var_or`` crossover."""
+    min_parents = 2 if cx_prob > 0 else 1
+    pool_size = max(batch_size, min_parents)
+    if len(archive):
+        return archive.random_elites(pool_size, replace=True)
+    if not initial:
+        raise ValueError(
+            "ea_map_elites requires a non-empty archive or initial population "
+            "before variation generations"
+        )
+    return [initial[index % len(initial)] for index in range(pool_size)]
+
+
 def _record_map_elites_generation(
     logbook,
     gen: int,
@@ -71,7 +90,7 @@ def ea_map_elites(
     ``var_or``, evaluate the offspring, and try to improve cells.
 
     Requires ``clone``, ``mate``, ``mutate``, and ``evaluate`` on
-    ``toolbox``.
+    ``toolbox``. ``archive`` stores single-objective fitness only.
 
     Args:
         toolbox: Toolbox with the evolution operators.
@@ -82,7 +101,9 @@ def ea_map_elites(
             one.
         generations: Number of variation generations after the initial
             seeding generation.
-        batch_size: Offspring produced each variation generation.
+        batch_size: Offspring produced each variation generation. When
+            ``cx_prob`` is positive, the parent pool is at least two
+            individuals so crossover can run.
         cx_prob: Probability of crossover in ``var_or``.
         mut_prob: Probability of mutation in ``var_or``.
         stats: Optional Statistics or MultiStatistics compiled from the
@@ -93,6 +114,10 @@ def ea_map_elites(
 
     Returns:
         The archive and the logbook.
+
+    Raises:
+        ValueError: If a variation generation runs while the archive and
+            ``initial`` are both empty.
     """
     logbook = new_logbook(stats, log_time=log_time)
     logbook.header = (
@@ -120,7 +145,7 @@ def ea_map_elites(
 
     for gen in range(1, generations + 1):
         t0 = time.perf_counter()
-        parents = archive.random_elites(batch_size, replace=True) if len(archive) else initial
+        parents = _parent_pool(archive, initial, batch_size, cx_prob)
         offspring = var_or(toolbox, parents, batch_size, cx_prob, mut_prob)
         nevals = evaluate_invalid(toolbox, offspring)
         for individual in offspring:

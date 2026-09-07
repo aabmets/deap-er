@@ -156,3 +156,37 @@ def test_ea_map_elites_with_empty_initial_leaves_archive_empty(toolbox):
 
     assert len(archive) == 0
     assert logbook.select("gen") == [0]
+
+
+def test_ea_map_elites_empty_initial_with_generations_raises(toolbox):
+    archive = tools.GridArchive(ranges=[(0.0, 10.0)], bins=4)
+
+    with pytest.raises(ValueError, match="non-empty"):
+        tools.ea_map_elites(
+            toolbox,
+            archive,
+            _behavior,
+            [],
+            generations=1,
+            batch_size=5,
+            cx_prob=0.0,
+            mut_prob=0.0,
+        )
+
+
+def test_ea_map_elites_batch_size_one_with_crossover_does_not_crash(toolbox):
+    archive = tools.GridArchive(ranges=[(6.0, 9.0)], bins=4)
+    initial = _population(count=5)
+
+    tools.ea_map_elites(
+        toolbox,
+        archive,
+        _behavior,
+        initial,
+        generations=5,
+        batch_size=1,
+        cx_prob=0.5,
+        mut_prob=0.2,
+    )
+
+    assert len(archive) >= 1

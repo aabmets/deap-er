@@ -38,6 +38,7 @@ class ArchiveStats:
         num_cells: Total number of cells in the tessellation.
         coverage: Fraction of cells that contain an elite.
         qd_score: Sum of the first weighted objective over elites.
+            Requires single-objective fitness on every stored elite.
     """
 
     num_elites: int
@@ -52,6 +53,11 @@ class GridArchive:
     The caller supplies a continuous behavior descriptor for each
     individual. The archive bins descriptors into a uniform grid and
     keeps the best individual per cell according to ``fitness``.
+
+    ``fitness`` must be **single-objective** (one weight). Multi-objective
+    fitness types are rejected by :meth:`add`. ``stats.qd_score`` sums
+    the first weighted objective (:attr:`~deap_er.base.Fitness.wvalues`
+    element zero) across filled cells.
 
     Args:
         ranges: ``(low, high)`` bounds per behavior dimension.
@@ -85,7 +91,12 @@ class GridArchive:
 
     @property
     def stats(self) -> ArchiveStats:
-        """Coverage and quality-diversity score of the archive."""
+        """Coverage and quality-diversity score of the archive.
+
+        ``qd_score`` is the sum of ``fitness.wvalues[0]`` over elites.
+        It is a MAP-Elites-style scalar quality total, not a sum across
+        multiple objectives.
+        """
         qd_score = 0.0
         for individual in self._cells.values():
             if individual.fitness.is_valid():
@@ -143,7 +154,7 @@ class GridArchive:
 
         Raises:
             ValueError: If ``descriptor`` length does not match
-                ``dimensions``.
+                ``dimensions``, or ``fitness`` is not single-objective.
         """
         if len(descriptor) != self.dimensions:
             raise ValueError(
@@ -153,6 +164,8 @@ class GridArchive:
             return False
         if not hasattr(individual, "fitness") or not individual.fitness.is_valid():
             return False
+        if len(individual.fitness.weights) != 1:
+            raise ValueError("GridArchive requires single-objective fitness")
         cell = self.descriptor_to_index(descriptor)
         incumbent = self._cells.get(cell)
         if incumbent is not None and individual.fitness <= incumbent.fitness:
@@ -218,8 +231,8 @@ class GridArchive:
         if not replace and n > len(elites):
             raise ValueError("n exceeds the number of elites when replace is False")
         if replace:
-            return [rng.choice(elites) for _ in range(n)]
-        return rng.sample(elites, n)
+            return [deepcopy(rng.choice(elites)) for _ in range(n)]
+        return [deepcopy(individual) for individual in rng.sample(elites, n)]
 
     def clear(self) -> None:
         """Remove every stored elite."""

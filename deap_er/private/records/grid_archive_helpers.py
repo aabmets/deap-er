@@ -11,7 +11,9 @@
 from __future__ import annotations
 
 import math
+import numbers
 from collections.abc import Sequence
+from typing import cast
 
 __all__: list[str] = [
     "MAX_GRID_CELLS",
@@ -46,12 +48,16 @@ def parse_grid_config(
     for low, high in ranges_tuple:
         if low >= high:
             raise ValueError("each range must satisfy low < high")
-    if isinstance(bins, int):
-        if bins < 1:
+    if isinstance(bins, numbers.Integral) and not isinstance(bins, bool):
+        bins_value = int(bins)
+        if bins_value < 1:
             raise ValueError("bins must be at least 1")
-        bins_tuple = tuple(bins for _ in ranges_tuple)
+        bins_tuple = tuple(bins_value for _ in ranges_tuple)
     else:
-        bins_tuple = tuple(int(value) for value in bins)
+        if not isinstance(bins, Sequence) or isinstance(bins, (str, bytes)):
+            raise ValueError("bins must be an integer or a sequence of integers")
+        bins_seq = cast(Sequence[int], bins)
+        bins_tuple = tuple(int(value) for value in bins_seq)
         if len(bins_tuple) != len(ranges_tuple):
             raise ValueError("bins must match the number of ranges")
         if any(value < 1 for value in bins_tuple):

@@ -222,3 +222,36 @@ def test_contains_operator(ind_cls):
     assert index not in archive
     archive.add(_individual(ind_cls, [0], 1.0), (0.1,))
     assert index in archive
+
+
+def test_random_elites_returns_copies_not_live_references(ind_cls):
+    archive = tools.GridArchive(ranges=[(0.0, 1.0)], bins=4)
+    archive.add(_individual(ind_cls, [0], 1.0), (0.1,))
+
+    sampled = archive.random_elites(1)[0]
+    sampled[0] = 99
+
+    elite = archive.elite_at((0.1,))
+    assert elite is not None
+    assert elite[0] == 0
+
+
+def test_add_rejects_multi_objective_fitness():
+    creator.create_type("MO_FIT", Fitness, weights=(1.0, 1.0))
+    creator.create_type("MO_IND", list, fitness=creator.__dict__["MO_FIT"])
+    try:
+        archive = tools.GridArchive(ranges=[(0.0, 1.0)], bins=4)
+        individual = creator.__dict__["MO_IND"]([0])
+        individual.fitness.values = (1.0, 2.0)
+        with pytest.raises(ValueError, match="single-objective"):
+            archive.add(individual, (0.1,))
+    finally:
+        del creator.__dict__["MO_FIT"]
+        del creator.__dict__["MO_IND"]
+
+
+def test_numpy_scalar_bins_are_accepted():
+    numpy = pytest.importorskip("numpy")
+
+    archive = tools.GridArchive(ranges=[(0.0, 1.0)], bins=numpy.int64(5))
+    assert archive.bins == (5,)
