@@ -397,6 +397,37 @@ time.
     The dispatch signature only carries `float64` columns, constants,
     and scratch space.
 
+### Growing the language
+
+`promote_subtree` lifts a complete typed subtree into the same
+primitive set as a generated name (`promo0`, …). The caller fires
+it — from a fitness threshold, an archive cell, or a frequency
+count. Do not auto-promote every generation: the language bloats
+and the compile cache is dropped on each mutation.
+
+Formals are the column arguments that appear in the subtree.
+Constants and window lengths stay baked into the body. Later
+`generate` and mutation can sample the new name like any other
+primitive. `max_library` caps how many promoted names are kept;
+the least-used promoted name is evicted, never a built-in kit
+primitive. Evicted names are not reused.
+
+On a columnar set the name is bound at or above `USER_BASE`.
+`lower_tree` expands the body, so `interpret_tapes` stays on
+builtin opcodes and does not need a consumer dispatcher. Persist
+`gp.numba_opcodes()` with the run, the same as a hand-bound
+kernel. `add_adf` remains the static “register this other pset”
+path.
+
+```python
+name = gp.promote_subtree(pset, tree)
+func = gp.compile_tree(
+    gp.PrimitiveTree.from_string(f"{name}(level, flow)", pset),
+    pset,
+    backend="opcode",
+)
+```
+
 ## Limitations
 
 - `PrimitiveTree.from_string` cannot round-trip an ephemeral of a custom
