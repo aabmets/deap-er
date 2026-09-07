@@ -114,3 +114,38 @@ def test_target_f_stops_early():
         assert restart.evals_used < 1_000_000
     finally:
         _teardown()
+
+
+def test_empty_generate_keeps_last_evaluated_population():
+    # generate() returning [] is the documented stop signal (budget
+    # exhausted, or a caller that has no more samples). The last
+    # evaluated batch must still be returned — not overwritten by [].
+    tools.rng.seed(0)
+    strategy, toolbox = _setup(dim=3)
+    try:
+        restart = tools.RestartStrategy(strategy, mode="ipop", budget=200, sigma_large=1.0)
+        calls = {"n": 0}
+        last_batch: list = []
+
+        def generate():
+            calls["n"] += 1
+            if calls["n"] > 2:
+                return []
+            batch = restart.generate(creator.__dict__[IND])
+            last_batch[:] = batch
+            return batch
+
+        toolbox.register("generate", generate)
+        toolbox.register("update", restart.update)
+        population, logbook = tools.ea_generate_update_restarts(
+            toolbox, restart, log_restarts=False
+        )
+
+        assert calls["n"] == 3
+        assert logbook.select("gen") == [1, 2]
+        assert population is not last_batch
+        assert population == last_batch
+        assert len(population) > 0
+        assert all(ind.fitness.is_valid() for ind in population)
+    finally:
+        _teardown()
