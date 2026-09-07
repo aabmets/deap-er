@@ -123,6 +123,30 @@ def test_mig_ring_overlapping_destinations_completes(ind_cls):
     assert [len(deme) for deme in demes] == [3, 3, 3]
 
 
+def test_mig_ring_unequal_deme_sizes_completes(ind_cls):
+    small = _demes(ind_cls, nbr_demes=1, size=2)[0]
+    large = []
+    for value in (10, 11, 12, 13, 14):
+        member = ind_cls([value])
+        member.fitness.values = (float(value),)
+        large.append(member)
+    demes = [small, large]
+
+    tools.mig_ring(demes, 3, tools.sel_best)
+
+    assert [len(deme) for deme in demes] == [2, 5]
+    assert {member[0] for member in demes[0]} & {12, 13, 14}
+
+
+def test_mig_ring_sel_random_oversize_count_completes(ind_cls):
+    tools.rng.seed(1)
+    demes = _demes(ind_cls, nbr_demes=2, size=2)
+
+    tools.mig_ring(demes, 5, tools.sel_random)
+
+    assert [len(deme) for deme in demes] == [2, 2]
+
+
 def test_mig_ring_replacement_does_not_alias_across_demes(ind_cls):
     demes = _demes(ind_cls, nbr_demes=2, size=3)
 
