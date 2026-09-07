@@ -98,6 +98,8 @@ def geodesic_distance_matrix(front: ndarray, curvature: float) -> ndarray:
         Symmetric distance matrix with shape ``(n, n)``.
     """
     n = front.shape[0]
+    if n == 0:
+        return numpy.zeros((0, 0), dtype=float)
     projected = numpy.array([project_on_manifold(row, curvature) for row in front])
 
     if 0.95 < curvature < 1.05:
