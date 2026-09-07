@@ -14,6 +14,7 @@ from typing import Any
 import numpy
 import pytest
 from deap_er import Fitness, creator, tools
+from deap_er.private.records.cvt_archive import KDTREE_MIN_CENTROIDS
 
 CV_FIT = "CV_FIT"
 CV_IND = "CV_IND"
@@ -215,6 +216,20 @@ def test_random_elites_returns_copies_not_live_references(ind_cls):
     elite = archive.elite_at((0.1, 0.1))
     assert elite is not None
     assert elite[0] == 0
+
+
+def test_brute_equidistant_nearest_uses_lowest_index():
+    archive = tools.CvtArchive([[0.0, 0.0], [2.0, 0.0]])
+    assert archive.nearest_centroid((1.0, 0.0)) == 0
+
+
+def test_large_k_add_assigns_nearest_centroid(ind_cls):
+    xs = numpy.arange(KDTREE_MIN_CENTROIDS, dtype=numpy.float64)
+    archive = tools.CvtArchive(numpy.column_stack((xs, numpy.zeros(KDTREE_MIN_CENTROIDS))))
+    assert archive.add(_individual(ind_cls, [7], 1.0), (10.2, 0.0)) is True
+    assert archive.nearest_centroid((10.2, 0.0)) == 10
+    elite = archive.elite_at((10.2, 0.0))
+    assert elite is not None and elite[0] == 7
 
 
 def test_constructor_copies_caller_centroid_array(ind_cls):
