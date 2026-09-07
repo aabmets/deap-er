@@ -118,6 +118,21 @@ def test_cvt_centroids_rejects_k_greater_than_samples():
         tools.cvt_centroids([[0.0, 0.0]], 2)
 
 
+def test_cvt_centroids_rejects_k_less_than_one():
+    with pytest.raises(ValueError, match="at least 1"):
+        tools.cvt_centroids([[0.0, 0.0]], 0)
+
+
+def test_cvt_centroids_rejects_n_iter_less_than_one():
+    with pytest.raises(ValueError, match="n_iter"):
+        tools.cvt_centroids([[0.0, 0.0]], 1, n_iter=0)
+
+
+def test_cvt_centroids_rejects_one_dimensional_samples():
+    with pytest.raises(ValueError, match="2-D"):
+        tools.cvt_centroids(numpy.asarray([0.0, 1.0, 2.0]), 1)
+
+
 def test_cvt_centroids_rejects_non_finite_samples():
     with pytest.raises(ValueError, match="finite"):
         tools.cvt_centroids([[0.0, math.nan]], 1)
@@ -182,6 +197,14 @@ def test_random_elites_on_empty_archive_raises():
         archive.random_elites(1)
 
 
+def test_random_elites_without_replacement_requires_enough_elites(ind_cls):
+    archive = tools.CvtArchive(_two_centroids())
+    archive.add(_individual(ind_cls, [0], 1.0), (0.0, 0.0))
+
+    with pytest.raises(ValueError):
+        archive.random_elites(2, replace=False)
+
+
 def test_random_elites_returns_copies_not_live_references(ind_cls):
     archive = tools.CvtArchive(_two_centroids())
     archive.add(_individual(ind_cls, [0], 1.0), (0.1, 0.1))
@@ -191,6 +214,18 @@ def test_random_elites_returns_copies_not_live_references(ind_cls):
     elite = archive.elite_at((0.1, 0.1))
     assert elite is not None
     assert elite[0] == 0
+
+
+def test_constructor_copies_caller_centroid_array(ind_cls):
+    centroids = numpy.array([[0.0, 0.0], [1.0, 1.0]], dtype=numpy.float64)
+    archive = tools.CvtArchive(centroids)
+    archive.add(_individual(ind_cls, [0], 1.0), (0.1, 0.0))
+
+    centroids[0, 0] = 99.0
+
+    assert archive.centroids[0, 0] == 0.0
+    assert archive.nearest_centroid((0.1, 0.0)) == 0
+    assert 0 in archive
 
 
 def test_clear_and_iteration(ind_cls):

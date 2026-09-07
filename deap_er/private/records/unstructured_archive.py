@@ -99,7 +99,7 @@ class UnstructuredArchive:
         num_cells = self._max_elites if self._max_elites is not None else len(self._elites)
         return make_archive_stats(self._elites, num_cells)
 
-    def add(self, individual: Any, descriptor: Sequence[float]) -> bool:
+    def add(self, individual: Any, descriptor: Sequence[float] | numpy.ndarray) -> bool:
         """Insert ``individual`` when it opens a niche or beats a neighbor.
 
         Args:
@@ -115,7 +115,7 @@ class UnstructuredArchive:
         """
         if not check_archive_add(individual, descriptor, self.dimensions, "UnstructuredArchive"):
             return False
-        query = numpy.asarray(descriptor, dtype=numpy.float64)
+        query = numpy.array(descriptor, dtype=numpy.float64, copy=True)
         if not self._elites:
             self._elites.append(deepcopy(individual))
             self._descriptors = query.reshape(1, -1)
