@@ -107,8 +107,8 @@ def test_step_islands_without_migrate_leaves_membership(ind_cls):
 
     tools.step_islands([(keep, first), (keep, second)])
 
-    assert [ind[0] for ind in first] == [1, 2]
-    assert [ind[0] for ind in second] == [3, 4]
+    assert sorted(ind[0] for ind in first) == [1, 2]
+    assert sorted(ind[0] for ind in second) == [3, 4]
 
 
 def test_step_islands_migrate_moves_individuals(ind_cls):
@@ -175,9 +175,7 @@ def test_step_islands_invalidates_replacement_clones(ind_cls):
 
     tools.step_islands(
         [(keep, first), (keep, second)],
-        migrate=lambda pops: tools.mig_ring(
-            pops, 1, tools.sel_best, replacement=tools.sel_worst
-        ),
+        migrate=lambda pops: tools.mig_ring(pops, 1, tools.sel_best, replacement=tools.sel_worst),
         eval_keys=("matrix-a", "matrix-b"),
     )
 
