@@ -17,6 +17,7 @@ from typing import Any
 import numpy
 
 from deap_er.private.operators.bounds import broadcast_param
+from deap_er.private.strategies.common import update_bound_attrs
 from deap_er.private.various.clone import clone_individual
 
 from .compilers import invalidate_compiled
@@ -103,7 +104,7 @@ def _box_strategy(strategy: Any, nodes: Sequence[Any]) -> None:
     if box is None:
         return
     lows, highs = box
-    strategy.compute_params(low=lows, up=highs, bound_mode="clip")
+    update_bound_attrs(strategy, {"low": lows, "up": highs, "bound_mode": "clip"})
 
 
 def _merged_box(strategy: Any, nodes: Sequence[Any]) -> tuple[list[float], list[float]] | None:
