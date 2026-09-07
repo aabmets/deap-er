@@ -17,19 +17,14 @@ __all__: list[str] = ["chapter_blocks", "build_rows", "build_header", "format_tx
 
 
 def _chapter_row_for_parent(logbook: Any, chapter: Any, parent_index: int) -> dict[str, Any]:
-    """Return the chapter entry that belongs with a parent row.
+    """Return the chapter entry paired with a parent row, or ``{}``.
 
-    Rows pair by ``gen`` when that field is present. Without ``gen``,
-    pairing is positional only if the chapter already has one row per
-    parent entry.
+    Pair by ``gen`` when present; otherwise positional if lengths match.
 
     Args:
         logbook: Parent logbook that owns ``parent_index``.
         chapter: Nested logbook to read.
         parent_index: Parent row being rendered.
-
-    Returns:
-        Matching chapter entry, or an empty dict when none exists.
     """
     generation = logbook[parent_index].get("gen")
     match = logbook.chapter_index_for_generation(chapter, generation, parent_index)
@@ -81,7 +76,10 @@ def chapter_blocks(
     chapters_txt: dict[str, list[str]] = {}
     offsets: defaultdict[str, int] = defaultdict(int)
     for name, chapter in logbook.chapters.items():
-        view = chapter if isinstance(chapter, _AlignedChapter) else _AlignedChapter(logbook, chapter)
+        if isinstance(chapter, _AlignedChapter):
+            view = chapter
+        else:
+            view = _AlignedChapter(logbook, chapter)
         chapters_txt[name] = view.__txt__(start_index)
         if start_index == 0:
             offsets[name] = len(chapters_txt[name]) - len(logbook)
