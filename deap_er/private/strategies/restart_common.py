@@ -16,7 +16,7 @@ from typing import TYPE_CHECKING, Any
 
 import numpy
 
-from deap_er.private.strategies.common import _bound_arrays
+from deap_er.private.strategies.common import finite_sample_bounds
 from deap_er.private.various.rng import rng
 
 if TYPE_CHECKING:
@@ -81,10 +81,7 @@ def sample_centroid(
         return numpy.asarray(initial, dtype=float)
     if mode == "best" and best is not None:
         return numpy.asarray(best, dtype=float)
-    bounds = _bound_arrays(low, up, dim)
-    if bounds is None:
-        return numpy.array([rng.uniform(-5.0, 5.0) for _ in range(dim)])
-    low_arr, up_arr = bounds
+    low_arr, up_arr = finite_sample_bounds(low, up, dim)
     return numpy.array([rng.uniform(lo, hi) for lo, hi in zip(low_arr, up_arr, strict=True)])
 
 

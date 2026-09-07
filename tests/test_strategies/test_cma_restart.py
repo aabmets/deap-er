@@ -140,6 +140,42 @@ def test_one_plus_lambda_smoke():
         _teardown()
 
 
+def test_restart_centroid_one_sided_bounds_stay_finite():
+    creator.create_type(FIT, Fitness, weights=(-1.0,))
+    creator.create_type(IND, list, fitness=creator.__dict__[FIT])
+    try:
+        low_only = tools.Strategy([0.5] * 5, sigma=1.0, offsprings=8, low=0.0)
+        restart = tools.RestartStrategy(low_only, mode="ipop", budget=100_000)
+        restart._ind_init = creator.__dict__[IND]
+        restart._tracker.terminate = True
+        restart.restart()
+        assert numpy.isfinite(low_only.centroid).all()
+        assert numpy.all(low_only.centroid >= 0.0)
+
+        up_only = tools.Strategy([0.5] * 5, sigma=1.0, offsprings=8, up=1.0)
+        restart = tools.RestartStrategy(up_only, mode="ipop", budget=100_000)
+        restart._ind_init = creator.__dict__[IND]
+        restart._tracker.terminate = True
+        restart.restart()
+        assert numpy.isfinite(up_only.centroid).all()
+        assert numpy.all(up_only.centroid <= 1.0)
+    finally:
+        _teardown()
+
+
+def test_sample_centroid_expands_when_default_box_misses_the_bound():
+    from deap_er.private.strategies.restart_common import sample_centroid
+
+    tools.rng.seed(0)
+    high_low = sample_centroid(4, 10.0, None, "random", numpy.zeros(4), None)
+    assert numpy.isfinite(high_low).all()
+    assert numpy.all(high_low >= 10.0)
+
+    low_up = sample_centroid(4, None, -10.0, "random", numpy.zeros(4), None)
+    assert numpy.isfinite(low_up).all()
+    assert numpy.all(low_up <= -10.0)
+
+
 def test_budget_cap():
     strategy, toolbox = _setup_min(offsprings=6)
     try:

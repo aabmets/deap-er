@@ -26,6 +26,7 @@ __all__: list[str] = [
     "step_size_multiplier",
     "update_bound_attrs",
     "apply_box_bounds",
+    "finite_sample_bounds",
 ]
 
 
@@ -80,6 +81,43 @@ def _bound_arrays(
     low_seq = broadcast_param("low", -numpy.inf if low is None else low, dim)
     up_seq = broadcast_param("up", numpy.inf if up is None else up, dim)
     return numpy.asarray(low_seq, dtype=float), numpy.asarray(up_seq, dtype=float)
+
+
+def finite_sample_bounds(
+    low: NumOrSeq | None, up: NumOrSeq | None, dim: int
+) -> tuple[numpy.ndarray, numpy.ndarray]:
+    """Return a finite box for uniform centroid draws.
+
+    Clip and resample still use infinite ends for a missing bound.
+    A restart centroid cannot: ``uniform(0, ∞)`` is ``inf`` and
+    ``uniform(-∞, 1)`` is ``NaN``. Missing or non-finite ends fall
+    back to ``[-5, 5]``. If that collapses an axis, the open side
+    grows by 10 (the default box width).
+
+    Args:
+        low: Lower bound, or None for unbounded below.
+        up: Upper bound, or None for unbounded above.
+        dim: Search-space dimension.
+
+    Returns:
+        Finite ``(low, up)`` arrays of length ``dim``.
+    """
+    default_lo, default_hi = -5.0, 5.0
+    width = default_hi - default_lo
+    bounds = _bound_arrays(low, up, dim)
+    if bounds is None:
+        return (
+            numpy.full(dim, default_lo, dtype=float),
+            numpy.full(dim, default_hi, dtype=float),
+        )
+    raw_lo, raw_hi = bounds
+    lo = numpy.where(numpy.isfinite(raw_lo), raw_lo, default_lo)
+    hi = numpy.where(numpy.isfinite(raw_hi), raw_hi, default_hi)
+    missing_hi = ~numpy.isfinite(raw_hi)
+    missing_lo = ~numpy.isfinite(raw_lo)
+    hi = numpy.where(missing_hi & (lo >= hi), lo + width, hi)
+    lo = numpy.where(missing_lo & (lo >= hi), hi - width, lo)
+    return lo.astype(float), hi.astype(float)
 
 
 def apply_box_bounds(
