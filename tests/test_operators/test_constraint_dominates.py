@@ -9,6 +9,7 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import math
+from typing import Any, cast
 
 import numpy
 import pytest
@@ -34,10 +35,15 @@ def test_feasible_beats_infeasible(multi_obj, make):
 def test_two_feasibles_use_pareto(multi_obj, make):
     better = make(multi_obj, [0], (5.0, 5.0))
     worse = make(multi_obj, [1], (1.0, 1.0))
-    tied = make(multi_obj, [2], (5.0, 0.0))
+    other = make(multi_obj, [2], (5.0, 0.0))
     assert tools.constraint_dominates(better, worse, feasible=lambda _ind: True)
     assert not tools.constraint_dominates(worse, better, feasible=lambda _ind: True)
-    assert not tools.constraint_dominates(better, tied, feasible=lambda _ind: True)
+    assert not tools.constraint_dominates(other, better, feasible=lambda _ind: True)
+    assert tools.constraint_dominates(better, other, feasible=lambda _ind: True)
+    left = make(multi_obj, [3], (5.0, 1.0))
+    right = make(multi_obj, [4], (1.0, 5.0))
+    assert not tools.constraint_dominates(left, right, feasible=lambda _ind: True)
+    assert not tools.constraint_dominates(right, left, feasible=lambda _ind: True)
 
 
 def test_two_infeasibles_prefer_smaller_violation(multi_obj, make):
@@ -89,15 +95,15 @@ def test_requires_a_constraint_callable(multi_obj, make):
 def test_rejects_non_callable_kwargs(multi_obj, make):
     ind = make(multi_obj, [0], (1.0, 1.0))
     with pytest.raises(TypeError, match="feasible"):
-        tools.constraint_dominates(ind, ind, feasible=True)
+        tools.constraint_dominates(ind, ind, feasible=cast(Any, True))
     with pytest.raises(TypeError, match="violation"):
-        tools.constraint_dominates(ind, ind, violation=1.0)
+        tools.constraint_dominates(ind, ind, violation=cast(Any, 1.0))
 
 
 def test_rejects_non_scalar_and_nonfinite_violation(multi_obj, make):
     ind = make(multi_obj, [0], (1.0, 1.0))
     with pytest.raises(TypeError, match="real scalar"):
-        tools.constraint_dominates(ind, ind, violation=lambda _ind: (1.0, 2.0))
+        tools.constraint_dominates(ind, ind, violation=cast(Any, lambda _ind: (1.0, 2.0)))
     with pytest.raises(ValueError, match="finite"):
         tools.constraint_dominates(ind, ind, violation=lambda _ind: math.nan)
 
