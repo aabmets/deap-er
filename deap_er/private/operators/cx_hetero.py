@@ -29,11 +29,7 @@ _SLICE_PAIR = "slice crossover must return two sequences"
 
 def _is_slice_unit(item: object) -> bool:
     """Return whether ``item`` is a two-item ``(slice, callable)`` pair."""
-    return (
-        isinstance(item, (tuple, list))
-        and len(item) == 2
-        and isinstance(item[0], slice)
-    )
+    return isinstance(item, (tuple, list)) and len(item) == 2 and isinstance(item[0], slice)
 
 
 def _slice_specs(crossovers: Sequence[Any]) -> Sequence[Any] | None:
