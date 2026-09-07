@@ -140,4 +140,5 @@ nav:
       - Persistence: bugfixes/persistence.md
       - Records: bugfixes/records.md
       - Strategies: bugfixes/strategies.md
+      - CMA (1+λ) unevaluated parent: bugfixes/strategies/one-plus-lambda-invalid-parent.md
       - Utilities: bugfixes/utilities.md

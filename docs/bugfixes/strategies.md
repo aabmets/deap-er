@@ -115,3 +115,9 @@ if that window's best-of-generation range is below `tol_fun`.
 
 **Validator.**
 `tests/test_strategies/test_cma_restart.py::test_run_tracker_equal_bests_do_not_stop_at_generation_two`
+
+---
+
+## $(1+\lambda)$ restart parent counted as $\lambda$ failures
+
+See [one-plus-lambda-invalid-parent](strategies/one-plus-lambda-invalid-parent.md).
