@@ -201,3 +201,38 @@ def test_per_gene_bad_return_raises():
     second: Any = [2]
     with pytest.raises(ValueError, match="two replacements"):
         tools.cx_heterogeneous(first, second, [lambda a, b: a])
+
+
+def test_flat_tuple_slice_unit_dispatches_shape_b():
+    first: Any = [1, 2, 3]
+    second: Any = [9, 8, 7]
+    tools.cx_heterogeneous(first, second, (slice(0, 3), _as_seq_swap))
+    assert first == [9, 8, 7]
+    assert second == [1, 2, 3]
+
+
+def test_flat_list_slice_unit_dispatches_shape_b():
+    first: Any = [1, 2]
+    second: Any = [9, 8]
+    tools.cx_heterogeneous(first, second, [slice(0, 2), _as_seq_swap])
+    assert first == [9, 8]
+    assert second == [1, 2]
+
+
+def test_nested_list_pair_units():
+    first: Any = [1, 2, 3]
+    second: Any = [9, 8, 7]
+    tools.cx_heterogeneous(
+        first,
+        second,
+        [[slice(0, 1), _as_seq_swap], [slice(2, 3), _as_seq_swap]],
+    )
+    assert first == [9, 2, 7]
+    assert second == [1, 8, 3]
+
+
+def test_inverted_slice_raises_clear_error():
+    first: Any = [1, 2, 3, 4, 5]
+    second: Any = [9, 8, 7, 6, 5]
+    with pytest.raises(ValueError, match="inverted|start"):
+        tools.cx_heterogeneous(first, second, ((slice(4, 2), _as_seq_swap),))
