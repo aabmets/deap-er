@@ -138,6 +138,36 @@ def test_mig_ring_unequal_deme_sizes_completes(ind_cls):
     assert {member[0] for member in demes[0]} & {12, 13, 14}
 
 
+def test_mig_ring_unequal_ring_does_not_alias_across_demes(ind_cls):
+    small = _demes(ind_cls, nbr_demes=1, size=1)[0]
+    mid = []
+    for value in (10, 11, 12, 13, 14):
+        member = ind_cls([value])
+        member.fitness.values = (float(value),)
+        mid.append(member)
+    last = []
+    for value in (20, 21, 22, 23):
+        member = ind_cls([value])
+        member.fitness.values = (float(value),)
+        last.append(member)
+    demes = [small, mid, last]
+
+    tools.mig_ring(demes, 3, tools.sel_best)
+
+    assert [len(deme) for deme in demes] == [1, 5, 4]
+    seen: dict[int, int] = {}
+    for deme_idx, deme in enumerate(demes):
+        for member in deme:
+            key = id(member)
+            assert key not in seen
+            seen[key] = deme_idx
+
+    others_before = [[member[0] for member in deme] for deme in (demes[0], demes[2])]
+    demes[1][0][0] = 999
+    others_after = [[member[0] for member in deme] for deme in (demes[0], demes[2])]
+    assert others_after == others_before
+
+
 def test_mig_ring_sel_random_oversize_count_completes(ind_cls):
     tools.rng.seed(1)
     demes = _demes(ind_cls, nbr_demes=2, size=2)
