@@ -20,6 +20,16 @@ def test_stochastic_universal_sampling_zero_count(single_obj, make):
     assert tools.sel_stochastic_universal_sampling(population, 0) == []
 
 
+def test_best_and_worst_non_positive_count_returns_empty(single_obj, make):
+    population = [make(single_obj, [i], (float(i),)) for i in range(5)]
+
+    assert tools.sel_best(population, 0) == []
+    assert tools.sel_worst(population, 0) == []
+    assert tools.sel_best(population, -1) == []
+    assert tools.sel_worst(population, -1) == []
+    assert tools.sel_random(population, -1) == []
+
+
 def test_proportionate_selection_empty_or_zero_count_returns_empty(single_obj, make):
     population = [make(single_obj, [0], (1.0,))]
     assert tools.sel_roulette([], 0) == []
