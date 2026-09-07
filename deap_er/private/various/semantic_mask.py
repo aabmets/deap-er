@@ -13,17 +13,14 @@ from typing import Any
 
 import numpy
 
-__all__: list[str] = [
-    "as_semantic_matrix",
-    "packed_semantics",
-    "semantic_column_keep",
-    "semantic_valid_mask",
-    "validate_semantic_matrix",
-]
+__all__: list[str] = ["semantic_valid_mask"]
 
 
 def as_semantic_matrix(matrix: numpy.ndarray | Sequence[Sequence[float]]) -> numpy.ndarray:
-    """Pack a semantic matrix as C-contiguous ``float64``.
+    """Pack a semantic matrix as ``float64``.
+
+    The result is two-dimensional. Layout follows NumPy ``asarray``:
+    a Fortran-order input keeps its memory order.
 
     Args:
         matrix: Caller-supplied ``(n_individuals, n_rows)`` pack.

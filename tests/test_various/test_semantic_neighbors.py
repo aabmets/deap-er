@@ -27,6 +27,13 @@ def ind_cls():
     del creator.__dict__[IND]
 
 
+def test_semantic_distance_one_d_returns_length_one_array():
+    result = tools.semantic_distance([1.0, 0.0], [1.0, 0.0], metric="euclidean")
+    assert isinstance(result, numpy.ndarray)
+    assert result.shape == (1,)
+    assert result[0] == pytest.approx(0.0)
+
+
 def test_semantic_distance_euclidean_and_cosine():
     query = numpy.array([1.0, 0.0, 0.0])
     matrix = numpy.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]])
@@ -79,3 +86,7 @@ def test_semantic_nearest_trust_matrix(ind_cls):
         tools.semantic_nearest([0.0, 1.0], matrix, individuals=people, trust_matrix=False)
     nearest = tools.semantic_nearest([0.0, 1.0], matrix, individuals=people, trust_matrix=True)
     numpy.testing.assert_array_equal(nearest, [0])
+    assert isinstance(nearest, numpy.ndarray)
+    assert numpy.issubdtype(nearest.dtype, numpy.integer)
+    assert not isinstance(nearest[0], type(people[0]))
+    assert people[int(nearest[0])] is people[0]

@@ -79,7 +79,9 @@ def semantic_distance(
 
     Only coordinates that are finite on both sides and marked ``valid``
     enter the distance. An empty overlap, or a zero cosine norm, is
-    ``+inf``. A one-dimensional ``matrix`` is treated as a single row.
+    ``+inf``. A one-dimensional ``matrix`` is treated as a single row
+    and still returns a length-1 array (not a Python float) so the
+    return type stays ``ndarray`` for the type checker.
 
     Args:
         query: Semantic row of length ``n_rows``.
@@ -89,8 +91,8 @@ def semantic_distance(
         valid: Optional per-row warmup mask of length ``n_rows``.
 
     Returns:
-        Distances of length ``n_individuals`` (length 1 for a single
-        row).
+        Distances of length ``n_individuals``. One-dimensional
+        ``matrix`` yields shape ``(1,)``.
 
     Raises:
         ValueError: If shapes do not match or ``metric`` is unknown.
@@ -116,6 +118,8 @@ def semantic_nearest(
     """Return the lowest-index nearest neighbors of ``query``.
 
     Infinite distances are skipped. Ties keep the lowest pack index.
+    ``individuals`` is trust-alignment only: the return value is always
+    integer pack indices, never the individual objects.
 
     Args:
         query: Semantic row of length ``n_rows``.
