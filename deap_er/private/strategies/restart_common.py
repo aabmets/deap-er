@@ -223,13 +223,11 @@ class RunTracker:
         return bool(new_best <= old_best and new_med <= old_med)
 
     def _tol_fun_hit(self) -> bool:
-        if len(self.best_history) < 2:
+        need = 10 + int(ceil(30 * self.dim / max(self.lamb, 1)))
+        if len(self.best_history) < need:
             return False
-        span = min(self.stagnation_window, len(self.best_history))
-        old = self.best_history[-span]
-        new = self.best_history[-1]
-        denom = max(abs(old), abs(new), 1e-20)
-        return abs(old - new) / denom < self.tol_fun
+        window = self.best_history[-need:]
+        return max(window) - min(window) < self.tol_fun
 
 
 def strategy_dim(strategy: Any) -> int:
