@@ -85,7 +85,9 @@ Package `__init__.py` files and `tools.py` use **explicit named imports** plus `
 
 Forbidden to create private modules with _-prefix in their names. modules may contain _-prefixed functions and other members only if those items are not accessed from outside the module in any place (including not imported into any pytest module).
 
-If another module — library, example, or test — needs a helper, give it an unprefixed name and list it in `__all__` (then re-export if it belongs on the package or `tools` barrel). Do not `from .foo import _helper`.
+If another **library or example** module needs a helper, give it an unprefixed name and list it in `__all__` (then re-export if it belongs on the package or `tools` barrel). Do not `from .foo import _helper`.
+
+Tests and `tests/harness/` may import implementation modules under `deap_er.private` directly. Do not add a public re-export on `gp`, `tools`, or a package `__init__` just so a test can reach a helper. Prefer the defining module (`from deap_er.private.programming.numba.numba_batch import compiled_batch_kernels`). `_`-prefixed names stay module-private; if a test needs a helper, give it an unprefixed name on that private module.
 
 New public symbol:
 
