@@ -34,7 +34,10 @@ def mig_ring(
     When a source sends more emigrants than the destination has
     vacancies, or a deme is smaller than ``mig_count``, only as
     many individuals as both sides can hold are moved. Deme
-    lengths are unchanged. Populations are modified in place.
+    lengths are unchanged. When ``replacement`` is omitted, an
+    emigrant whose home vacancy is not filled is cloned so the
+    same object is not left in two demes. Populations are
+    modified in place.
 
     Args:
         populations: Populations to migrate between.
@@ -82,6 +85,16 @@ def mig_ring(
             taken.add(indx)
             vacancies[from_deme].append(indx)
 
+    incoming_filled = [0] * nbr_demes
     for from_deme, to_deme in enumerate(mig_indices):
-        for indx, immigrant in zip(vacancies[to_deme], emigrants[from_deme], strict=False):
+        filled = min(len(emigrants[from_deme]), len(vacancies[to_deme]))
+        if filled > incoming_filled[to_deme]:
+            incoming_filled[to_deme] = filled
+
+    for from_deme, to_deme in enumerate(mig_indices):
+        for offset, (indx, immigrant) in enumerate(
+            zip(vacancies[to_deme], emigrants[from_deme], strict=False)
+        ):
+            if replacement is None and offset >= incoming_filled[from_deme]:
+                immigrant = clone_individual(immigrant)
             populations[to_deme][indx] = immigrant
