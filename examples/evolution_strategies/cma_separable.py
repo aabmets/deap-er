@@ -11,6 +11,7 @@ def setup():
     strategy = tools.StrategySeparable(
         centroid=[3.0] * dim,
         sigma=3.0,
+        offsprings=80,
         low=-5.0,
         up=5.0,
     )
@@ -37,7 +38,7 @@ def main():
     hof = tools.HallOfFame(1)
     tools.ea_generate_update(
         toolbox,
-        generations=80,
+        generations=250,
         hof=hof,
         stats=stats,
         verbose=True,
