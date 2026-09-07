@@ -234,3 +234,19 @@ check.
 
 **Validator.**
 `tests/test_operators/test_mut_various.py::test_mut_uniform_int_accepts_numpy_integer_bounds`
+
+---
+
+## `mig_ring` crashed when deme sizes or `mig_count` disagreed
+
+A destination with more vacancies than the source had emigrants
+indexed past the emigrant list (`IndexError`). `sel_random` with
+`mig_count` larger than a deme then exhausted unused vacancy
+indices (`StopIteration`). Unequal island sizes are a valid ring.
+
+**Fix.** Stop claiming vacancies once every dest slot is taken.
+Pair incoming emigrants with dest vacancies by `zip`, so extras
+on either side are left in place.
+
+**Validator.**
+`tests/test_operators/test_mig_ring.py::test_mig_ring_unequal_deme_sizes_completes`
