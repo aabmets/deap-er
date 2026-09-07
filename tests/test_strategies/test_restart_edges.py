@@ -68,6 +68,27 @@ def test_best_fitness_and_max_restarts():
         _teardown()
 
 
+def test_last_batch_of_one_completes_restart_budget():
+    ind_cls = _setup()
+    try:
+        strategy = tools.Strategy(centroid=[0.0, 0.0], sigma=1.0, offsprings=4)
+        restart = tools.RestartStrategy(strategy, mode="ipop", budget=5)
+        first = restart.generate(ind_cls)
+        assert len(first) == 4
+        for individual in first:
+            individual.fitness.values = tools.bm_sphere(individual)
+        restart.update(first)
+        last = restart.generate(ind_cls)
+        assert len(last) == 1
+        for individual in last:
+            individual.fitness.values = tools.bm_sphere(individual)
+        restart.update(last)
+        assert restart.evals_used == 5
+        assert restart.is_done()
+    finally:
+        _teardown()
+
+
 def test_partial_batch_resizes_offspring_count():
     ind_cls = _setup()
     try:

@@ -142,4 +142,5 @@ nav:
       - Strategies: bugfixes/strategies.md
       - CMA (1+λ) unevaluated parent: bugfixes/strategies/one-plus-lambda-invalid-parent.md
       - BIPOP small-regime sigma: bugfixes/strategies/bipop-small-sigma.md
+      - CMA lambda-1 empty weights: bugfixes/strategies/lambda-one-empty-weights.md
       - Utilities: bugfixes/utilities.md
