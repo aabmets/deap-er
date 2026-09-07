@@ -155,7 +155,7 @@ class SortingNetwork:
         Returns:
             A schematic of the wires and comparators.
         """
-        cols = 7 * max(self.depth, 1)
+        cols = max(7 * max(self.depth, 1), 6 * self.depth + 2)
         str_wires = [["-"] * cols]
         str_wires[0][0] = "0"
         str_wires[0][1] = " o"

@@ -153,7 +153,7 @@ the raw-vector path used by existing tests.
 
 ---
 
-## `SortingNetwork.draw` crashed on an empty network
+## `SortingNetwork.draw` crashed on empty and one-level networks
 
 A network with no comparators has `depth == 0`. `draw()` built each
 wire as `["-"] * 7 * depth`, which is an empty list, then wrote the
@@ -161,9 +161,16 @@ wire index and `" o"` into cells 0 and 1. `SortingNetwork(4)` is a
 valid object; `draw()` raised `IndexError` instead of showing the
 wires.
 
-**Fix.** Size the ASCII grid with `max(depth, 1)` so an empty network
-still has room for the labels. Comparator columns stay at
-`(index + 1) * 6` when depth is positive.
+A one-level network (`depth == 1`) still crashed after that floor.
+Spacers write at `(index + 1) * 6 + 1`; on the only level that is
+column 7, past a 7-wide grid.
 
-**Validator.**
-`tests/test_various/test_sorting_network.py::test_sorting_network_draw_empty_network_labels_wires`
+**Fix.** Size the ASCII grid to
+`max(7 * max(depth, 1), 6 * depth + 2)` so labels fit when empty
+and the last-level spacer fits when `depth == 1`. Comparator
+columns stay at `(index + 1) * 6`.
+
+**Validators.**
+
+- `tests/test_various/test_sorting_network.py::test_sorting_network_draw_empty_network_labels_wires`
+- `tests/test_various/test_sorting_network.py::test_sorting_network_draw_single_level_includes_comparators`
