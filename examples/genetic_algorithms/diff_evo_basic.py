@@ -21,6 +21,7 @@ def setup():
     toolbox.register("individual", tools.init_repeat, creator.Individual, toolbox.attr_float, NDIM)
     toolbox.register("population", tools.init_repeat, list, toolbox.individual)
     toolbox.register("select", tools.sel_random, sel_count=3)
+    toolbox.register("mutate", tools.mut_de, scale=F, cx_prob=CR)
     toolbox.register("evaluate", tools.bm_sphere)
 
     stats = tools.Statistics(lambda ind: ind.fitness.values)
@@ -61,10 +62,7 @@ def main():
         for k, agent in enumerate(pop):
             a, b, c = toolbox.select(pop)
             y = toolbox.clone(agent)
-            index = tools.rng.randrange(NDIM)
-            for i, _value in enumerate(agent):
-                if i == index or tools.rng.random() < CR:
-                    y[i] = a[i] + F * (b[i] - c[i])
+            (y,) = toolbox.mutate(y, a, b, c)
             y.fitness.values = toolbox.evaluate(y)
             if y.fitness > agent.fitness:
                 pop[k] = y

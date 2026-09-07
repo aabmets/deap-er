@@ -96,6 +96,7 @@ inventory:
   - `duplicate_count`
   - `ea_*` `log_time`, `logger`, and per-generation `fronts`
   - MAP-Elites `GridArchive` / `ea_map_elites`
+  - `mut_de` (DE/rand/1/bin trial)
 
 The package is typed, uses snake_case, and is Apache-2.0. Hypervolume
 work delegates to [moocore](https://pypi.org/project/moocore/).
