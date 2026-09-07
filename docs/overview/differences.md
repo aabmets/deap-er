@@ -16,7 +16,7 @@ changed. Same toolbox model. Counted from the sections below:
   [creator](../bugfixes/creator.md),
   [utilities](../bugfixes/utilities.md),
   and [algorithms](../bugfixes/algorithms.md)
-- **33** capabilities DEAP does not have, including boxed CMA,
+- **34** capabilities DEAP does not have, including boxed CMA,
   mixed-gene mutation, logbook JSON, and
   [columnar GP](../tutorials/columnar_gp.md)
 
@@ -132,6 +132,10 @@ from the original sources.
 19. `sel_age_moea_2` and `SelAGE2WithMemory` advance front by front:
     geodesic diversity on partial $F_1$, inverse Minkowski on later
     partial fronts, with Newton–Raphson curvature on the first front.
+20. `mut_gaussian_bounded` applies the same $N(\mu, \sigma)$ draw as
+    `mut_gaussian`, then clamps each mutated gene into `[low, up]`.
+    Bounds may be scalars or per-gene sequences, matching
+    `mut_polynomial_bounded`. Empty intervals are skipped.
 
 ## Evolution strategies
 
