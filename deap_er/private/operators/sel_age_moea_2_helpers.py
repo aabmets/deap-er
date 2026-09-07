@@ -42,6 +42,9 @@ def estimate_curvature_nr(
     Returns:
         Estimated curvature ``p`` in ``[0.1, 20]``, or ``1.0`` on failure.
     """
+    if point.shape[0] != n_obj:
+        return 1.0
+
     p = 1.0
     past = p
     epsilon = 1e-10

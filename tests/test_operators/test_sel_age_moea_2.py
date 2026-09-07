@@ -110,8 +110,42 @@ def test_best_point_merges_without_worst_point():
             ind.fitness.values = values
             pop.append(ind)
 
-        prior_best = numpy.array([[0.0, 0.0]])
-        tools.sel_age_moea_2(pop, 1, best_point=prior_best)
+        select = tools.SelAGE2WithMemory()
+        select.best_point = numpy.array([[0.0, 0.0]])
+        select(pop, 1)
+        assert select.best_point.reshape(-1).tolist() == pytest.approx([0.0, 0.0])
+        assert select.worst_point.reshape(-1).tolist() == pytest.approx([0.8, 0.8])
+    finally:
+        del creator.__dict__[fit_name]
+        del creator.__dict__[ind_name]
+
+
+def test_age2_oversize_geometry_uses_first_front_only():
+    fit_name = "AGE2_OVERSIZE_FIT"
+    ind_name = "AGE2_OVERSIZE_IND"
+    creator.create_type(fit_name, Fitness, weights=(-1.0, -1.0))
+    creator.create_type(ind_name, list, fitness=creator.__dict__[fit_name])
+    try:
+        front0 = []
+        for genes, values in (([0.0], (0.0, 1.0)), ([1.0], (1.0, 0.0))):
+            ind = creator.__dict__[ind_name](genes)
+            ind.fitness.values = values
+            front0.append(ind)
+
+        dominated = creator.__dict__[ind_name]([2.0])
+        dominated.fitness.values = (5.0, 5.0)
+        pop = front0 + [dominated]
+
+        full = tools.SelAGE2WithMemory()
+        full(pop, len(pop))
+
+        reference = tools.SelAGE2WithMemory()
+        reference(front0, len(front0))
+
+        assert full.curvature == reference.curvature
+        assert full.extreme_points is not None
+        assert reference.extreme_points is not None
+        assert numpy.allclose(full.extreme_points, reference.extreme_points)
     finally:
         del creator.__dict__[fit_name]
         del creator.__dict__[ind_name]

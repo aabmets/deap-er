@@ -54,10 +54,11 @@ def _update_ideal_point(fitness: ndarray, ideal_point: ndarray | None) -> ndarra
     current = numpy.min(fitness, axis=0)
     if ideal_point is None or ideal_point.size == 0:
         return current
-    finite = ideal_point[numpy.isfinite(ideal_point)]
-    if finite.size == 0:
+    prior = numpy.asarray(ideal_point, dtype=float).reshape(-1)
+    if prior.shape != current.shape:
         return current
-    return numpy.minimum(current, finite)
+    merged = numpy.where(numpy.isfinite(prior), prior, numpy.inf)
+    return numpy.minimum(current, merged)
 
 
 def _pareto_ranks(individuals: list[Individual]) -> ndarray:
@@ -200,20 +201,23 @@ def sel_moead(
     """
     if not individuals or sel_count <= 0:
         return []
-    if sel_count >= len(individuals):
-        return list(individuals)
 
     fitness = _minimize_fitness(individuals)
-    scalar_fn = _resolve_scalarization(scalarization, theta)
-    ranks = _pareto_ranks(individuals)
 
     prior = None
     if ideal_point is not None:
         prior = numpy.asarray(ideal_point, dtype=float).reshape(-1)
-        prior = prior[numpy.isfinite(prior)]
     elif isinstance(_memory, SelMOEADWithMemory):
         prior = numpy.asarray(_memory.ideal_point, dtype=float).reshape(-1)
-        prior = prior[numpy.isfinite(prior)]
+
+    if sel_count >= len(individuals):
+        if isinstance(_memory, SelMOEADWithMemory):
+            z_star = _update_ideal_point(fitness, prior)
+            _memory.ideal_point = numpy.asarray(z_star).reshape((1, -1))
+        return list(individuals)
+
+    scalar_fn = _resolve_scalarization(scalarization, theta)
+    ranks = _pareto_ranks(individuals)
 
     z_star = _update_ideal_point(fitness, prior)
     chosen = _select_by_subproblems(
