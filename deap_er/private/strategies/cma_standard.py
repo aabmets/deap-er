@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Iterable
-from math import log, sqrt
+from math import sqrt
 from typing import TYPE_CHECKING, Any
 
 import numpy
@@ -19,6 +19,7 @@ import numpy
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 
+from .cma_params import apply_cma_hyperparams
 from .common import sample_offspring, update_bound_attrs
 
 __all__ = ["Strategy"]
@@ -127,49 +128,7 @@ class Strategy:
             RuntimeError: If ``weights`` is not ``superlinear``,
                 ``linear``, or ``equal``.
         """
-        default = int(4 + 3 * log(self.dim))
-        self.lamb = int(kwargs.get("offsprings", default))
-
-        default = int(self.lamb / 2)
-        self.mu = int(kwargs.get("survivors", default))
-
-        default = "superlinear"
-        r_weights = kwargs.get("weights", default)
-        if r_weights == "superlinear":
-            temp_1 = numpy.log(numpy.arange(1, self.mu + 1))
-            self.weights = log(self.mu + 0.5) - temp_1
-        elif r_weights == "linear":
-            temp_1 = numpy.arange(1, self.mu + 1)
-            self.weights = self.mu + 0.5 - temp_1
-        elif r_weights == "equal":
-            self.weights = numpy.ones(self.mu)
-        else:
-            raise RuntimeError(f"Unknown weights : {r_weights}")
-
-        self.weights = numpy.asarray(self.weights, dtype=float)
-        self.weights /= sum(self.weights)
-        self.mu_eff = 1.0 / sum(self.weights**2)
-
-        default = 2.0 / ((self.dim + 1.3) ** 2 + self.mu_eff)
-        self.rank_one = float(kwargs.get("rank_one", default))
-
-        temp_1 = self.mu_eff - 2.0 + 1.0 / self.mu_eff
-        temp_2 = (self.dim + 2.0) ** 2 + self.mu_eff
-        default = 2.0 * temp_1 / temp_2
-        self.rank_mu = float(kwargs.get("rank_mu", default))
-        self.rank_mu = min(1 - self.rank_one, self.rank_mu)
-
-        default = (self.mu_eff + 2.0) / (self.dim + self.mu_eff + 3.0)
-        self.ss_cum = float(kwargs.get("ss_cum", default))
-
-        temp_1 = sqrt((self.mu_eff - 1.0) / (self.dim + 1.0))
-        temp_2 = max(0.0, temp_1 - 1.0)
-        default = 1.0 + 2.0 * temp_2 + self.ss_cum
-        self.ss_dmp = float(kwargs.get("ss_dmp", default))
-
-        default = 4.0 / (self.dim + 4.0)
-        self.cm_cum = float(kwargs.get("cm_cum", default))
-
+        apply_cma_hyperparams(self, kwargs)
         if not hasattr(self, "big_c") or "cm_init" in kwargs:
             self.big_c = kwargs.get("cm_init", numpy.identity(self.dim))
             self.diag_d, self.big_b = numpy.linalg.eigh(self.big_c)
