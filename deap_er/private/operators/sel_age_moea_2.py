@@ -45,7 +45,7 @@ def _normalize_front(
     return normalized, best, worst, intercepts
 
 
-def find_extreme_indexes(fitness: ndarray, best_point: ndarray) -> ndarray:
+def _find_extreme_indexes(fitness: ndarray, best_point: ndarray) -> ndarray:
     """Return one extreme-point index per objective.
 
     Args:
@@ -93,7 +93,9 @@ def _estimate_geometry(
     nr_max_iter: int,
 ) -> tuple[float, ndarray]:
     normalized, _, _, intercepts = _normalize_front(first_front, best, worst, extreme_points)
-    extreme_idx = find_extreme_indexes(first_front, best)
+    if first_front.shape[0] < first_front.shape[1]:
+        return 1.0, intercepts
+    extreme_idx = _find_extreme_indexes(first_front, best)
     ref = _reference_index(normalized, extreme_idx)
     curvature = estimate_curvature_nr(normalized[ref], normalized.shape[1], nr_tol, nr_max_iter)
     return curvature, intercepts
@@ -110,7 +112,7 @@ def _front_survival_scores(
 ) -> ndarray:
     if front_index == 0:
         normalized, _, _, _ = _normalize_front(front_fitness, best, worst, extreme_points)
-        extreme_idx = find_extreme_indexes(front_fitness, best)
+        extreme_idx = _find_extreme_indexes(front_fitness, best)
         return survival_scores(normalized, numpy.zeros(normalized.shape[1]), extreme_idx, curvature)
     return later_front_scores(front_fitness, best, intercepts, curvature)
 
@@ -209,7 +211,10 @@ def sel_age_moea_2(
             fitness = -numpy.array([ind.fitness.wvalues for ind in individuals], dtype=float)
             best = _merge_best(fitness, best_point)
             worst = _merge_worst(fitness, worst_point)
-            first_front = fitness
+            pareto_fronts = sort_non_dominated(individuals, len(individuals))
+            index_map = {id(ind): idx for idx, ind in enumerate(individuals)}
+            first_indices = [index_map[id(ind)] for ind in pareto_fronts[0]]
+            first_front = fitness[first_indices]
             curvature, _ = _estimate_geometry(
                 first_front, best, worst, extreme_points, nr_tol, nr_max_iter
             )
