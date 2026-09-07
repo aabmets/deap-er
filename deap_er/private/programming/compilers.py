@@ -10,21 +10,18 @@
 #
 from __future__ import annotations
 
-from collections.abc import Callable
-from functools import wraps
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from deap_er.private.typedefs import GPExprTypes, GPGraph, GPTypedSets
-from deap_er.private.various.clone import clone_individual
-from deap_er.private.various.rng import rng
+    from deap_er.private.typedefs import GPExprTypes, GPTypedSets
 
-from .compile_cache import CompileCache
+from .compile_cache import CompileCache, compile_cache_key, expression_key
 from .matrix_pack import as_matrix, is_packed_matrix
 from .numba.numba_ops import bind_tape
 from .opcodes import USER_BASE, interpret_tape, lower_tree
 from .primitives.primitive_nodes import Primitive
 from .primitives.primitive_set_typed import PrimitiveSetTyped
+from .tree_graph import build_tree_graph, static_limit
 
 __all__: list[str] = [
     "clear_compile_cache",
@@ -111,6 +108,23 @@ def _compile_tape(
     return runner
 
 
+def _reject_unknown_primitive(expr: GPExprTypes, prim_set: PrimitiveSetTyped) -> None:
+    """Raise if a tree node names a primitive missing from ``context``.
+
+    Args:
+        expr: Expression about to be compiled.
+        prim_set: Primitive set that must own every primitive name.
+
+    Raises:
+        NameError: If a primitive is not registered on the set.
+    """
+    if isinstance(expr, str):
+        return
+    for node in expr:
+        if isinstance(node, Primitive) and node.name not in prim_set.context:
+            raise NameError(f"The primitive '{node.name}' is not registered on the primitive set.")
+
+
 def compile_tree(
     expr: GPExprTypes,
     prim_set: PrimitiveSetTyped,
@@ -127,10 +141,11 @@ def compile_tree(
     extra. Both tape backends require every primitive to carry an
     opcode, and reject the tree while lowering when one does not.
 
-    Compiled results are cached, keyed by the expression text, the
-    contents of the primitive set, the backend, the dispatcher, and
-    the promoted-library generation. ``clear_compile_cache`` drops
-    the table; ``promote_subtree`` does that on every mutation.
+    Compiled results are cached, keyed by a structural tree key or
+    the source text, the argument names, the contents of the primitive
+    set, the backend, the dispatcher, and the promoted-library
+    generation. ``clear_compile_cache`` drops the table;
+    ``promote_subtree`` does that on every mutation.
 
     Args:
         expr: Expression to compile. A string, a ``PrimitiveTree``,
@@ -151,25 +166,21 @@ def compile_tree(
         ValueError: If the backend is unknown, or if a tape backend
             cannot lower the expression.
     """
-    if not isinstance(expr, str):
-        for node in expr:
-            if isinstance(node, Primitive) and node.name not in prim_set.context:
-                raise NameError(
-                    f"The primitive '{node.name}' is not registered on the primitive set."
-                )
-    code = str(expr)
-    if len(prim_set.arguments) > 0:
-        args = ",".join(prim_set.arguments)
-        code = f"lambda {args}: {code}"
-    ctx_key = tuple(sorted((name, id(value)) for name, value in prim_set.context.items()))
     library = getattr(prim_set, "promoted_library", None)
     generation = 0 if library is None else library.generation
-    cache_key = (backend, id(dispatch), code, ctx_key, generation)
+    cache_key = compile_cache_key(
+        backend, dispatch, expr, prim_set.arguments, prim_set.context, generation
+    )
     cached = _compile_cache.get(cache_key)
     if cached is not None:
         return cached
 
+    _reject_unknown_primitive(expr, prim_set)
     if backend == "python":
+        code = str(expr)
+        if len(prim_set.arguments) > 0:
+            args = ",".join(prim_set.arguments)
+            code = f"lambda {args}: {code}"
         compiled = _compile_python(code, prim_set)
     elif backend in ("opcode", "numba"):
         compiled = _compile_tape(expr, prim_set, backend, dispatch)
@@ -185,8 +196,9 @@ def compile_tree(
 def invalidate_compiled(expr: Any) -> int:
     """Drop compile-cache entries for ``expr``.
 
-    Matches the raw ``str(expr)`` and the ``lambda …: {expr}`` form
-    stored by ``compile_tree``.
+    Matches a structural tree key, raw source text, or the historical
+    ``lambda …: {expr}`` form. Pass a live tree, source text, or an
+    ``expression_key`` captured before a mutation.
 
     Args:
         expr: Expression whose cached compilations should be evicted.
@@ -194,7 +206,8 @@ def invalidate_compiled(expr: Any) -> int:
     Returns:
         The number of cache entries removed.
     """
-    return _compile_cache.discard_expression(str(expr))
+    fragment = expr if isinstance(expr, str | tuple) else expression_key(expr)
+    return _compile_cache.discard_expression(fragment)
 
 
 def compile_adf_tree(expr: GPExprTypes, prim_sets: GPTypedSets) -> Any:
@@ -222,63 +235,3 @@ def compile_adf_tree(expr: GPExprTypes, prim_sets: GPTypedSets) -> Any:
         func = compile_tree(sub_expr, prim_set)
         adf_dict.update({prim_set.name: func})
     return func
-
-
-def build_tree_graph(expr: GPExprTypes) -> GPGraph:
-    """Build a graph representation of a tree expression.
-
-    Args:
-        expr: Tree expression to convert.
-
-    Returns:
-        Nodes, edges, and a mapping of node indices to labels.
-    """
-    nodes = list(range(len(expr)))
-    edges = []
-    stack = []
-    labels = {}
-
-    for i, node in enumerate(expr):
-        if stack:
-            edges.append((stack[-1][0], i))
-            stack[-1][1] -= 1
-        if isinstance(node, Primitive):
-            labels[i] = node.name
-        elif hasattr(node, "value"):
-            labels[i] = node.value
-        else:
-            labels[i] = str(node)
-        stack.append([i, getattr(node, "arity", 0)])
-        while stack and stack[-1][1] == 0:
-            stack.pop()
-
-    return nodes, edges, labels
-
-
-def static_limit(limiter: Callable[..., Any], max_value: int | float) -> Callable[..., Any]:
-    """Return a decorator that rejects oversized GP offspring.
-
-    May wrap crossover or mutation. An offspring whose measurement
-    exceeds ``max_value`` is replaced by a randomly chosen parent.
-
-    Args:
-        limiter: Callable that measures an individual.
-        max_value: Maximum allowed measurement.
-
-    Returns:
-        A decorator for a GP operator registered on a Toolbox.
-    """
-
-    def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
-        @wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> list[Any]:
-            keep_inds = [clone_individual(ind) for ind in args]
-            new_inds = list(func(*args, **kwargs))
-            for i, ind in enumerate(new_inds):
-                if keep_inds and limiter(ind) > max_value:
-                    new_inds[i] = clone_individual(rng.choice(keep_inds))
-            return new_inds
-
-        return wrapper
-
-    return decorator

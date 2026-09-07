@@ -92,10 +92,10 @@ def test_tune_ephemerals_slim_tree_invalidates_compile_cache(ind_cls):
     slim = gp.SlimTree(head, [delta])
     slim.fitness = type(head.fitness)()
     slim.fitness.values = (1.0,)
+    old_head = gp.PrimitiveTree(list(slim.head))
+    old_delta = gp.PrimitiveTree(list(slim.deltas[0]))
     compiled_head = gp.compile_tree(slim.head, pset)
     compiled_delta = gp.compile_tree(slim.deltas[0], pset)
-    old_head = str(slim.head)
-    old_delta = str(slim.deltas[0])
 
     def evaluate(individual):
         func = gp.compile_slim_tree(individual, pset)
