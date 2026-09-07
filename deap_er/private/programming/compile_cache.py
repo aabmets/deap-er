@@ -11,11 +11,77 @@
 from __future__ import annotations
 
 from collections import OrderedDict
+from collections.abc import Mapping, Sequence
 from typing import Any
 
-__all__: list[str] = ["CompileCache"]
+__all__: list[str] = ["CompileCache", "compile_cache_key", "expression_key"]
 
 CacheKey = tuple[Any, ...]
+
+
+def expression_key(expr: Any) -> str | tuple[Any, ...]:
+    """Return the cache fragment that identifies ``expr``.
+
+    Source text is stored as-is. A tree is stored as
+    ``(name, value, arity, call_zero)`` per node so a cache hit does
+    not have to render Python. An unhashable leaf or a non-iterable
+    expression falls back to ``str(expr)``.
+
+    Args:
+        expr: Source text, a prefix-ordered tree, or another object
+            whose string form is valid Python.
+
+    Returns:
+        A hashable key fragment for ``compile_tree``.
+    """
+    if isinstance(expr, str):
+        return expr
+    try:
+        key = tuple(
+            (
+                getattr(node, "name", None),
+                getattr(node, "value", None),
+                getattr(node, "arity", 0),
+                getattr(node, "call_zero", False),
+            )
+            for node in expr
+        )
+        hash(key)
+        return key
+    except TypeError:
+        return str(expr)
+
+
+def compile_cache_key(
+    backend: str,
+    dispatch: Any,
+    expr: Any,
+    arguments: Sequence[str],
+    context: Mapping[str, Any],
+    generation: int,
+) -> CacheKey:
+    """Build the process-wide compile-cache key for one expression.
+
+    Args:
+        backend: Compile backend name.
+        dispatch: Numba consumer kernel, or None.
+        expr: Expression passed to ``compile_tree``.
+        arguments: Primitive-set argument names, in order.
+        context: Evaluation context whose value identities matter.
+        generation: Promoted-library generation, or 0.
+
+    Returns:
+        The LRU key used by ``compile_tree``.
+    """
+    ctx_key = tuple(sorted((name, id(value)) for name, value in context.items()))
+    return (
+        backend,
+        id(dispatch),
+        expression_key(expr),
+        tuple(arguments),
+        ctx_key,
+        generation,
+    )
 
 
 class CompileCache:
@@ -66,23 +132,23 @@ class CompileCache:
         """Remove every cached entry."""
         self._entries.clear()
 
-    def discard_expression(self, expression: str) -> int:
-        """Drop entries whose code is ``expression`` or a lambda wrapping it.
+    def discard_expression(self, expression: Any) -> int:
+        """Drop entries whose fragment is ``expression`` or wraps it.
 
-        ``compile_tree`` stores either the raw expression text or
-        ``lambda args: {expression}``. Both forms are removed.
+        ``compile_tree`` stores a structural tree key, raw source text,
+        or (historically) ``lambda args: {expression}``. All three
+        forms are removed when they name ``expression``.
 
         Args:
-            expression: ``str`` of the tree or expression.
+            expression: ``expression_key`` fragment or source text.
 
         Returns:
             The number of entries removed.
         """
-        suffix = f": {expression}"
         drop = [
             key
             for key in self._entries
-            if _code_matches(key[2] if len(key) > 2 else None, expression, suffix)
+            if _fragment_matches(key[2] if len(key) > 2 else None, expression)
         ]
         for key in drop:
             self._entries.pop(key, None)
@@ -93,6 +159,10 @@ class CompileCache:
         return len(self._entries)
 
 
-def _code_matches(code: Any, expression: str, suffix: str) -> bool:
-    """Return whether a cache-key code component names ``expression``."""
-    return isinstance(code, str) and (code == expression or code.endswith(suffix))
+def _fragment_matches(code: Any, expression: Any) -> bool:
+    """Return whether a cache-key fragment names ``expression``."""
+    if code == expression:
+        return True
+    if not isinstance(code, str) or not isinstance(expression, str):
+        return False
+    return code.endswith(f": {expression}")
