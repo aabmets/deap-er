@@ -12,7 +12,7 @@ import time
 from collections.abc import Callable, Sequence
 from logging import Logger
 
-from deap_er.private.records.grid_archive import GridArchive
+from deap_er.private.records.archive_common import MapElitesArchive
 from deap_er.private.records.logbook import Logbook
 from deap_er.private.toolbox import Toolbox
 from deap_er.private.typedefs import EvoStats, Individual
@@ -24,7 +24,7 @@ __all__: list[str] = ["ea_map_elites"]
 
 
 def _parent_pool(
-    archive: GridArchive,
+    archive: MapElitesArchive,
     initial: list[Individual],
     batch_size: int,
     cx_prob: float,
@@ -46,7 +46,7 @@ def _record_map_elites_generation(
     logbook,
     gen: int,
     nevals: int,
-    archive: GridArchive,
+    archive: MapElitesArchive,
     population: list[Individual],
     stats: EvoStats | None,
     verbose: bool,
@@ -71,7 +71,7 @@ def _record_map_elites_generation(
 
 def ea_map_elites(
     toolbox: Toolbox,
-    archive: GridArchive,
+    archive: MapElitesArchive,
     descriptor_fn: Callable[[Individual], Sequence[float]],
     initial: list[Individual],
     generations: int,
@@ -82,7 +82,7 @@ def ea_map_elites(
     verbose: bool = False,
     logger: Logger | None = None,
     log_time: bool = False,
-) -> tuple[GridArchive, Logbook]:
+) -> tuple[MapElitesArchive, Logbook]:
     """Run MAP-Elites with ``var_or`` variation on archive elites.
 
     Generation zero evaluates ``initial`` and seeds the archive. Later
@@ -91,10 +91,13 @@ def ea_map_elites(
 
     Requires ``clone``, ``mate``, ``mutate``, and ``evaluate`` on
     ``toolbox``. ``archive`` stores single-objective fitness only.
+    Accepts :class:`~deap_er.records.GridArchive`,
+    :class:`~deap_er.records.CvtArchive`, or
+    :class:`~deap_er.records.UnstructuredArchive`.
 
     Args:
         toolbox: Toolbox with the evolution operators.
-        archive: Grid archive updated in place.
+        archive: MAP-Elites archive updated in place.
         descriptor_fn: Maps an evaluated individual to a behavior
             descriptor.
         initial: Individuals evaluated and archived before generation
