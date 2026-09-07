@@ -13,8 +13,8 @@ from __future__ import annotations
 from typing import Any
 
 from .compilers import compile_tree
-from .opcodes import bind_numba_opcode, lower_tree, numba_opcodes
 from .opcode_set import USER_BASE
+from .opcodes import bind_numba_opcode, lower_tree, numba_opcodes
 from .primitives.primitive_nodes import Primitive, Terminal
 from .primitives.primitive_set_typed import PrimitiveSetTyped
 from .primitives.primitive_tree import PrimitiveTree
@@ -81,9 +81,7 @@ def consume_node(
             )
         terminal_only = not prim_set.primitives[expected] and bool(prim_set.terminals[expected])
         if terminal_only and isinstance(node, Primitive):
-            raise ValueError(
-                f"Type '{expected}' is leaf-only; a primitive is not a valid closure."
-            )
+            raise ValueError(f"Type '{expected}' is leaf-only; a primitive is not a valid closure.")
     if not isinstance(node, Primitive):
         return index + 1
     if node.name not in prim_set.context:
