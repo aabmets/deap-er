@@ -53,8 +53,9 @@ def test_bin2float_decodes_bit_blocks():
         return tuple(individual)
 
     decoded: Any = tools.bin2float(0.0, 1.0, 2)(evaluate)
-    # 11 -> 1.0, 00 -> 0.0
+    # 11 -> 1.0, 00 -> 0.0; 10/01 lock MSB-first order
     assert decoded([1, 1, 0, 0]) == (1.0, 0.0)
+    assert decoded([1, 0, 0, 1]) == (2 / 3, 1 / 3)
 
 
 def test_bin2float_decodes_boolean_bits_like_integers():
@@ -63,3 +64,4 @@ def test_bin2float_decodes_boolean_bits_like_integers():
 
     decoded: Any = tools.bin2float(0.0, 1.0, 2)(evaluate)
     assert decoded([True, True, False, False]) == (1.0, 0.0)
+    assert decoded([True, False, False, True]) == (2 / 3, 1 / 3)
