@@ -99,6 +99,7 @@ inventory:
   - `ea_*` `log_time`, `logger`, and per-generation `fronts`
   - MAP-Elites `GridArchive` / `CvtArchive` / `UnstructuredArchive` / `ea_map_elites`
   - `mut_de` (DE/rand/1/bin trial)
+  - `step_islands` (heterogeneous island step) and append-only tape rescore
 
 The package is typed, uses snake_case, and is Apache-2.0. Hypervolume
 work delegates to [moocore](https://pypi.org/project/moocore/).

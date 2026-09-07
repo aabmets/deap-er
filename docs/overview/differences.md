@@ -351,6 +351,13 @@ evaluation is in the
     adds a point that is far enough from every member or replaces
     the nearest neighbor. `cvt_centroids` builds the CVT tessellation
     from a behavior sample. `ea_map_elites` accepts either archive.
+19. `step_islands` runs one evaluate → vary → select step on each
+    deme, then an optional `migrate` (typically `mig_ring`). Each deme
+    has its own toolbox, so selection pressure can differ while the
+    topology stays a ring. Migrants keep fitness when `eval_keys`
+    match; distinct keys invalidate arrivals. Append-only columnar
+    evaluation is the documented full-matrix `interpret_tapes` rescore
+    after `vstack` — DEAP has neither.
 
 ## Persistence
 
