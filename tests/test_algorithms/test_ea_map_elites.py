@@ -187,7 +187,7 @@ def test_ea_map_elites_empty_initial_generation_zero_with_stats(toolbox):
 
 def test_ea_map_elites_prefilled_archive_empty_initial_with_stats(toolbox):
     # Resume from a seeded archive: variation is allowed with initial=[].
-    # Gen 0 compiles that empty seed; later gens compile offspring.
+    # Gen 0 skips stats.compile on that empty seed; later gens compile offspring.
     archive = tools.GridArchive(ranges=[(6.0, 9.0)], bins=4)
     seed = creator.__dict__[ME_IND]([0, 1, 1, 0, 1, 1])
     seed.fitness.values = _evaluate(seed)
