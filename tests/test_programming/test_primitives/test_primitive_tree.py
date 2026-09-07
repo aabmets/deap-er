@@ -47,6 +47,24 @@ def test_from_string_rejects_non_literal():
         gp.PrimitiveTree.from_string("add(ARG0, foo)", pset)
 
 
+def test_from_string_rejects_an_extra_argument():
+    pset = _add_pset()
+    with pytest.raises(TypeError, match="extra"):
+        gp.PrimitiveTree.from_string("add(ARG0, 2, 3)", pset)
+
+
+def test_from_string_rejects_a_trailing_literal():
+    pset = _add_pset()
+    with pytest.raises(TypeError, match="extra"):
+        gp.PrimitiveTree.from_string("add(ARG0, 2) 99", pset)
+
+
+def test_from_string_rejects_an_incomplete_call():
+    pset = _add_pset()
+    with pytest.raises(TypeError, match="incomplete"):
+        gp.PrimitiveTree.from_string("add(ARG0)", pset)
+
+
 def test_setitem_rejects_arity_changes():
     pset = _add_pset()
     tree = gp.PrimitiveTree.from_string("add(ARG0, 2)", pset)
