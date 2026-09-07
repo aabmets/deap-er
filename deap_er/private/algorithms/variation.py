@@ -69,7 +69,9 @@ def var_or(
 
     The sum of ``cx_prob`` and ``mut_prob`` must be in ``[0, 1]``. The
     remaining probability copies an unmodified parent. The result is a
-    new list; fitnesses of varied individuals are cleared.
+    new list; fitnesses of varied individuals are cleared. A crossover
+    draw from a one-individual pool clones that parent twice and mates
+    the clones.
 
     Requires ``clone``, ``mate``, and ``mutate`` on ``toolbox``.
 
@@ -97,7 +99,12 @@ def var_or(
     for _ in range(offsprings):
         op_choice = rng.random()
         if op_choice < cx_prob:
-            ind1, ind2 = map(toolbox.clone, rng.sample(population, 2))
+            if len(population) >= 2:
+                pair = rng.sample(population, 2)
+            else:
+                parent = rng.choice(population)
+                pair = (parent, parent)
+            ind1, ind2 = map(toolbox.clone, pair)
             ind1, ind2 = toolbox.mate(ind1, ind2)
             del ind1.fitness.values
             offspring.append(ind1)

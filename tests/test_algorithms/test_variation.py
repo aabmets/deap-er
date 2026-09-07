@@ -74,6 +74,16 @@ def test_var_or_mutating_offspring_leaves_parents_untouched(toolbox):
     assert [list(ind) for ind in population] == before
 
 
+def test_var_or_single_parent_with_crossover_does_not_crash(toolbox):
+    population = _population(count=1)
+
+    offspring = tools.var_or(toolbox, population, 6, cx_prob=1.0, mut_prob=0.0)
+
+    assert len(offspring) == 6
+    parent_id = id(population[0])
+    assert all(id(child) != parent_id for child in offspring)
+
+
 def test_var_or_still_produces_the_requested_count(toolbox):
     tools.rng.seed(9)
     population = _population()
