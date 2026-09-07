@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterator, Sequence
+from typing import cast
 
 import numpy
 
@@ -94,7 +95,7 @@ def coerce_case_exam(
         return CaseExam(ranges=[])
     first = exam[0]
     if isinstance(first, tuple | list | numpy.ndarray) and len(first) == 2:
-        return CaseExam(ranges=exam)  # type: ignore[arg-type]
+        return CaseExam(ranges=cast(CaseRanges, exam))
     if n_cases is None:
         raise ValueError("n_cases is required to coerce case indices")
-    return CaseExam.from_cases(exam, n_cases)  # type: ignore[arg-type]
+    return CaseExam.from_cases(cast(Sequence[int], exam), n_cases)
