@@ -125,7 +125,7 @@ def test_next_lexicase_cases_feeds_sel_lexicase(ind_cls):
     assert all(ind in elites for ind in chosen)
 
 
-def test_next_informed_matches_sample_informed_cases(ind_cls):
+def test_next_informed_true_on_healthy_exam_does_not_resample(ind_cls):
     elites = [
         _make(ind_cls, [0], (0.0, 1.0, 1.0, 0.0)),
         _make(ind_cls, [1], (1.0, 0.0, 1.0, 0.0)),
@@ -133,10 +133,6 @@ def test_next_informed_matches_sample_informed_cases(ind_cls):
     ]
     exam = tools.CaseExam.from_cases([0, 2], 4)
     matrix = tools.fitness_case_matrix(elites)
-
-    tools.rng.seed(5)
-    informed = tools.sample_informed_cases(elites, 2, matrix=matrix)
-    tools.rng.seed(5)
     cases = tools.next_lexicase_cases(
         [exam],
         elites,
@@ -145,8 +141,7 @@ def test_next_informed_matches_sample_informed_cases(ind_cls):
         informed=True,
         mut_prob=0.0,
     )
-
-    assert cases == informed
+    assert cases == [0, 2]
 
 
 def test_next_empty_exams_or_elites_raises(ind_cls):
