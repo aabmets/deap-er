@@ -160,9 +160,11 @@ from the original sources.
     Hamming distance from the all-solved vector (solved ≡ $0$).
     `mut_case_ranges` / `mut_case_mask` vary bounds or flip mask
     runs; `guard_case_exams` blocks the empty exam and the
-    all-solved collapse. `next_lexicase_cases` returns the next
-    `cases=` list, optionally via `sample_informed_cases`.
-    Chronological splits stay on the caller.
+    all-solved collapse. `next_lexicase_cases` returns the mutated
+    or guarded winner as the next `cases=` list. `informed=True`
+    (the default) is a guard repair path only — it does not
+    overwrite a healthy exam. Chronological splits stay on the
+    caller.
 
 ## Evolution strategies
 

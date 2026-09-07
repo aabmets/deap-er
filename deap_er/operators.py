@@ -8,6 +8,9 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from .private.operators.case_exam_guard import guard_case_exams
+from .private.operators.case_exam_step import next_lexicase_cases
+from .private.operators.case_exams import score_case_exams
 from .private.operators.constraint_dominates import constraint_dominates
 from .private.operators.cx_hetero import cx_heterogeneous
 from .private.operators.cx_permutation import (
@@ -32,6 +35,7 @@ from .private.operators.cx_real import (
     cx_uniform,
 )
 from .private.operators.mig_ring import mig_ring
+from .private.operators.mut_case_exam import mut_case_mask, mut_case_ranges
 from .private.operators.mut_de import mut_de
 from .private.operators.mut_gaussian_bounded import mut_gaussian_bounded
 from .private.operators.mut_hetero import mut_heterogeneous
@@ -43,10 +47,6 @@ from .private.operators.mut_various import (
     mut_shuffle_indexes,
     mut_uniform_int,
 )
-from .private.operators.case_exam_guard import guard_case_exams
-from .private.operators.case_exam_step import next_lexicase_cases
-from .private.operators.case_exams import score_case_exams
-from .private.operators.mut_case_exam import mut_case_mask, mut_case_ranges
 from .private.operators.sample_informed_cases import sample_informed_cases
 from .private.operators.sel_age_moea_2 import SelAGE2WithMemory, sel_age_moea_2
 from .private.operators.sel_helpers import assign_crowding_dist, uniform_reference_points

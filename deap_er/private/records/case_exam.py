@@ -38,6 +38,8 @@ class CaseExam:
         self,
         ranges: CaseRanges | None = None,
         mask: numpy.ndarray | None = None,
+        *,
+        length: int | None = None,
     ) -> None:
         """Store exactly one of ``ranges`` or ``mask``.
 
@@ -45,6 +47,9 @@ class CaseExam:
             ranges: Half-open ``(start, stop)`` pairs or a ``(n, 2)``
                 integer table.
             mask: One-dimensional ``bool`` array.
+            length: Optional series span. When set and different from
+                the fitness-case count, :meth:`as_cases` returns segment
+                indices and range mutation uses this bound.
 
         Raises:
             ValueError: If both or neither form is given, or ``mask`` is
@@ -52,6 +57,7 @@ class CaseExam:
         """
         if (ranges is None) == (mask is None):
             raise ValueError("CaseExam requires exactly one of ranges or mask")
+        self._length = length
         self._ranges: list[tuple[int, int]] | None
         self._mask: numpy.ndarray | None
         if mask is not None:
@@ -63,10 +69,8 @@ class CaseExam:
             self._mask = array.copy()
             self._ranges = None
             return
-        if ranges is None:
-            raise ValueError("CaseExam requires exactly one of ranges or mask")
         self._mask = None
-        self._ranges = [tuple(pair) for pair in ranges]
+        self._ranges = [tuple(pair) for pair in ranges or ()]
 
     @classmethod
     def from_cases(cls, cases: Sequence[int], n_cases: int) -> CaseExam:
@@ -99,6 +103,11 @@ class CaseExam:
     def mask(self) -> numpy.ndarray | None:
         """Live boolean mask, or ``None`` when the exam stores ranges."""
         return self._mask
+
+    @property
+    def length(self) -> int | None:
+        """Optional series span, or ``None`` when unset."""
+        return self._length
 
     def as_ranges(self, length: int) -> list[tuple[int, int]]:
         """Return validated ``[start, stop)`` intervals against ``length``.
@@ -135,24 +144,29 @@ class CaseExam:
         return mask_from_ranges(self._ranges or [], length)
 
     def as_cases(self, n_cases: int) -> list[int]:
-        """Interpret the exam as a subset of ``n_cases`` catalog indices.
+        """Interpret the exam as catalog indices or series segments.
 
-        A stored mask must have length ``n_cases``. Stored ranges are
-        treated as half-open intervals over those indices.
+        A stored mask must have length ``n_cases``. Catalog ranges
+        (every ``stop <= n_cases``) expand to those indices. Series
+        ranges — any ``stop > n_cases``, or an explicit ``length``
+        different from ``n_cases`` — return ``0 .. n_segments-1``.
 
         Args:
             n_cases: Number of fitness cases in the current pack.
 
         Returns:
-            Distinct case indices in first-occurrence order.
+            Distinct case or segment indices in first-occurrence order.
 
         Raises:
-            ValueError: If stored bounds or the mask do not match ``n_cases``.
+            ValueError: If stored catalog bounds or the mask do not
+                match ``n_cases``.
         """
         if self._mask is not None:
             if self._mask.shape[0] != n_cases:
                 raise ValueError("a boolean mask must match the series length")
             return [int(idx) for idx in numpy.flatnonzero(self._mask)]
+        if self._is_series(n_cases):
+            return list(range(len(self._ranges or [])))
         seen: set[int] = set()
         chosen: list[int] = []
         for start, stop in normalize_case_ranges(self._ranges or [], n_cases):
@@ -162,6 +176,29 @@ class CaseExam:
                     chosen.append(idx)
         return chosen
 
+    def mutation_bound(self, n_cases: int) -> int:
+        """Exclusive endpoint bound for range mutation.
+
+        Args:
+            n_cases: Fitness-case count from the current pack.
+
+        Returns:
+            The series span when this exam is a series, otherwise
+            ``n_cases``.
+        """
+        if self._length is not None:
+            return self._length
+        if self._ranges and any(int(stop) > n_cases for _, stop in self._ranges):
+            return max(int(stop) for _, stop in self._ranges)
+        if self._mask is not None:
+            return int(self._mask.shape[0])
+        return n_cases
+
+    def _is_series(self, n_cases: int) -> bool:
+        if self._length is not None:
+            return self._length != n_cases
+        return bool(self._ranges) and any(int(stop) > n_cases for _, stop in self._ranges)
+
     def copy(self) -> CaseExam:
         """Return a copy of the stored ranges or mask.
 
@@ -169,8 +206,8 @@ class CaseExam:
             A new exam with the same subset.
         """
         if self._mask is not None:
-            return CaseExam(mask=self._mask)
-        return CaseExam(ranges=list(self._ranges or []))
+            return CaseExam(mask=self._mask, length=self._length)
+        return CaseExam(ranges=list(self._ranges or []), length=self._length)
 
     def assign(self, other: CaseExam) -> None:
         """Replace this exam's storage with a copy of ``other``.
@@ -178,6 +215,7 @@ class CaseExam:
         Args:
             other: Exam whose ranges or mask become this exam's data.
         """
+        self._length = other._length
         if other._mask is not None:
             self._mask = other._mask.copy()
             self._ranges = None
