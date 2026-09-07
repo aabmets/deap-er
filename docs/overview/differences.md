@@ -7,7 +7,7 @@ changed. Same toolbox model. Counted from the sections below:
 
 - **18** still-open [DEAP](https://github.com/DEAP/deap) issues
   [implemented](../bugfixes/deap_fixes.md) (some older than a decade)
-- **36** correctness bugs fixed — [operators](../bugfixes/operators.md),
+- **37** correctness bugs fixed — [operators](../bugfixes/operators.md),
   [GP](../bugfixes/gp.md),
   [CMA](../bugfixes/strategies.md),
   [records](../bugfixes/records.md),
@@ -340,6 +340,9 @@ evaluation is in the
    half-open `(start, stop)` ranges or a boolean mask (one case per
    contiguous `True` run). Non-finite samples are skipped; optional
    `valid=` covers the `vwhere` warmup trap from columnar GP.
+4. `duplicate_count` hashes a NumPy-array key by shape, dtype, and
+   raw bytes. Equal ndarray individuals no longer raise `ValueError`
+   from `sorted()` or list membership.
 
 ## Benchmarks
 

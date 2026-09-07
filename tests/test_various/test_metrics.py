@@ -10,6 +10,7 @@
 #
 from typing import Any, override
 
+import numpy
 import pytest
 from deap_er import Fitness, creator, tools
 
@@ -173,3 +174,19 @@ def test_duplicate_count_unsortable_unhashable_keys_use_list_fallback():
         _UnsortableUnhashable(),
     ]
     assert tools.duplicate_count(population) == 2
+
+
+def test_duplicate_count_ndarray_individuals_count_twins():
+    fit_name = "DUP_NP_FIT"
+    ind_name = "DUP_NP_IND"
+    creator.create_type(fit_name, Fitness, weights=(1.0,))
+    creator.create_type(ind_name, numpy.ndarray, fitness=creator.__dict__[fit_name])
+    try:
+        twins = [creator.__dict__[ind_name]([1, 2]), creator.__dict__[ind_name]([1, 2])]
+        unique = [creator.__dict__[ind_name]([1, 2]), creator.__dict__[ind_name]([3, 4])]
+        assert tools.duplicate_count(twins) == 1
+        assert tools.duplicate_count(unique) == 0
+        assert tools.duplicate_count(twins, key=tuple) == 1
+    finally:
+        del creator.__dict__[ind_name]
+        del creator.__dict__[fit_name]
