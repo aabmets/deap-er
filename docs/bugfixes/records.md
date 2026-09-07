@@ -4,6 +4,20 @@ Correctness fixes in HallOfFame, Logbook, History, and MultiStatistics.
 
 ---
 
+## ParetoFront crashed on a missing fitness
+
+An empty front skipped a member without `fitness` (`insert` no-ops).
+Once the front held anyone, `update` compared `ind.fitness` and
+raised `AttributeError`, so later valid individuals were never seen.
+
+**Fix.** Skip an individual that has no `fitness` attribute, matching
+`HallOfFame.update`.
+
+**Validator.**
+`tests/test_records/test_hall_of_fame.py::test_pareto_front_skips_individual_without_fitness`
+
+---
+
 ## HallOfFame empty-archive bootstrap
 
 If `population[0]` had no `fitness`, `insert` no-op'd and every later
