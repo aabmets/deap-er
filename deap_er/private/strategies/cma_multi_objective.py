@@ -167,10 +167,10 @@ class StrategyMultiObjective:
     def generate(self, ind_init: Callable[..., Individual]) -> list[Individual]:
         """Sample ``offsprings`` individuals from the current parents.
 
-        When ``offsprings`` equals the parent count, each parent
-        produces one child. Otherwise parents are drawn from the first
-        non-dominated front, or from every parent if any parent
-        fitness is invalid.
+        When ``offsprings`` equals the parent count and that many
+        parents exist, each parent produces one child. Otherwise
+        parents are drawn from the first non-dominated front, or from
+        every parent if any parent fitness is invalid.
 
         Args:
             ind_init: Callable that turns a sampled vector into an
@@ -198,7 +198,10 @@ class StrategyMultiObjective:
                 lambda: _raw(parent, sigma, big_a, rng.standard_normal(self.dim)),
             )
 
-        if self.lamb == self.mu:
+        if not self.parents:
+            return []
+
+        if self.lamb == self.mu and len(self.parents) >= self.lamb:
             for i in range(self.lamb):
                 raw = _raw(self.parents[i], self.sigmas[i], self.big_a[i], arz[i])
                 init = ind_init(_bound(raw, self.parents[i], self.sigmas[i], self.big_a[i]))
