@@ -7,7 +7,7 @@ changed. Same toolbox model. Counted from the sections below:
 
 - **18** still-open [DEAP](https://github.com/DEAP/deap) issues
   [implemented](../bugfixes/deap_fixes.md) (some older than a decade)
-- **60** correctness bugs fixed — [operators](../bugfixes/operators.md),
+- **61** correctness bugs fixed — [operators](../bugfixes/operators.md),
   [GP](../bugfixes/gp.md),
   [CMA](../bugfixes/strategies.md),
   [records](../bugfixes/records.md),
@@ -426,6 +426,10 @@ evaluation is in the
 23. `ea_generate_update_restarts` keeps the last evaluated population
     when `generate` returns empty. The empty batch is still a stop
     signal; it no longer overwrites a finished run with `[]`.
+24. `Logbook.clear` deletes every parent row through `__delitem__`.
+    Chapters and the stream cursor stay aligned, matching
+    `del logbook[:]`. `list.clear` no longer leaves chapter
+    generations behind or drops later `stream` rows.
 
 ## Persistence
 
