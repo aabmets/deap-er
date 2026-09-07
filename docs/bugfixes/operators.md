@@ -201,3 +201,18 @@ indices.
 
 **Validator.**
 `tests/test_operators/test_mig_ring.py::test_mig_ring_sel_random_completes_with_duplicate_draws`
+
+---
+
+## `cx_ordered` raised `ValueError` on length-1 permutations
+
+`rng.sample(range(size), 2)` needs two cut points. A one-gene
+permutation (or two empty parents) is a valid encoding, but the
+sample is larger than the population. One-point, two-point, and
+shuffle already no-op when size is less than 2.
+
+**Fix.** After the shared-allele check, return the individuals
+unchanged when `size < 2`.
+
+**Validator.**
+`tests/test_operators/test_cx_permutation.py::test_cx_ordered_length_one_is_noop`

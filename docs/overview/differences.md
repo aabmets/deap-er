@@ -105,9 +105,10 @@ from the original sources.
     gap as $1$ so the niche distance is not NaN. Niching stops when
     the last front is exhausted, so a $k$ larger than the pool does
     not loop forever.
-14. `cx_one_point`, `cx_two_point`, and `mut_shuffle_indexes` no-op
-    when a parent is shorter than two genes, so a length-1 individual
-    no longer hits an empty `randint` interval.
+14. `cx_one_point`, `cx_two_point`, `cx_ordered`, and
+    `mut_shuffle_indexes` no-op when a parent is shorter than two
+    genes, so a length-1 individual no longer hits an empty `randint`
+    interval or a two-cut `sample` on a one-gene permutation.
 15. `sel_lexicase` and `sel_epsilon_lexicase` accept `cases=` to
     filter on a per-generation subset of fitness indices. Defaults
     still use every case. `sample_informed_cases` builds that subset
