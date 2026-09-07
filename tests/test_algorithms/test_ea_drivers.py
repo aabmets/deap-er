@@ -78,6 +78,38 @@ def test_all_drivers_agree_on_generation_numbering(toolbox, driver):
     assert logbook.select("gen") == [0, 1, 2, 3, 4]
 
 
+def test_generate_update_uses_evaluate_batch_when_registered(toolbox):
+    strategy_pop = _population()
+    batches = []
+
+    def generate():
+        clones = [toolbox.clone(ind) for ind in strategy_pop]
+        for individual in clones:
+            del individual.fitness.values
+        return clones
+
+    def update(_population):
+        return None
+
+    def evaluate_batch(individuals):
+        batches.append(len(individuals))
+        return [_evaluate(ind) for ind in individuals]
+
+    def forbidden_map(*_args, **_kwargs):
+        raise AssertionError("map must not be used while evaluate_batch is registered")
+
+    toolbox.register("generate", generate)
+    toolbox.register("update", update)
+    toolbox.register("evaluate_batch", evaluate_batch)
+    toolbox.register("map", forbidden_map)
+
+    _, logbook = tools.ea_generate_update(toolbox, generations=3)
+
+    assert sum(batches) == sum(logbook.select("nevals"))
+    assert len(batches) == 3
+    assert all(count == len(strategy_pop) for count in batches)
+
+
 def test_evaluate_batch_takes_over_from_map_when_registered(toolbox):
     batches = []
 

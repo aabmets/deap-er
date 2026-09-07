@@ -12,18 +12,12 @@ import time
 from logging import Logger
 from typing import Any
 
-from deap_er.private.algorithms.loop import new_logbook, record_generation
+from deap_er.private.algorithms.loop import evaluate_invalid, new_logbook, record_generation
 from deap_er.private.strategies.restart import RestartStrategy
 from deap_er.private.toolbox import Toolbox
 from deap_er.private.typedefs import EvoAlgoResult, EvoRecords, EvoStats, Individual
 
 __all__ = ["ea_generate_update_restarts"]
-
-
-def _evaluate_population(toolbox: Toolbox, population: list[Individual]) -> None:
-    fitness = toolbox.map(toolbox.evaluate, population)
-    for ind, fit in zip(population, fitness, strict=False):
-        ind.fitness.values = fit
 
 
 def _restart_log_extra(
@@ -46,6 +40,7 @@ def _record_restart_generation(
     gen: int,
     population: list[Individual],
     *,
+    nevals: int,
     hof: EvoRecords | None,
     stats: EvoStats | None,
     duration: float | None,
@@ -55,7 +50,7 @@ def _record_restart_generation(
     record_generation(
         logbook,
         gen,
-        len(population),
+        nevals,
         population=population,
         offspring=population,
         hof=hof,
@@ -124,7 +119,7 @@ def ea_generate_update_restarts(
         population = toolbox.generate()
         if not population:
             break
-        _evaluate_population(toolbox, population)
+        nevals = evaluate_invalid(toolbox, population)
         restart_strategy.update(population)
         gen += 1
         duration = time.perf_counter() - t0 if log_time else None
@@ -132,6 +127,7 @@ def ea_generate_update_restarts(
             logbook,
             gen,
             population,
+            nevals=nevals,
             hof=hof,
             stats=stats,
             duration=duration,
