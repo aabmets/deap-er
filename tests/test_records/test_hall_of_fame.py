@@ -194,6 +194,7 @@ def test_pareto_front_skips_individual_without_fitness():
     creator.create_type("PF_FIT", Fitness, weights=(-1.0, -1.0))
     creator.create_type("PF_IND", list, fitness=creator.__dict__["PF_FIT"])
     try:
+
         class Bare(list[Any]):
             pass
 
