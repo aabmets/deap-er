@@ -287,3 +287,19 @@ instead of `[]`. `sel_random`, roulette, and NSGA-II already treat
 
 **Validator.**
 `tests/test_operators/test_sel_various.py::test_best_and_worst_non_positive_count_returns_empty`
+
+---
+
+## `mig_ring` aliased a duplicate emigrant in the destination
+
+`sel_random` (and any selector that returns the same object twice)
+wrote that object into two dest slots. Vacancy claiming already took
+the next unused index, so both writes succeeded. Mutating one slot
+then mutated the other. Source demes could alias the same way when
+they received a duplicated emigrant.
+
+**Fix.** Clone an emigrant when that object is already placed in the
+destination this generation.
+
+**Validator.**
+`tests/test_operators/test_mig_ring.py::test_mig_ring_duplicate_emigrants_do_not_alias_in_dest`
