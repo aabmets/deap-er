@@ -36,12 +36,22 @@ _built: dict[str, Any] = {}
 
 
 def ensure_numba_cache_dir() -> None:
-    """Point Numba at a writable on-disk cache when none is configured."""
+    """Point Numba at a writable on-disk cache when none is configured.
+
+    The default location is an absolute path under the user's cache
+    directory so spawned workers with a different working directory
+    still share the same on-disk JIT cache.
+    """
     import os
 
     if os.environ.get("NUMBA_CACHE_DIR"):
         return
-    cache = Path.cwd() / ".cache" / "numba"
+    xdg_cache = os.environ.get("XDG_CACHE_HOME")
+    if xdg_cache:
+        cache = Path(xdg_cache) / "deap-er" / "numba"
+    else:
+        cache = Path.home() / ".cache" / "deap-er" / "numba"
+    cache = cache.resolve()
     cache.mkdir(parents=True, exist_ok=True)
     os.environ["NUMBA_CACHE_DIR"] = str(cache)
 

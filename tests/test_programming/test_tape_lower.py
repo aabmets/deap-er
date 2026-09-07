@@ -145,6 +145,29 @@ def test_interpret_tape_accepts_a_packed_matrix():
     numpy.testing.assert_allclose(_as_column(actual, 24), _as_column(expected, 24), equal_nan=True)
 
 
+def test_the_opcode_backend_returns_the_input_column_on_the_tuple_path():
+    pset = gp.make_column_pset(["first"])
+    gp.add_numpy_primitives(pset)
+    tree = gp.PrimitiveTree([pset.mapping["first"]])
+    column = numpy.arange(8, dtype=numpy.float64)
+    func = gp.compile_tree(tree, pset, backend="opcode")
+
+    assert func(column) is column
+
+
+def test_the_opcode_backend_preserves_input_dtype_on_the_tuple_path():
+    pset = gp.make_column_pset(["first"])
+    gp.add_numpy_primitives(pset)
+    tree = gp.PrimitiveTree([pset.mapping["first"]])
+    column = numpy.arange(8, dtype=numpy.float32)
+    func = gp.compile_tree(tree, pset, backend="opcode")
+
+    result = func(column)
+
+    assert result.dtype == numpy.float32
+    assert result is column
+
+
 def test_the_opcode_backend_evaluates_a_set_without_arguments():
     pset = gp.PrimitiveSetTyped("MAIN", [], gp.Array)
     gp.add_numpy_primitives(pset)

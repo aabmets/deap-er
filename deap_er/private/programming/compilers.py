@@ -20,7 +20,7 @@ from deap_er.private.various.clone import clone_individual
 from deap_er.private.various.rng import rng
 
 from .compile_cache import CompileCache
-from .matrix_pack import as_matrix
+from .matrix_pack import as_matrix, is_packed_matrix
 from .numba.numba_ops import bind_tape
 from .opcodes import USER_BASE, interpret_tape, lower_tree
 from .primitives.primitive_nodes import Primitive
@@ -84,8 +84,10 @@ def _compile_tape(
         def runner(*columns: Any) -> Any:
             if tape.columns == 0:
                 return interpret_tape(tape, columns)
-            matrix = as_matrix(columns, tape.columns)
-            return interpret_tape(tape, matrix)
+            if len(columns) == 1 and is_packed_matrix(columns[0]):
+                matrix = as_matrix(columns, tape.columns)
+                return interpret_tape(tape, matrix)
+            return interpret_tape(tape, columns)
 
     if len(prim_set.arguments) == 0:
         return runner()

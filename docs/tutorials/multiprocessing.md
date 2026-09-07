@@ -98,9 +98,9 @@ or a `numpy.memmap` and have each worker attach to them once at import.
 On platforms that start workers by spawning, each child process pays
 for the Numba interpreter unless it is warmed from disk. Set
 `NUMBA_CACHE_DIR` to a directory every worker can read and write, or
-let `gp.warmup_numba()` create `.cache/numba` under the current
-working directory when the variable is unset. Register a pool
-initializer so the interpreter is specialized before the first
+let `gp.warmup_numba()` create `~/.cache/deap-er/numba` (or
+`$XDG_CACHE_HOME/deap-er/numba`) when the variable is unset. Register
+a pool initializer so the interpreter is specialized before the first
 evaluation:
 
 ```python

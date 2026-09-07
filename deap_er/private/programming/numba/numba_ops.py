@@ -162,10 +162,11 @@ def warmup_numba(*, parallel: bool = False, dispatch: Any = None) -> None:
 
     Runs a trivial column-load tape so the interpreter and the serial
     batch kernel are specialized before the first real evaluation.
-    When ``NUMBA_CACHE_DIR`` is unset, a writable directory under
-    ``.cache/numba`` in the current working directory is used so
-    spawned workers can reload the interpreter from disk instead of
-    recompiling it.
+    When ``NUMBA_CACHE_DIR`` is unset, a writable directory under the
+    user's cache (``~/.cache/deap-er/numba``, or
+    ``$XDG_CACHE_HOME/deap-er/numba``) is used so spawned workers with
+    a different working directory can reload the interpreter from disk
+    instead of recompiling it.
 
     Args:
         parallel: If True, also specialize the ``prange`` batch kernel.
