@@ -162,6 +162,13 @@ pool is already running.
     is responsible for its own parallelism. Leave it unregistered to
     keep the ordinary per-individual path.
 
+A growing matrix and unlike demes stay on the caller loop. Append
+rows, invalidate fitness, and rescore with `interpret_tapes` on the
+full pack — see the [columnar tutorial](columnar_gp.md). Step unlike
+toolboxes with `step_islands`, then `mig_ring`. Persist with
+`Checkpoint.range`. Do not stand up a Ray or GPU evaluation daemon
+for that recipe; `evaluate_batch` already owns any process pool.
+
 !!! attention
     When using multiprocessing on Windows, the main function needs to be guarded
     with the `if __name__ == '__main__'` statement.
