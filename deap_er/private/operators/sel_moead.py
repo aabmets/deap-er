@@ -56,7 +56,10 @@ def _update_ideal_point(fitness: ndarray, ideal_point: ndarray | None) -> ndarra
         return current
     prior = numpy.asarray(ideal_point, dtype=float).reshape(-1)
     if prior.shape != current.shape:
-        return current
+        msg = (
+            f"ideal_point length {prior.shape[0]} does not match objective count {current.shape[0]}"
+        )
+        raise ValueError(msg)
     merged = numpy.where(numpy.isfinite(prior), prior, numpy.inf)
     return numpy.minimum(current, merged)
 

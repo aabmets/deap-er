@@ -102,6 +102,34 @@ def test_update_ideal_point_mixed_inf():
     assert got.tolist() == pytest.approx([0.1, 1.5, 0.2])
 
 
+def test_update_ideal_point_raises_on_shape_mismatch():
+    from deap_er.private.operators.sel_moead import _update_ideal_point
+
+    fitness = numpy.array([[1.0, 2.0]])
+    with pytest.raises(ValueError, match="objective count"):
+        _update_ideal_point(fitness, numpy.array([0.5]))
+
+
+def test_sel_moead_raises_on_ideal_point_shape_mismatch():
+    fit_name = "MOEAD_SHAPE_FIT"
+    ind_name = "MOEAD_SHAPE_IND"
+    creator.create_type(fit_name, Fitness, weights=(-1.0, -1.0))
+    creator.create_type(ind_name, list, fitness=creator.__dict__[fit_name])
+    try:
+        pop = []
+        for genes, values in (([0.0], (0.2, 0.8)), ([1.0], (0.8, 0.2))):
+            ind = creator.__dict__[ind_name](genes)
+            ind.fitness.values = values
+            pop.append(ind)
+
+        weights = numpy.array([[0.5, 0.5]])
+        with pytest.raises(ValueError, match="objective count"):
+            tools.sel_moead(pop, 1, weights, ideal_point=numpy.array([0.0]))
+    finally:
+        del creator.__dict__[fit_name]
+        del creator.__dict__[ind_name]
+
+
 def test_sel_moead_accepts_mixed_inf_ideal_point():
     fit_name = "MOEAD_INF_FIT"
     ind_name = "MOEAD_INF_IND"
