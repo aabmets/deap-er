@@ -86,3 +86,12 @@ def test_coerce_case_exam_accepts_mask_ranges_and_indices():
     assert empty.as_cases(3) == []
     with pytest.raises(ValueError, match="n_cases"):
         tools.coerce_case_exam([0, 1])
+
+
+def test_case_exam_accepts_numpy_range_table():
+    table = numpy.array([[0, 2], [3, 4]], dtype=int)
+    exam = tools.CaseExam(ranges=table)
+    coerced = tools.coerce_case_exam(table)
+    assert exam.ranges == [(0, 2), (3, 4)]
+    assert exam.as_cases(5) == [0, 1, 3]
+    assert coerced.as_cases(5) == [0, 1, 3]
