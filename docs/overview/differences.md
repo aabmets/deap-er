@@ -138,6 +138,10 @@ from the original sources.
     `mut_gaussian`, then clamps each mutated gene into `[low, up]`.
     Bounds may be scalars or per-gene sequences, matching
     `mut_polynomial_bounded`. Empty intervals are skipped.
+21. `mut_de` writes a DE/rand/1/bin trial in place: $a_i + F(b_i - c_i)$
+    on a binomial gene subset (`cx_prob`, at least one gene). Optional
+    `low` / `up` clamp the written genes. Selection stays on the
+    caller. DEAP only has this loop in examples.
 
 ## Evolution strategies
 
