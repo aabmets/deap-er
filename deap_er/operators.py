@@ -45,6 +45,7 @@ from .private.operators.sel_lexicase import sel_epsilon_lexicase, sel_lexicase
 from .private.operators.sel_lexicase_matrix import fitness_case_matrix
 from .private.operators.sel_nsga_2 import sel_nsga_2
 from .private.operators.sel_nsga_3 import SelNSGA3WithMemory, sel_nsga_3
+from .private.operators.sel_sms_emoa import sel_sms_emoa
 from .private.operators.sel_spea_2 import sel_spea_2
 from .private.operators.sel_tournament import sel_double_tournament, sel_tournament
 from .private.operators.sel_tournament_dcd import sel_tournament_dcd
@@ -90,6 +91,7 @@ __all__: list[str] = [
     "SelNSGA3WithMemory",
     "sel_nsga_3",
     "sel_spea_2",
+    "sel_sms_emoa",
     "sel_double_tournament",
     "sel_tournament",
     "sel_tournament_dcd",
