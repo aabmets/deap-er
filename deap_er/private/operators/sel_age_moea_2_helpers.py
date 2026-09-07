@@ -62,6 +62,31 @@ def geodesic_distance(a: ndarray, b: ndarray, curvature: float) -> float:
     return float(numpy.linalg.norm(a - mid_proj) + numpy.linalg.norm(b - mid_proj))
 
 
+def _geodesic_matrix_curved(projected: ndarray, curvature: float) -> ndarray:
+    """Return pairwise geodesic distances for curvature outside the flat band.
+
+    Midpoints are projected with the same ``L^p`` rule as
+    ``project_on_manifold``: only positive coordinates enter the
+    norm, and a near-zero norm leaves the midpoint unchanged.
+
+    Args:
+        projected: Manifold-projected points with shape ``(n, m)``.
+        curvature: Estimated front curvature ``p``.
+
+    Returns:
+        Symmetric distance matrix with shape ``(n, n)``.
+    """
+    mid = 0.5 * (projected[:, numpy.newaxis, :] + projected[numpy.newaxis, :, :])
+    pos = numpy.where(mid > 0.0, mid, 0.0)
+    dist = numpy.sum(pos**curvature, axis=2) ** (1.0 / curvature)
+    dist = numpy.where(numpy.abs(dist) < _ZERO_TOL, 1.0, dist)
+    mid_proj = mid / dist[..., numpy.newaxis]
+    distances = numpy.linalg.norm(projected[:, numpy.newaxis, :] - mid_proj, axis=2)
+    distances += numpy.linalg.norm(projected[numpy.newaxis, :, :] - mid_proj, axis=2)
+    numpy.fill_diagonal(distances, 0.0)
+    return distances
+
+
 def geodesic_distance_matrix(front: ndarray, curvature: float) -> ndarray:
     """Return pairwise geodesic distances for a normalized front.
 
@@ -74,9 +99,9 @@ def geodesic_distance_matrix(front: ndarray, curvature: float) -> ndarray:
     """
     n = front.shape[0]
     projected = numpy.array([project_on_manifold(row, curvature) for row in front])
-    distances = numpy.zeros((n, n), dtype=float)
 
     if 0.95 < curvature < 1.05:
+        distances = numpy.zeros((n, n), dtype=float)
         for row in range(n - 1):
             diff = projected[row + 1 :] - projected[row]
             row_dist = numpy.linalg.norm(diff, axis=1)
@@ -84,12 +109,7 @@ def geodesic_distance_matrix(front: ndarray, curvature: float) -> ndarray:
             distances[row + 1 :, row] = row_dist
         return distances
 
-    for row in range(n - 1):
-        for col in range(row + 1, n):
-            dist = geodesic_distance(projected[row], projected[col], curvature)
-            distances[row, col] = dist
-            distances[col, row] = dist
-    return distances
+    return _geodesic_matrix_curved(projected, curvature)
 
 
 def survival_scores(
