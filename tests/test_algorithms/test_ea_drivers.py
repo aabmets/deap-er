@@ -144,6 +144,22 @@ def test_map_stays_in_charge_without_an_evaluate_batch_operator(toolbox):
     assert sum(mapped) == sum(logbook.select("nevals"))
 
 
+def test_mu_comma_lambda_one_survivor_with_crossover_runs(toolbox):
+    population = _population()
+    _, logbook = tools.ea_mu_comma_lambda(
+        toolbox,
+        population,
+        generations=3,
+        offsprings=5,
+        survivors=1,
+        cx_prob=1.0,
+        mut_prob=0.0,
+    )
+
+    assert logbook.select("gen") == [0, 1, 2, 3]
+    assert len(population) == 1
+
+
 def test_mu_comma_lambda_rejects_more_survivors_than_offsprings(toolbox):
     # (mu, lambda) requires lambda >= mu, so this is a caller mistake
     # rather than something to silently correct.
