@@ -14,19 +14,22 @@ from typing import Any
 
 from .compilers import compile_tree
 from .opcode_set import USER_BASE
-from .opcodes import bind_numba_opcode, lower_tree, numba_opcodes
+from .opcodes import lower_tree, numba_opcodes
 from .primitives.primitive_nodes import Primitive, Terminal
 from .primitives.primitive_set_typed import PrimitiveSetTyped
 from .primitives.primitive_tree import PrimitiveTree
 
 __all__: list[str] = [
-    "bind_if_columnar",
+    "body_is_columnar",
     "compile_body",
     "consume_node",
+    "next_columnar_opcode",
     "rewrite_body",
     "used_arguments",
     "validate_subtree",
 ]
+
+_MISSING_OPCODE = "no builtin opcode and no binding"
 
 
 def validate_subtree(nodes: list[Any], prim_set: PrimitiveSetTyped) -> None:
@@ -159,32 +162,48 @@ def compile_body(
     return constant
 
 
-def bind_if_columnar(
-    name: str,
+def body_is_columnar(
     body: PrimitiveTree,
     in_types: list[type],
     ret_type: type,
     prim_set: PrimitiveSetTyped,
-) -> int | None:
-    """Bind a consumer opcode when the body can be lowered.
-
-    Reuses a process-global binding of the same name so two sets that
-    both allocate ``promo0`` do not collide.
+) -> bool:
+    """Return whether ``body`` can be lowered to builtin or bound opcodes.
 
     Args:
-        name: Generated primitive name.
         body: Rewritten body tree.
         in_types: Formal argument types.
         ret_type: Return type of the body.
         prim_set: Parent set whose context supplies callables.
 
     Returns:
-        The bound opcode, or None when the body is not columnar.
+        True when the body lowers. False when a primitive has no opcode.
+
+    Raises:
+        ValueError: If the body is malformed or otherwise illegal to
+            lower, other than a missing opcode binding.
     """
     try:
         lower_tree(body, _body_set(in_types, ret_type, prim_set))
-    except ValueError:
-        return None
+    except ValueError as err:
+        if _MISSING_OPCODE in str(err):
+            return False
+        raise
+    return True
+
+
+def next_columnar_opcode(name: str) -> int:
+    """Return a consumer opcode for ``name`` without binding it.
+
+    Reuses a process-global binding of the same name so two sets that
+    both allocate ``promo0`` do not collide.
+
+    Args:
+        name: Generated primitive name.
+
+    Returns:
+        The opcode to bind later.
+    """
     known = numba_opcodes().get(name)
     if known is not None:
         return known
@@ -192,7 +211,6 @@ def bind_if_columnar(
     opcode = USER_BASE
     while opcode in bound:
         opcode += 1
-    bind_numba_opcode(name, opcode)
     return opcode
 
 
