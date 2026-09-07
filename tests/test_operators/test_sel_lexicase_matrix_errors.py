@@ -67,11 +67,12 @@ def test_vectorized_epsilon_minimize_and_empty_survivors(multi_obj, make):
     assert len(chosen) == 3
     assert all(ind in population for ind in chosen)
 
+    case_matrix = tools.fitness_case_matrix(population)
     with pytest.raises(ValueError, match="epsilon must be set"):
         lexicase_select_vectorized(
             population,
             1,
-            tools.fitness_case_matrix(population),
+            case_matrix,
             [0],
             (1.0, 1.0),
             mode="epsilon_fixed",

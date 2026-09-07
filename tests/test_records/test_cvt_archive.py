@@ -187,8 +187,9 @@ def test_add_rejects_multi_objective_fitness():
 
 def test_wrong_descriptor_length_raises(ind_cls):
     archive = tools.CvtArchive(_two_centroids())
+    individual = _individual(ind_cls, [0], 1.0)
     with pytest.raises(ValueError, match="dimensions"):
-        archive.add(_individual(ind_cls, [0], 1.0), (0.1,))
+        archive.add(individual, (0.1,))
 
 
 def test_random_elites_on_empty_archive_raises():

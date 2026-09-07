@@ -174,10 +174,11 @@ def test_harm_compiles_statistics_into_the_logbook(toolbox):
 
 
 def test_harm_rejects_unknown_kwargs(toolbox):
+    population = _seeded_population(toolbox)
     with pytest.raises(TypeError, match="unexpected"):
         gp.harm(
             toolbox,
-            _seeded_population(toolbox),
+            population,
             generations=0,
             cx_prob=0.5,
             mut_prob=0.1,
