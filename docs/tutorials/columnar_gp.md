@@ -198,9 +198,9 @@ result = func(level, flow, noise)
 
 The tape backends reject a tree while lowering it if any of its
 primitives has no opcode, so an unsupported operator is an error before
-the first sample is touched. Both accept the columns positionally; the
-Numba backend also accepts a single prepacked `(n_rows, n_columns)`
-matrix, which avoids repacking them on every call.
+the first sample is touched. Both accept the columns positionally or
+as one prepacked `(n_rows, n_columns)` matrix, which avoids repacking
+them on every call.
 
 The Numba interpreter is compiled once per process, never once per
 tree. Every compiled tape shares one process-wide workspace, so a
@@ -302,7 +302,7 @@ OP_SMOOTH = gp.USER_BASE + 1
 pset.add_primitive(smooth, [gp.Array], gp.Array, "smooth")
 gp.bind_numba_opcode("smooth", OP_SMOOTH)
 
-@numba.njit(error_model="numpy")
+@numba.njit(cache=True, error_model="numpy")
 def dispatch(op, sp, stack, columns, constants, scratch):
     if op == OP_SMOOTH:
         ...

@@ -181,9 +181,9 @@ The following is extra.
 12. `cx_one_point` always groups nodes by return type. An `object`
     root on the first parent no longer disables strongly typed
     matching.
-13. `static_limit` replaces an oversized offspring with a deepcopy of
-    a parent, so the two offspring slots never share one parent
-    object.
+13. `static_limit` replaces an oversized offspring with a
+    `clone_individual` copy of a parent, so the two offspring slots
+    never share one parent object.
 14. HARM places the size cutoff on evaluated individuals only, scales
     the half-life by the cutoff (not by each individual's size), and
     does not crash on an empty candidate slice.

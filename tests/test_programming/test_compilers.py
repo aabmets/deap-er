@@ -88,3 +88,20 @@ def test_static_limit_replaces_oversized_offspring():
 
     assert limited([1, 2]) == [[1, 2, 9]]
     assert limited([1, 2, 3, 4]) == [[1, 2, 3, 4]]
+
+
+def test_static_limit_clones_gp_trees_without_deepcopying_nodes():
+    pset = gp.PrimitiveSet("main", 1)
+    pset.add_primitive(operator.add, 2)
+    pset.add_terminal(1, name="one")
+    parent = gp.PrimitiveTree.from_string("add(ARG0, one)", pset)
+
+    def grow(individual: gp.PrimitiveTree) -> tuple[gp.PrimitiveTree]:
+        return (gp.PrimitiveTree(list(individual) + [pset.mapping["one"]]),)
+
+    limited = gp.static_limit(lambda ind: len(ind), 3)(grow)
+    rejected = limited(parent)[0]
+
+    assert rejected is not parent
+    assert rejected[0] is parent[0]
+    assert rejected[1] is parent[1]

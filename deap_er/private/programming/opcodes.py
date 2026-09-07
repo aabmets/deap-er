@@ -11,6 +11,8 @@
 from collections.abc import Callable, Sequence
 from typing import Any
 
+import numpy
+
 from . import window_ops, window_pair, window_ts
 from .numpy import numpy_ops
 from .opcode_set import BUILTIN_OPCODES, USER_BASE, Opcode
@@ -74,8 +76,22 @@ _PAIR_WINDOWED: dict[int, Callable[..., Any]] = {
 }
 
 
-def interpret_tape(tape: Tape, columns: Sequence[Any]) -> Any:
-    """Run a tape over a sequence of columns.
+def _column_count(columns: Sequence[Any] | numpy.ndarray) -> int:
+    """Return how many columns a tape input carries.
+
+    Args:
+        columns: Packed matrix or column sequence.
+
+    Returns:
+        Column count.
+    """
+    if isinstance(columns, numpy.ndarray) and columns.ndim == 2:
+        return int(columns.shape[1])
+    return len(columns)
+
+
+def interpret_tape(tape: Tape, columns: Sequence[Any] | numpy.ndarray) -> Any:
+    """Run a tape over column inputs.
 
     Evaluates through the same functions as the default backend, so
     the two agree by construction.
@@ -83,7 +99,8 @@ def interpret_tape(tape: Tape, columns: Sequence[Any]) -> Any:
     Args:
         tape: Tape produced by ``lower_tree``.
         columns: One array per column, in the order the primitive set
-            declares them.
+            declares them, or one packed ``(n_rows, n_columns)``
+            matrix.
 
     Returns:
         The result of the expression.
@@ -93,8 +110,9 @@ def interpret_tape(tape: Tape, columns: Sequence[Any]) -> Any:
             the tape holds an instruction the interpreter does not
             know, or if the tape underflows or leaves no result.
     """
-    if len(columns) != tape.columns:
-        raise ValueError(f"The tape expects {tape.columns} columns, got {len(columns)}.")
+    column_count = _column_count(columns)
+    if column_count != tape.columns:
+        raise ValueError(f"The tape expects {tape.columns} columns, got {column_count}.")
 
     stack: list[Any] = []
     for step in range(tape.opcodes.size):
@@ -104,6 +122,21 @@ def interpret_tape(tape: Tape, columns: Sequence[Any]) -> Any:
     if not stack:
         raise ValueError("The tape is malformed and leaves no result.")
     return stack[-1]
+
+
+def _column(columns: Sequence[Any] | numpy.ndarray, index: int) -> Any:
+    """Return one column from a packed matrix or a column sequence.
+
+    Args:
+        columns: Packed matrix or column sequence.
+        index: Column index to load.
+
+    Returns:
+        The selected column array.
+    """
+    if isinstance(columns, numpy.ndarray) and columns.ndim == 2:
+        return columns[:, index]
+    return columns[index]
 
 
 def _peek(stack: list[Any]) -> Any:
@@ -156,7 +189,7 @@ def _pop(stack: list[Any]) -> Any:
 
 
 def _apply_opcode(
-    stack: list[Any], columns: Sequence[Any], tape: Tape, opcode: int, operand: int
+    stack: list[Any], columns: Sequence[Any] | numpy.ndarray, tape: Tape, opcode: int, operand: int
 ) -> None:
     """Apply one tape instruction to the evaluation stack.
 
@@ -172,7 +205,7 @@ def _apply_opcode(
             underflows.
     """
     if opcode == Opcode.COL_LOAD:
-        stack.append(columns[operand])
+        stack.append(_column(columns, operand))
         return
     if opcode == Opcode.CONST:
         stack.append(float(tape.constants[operand]))

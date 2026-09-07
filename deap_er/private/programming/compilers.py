@@ -11,14 +11,16 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from copy import deepcopy
 from functools import wraps
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from deap_er.private.typedefs import GPExprTypes, GPGraph, GPTypedSets
+from deap_er.private.various.clone import clone_individual
 from deap_er.private.various.rng import rng
 
+from .compile_cache import CompileCache
+from .matrix_pack import as_matrix, is_packed_matrix
 from .numba.numba_ops import bind_tape
 from .opcodes import USER_BASE, interpret_tape, lower_tree
 from .primitives.primitive_nodes import Primitive
@@ -27,8 +29,7 @@ from .primitives.primitive_set_typed import PrimitiveSetTyped
 __all__: list[str] = ["compile_tree", "compile_adf_tree", "build_tree_graph", "static_limit"]
 
 _COMPILE_CACHE_MAX = 1024
-_CacheKey = tuple[str, int, str, tuple[tuple[str, int], ...]]
-_compile_cache: dict[_CacheKey, Any] = {}
+_compile_cache = CompileCache(_COMPILE_CACHE_MAX)
 
 
 def _compile_python(code: str, prim_set: PrimitiveSetTyped) -> Any:
@@ -81,6 +82,11 @@ def _compile_tape(
     else:
 
         def runner(*columns: Any) -> Any:
+            if tape.columns == 0:
+                return interpret_tape(tape, columns)
+            if len(columns) == 1 and is_packed_matrix(columns[0]):
+                matrix = as_matrix(columns, tape.columns)
+                return interpret_tape(tape, matrix)
             return interpret_tape(tape, columns)
 
     if len(prim_set.arguments) == 0:
@@ -129,7 +135,7 @@ def compile_tree(
         args = ",".join(prim_set.arguments)
         code = f"lambda {args}: {code}"
     ctx_key = tuple(sorted((name, id(value)) for name, value in prim_set.context.items()))
-    cache_key: _CacheKey = (backend, id(dispatch), code, ctx_key)
+    cache_key = (backend, id(dispatch), code, ctx_key)
     cached = _compile_cache.get(cache_key)
     if cached is not None:
         return cached
@@ -143,9 +149,7 @@ def compile_tree(
             f"Unknown compile backend '{backend}'. Use 'python', 'opcode', or 'numba'."
         )
 
-    if len(_compile_cache) >= _COMPILE_CACHE_MAX:
-        _compile_cache.clear()
-    _compile_cache[cache_key] = compiled
+    _compile_cache.set(cache_key, compiled)
     return compiled
 
 
@@ -224,11 +228,11 @@ def static_limit(limiter: Callable[..., Any], max_value: int | float) -> Callabl
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> list[Any]:
-            keep_inds = [deepcopy(ind) for ind in args]
+            keep_inds = [clone_individual(ind) for ind in args]
             new_inds = list(func(*args, **kwargs))
             for i, ind in enumerate(new_inds):
                 if keep_inds and limiter(ind) > max_value:
-                    new_inds[i] = deepcopy(rng.choice(keep_inds))
+                    new_inds[i] = clone_individual(rng.choice(keep_inds))
             return new_inds
 
         return wrapper
