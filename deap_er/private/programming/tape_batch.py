@@ -127,9 +127,9 @@ def interpret_tapes(
 
     The result has one row per tape and one column per sample. It is a
     new array: it does not alias ``matrix`` or the interpreter
-    workspace. Cache unique programs by ``str(tree)`` and lower the
-    tree object — ``PrimitiveTree.from_string`` cannot round-trip a
-    ``Window`` ephemeral.
+    workspace. Cache unique programs by ``str(tree)``. A stringified
+    ``Window`` leaf is an ``int``; ``from_string`` restores that tag,
+    but an ephemeral class identity is not part of the text.
 
     The ``'opcode'`` backend unpacks the matrix columns once and runs
     the NumPy stack machine. The ``'numba'`` backend is a compiled
