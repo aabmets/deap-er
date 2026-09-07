@@ -48,6 +48,9 @@ class RestartStrategy:
     See constructor keyword arguments for configuration. ``target_f`` is
     expressed in raw objective space for single-objective runs. The first
     run uses ``sigma_large`` as its initial step size.
+
+    ``stagnation_key`` must return a higher-is-better scalar. It is required
+    for multi-objective fitness because there is no default scalarization.
     """
 
     def __init__(
@@ -68,7 +71,12 @@ class RestartStrategy:
         restart_centroid: str | Callable[[int], numpy.ndarray] = "random",
         stagnation_key: Callable[[Individual], float] | None = None,
     ) -> None:
-        """See the class docstring."""
+        """See the class docstring.
+
+        ``stagnation_key`` must return a higher-is-better scalar used for
+        stagnation detection and best-individual tracking. Required when the
+        wrapped strategy optimizes more than one objective.
+        """
         self.strategy = strategy
         self.mode = mode
         self.budget = budget
@@ -98,7 +106,6 @@ class RestartStrategy:
         self._initial_center = strategy_center(strategy)
         self._best: Individual | None = None
         self._fitness_weights: tuple[float, ...] | None = None
-        self._saved_lamb: int | None = None
         self._tracker = RunTracker(
             self.dim,
             self._lambda_default,
@@ -129,6 +136,8 @@ class RestartStrategy:
     @property
     def best_fitness(self) -> float:
         """Best raw objective seen across all runs for single-objective runs."""
+        if self._evals_used == 0:
+            return float("nan")
         if self._fitness_weights and len(self._fitness_weights) == 1:
             weight = self._fitness_weights[0]
             if weight != 0:
@@ -148,7 +157,6 @@ class RestartStrategy:
         requested = self.strategy.lamb
         batch = min(requested, remaining)
         if batch != requested:
-            self._saved_lamb = requested
             resize_offsprings(self.strategy, batch)
         return self.strategy.generate(ind_init)
 
@@ -159,6 +167,7 @@ class RestartStrategy:
             return
         if self._fitness_weights is None:
             self._fitness_weights = population[0].fitness.weights
+        self._require_stagnation_key()
         self.strategy.update(population)
         self._run_evals += len(population)
         self._evals_used += len(population)
@@ -181,9 +190,17 @@ class RestartStrategy:
             self._tracker.terminate = True
         if self._evals_used >= self.budget:
             self._done = True
-        if self._saved_lamb is not None and self.remaining_budget() > 0:
-            resize_offsprings(self.strategy, self._saved_lamb)
-            self._saved_lamb = None
+
+    def _require_stagnation_key(self) -> None:
+        if (
+            self._fitness_weights is not None
+            and len(self._fitness_weights) > 1
+            and self.stagnation_key is None
+        ):
+            raise ValueError(
+                "multi-objective stagnation requires an explicit stagnation_key "
+                "callable returning a higher-is-better scalar"
+            )
 
     def should_restart(self) -> bool:
         """Return whether the current run ended and a restart is due."""
@@ -213,27 +230,24 @@ class RestartStrategy:
             )
             self._regime = "large"
         else:
-            lamb, sigma, self._regime, self._irestart_large, self._lambda_large = (
-                next_bipop_params(
-                    lambda_default=self._lambda_default,
-                    lambda_factor=self.lambda_factor,
-                    lambda_large=self._lambda_large,
-                    irestart_large=self._irestart_large,
-                    max_large_restarts=self.max_large_restarts,
-                    sigma_large=self.sigma_large,
-                    restart_count=self._restart_count,
-                    evals_used=self._evals_used,
-                    budget=self.budget,
-                    budget_large=self._budget_large,
-                    budget_small=self._budget_small,
-                )
+            lamb, sigma, self._regime, self._irestart_large, self._lambda_large = next_bipop_params(
+                lambda_default=self._lambda_default,
+                lambda_factor=self.lambda_factor,
+                lambda_large=self._lambda_large,
+                irestart_large=self._irestart_large,
+                max_large_restarts=self.max_large_restarts,
+                sigma_large=self.sigma_large,
+                restart_count=self._restart_count,
+                evals_used=self._evals_used,
+                budget=self.budget,
+                budget_large=self._budget_large,
+                budget_small=self._budget_small,
             )
         self._small_run_cap = (
             max(1, self._last_large_run_evals // 2) if self._regime == "small" else None
         )
         self._apply_restart(lamb, sigma)
         self._run_evals = 0
-        self._saved_lamb = None
         self._begin_run(lamb, sigma)
 
     def is_done(self) -> bool:
