@@ -100,6 +100,26 @@ looked like “before the last streamed row” and rewound the cursor.
 
 ---
 
+## Stream assumed chapters were row-aligned
+
+A generation recorded without a chapter left that chapter shorter
+than the parent. `offsets` used `len(parent)` instead of the
+chapter's own row count, so the chapter header was consumed as a
+data cell and later values landed on the wrong generation. `stream`
+then indexed past the rendered chapter lines (`IndexError`).
+
+**Fix.** Render each chapter through a parent-aligned view. Rows
+pair by `gen` (the same occurrence rule as `__delitem__`). When
+there is no `gen` and the chapter is already the same length as the
+parent, pairing is positional. Missing chapter cells are blank.
+
+**Validators.**
+
+- `tests/test_records/test_logbook.py::test_stream_omitted_chapter_does_not_raise`
+- `tests/test_records/test_logbook.py::test_str_keeps_chapter_values_on_their_generation`
+
+---
+
 ## `to_json` / `from_json` dropped nested chapters
 
 Only one chapter level was walked. Two-level stats (chapter of

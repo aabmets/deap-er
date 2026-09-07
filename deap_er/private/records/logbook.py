@@ -111,7 +111,7 @@ class Logbook(list[dict[str, Any]]):
         for i in sorted(range(*key.indices(len(self))), reverse=True):
             self._delete_index(i)
 
-    def _chapter_index_for_generation(
+    def chapter_index_for_generation(
         self, chapter: "Logbook", generation: Any, parent_index: int
     ) -> int | None:
         """Return the chapter row that shares ``generation``.
@@ -122,7 +122,7 @@ class Logbook(list[dict[str, Any]]):
         Args:
             chapter: Nested logbook to search.
             generation: Generation value from the parent entry.
-            parent_index: Parent row being deleted.
+            parent_index: Parent row being paired.
 
         Returns:
             Matching chapter index, or None.
@@ -149,7 +149,7 @@ class Logbook(list[dict[str, Any]]):
         for chapter in self.chapters.values():
             if not chapter:
                 continue
-            match = self._chapter_index_for_generation(chapter, generation, idx)
+            match = self.chapter_index_for_generation(chapter, generation, idx)
             if match is not None:
                 chapter.pop(match)
         self.pop(key)
