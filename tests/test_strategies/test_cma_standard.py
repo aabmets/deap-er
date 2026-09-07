@@ -87,3 +87,32 @@ def test_compute_params_keeps_learned_c_unless_cm_init():
     finally:
         del creator.__dict__[SO_FIT]
         del creator.__dict__[SO_IND]
+
+
+def test_compute_params_weight_schemes_and_unknown():
+    strategy = tools.Strategy([0.0, 0.0], 1.0, offsprings=6, survivors=3)
+    strategy.compute_params(weights="linear")
+    assert strategy.weights.shape == (3,)
+    strategy.compute_params(weights="equal")
+    assert numpy.allclose(strategy.weights, numpy.full(3, 1.0 / 3.0))
+    try:
+        strategy.compute_params(weights="cubic")
+    except RuntimeError as err:
+        assert "Unknown weights" in str(err)
+    else:
+        raise AssertionError("expected RuntimeError for unknown weights")
+
+
+def test_invalid_bound_mode_and_resample_limit():
+    try:
+        tools.Strategy([0.0, 0.0], 1.0, bound_mode="wrap")
+    except ValueError as err:
+        assert "bound_mode" in str(err)
+    else:
+        raise AssertionError("expected ValueError for bound_mode")
+    try:
+        tools.Strategy([0.0, 0.0], 1.0, resample_limit=0)
+    except ValueError as err:
+        assert "resample_limit" in str(err)
+    else:
+        raise AssertionError("expected ValueError for resample_limit")
