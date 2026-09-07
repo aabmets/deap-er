@@ -43,6 +43,10 @@ from .private.operators.mut_various import (
     mut_shuffle_indexes,
     mut_uniform_int,
 )
+from .private.operators.case_exam_guard import guard_case_exams
+from .private.operators.case_exam_step import next_lexicase_cases
+from .private.operators.case_exams import score_case_exams
+from .private.operators.mut_case_exam import mut_case_mask, mut_case_ranges
 from .private.operators.sample_informed_cases import sample_informed_cases
 from .private.operators.sel_age_moea_2 import SelAGE2WithMemory, sel_age_moea_2
 from .private.operators.sel_helpers import assign_crowding_dist, uniform_reference_points
@@ -107,6 +111,11 @@ __all__: list[str] = [
     "sel_age_moea_2",
     "SelAGE2WithMemory",
     "sample_informed_cases",
+    "score_case_exams",
+    "guard_case_exams",
+    "next_lexicase_cases",
+    "mut_case_mask",
+    "mut_case_ranges",
     "sel_epsilon_lexicase",
     "sel_lexicase",
     "sel_team",
