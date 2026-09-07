@@ -117,6 +117,41 @@ def _resolved_span(slc: slice, size: int) -> tuple[int, int]:
     return start, stop
 
 
+def _unpack_slice_unit(item: object) -> tuple[slice, Callable[..., Any]]:
+    """Return the slice and callable from one Shape B unit."""
+    if not isinstance(item, (tuple, list)) or not _is_slice_unit(item):
+        raise ValueError(_SHAPE)
+    slc = item[0]
+    crossover = item[1]
+    if not callable(crossover):
+        raise ValueError("each slice crossover must be callable")
+    return slc, crossover
+
+
+def _claim_span(occupied: list[tuple[int, int]], start: int, stop: int) -> None:
+    """Record a span or raise if it overlaps an earlier unit."""
+    if any(start < other_stop and other_start < stop for other_start, other_stop in occupied):
+        raise ValueError(_OVERLAP)
+    occupied.append((start, stop))
+
+
+def _unit_replacements(
+    crossover: Callable[..., Any],
+    part1: Any,
+    part2: Any,
+    unit_len: int,
+) -> tuple[Any, Any]:
+    """Call a slice operator and require a length-preserving pair."""
+    result = crossover(part1, part2)
+    if result is not None:
+        if not isinstance(result, tuple) or len(result) != 2:
+            raise ValueError(_SLICE_PAIR)
+        part1, part2 = result
+    if len(part1) != unit_len or len(part2) != unit_len:
+        raise ValueError(_UNIT_LEN)
+    return part1, part2
+
+
 def _apply_slices(
     ind1: Individual,
     ind2: Individual,
@@ -139,25 +174,12 @@ def _apply_slices(
     """
     occupied: list[tuple[int, int]] = []
     for item in crossovers:
-        if not _is_slice_unit(item):
-            raise ValueError(_SHAPE)
-        slc, crossover = item
-        if not callable(crossover):
-            raise ValueError("each slice crossover must be callable")
+        slc, crossover = _unpack_slice_unit(item)
         start, stop = _resolved_span(slc, size)
-        if any(start < other_stop and other_start < stop for other_start, other_stop in occupied):
-            raise ValueError(_OVERLAP)
-        occupied.append((start, stop))
-        unit_len = stop - start
-        part1 = ind1[start:stop]
-        part2 = ind2[start:stop]
-        result = crossover(part1, part2)
-        if result is not None:
-            if not isinstance(result, tuple) or len(result) != 2:
-                raise ValueError(_SLICE_PAIR)
-            part1, part2 = result
-        if len(part1) != unit_len or len(part2) != unit_len:
-            raise ValueError(_UNIT_LEN)
+        _claim_span(occupied, start, stop)
+        part1, part2 = _unit_replacements(
+            crossover, ind1[start:stop], ind2[start:stop], stop - start
+        )
         ind1[start:stop] = part1
         ind2[start:stop] = part2
 
