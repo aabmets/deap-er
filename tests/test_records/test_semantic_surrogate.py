@@ -39,6 +39,14 @@ def test_surrogate_nearest_and_linear_predict():
     assert store.predict([3.0], kind="linear") == pytest.approx(6.0)
 
 
+def test_surrogate_linear_underdetermined_uses_min_norm():
+    store = tools.SemanticSurrogate()
+    store.update(numpy.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0]]), [1.0, 1.0])
+    query = [1.0, 1.0, 0.0]
+    assert store.predict(query, kind="nearest") == pytest.approx(1.0)
+    assert store.predict(query, kind="linear") == pytest.approx(2.0)
+
+
 def test_surrogate_linear_falls_back_when_rank_zero():
     store = tools.SemanticSurrogate()
     store.update(numpy.array([[1.0, 2.0], [3.0, 4.0]]), [1.0, 2.0])

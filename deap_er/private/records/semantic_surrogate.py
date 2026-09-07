@@ -130,8 +130,10 @@ class SemanticSurrogate:
 
         ``nearest`` returns the stored value of the nearest row, or the
         mean of ``k`` neighbors. ``linear`` fits least squares on finite
-        stored rows; an empty or rank-zero system falls back to nearest.
-        Underdetermined packs use the minimum-norm solution.
+        stored rows. Fallback to nearest happens only when the design is
+        empty or ``rank < 1``, not when ``rank < min(shape)``.
+        Underdetermined packs (more columns than rows) keep the
+        minimum-norm solution.
 
         Args:
             query: Semantic row of length ``n_rows``.
