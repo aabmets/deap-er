@@ -35,9 +35,8 @@ def test_sphere_convergence():
         restart = tools.RestartStrategy(strategy, mode="bipop", budget=50_000, sigma_large=1.0)
         toolbox.register("generate", restart.generate, creator.__dict__[IND])
         toolbox.register("update", restart.update)
-        pop, logbook = tools.ea_generate_update_restarts(toolbox, restart)
-        best = min(ind.fitness.values[0] for ind in pop)
-        assert best < 1e-6
+        _, logbook = tools.ea_generate_update_restarts(toolbox, restart)
+        assert restart.best_fitness < 1e-6
         assert "lambda" in logbook.header
     finally:
         _teardown()
@@ -65,11 +64,10 @@ def test_rastrigin_beats_plain_cma():
         restart = tools.RestartStrategy(strategy_rst, mode="bipop", budget=budget)
         toolbox_rst.register("generate", restart.generate, creator.__dict__[IND])
         toolbox_rst.register("update", restart.update)
-        pop_rst, _ = tools.ea_generate_update_restarts(toolbox_rst, restart, log_restarts=False)
-        restart_best = min(ind.fitness.values[0] for ind in pop_rst)
+        tools.ea_generate_update_restarts(toolbox_rst, restart, log_restarts=False)
 
         assert restart.restart_count >= 1
-        assert restart_best < plain_best
+        assert restart.best_fitness < plain_best
     finally:
         _teardown()
 
