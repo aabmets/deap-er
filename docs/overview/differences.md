@@ -442,6 +442,12 @@ evaluation is in the
     Chapters and the stream cursor stay aligned, matching
     `del logbook[:]`. `list.clear` no longer leaves chapter
     generations behind or drops later `stream` rows.
+25. `ea_map_elites` skips `stats.compile` when the seed or offspring
+    list is empty. A pre-filled archive with an empty `initial`, or
+    generation zero with no individuals, no longer raises
+    `ValueError` from `max` / `numpy.max` on an empty reduction.
+    Archive metrics still record. The same guard is in
+    `record_generation` for the other `ea_*` drivers.
 
 ## Persistence
 

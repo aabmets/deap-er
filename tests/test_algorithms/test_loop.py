@@ -68,3 +68,24 @@ def test_ea_simple_log_time_logger_and_fronts():
     finally:
         del creator.__dict__[LOOP_FIT]
         del creator.__dict__[LOOP_IND]
+
+
+def test_ea_simple_empty_population_with_max_stats():
+    creator.create_type(LOOP_FIT, Fitness, weights=(-1.0,))
+    creator.create_type(LOOP_IND, list, fitness=creator.__dict__[LOOP_FIT])
+    try:
+        toolbox = Toolbox()
+        toolbox.register("evaluate", lambda individual: (sum(individual),))
+        toolbox.register("select", tools.sel_random)
+        toolbox.register("mate", tools.cx_one_point)
+        toolbox.register("mutate", tools.mut_flip_bit, mut_prob=0.0)
+        stats = tools.Statistics(lambda ind: ind.fitness.values[0])
+        stats.register("max", max)
+
+        _, logbook = tools.ea_simple(
+            toolbox, [], generations=0, cx_prob=0.0, mut_prob=0.0, stats=stats
+        )
+        assert logbook.select("gen") == [0]
+    finally:
+        del creator.__dict__[LOOP_FIT]
+        del creator.__dict__[LOOP_IND]

@@ -53,7 +53,7 @@ def _record_map_elites_generation(
     logger: Logger | None,
     duration: float | None,
 ) -> None:
-    record = stats.compile(population) if stats else {}
+    record = stats.compile(population) if stats and population else {}
     archive_stats = archive.stats
     record["coverage"] = archive_stats.coverage
     record["num_elites"] = archive_stats.num_elites
@@ -110,7 +110,9 @@ def ea_map_elites(
         cx_prob: Probability of crossover in ``var_or``.
         mut_prob: Probability of mutation in ``var_or``.
         stats: Optional Statistics or MultiStatistics compiled from the
-            offspring each generation.
+            offspring each generation. An empty seed or offspring list
+            skips that compile so reducers such as ``max`` do not run
+            on no data. Archive metrics still record.
         verbose: If True, print the logbook stream each generation.
         logger: If given with ``verbose``, the stream is logged.
         log_time: If True, record per-generation ``duration``.
