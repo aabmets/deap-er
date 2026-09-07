@@ -61,13 +61,16 @@ def _place_emigrants(
     replacement: Callable[..., Any] | None,
 ) -> None:
     for from_deme, to_deme in enumerate(mig_indices):
+        dest = populations[to_deme]
         for offset, (indx, immigrant) in enumerate(
             zip(vacancies[to_deme], emigrants[from_deme], strict=False)
         ):
-            mover = immigrant
-            if replacement is None and offset >= incoming_filled[from_deme]:
+            already_in_dest = any(member is immigrant for member in dest)
+            if (replacement is None and offset >= incoming_filled[from_deme]) or already_in_dest:
                 mover = clone_individual(immigrant)
-            populations[to_deme][indx] = mover
+            else:
+                mover = immigrant
+            dest[indx] = mover
 
 
 def mig_ring(
@@ -86,8 +89,10 @@ def mig_ring(
     many individuals as both sides can hold are moved. Deme
     lengths are unchanged. When ``replacement`` is omitted, an
     emigrant whose home vacancy is not filled is cloned so the
-    same object is not left in two demes. Populations are
-    modified in place.
+    same object is not left in two demes. A duplicate emigrant
+    already present in the destination is cloned so two dest
+    slots do not share one object. Populations are modified
+    in place.
 
     Args:
         populations: Populations to migrate between.

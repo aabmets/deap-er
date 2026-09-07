@@ -174,6 +174,9 @@ from the original sources.
 26. `sel_best` and `sel_worst` return `[]` when `sel_count <= 0`.
     A negative count is no longer a Python slice that drops
     individuals from the other end of the ranked list.
+27. `mig_ring` clones an emigrant that is already present in the
+    destination, so a selector that returns the same object twice
+    does not write that object into two dest slots.
 
 ## Evolution strategies
 
