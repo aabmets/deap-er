@@ -25,6 +25,14 @@ __all__: list[str] = ["nsga_diversity", "nsga_convergence", "inv_gen_dist", "dup
 def duplicate_count(population: list[Any], key: Any | None = None) -> int:
     """Return how many individuals are duplicates of an earlier one.
 
+    Hashable keys use a set scan in ``O(n)``. Unhashable but sortable keys
+    use a sort in ``O(n log n)``. Keys that are neither hashable nor
+    mutually sortable fall back to list membership in ``O(n^2)``.
+
+    Hashable keys must satisfy Python's hash/equality contract: equal keys
+    must hash equally. The set path counts by hash bucket; equal keys with
+    unequal hashes are treated as distinct (unlike a pure ``==`` scan).
+
     Args:
         population: Individuals to scan.
         key: Extracts the compared value. Defaults to the identity.
@@ -33,12 +41,26 @@ def duplicate_count(population: list[Any], key: Any | None = None) -> int:
         ``len(population)`` minus the number of distinct keys.
     """
     extract = key if key is not None else (lambda obj: obj)
-    unique: list[Any] = []
-    for item in population:
-        value = extract(item)
-        if value not in unique:
-            unique.append(value)
-    return len(population) - len(unique)
+    if not population:
+        return 0
+    keys = [extract(item) for item in population]
+    try:
+        return len(keys) - len(set(keys))
+    except TypeError:
+        pass
+    try:
+        ordered = sorted(keys)
+    except TypeError:
+        unique: list[Any] = []
+        for value in keys:
+            if value not in unique:
+                unique.append(value)
+        return len(keys) - len(unique)
+    distinct = 1
+    for index in range(1, len(ordered)):
+        if ordered[index] != ordered[index - 1]:
+            distinct += 1
+    return len(keys) - distinct
 
 
 def nsga_diversity(population: list[Individual], first: Individual, last: Individual) -> float:
