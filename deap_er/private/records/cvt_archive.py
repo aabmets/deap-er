@@ -16,6 +16,7 @@ from copy import deepcopy
 from typing import TYPE_CHECKING, Any
 
 import numpy
+from scipy.spatial import cKDTree
 
 from deap_er.private.records.archive_common import (
     ArchiveStats,
@@ -29,7 +30,9 @@ from deap_er.private.records.cvt_centroids import cvt_centroids, parse_centroids
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 
-__all__: list[str] = ["CvtArchive", "cvt_centroids"]
+__all__: list[str] = ["CvtArchive", "KDTREE_MIN_CENTROIDS", "cvt_centroids"]
+
+KDTREE_MIN_CENTROIDS = 512
 
 
 class CvtArchive:
@@ -48,6 +51,9 @@ class CvtArchive:
         """See the class docstring."""
         self._centroids = parse_centroids(centroids)
         self._cells: dict[int, Individual] = {}
+        self._tree = (
+            cKDTree(self._centroids) if self._centroids.shape[0] >= KDTREE_MIN_CENTROIDS else None
+        )
 
     @classmethod
     def from_samples(
@@ -92,6 +98,10 @@ class CvtArchive:
     def nearest_centroid(self, descriptor: Sequence[float]) -> int:
         """Return the index of the centroid nearest to ``descriptor``.
 
+        Archives with fewer than 512 centroids break ties by
+        lowest index. Larger archives follow
+        ``scipy.spatial.cKDTree.query`` order.
+
         Args:
             descriptor: Continuous behavior coordinates.
 
@@ -106,7 +116,24 @@ class CvtArchive:
             raise ValueError(
                 f"descriptor length {len(descriptor)} does not match {self.dimensions} dimensions"
             )
-        return nearest_index(self._centroids, descriptor)
+        return self._centroid_index(descriptor)
+
+    def _centroid_index(self, descriptor: Sequence[float] | numpy.ndarray) -> int:
+        """Return the nearest centroid index for ``descriptor``.
+
+        Archives with fewer than :data:`KDTREE_MIN_CENTROIDS` cells use
+        :func:`nearest_index` (lowest-index ties). Larger archives use
+        ``cKDTree.query`` order.
+
+        Args:
+            descriptor: Continuous behavior coordinates.
+
+        Returns:
+            Centroid index in ``0 .. k-1``.
+        """
+        if self._tree is None:
+            return nearest_index(self._centroids, descriptor)
+        return int(self._tree.query(descriptor)[1])
 
     def add(self, individual: Any, descriptor: Sequence[float] | numpy.ndarray) -> bool:
         """Insert ``individual`` when it improves its Voronoi cell.
@@ -124,7 +151,7 @@ class CvtArchive:
         """
         if not check_archive_add(individual, descriptor, self.dimensions, "CvtArchive"):
             return False
-        cell = nearest_index(self._centroids, descriptor)
+        cell = self._centroid_index(descriptor)
         incumbent = self._cells.get(cell)
         if incumbent is not None and individual.fitness <= incumbent.fitness:
             return False
@@ -151,7 +178,7 @@ class CvtArchive:
             )
         if not all(math.isfinite(float(value)) for value in descriptor):
             return None
-        return self._cells.get(nearest_index(self._centroids, descriptor))
+        return self._cells.get(self._centroid_index(descriptor))
 
     def get(self, index: int) -> Individual | None:
         """Return the elite stored at centroid ``index``.
