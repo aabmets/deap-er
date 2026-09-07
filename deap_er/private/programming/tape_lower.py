@@ -25,6 +25,7 @@ from .opcode_set import OPCODES_ARITY, USER_BASE, Opcode
 from .primitives.primitive_nodes import Primitive
 from .primitives.primitive_set_typed import PrimitiveSetTyped
 from .primitives.primitive_tree import PrimitiveTree
+from .promote_lower import expand_promoted
 from .tape import Tape, opcode_of
 
 __all__: list[str] = [
@@ -186,6 +187,7 @@ def lower_tree(
     nodes = list(expr)
     if not nodes:
         raise ValueError("An empty expression cannot be lowered.")
+    nodes = expand_promoted(nodes, prim_set)
 
     children = child_indices(nodes)
     windows, folded = immediate_windows(nodes, children)

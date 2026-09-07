@@ -27,6 +27,7 @@ from .primitives.primitive_nodes import Primitive
 from .primitives.primitive_set_typed import PrimitiveSetTyped
 
 __all__: list[str] = [
+    "clear_compile_cache",
     "compile_tree",
     "compile_adf_tree",
     "build_tree_graph",
@@ -36,6 +37,16 @@ __all__: list[str] = [
 
 _COMPILE_CACHE_MAX = 1024
 _compile_cache = CompileCache(_COMPILE_CACHE_MAX)
+
+
+def clear_compile_cache() -> None:
+    """Drop every compiled expression from the process-wide LRU cache.
+
+    Call this after mutating a primitive set so a later
+    ``compile_tree`` cannot return a lambda compiled against the
+    previous context.
+    """
+    _compile_cache.clear()
 
 
 def _compile_python(code: str, prim_set: PrimitiveSetTyped) -> Any:
@@ -117,7 +128,9 @@ def compile_tree(
     opcode, and reject the tree while lowering when one does not.
 
     Compiled results are cached, keyed by the expression text, the
-    contents of the primitive set, the backend, and the dispatcher.
+    contents of the primitive set, the backend, the dispatcher, and
+    the promoted-library generation. ``clear_compile_cache`` drops
+    the table; ``promote_subtree`` does that on every mutation.
 
     Args:
         expr: Expression to compile. A string, a ``PrimitiveTree``,
@@ -141,7 +154,9 @@ def compile_tree(
         args = ",".join(prim_set.arguments)
         code = f"lambda {args}: {code}"
     ctx_key = tuple(sorted((name, id(value)) for name, value in prim_set.context.items()))
-    cache_key = (backend, id(dispatch), code, ctx_key)
+    library = getattr(prim_set, "promoted_library", None)
+    generation = 0 if library is None else library.generation
+    cache_key = (backend, id(dispatch), code, ctx_key, generation)
     cached = _compile_cache.get(cache_key)
     if cached is not None:
         return cached

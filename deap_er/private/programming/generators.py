@@ -15,6 +15,7 @@ from typing import Any
 from deap_er.private.various.rng import rng
 
 from .primitives.primitive_set_typed import PrimitiveSetTyped
+from .promote import note_promoted_use
 
 __all__: list[str] = ["choose_weighted", "generate", "gen_full", "gen_grow", "gen_half_and_half"]
 
@@ -84,9 +85,11 @@ def _choose_primitive(prim_set: PrimitiveSetTyped, ret_type: Any) -> Any:
         IndexError: If no primitive of ``ret_type`` is registered.
     """
     try:
-        return choose_weighted(prim_set.primitives[ret_type])
+        prim = choose_weighted(prim_set.primitives[ret_type])
     except IndexError as err:
         raise IndexError(_ERR_MSG.format("primitive", ret_type)) from err
+    note_promoted_use(prim_set, prim.name)
+    return prim
 
 
 def generate(
