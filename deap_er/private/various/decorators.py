@@ -15,7 +15,7 @@ from typing import Any
 
 import numpy
 
-__all__: list[str] = ["Translation", "Rotation", "Scaling", "Noise", "bin2float"]
+__all__: list[str] = ["Translation", "Rotation", "Scaling", "Noise"]
 
 
 class Translation:
@@ -225,38 +225,3 @@ class Noise:
             self.rand_funcs = repeat(funcs)
         else:
             self.rand_funcs = funcs
-
-
-def bin2float(min_: float, max_: float, n_bits: int) -> Callable[..., Any]:
-    """Return a decorator that decodes a binary individual to floats.
-
-    Each float uses ``n_bits`` bits and is mapped into
-    ``[min_, max_]``. The decorated function receives the decoded
-    float array.
-
-    Args:
-        min_: Lower bound of each decoded value.
-        max_: Upper bound of each decoded value.
-        n_bits: Bits used to encode each float.
-
-    Returns:
-        A decorator for an evaluation function.
-    """
-
-    def wrapper(function: Callable[..., Any]) -> Callable[..., Any]:
-        @wraps(function)
-        def wrapped(individual: Any, *args: Any, **kwargs: Any) -> Any:
-            nelem = len(individual) // n_bits
-            decoded = [0] * nelem
-            for i in range(nelem):
-                start = i * n_bits
-                stop = i * n_bits + n_bits
-                values = individual[start:stop]
-                gene = int("".join(str(int(bool(bit))) for bit in values), 2)
-                div = 2**n_bits - 1
-                decoded[i] = min_ + ((gene / div) * (max_ - min_))
-            return function(decoded, *args, **kwargs)
-
-        return wrapped
-
-    return wrapper
