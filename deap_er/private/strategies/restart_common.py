@@ -99,13 +99,27 @@ def sample_small_sigma() -> float:
 
 
 def scalar_fitness(ind: Individual, key: Callable[[Individual], float] | None = None) -> float:
-    """Return a weighted scalar for stagnation checks (higher is better)."""
+    """Return a weighted scalar for stagnation checks (higher is better).
+
+    For single-objective fitness, uses ``wvalues[0]``. For multi-objective
+    fitness, ``key`` must be supplied — there is no default scalarization.
+
+    Args:
+        ind: Evaluated individual.
+        key: Optional callable returning a higher-is-better stagnation scalar.
+
+    Raises:
+        ValueError: If ``key`` is omitted for multi-objective fitness.
+    """
     if key is not None:
         return float(key(ind))
     wvalues = ind.fitness.wvalues
     if len(wvalues) == 1:
         return float(wvalues[0])
-    return float(sum(wvalues))
+    raise ValueError(
+        "multi-objective stagnation requires an explicit stagnation_key "
+        "callable returning a higher-is-better scalar"
+    )
 
 
 class RunTracker:
