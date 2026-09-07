@@ -67,7 +67,7 @@ inventory:
   [creator](https://aabmets.github.io/deap-er/bugfixes/creator/),
   [utilities](https://aabmets.github.io/deap-er/bugfixes/utilities/),
   and [algorithms](https://aabmets.github.io/deap-er/bugfixes/algorithms/)
-- **36** capabilities DEAP does not have, including boxed CMA,
+- **37** capabilities DEAP does not have, including boxed CMA,
   mixed-gene mutation, logbook JSON, and
   [columnar GP](https://aabmets.github.io/deap-er/tutorials/columnar_gp/):
   - boxed blend crossover (`cx_blend_bounded`)
@@ -76,6 +76,7 @@ inventory:
   - crowding on `wvalues` (`use_weights`)
   - `sel_tournament_dcd` for any valid `k`
   - lexicase / ε-lexicase with `cases=`, `sample_informed_cases`, and `fitness_case_matrix`
+  - `sel_team` (greedy max-coverage of cases solved at 0)
   - SMS-EMOA, MOEA/D, and AGE-MOEA-II selection
   - constraint-dominance on `sel_nsga_2` (`feasible=` / `violation=`)
   - boxed CMA (`low`/`up`, clip or resample) 
