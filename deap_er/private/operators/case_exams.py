@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 
 import numpy
 
@@ -34,7 +34,7 @@ __all__: list[str] = [
 
 type CaseSolved = Callable[[Individual, int], bool]
 type ExamLike = CaseExam | CaseExamPool | Sequence[CaseExam | Sequence[int] | numpy.ndarray]
-type DifficultyMode = Literal["unsolved", "hamming"]
+type DifficultyMode = str
 
 
 def score_case_exams(

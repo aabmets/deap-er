@@ -12,6 +12,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import numpy
+
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 from deap_er.private.records.case_exam import CaseExam
