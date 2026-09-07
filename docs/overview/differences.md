@@ -343,6 +343,9 @@ evaluation is in the
 4. `duplicate_count` hashes a NumPy-array key by shape, dtype, and
    raw bytes. Equal ndarray individuals no longer raise `ValueError`
    from `sorted()` or list membership.
+5. `nsga_convergence` and `nsga_diversity` read ``fitness.values``
+   for reference individuals. A list genome is no longer treated as
+   the objective vector when fitness is set.
 
 ## Benchmarks
 

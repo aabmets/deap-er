@@ -91,6 +91,35 @@ def test_nsga_convergence_and_inverted_generational_distance():
     assert igd == pytest.approx(0.1414213562373095, rel=1e-6)
 
 
+def test_nsga_convergence_uses_fitness_when_optimal_are_individuals():
+    _setup()
+    try:
+        front = [_ind((0.1, 0.9)), _ind((0.9, 0.1))]
+        optimal = [_ind((0.0, 1.0)), _ind((1.0, 0.0))]
+        # Genes equal the objectives in `_ind`; overwrite genes so a
+        # genotype read would score the wrong front.
+        for individual in (*front, *optimal):
+            individual[:] = [999.0, 888.0]
+        conv = tools.nsga_convergence(front, optimal)
+    finally:
+        _teardown()
+    assert conv == pytest.approx(0.1414213562373095, rel=1e-6)
+
+
+def test_nsga_diversity_uses_fitness_when_extremes_are_individuals():
+    _setup()
+    try:
+        front = [_ind((0.0, 1.0)), _ind((0.5, 0.5)), _ind((1.0, 0.0))]
+        first = _ind((0.0, 1.0))
+        last = _ind((1.0, 0.0))
+        first[:] = [999.0, 888.0]
+        last[:] = [777.0, 666.0]
+        delta = tools.nsga_diversity(front, first, last)
+    finally:
+        _teardown()
+    assert delta == pytest.approx(0.0, abs=1e-12)
+
+
 def test_duplicate_count_counts_twins():
     assert tools.duplicate_count([[1], [1], [2], [1]]) == 2
     assert tools.duplicate_count(["a", "bb", "a"], key=len) == 1
