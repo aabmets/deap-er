@@ -49,8 +49,8 @@ class StrategySeparable:
     Raises:
         RuntimeError: If ``weights`` is not ``superlinear``,
             ``linear``, or ``equal``.
-        ValueError: If ``cm_init`` is not a length-``n`` vector, or
-            if box-bound kwargs are invalid.
+        ValueError: If ``cm_init`` is not a length-``n`` vector, any
+            variance is not positive, or box-bound kwargs are invalid.
     """
 
     def __init__(self, centroid: Iterable[float], sigma: float, **kwargs: Any) -> None:
@@ -94,7 +94,8 @@ class StrategySeparable:
         Raises:
             RuntimeError: If ``weights`` is not ``superlinear``,
                 ``linear``, or ``equal``.
-            ValueError: If ``cm_init`` is not a length-``n`` vector.
+            ValueError: If ``cm_init`` is not a length-``n`` vector
+                of positive variances.
         """
         default = int(4 + 3 * log(self.dim))
         self.lamb = int(kwargs.get("offsprings", default))
@@ -222,4 +223,6 @@ def _variance_vector(cm_init: Any, dim: int) -> numpy.ndarray:
         values = numpy.full(dim, float(values))
     if values.ndim != 1 or values.size != dim:
         raise ValueError("cm_init must be a length-n variance vector.")
+    if numpy.any(values <= 0.0):
+        raise ValueError("cm_init must contain only positive variances.")
     return values

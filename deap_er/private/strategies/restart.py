@@ -45,7 +45,7 @@ StrategyLike = Strategy | StrategySeparable | StrategyOnePlusLambda | StrategyMu
 
 
 class RestartStrategy:
-    """Wrap a standard, separable, (1+λ), or MO CMA strategy with restarts.
+    """Wrap a standard, separable, (1+λ), or MO CMA strategy with IPOP or BIPOP restarts.
 
     See constructor keyword arguments for configuration. ``target_f`` is
     expressed in raw objective space for single-objective runs. The first

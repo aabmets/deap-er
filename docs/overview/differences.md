@@ -160,8 +160,8 @@ from the original sources.
    parent fitness is invalid; `update` ranks only valid fitnesses.
    When fewer than $\lambda$ parents remain, children are sampled
    from the available set instead of indexing past the last parent.
-5. `RestartStrategy` wraps standard, $(1+\lambda)$, or MO-CMA with
-   IPOP or BIPOP restart scheduling. `ea_generate_update_restarts`
+5. `RestartStrategy` wraps standard, separable, $(1+\lambda)$, or
+   MO-CMA with IPOP or BIPOP restart scheduling. `ea_generate_update_restarts`
    runs the generate/update loop and logs restart regime, population
    size, and evaluation budget each generation.
 6. `sample_centroid` replaces a non-finite box end with the
