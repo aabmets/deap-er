@@ -74,3 +74,17 @@ included.
 
 **Validator.**
 `tests/test_benchmarks/test_binary.py::test_royal_road_2_classic_optimum_includes_top_schema`
+
+---
+
+## Royal Road decoded `True`/`False` as `"True"`/`"False"`
+
+`int("".join(map(str, values)), 2)` raised
+`ValueError: invalid literal ... 'TrueTrue'`. `mut_flip_bit`
+preserves `bool`, so a boolean individual crashed on evaluate.
+
+**Fix.** Coerce each bit with `int(bool(v))` before joining, the
+same decode as `bin2float`.
+
+**Validator.**
+`tests/test_benchmarks/test_binary.py::test_royal_road_decodes_boolean_bits_like_integers`

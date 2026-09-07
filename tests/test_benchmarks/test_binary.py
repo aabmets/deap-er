@@ -42,6 +42,16 @@ def test_royal_road_2_classic_optimum_includes_top_schema():
     assert tools.bm_royal_road_2(ones, 8) == (256,)
 
 
+def test_royal_road_decodes_boolean_bits_like_integers():
+    ones_int: Any = [1] * 8
+    ones_bool: Any = [True] * 8
+    mixed_int: Any = [1, 1, 0, 0, 1, 1, 1, 1]
+    mixed_bool: Any = [True, True, False, False, True, True, True, True]
+    assert tools.bm_royal_road_1(ones_bool, 4) == tools.bm_royal_road_1(ones_int, 4)
+    assert tools.bm_royal_road_1(mixed_bool, 4) == tools.bm_royal_road_1(mixed_int, 4)
+    assert tools.bm_royal_road_2([True] * 16, 4) == tools.bm_royal_road_2([1] * 16, 4)
+
+
 def test_chuang_f1_uses_trap_or_inverse_from_last_bit():
     zeros: Any = [0] * 41
     ones: Any = [1] * 41
