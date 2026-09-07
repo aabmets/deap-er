@@ -136,3 +136,24 @@ def test_pareto_front_keeps_non_dominated_and_drops_twins():
     finally:
         del creator.__dict__["PF_FIT"]
         del creator.__dict__["PF_IND"]
+
+
+def test_pareto_front_skips_individual_without_fitness():
+    creator.create_type("PF_FIT", Fitness, weights=(-1.0, -1.0))
+    creator.create_type("PF_IND", list, fitness=creator.__dict__["PF_FIT"])
+    try:
+        class Bare(list[Any]):
+            pass
+
+        front = tools.ParetoFront()
+        member = creator.__dict__["PF_IND"]([0])
+        member.fitness.values = (1.0, 4.0)
+        later = creator.__dict__["PF_IND"]([1])
+        later.fitness.values = (4.0, 1.0)
+        front.update([member])
+        front.update([Bare([9]), later])
+        assert len(front) == 2
+        assert {ind.fitness.values for ind in front} == {(1.0, 4.0), (4.0, 1.0)}
+    finally:
+        del creator.__dict__["PF_FIT"]
+        del creator.__dict__["PF_IND"]
