@@ -71,3 +71,21 @@ last evaluated one (or `[]` if no generation ran).
 
 **Validator.**
 `tests/test_algorithms/test_ea_generate_update_restarts.py::test_empty_generate_keeps_last_evaluated_population`
+
+---
+
+## `ea_map_elites` crashed when compiling stats on an empty seed list
+
+Generation 0 always compiled `stats` from `initial`. An empty seed is
+a supported resume path: `_parent_pool` varies from a pre-filled
+archive when `initial` is `[]`. The documented tutorial stats use
+`max` / `numpy.max`, which raise `ValueError` on an empty reduction.
+The same crash hit `record_generation` for an empty `ea_simple`
+population.
+
+**Fix.** Skip `stats.compile` when the individual list is empty.
+Archive `coverage` / `num_elites` / `qd_score` still record. Later
+generations with offspring still compile as before.
+
+**Validator.**
+`tests/test_algorithms/test_ea_map_elites.py::test_ea_map_elites_prefilled_archive_empty_initial_with_stats`

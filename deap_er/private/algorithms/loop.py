@@ -90,6 +90,8 @@ def record_generation(
         offspring: Individuals to offer to the hall of fame.
         hof: Optional HallOfFame or ParetoFront to update.
         stats: Optional Statistics or MultiStatistics to compile.
+            Skipped when ``population`` is empty so reducers such as
+            ``max`` do not run on no data.
         verbose: If True, emit the logbook stream.
         logger: If given, the stream is logged instead of printed.
         duration: Optional wall time of this generation in seconds.
@@ -102,7 +104,7 @@ def record_generation(
         front = ParetoFront()
         front.update(population)
         fronts.append(front)
-    record = stats.compile(population) if stats else {}
+    record = stats.compile(population) if stats and population else {}
     if duration is not None:
         record["duration"] = duration
     logbook.record(gen=gen, nevals=nevals, **record)
