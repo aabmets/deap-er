@@ -166,6 +166,8 @@ class GridArchive:
             return False
         if len(individual.fitness.weights) != 1:
             raise ValueError("GridArchive requires single-objective fitness")
+        if not math.isfinite(float(individual.fitness.wvalues[0])):
+            return False
         cell = self.descriptor_to_index(descriptor)
         incumbent = self._cells.get(cell)
         if incumbent is not None and individual.fitness <= incumbent.fitness:
