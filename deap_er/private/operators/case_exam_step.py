@@ -29,7 +29,6 @@ from .case_exams import (
     score_case_exams,
 )
 from .mut_case_exam import mut_case_mask, mut_case_ranges
-from .sample_informed_cases import sample_informed_cases
 
 __all__: list[str] = ["next_lexicase_cases"]
 
@@ -51,9 +50,12 @@ def next_lexicase_cases(
 ) -> list[int]:
     """Vary exams and return the next ``sel_lexicase(..., cases=)`` subset.
 
-    Scores exams on ``elites``, mutates ranges or mask runs, guards empty
-    and all-solved collapse, then optionally rebuilds the subset with
-    ``sample_informed_cases``.
+    Scores exams on ``elites``, mutates ranges or mask runs, then guards
+    empty and collapsed exams. The mutated or guarded winner is the
+    ``cases=`` list. ``informed`` only enables
+    ``sample_informed_cases`` inside that guard — it does not overwrite
+    a healthy winner. The default path and ``informed=False`` both keep
+    variation.
 
     Args:
         exams: Pool or sequence of exams.
@@ -61,14 +63,18 @@ def next_lexicase_cases(
         matrix: Optional ``(n_elites, n_cases)`` pack.
         trust_matrix: When ``True``, ``matrix`` is accepted on shape alone.
         solved: Optional solve predicate. See :func:`score_case_exams`.
-        case_count: Informed-resample size. Defaults to the chosen exam
-            size, or a bumped size after collapse.
-        informed: When ``True``, finish with ``sample_informed_cases``.
+        case_count: Minimum catalog size forwarded to the guard when a
+            repair is needed. Defaults to ``min_cases``.
+        informed: When ``True``, empty or still-collapsed exams may be
+            filled with ``sample_informed_cases``. A healthy winner is
+            never resampled.
         mut_prob: Per-range or per-run mutation probability.
-        mode: Difficulty used to pick the exam that feeds lexicase.
+        mode: Difficulty used to pick the exam that feeds lexicase and
+            to detect collapse in the guard.
         held_out: Caller-marked exam injected on collapse.
         min_cases: Minimum catalog size after a guard repair.
-        length: Bound for range mutation. Defaults to ``n_cases``.
+        length: Bound for range mutation. Defaults to each exam's
+            series span or ``n_cases``.
 
     Returns:
         Case indices for the next lexicase call.
@@ -80,10 +86,13 @@ def next_lexicase_cases(
     items, pool = bound_case_exams(exams, n_cases)
     if not items:
         raise ValueError("exams must be non-empty")
-    bound = n_cases if length is None else length
     for exam in items:
-        _vary_exam(exam, bound, mut_prob)
+        span = exam.mutation_bound(n_cases) if length is None else length
+        _vary_exam(exam, span, mut_prob)
     source: ExamLike = pool if pool is not None else items
+    floor = min_cases
+    if case_count is not None:
+        floor = max(floor, int(case_count))
     repaired = guard_case_exams(
         source,
         elites,
@@ -91,7 +100,9 @@ def next_lexicase_cases(
         trust_matrix=trust_matrix,
         solved=solved,
         held_out=held_out,
-        min_cases=min_cases,
+        min_cases=floor,
+        mode=mode,
+        informed=informed,
     )
     scores = score_case_exams(
         repaired,
@@ -102,22 +113,7 @@ def next_lexicase_cases(
         mode=mode,
     )
     winner = _argmax_ties(scores)
-    chosen = repaired[winner]
-    picked = chosen.as_cases(n_cases)
-    target = len(picked) if case_count is None else int(case_count)
-    if scores[winner] == 0:
-        target = max(target + 1, min_cases)
-    target = min(max(target, 1), n_cases)
-    if informed:
-        picked = sample_informed_cases(
-            elites,
-            target,
-            solved=solved,
-            matrix=matrix,
-            trust_matrix=trust_matrix,
-        )
-    chosen.assign(CaseExam.from_cases(picked, n_cases))
-    return picked
+    return repaired[winner].as_cases(n_cases)
 
 
 def _vary_exam(exam: CaseExam, length: int, mut_prob: float) -> None:

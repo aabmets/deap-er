@@ -11,7 +11,8 @@
 from __future__ import annotations
 
 from collections.abc import Callable, Sequence
-from typing import TYPE_CHECKING
+from numbers import Integral
+from typing import TYPE_CHECKING, Literal, cast
 
 import numpy
 
@@ -33,8 +34,13 @@ __all__: list[str] = [
 ]
 
 type CaseSolved = Callable[[Individual, int], bool]
-type ExamLike = CaseExam | CaseExamPool | Sequence[CaseExam | Sequence[int] | numpy.ndarray]
-type DifficultyMode = str
+type ExamLike = (
+    CaseExam
+    | CaseExamPool
+    | Sequence[int]
+    | Sequence[CaseExam | Sequence[int] | numpy.ndarray]
+)
+type DifficultyMode = Literal["unsolved", "hamming"]
 
 
 def score_case_exams(
@@ -53,8 +59,8 @@ def score_case_exams(
     elite solves. ``hamming`` counts unsolved elite-case pairs.
 
     Args:
-        exams: Exams, a :class:`~deap_er.records.CaseExamPool`, or raw
-            masks / catalog index lists.
+        exams: Exams, a :class:`~deap_er.records.CaseExamPool`, raw
+            masks, or a flat list of catalog indices (one exam).
         elites: Evaluated individuals that supply the case pack.
         matrix: Optional ``(n_elites, n_cases)`` pack. Ignored when
             ``solved`` is not the default zero test.
@@ -143,7 +149,8 @@ def bound_case_exams(
     """Resolve a pool or raw exam inputs to a live ``CaseExam`` list.
 
     Args:
-        exams: A pool, one exam, a mask, or a sequence of those.
+        exams: A pool, one exam, a mask, a flat catalog-index list
+            (one exam), or a sequence of those.
         n_cases: Catalog length used to coerce index lists.
 
     Returns:
@@ -153,4 +160,12 @@ def bound_case_exams(
         return exams.exams, exams
     if isinstance(exams, CaseExam | numpy.ndarray):
         return [coerce_case_exam(exams, n_cases)], None
+    if _flat_catalog_indices(exams):
+        return [CaseExam.from_cases(cast(Sequence[int], exams), n_cases)], None
     return [coerce_case_exam(item, n_cases) for item in exams], None
+
+
+def _flat_catalog_indices(exams: Sequence[object]) -> bool:
+    if not exams:
+        return False
+    return all(isinstance(item, Integral) and not isinstance(item, bool) for item in exams)

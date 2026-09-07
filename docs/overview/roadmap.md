@@ -764,8 +764,9 @@ from the all-solved vector (solved ≡ $0$, same as item 5).
 `mut_case_ranges` jitters bounds; `mut_case_mask` flips
 contiguous runs. `guard_case_exams` repairs the empty exam
 and the all-solved collapse (bump size or inject `held_out`).
-`next_lexicase_cases` varies the pool and returns the next
-`cases=` list, optionally via `sample_informed_cases`.
+`next_lexicase_cases` varies the pool and returns the mutated
+or guarded winner as the next `cases=` list. `informed=True`
+is a guard repair path only.
 Program scoring stays on the caller. Chronological splits
 stay on the caller. No environment simulator, no metric
 catalog.
