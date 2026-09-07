@@ -160,8 +160,9 @@ def test_case_errors_rejects_invalid_valid_mask():
 def test_case_errors_rejects_float_range_endpoints():
     predicted = numpy.array([1.0, 2.0])
     target = numpy.zeros(2)
+    bad_ranges = cast(Any, [(0.0, 2.0)])
     with pytest.raises(ValueError, match="integers"):
-        tools.case_errors(predicted, target, cast(Any, [(0.0, 2.0)]))
+        tools.case_errors(predicted, target, bad_ranges)
 
 
 def test_case_errors_scores_overlapping_ranges_independently():
