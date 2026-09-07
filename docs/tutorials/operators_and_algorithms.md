@@ -102,6 +102,12 @@ del clone1.fitness.values
 del clone2.fitness.values
 ```
 
+A mixed encoding (bits, ints, and boxed reals in one individual)
+registers `cx_heterogeneous` instead of a one-off `mate()`. Pass
+one `(v1, v2) -> (v1', v2')` callable per gene, or `(slice, cx_*)`
+pairs so an existing operator runs on a block. See the
+[mixed-encoding example](../examples/genetic_algorithms/mixed_encoding.md).
+
 ### Selection
 
 Selection operators are responsible for selecting individuals for subsequent
