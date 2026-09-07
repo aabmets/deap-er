@@ -111,3 +111,31 @@ def test_tune_ephemerals_slim_tree_invalidates_compile_cache(ind_cls):
     numpy.testing.assert_allclose(gp.extract_ephemerals(slim), strategy.centroid)
     assert gp.compile_tree(old_head, pset) is not compiled_head
     assert gp.compile_tree(old_delta, pset) is not compiled_delta
+
+
+def test_tune_ephemerals_boxing_keeps_caller_cma_hparams(ind_cls):
+    pset = gp.make_column_pset(["value"])
+    gp.add_window_primitives(pset)
+    gp.add_window_ephemeral(pset, "MEMETIC_BOX_HPARAMS", 2, 6)
+    window = pset.terminals[gp.Window][0]()
+    tree = ind_cls([pset.mapping["delay"], pset.mapping["value"], window])
+    tree.fitness.values = (1.0,)
+    strategy = tools.Strategy([4.0], 8.0, offsprings=6, survivors=3, low=0.0, up=10.0)
+    lamb = strategy.lamb
+    mu = strategy.mu
+    rank_one = float(strategy.rank_one)
+    rank_mu = float(strategy.rank_mu)
+    weights = numpy.array(strategy.weights, copy=True)
+
+    def evaluate(_individual):
+        return (0.0,)
+
+    tools.rng.seed(11)
+    gp.tune_ephemerals(tree, strategy, evaluate, n_gen=1)
+
+    assert strategy.lamb == lamb == 6
+    assert strategy.mu == mu == 3
+    assert strategy.rank_one == rank_one
+    assert strategy.rank_mu == rank_mu
+    numpy.testing.assert_array_equal(strategy.weights, weights)
+    assert strategy.bound_mode == "clip"
