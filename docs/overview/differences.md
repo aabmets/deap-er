@@ -7,7 +7,7 @@ changed. Same toolbox model. Counted from the sections below:
 
 - **18** still-open [DEAP](https://github.com/DEAP/deap) issues
   [implemented](../bugfixes/deap_fixes.md) (some older than a decade)
-- **48** correctness bugs fixed — [operators](../bugfixes/operators.md),
+- **49** correctness bugs fixed — [operators](../bugfixes/operators.md),
   [GP](../bugfixes/gp.md),
   [CMA](../bugfixes/strategies.md),
   [records](../bugfixes/records.md),
@@ -391,6 +391,10 @@ evaluation is in the
     match; distinct keys invalidate arrivals. Append-only columnar
     evaluation is the documented full-matrix `interpret_tapes` rescore
     after `vstack` — DEAP has neither.
+20. `HallOfFame.update` and `ParetoFront.update` skip an individual
+    whose fitness is missing, invalid, or non-finite. An unevaluated
+    creator individual no longer occupies a slot. NaN no longer
+    sorts to the front of `keys` as if it were the best member.
 
 ## Persistence
 
