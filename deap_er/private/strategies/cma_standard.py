@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 
 from .cma_params import (
+    CmaCore,
     adapt_cma_sigma,
     apply_cma_hyperparams,
     generate_cma_offspring,
@@ -32,7 +33,7 @@ from .common import update_bound_attrs
 __all__ = ["Strategy"]
 
 
-class Strategy:
+class Strategy(CmaCore):
     """Standard Covariance Matrix Adaptation evolution strategy.
 
     Hansen's ``chiN`` and ``diag(D)`` are stored as ``chi_n`` and
@@ -87,35 +88,12 @@ class Strategy:
           * Failed redraws before clipping one sample. *Default:* ``100``
     """
 
+    big_b: numpy.ndarray
+    big_bd: numpy.ndarray
+
     def __init__(self, centroid: Iterable[float], sigma: float, **kwargs: Any) -> None:
         """See the class docstring."""
         init_cma_state(self, centroid, sigma)
-        self.update_count: int
-        self.centroid: numpy.ndarray
-        self.sigma: float
-        self.dim: int
-        self.pc: numpy.ndarray
-        self.ps: numpy.ndarray
-        self.chi_n: float
-        self.lamb: int
-        self.mu: int
-        self.weights: numpy.ndarray
-        self.mu_eff: float
-        self.rank_one: float
-        self.rank_mu: float
-        self.ss_cum: float
-        self.ss_dmp: float
-        self.cm_cum: float
-        self.big_c: numpy.ndarray
-        self.diag_d: numpy.ndarray
-        self.big_b: numpy.ndarray
-        self.big_bd: numpy.ndarray
-        self.cond: float
-        self.low: Any
-        self.up: Any
-        self.bound_mode: str
-        self.resample_limit: int
-
         self.compute_params(**kwargs)
 
     def compute_params(self, **kwargs: Any) -> None:
