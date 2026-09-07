@@ -33,7 +33,7 @@ __all__: list[str] = [
 def tune_ephemerals(
     individual: Any,
     strategy: Any,
-    evaluate: Callable[[Any], Any],
+    evaluate: Callable[[Any], Any] | None = None,
     n_gen: int = 5,
     *,
     evaluate_batch: Callable[[list[Any]], Any] | None = None,
@@ -46,12 +46,15 @@ def tune_ephemerals(
     repaired centroid back, then invalidates fitness and the compile
     cache for the previous expression. Evaluation is the caller's
     ``evaluate`` on clones, or ``evaluate_batch`` on a pack of clones.
+    Provide one of those callables; when both are set, the batch path
+    is used.
 
     Args:
         individual: ``PrimitiveTree`` or ``SlimTree`` to tune in place.
         strategy: ``Strategy`` or ``StrategySeparable`` whose
             ``dim`` matches the leaf count.
-        evaluate: ``callable(ind) ->`` fitness tuple.
+        evaluate: ``callable(ind) ->`` fitness tuple. Optional when
+            ``evaluate_batch`` is given.
         n_gen: Inner CMA generations. Default ``5``.
         evaluate_batch: Optional ``callable(inds) ->`` fitness tuples.
         clone: Individual copier. Defaults to ``clone_individual``.
@@ -60,14 +63,17 @@ def tune_ephemerals(
         The same ``individual`` after write-back.
 
     Raises:
-        ValueError: If ``n_gen < 1`` or ``strategy.dim`` does not
-            match the number of numeric leaves.
+        ValueError: If ``n_gen < 1``, ``strategy.dim`` does not match
+            the number of numeric leaves, or neither ``evaluate`` nor
+            ``evaluate_batch`` is given.
     """
     if n_gen < 1:
         raise ValueError(f"n_gen must be at least 1, got {n_gen}.")
     leaves = numeric_leaves(individual)
     if not leaves:
         return individual
+    if evaluate is None and evaluate_batch is None:
+        raise ValueError("Provide evaluate or evaluate_batch.")
     if getattr(strategy, "dim", None) != len(leaves):
         raise ValueError(
             f"strategy.dim is {getattr(strategy, 'dim', None)}, "
@@ -168,7 +174,7 @@ def _trial_init(individual: Any) -> Callable[[Any], list[Any]]:
 def _score_trials(
     individual: Any,
     trials: Sequence[Any],
-    evaluate: Callable[[Any], Any],
+    evaluate: Callable[[Any], Any] | None,
     evaluate_batch: Callable[[list[Any]], Any] | None,
     clone: Callable[[Any], Any],
 ) -> None:
@@ -178,7 +184,12 @@ def _score_trials(
         replica = clone(individual)
         assign_ephemerals(replica, trial)
         clones.append(replica)
-    fitnesses = evaluate_batch(clones) if evaluate_batch is not None else map(evaluate, clones)
+    if evaluate_batch is not None:
+        fitnesses = evaluate_batch(clones)
+    elif evaluate is not None:
+        fitnesses = map(evaluate, clones)
+    else:
+        raise ValueError("Provide evaluate or evaluate_batch.")
     for trial, fit in zip(trials, fitnesses, strict=True):
         trial.fitness.values = fit
 
