@@ -106,6 +106,7 @@ nav:
           - Columnar Programs: examples/genetic_programming/columnar_gp.md
       - Evolution Strategies:
           - Standard CMA: examples/evolution_strategies/cma_strat.md
+          - CMA restarts: examples/evolution_strategies/cma_restarts.md
           - Multi-Objective CMA: examples/evolution_strategies/mo_cma_strat.md
           - Custom Strategy: examples/evolution_strategies/custom_strat.md
       - Particle Swarms:
