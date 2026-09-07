@@ -15,6 +15,7 @@ from typing import TYPE_CHECKING, Any
 
 import numpy
 
+from deap_er.private.operators.bounds import broadcast_param
 from deap_er.private.various.rng import rng
 from deap_er.private.various.sort_non_dominated import sort_non_dominated
 
@@ -180,48 +181,64 @@ class StrategyMultiObjective:
             Newly sampled individuals.
         """
         arz = rng.standard_normal((self.lamb, self.dim))
-        individuals = []
-
         for i, p in enumerate(self.parents):
             p.ps_ = "p", i
 
         def _raw(parent: Individual, sigma: float, big_a: numpy.ndarray, step: numpy.ndarray):
             return numpy.asarray(parent + sigma * numpy.dot(big_a, step), dtype=float)
 
-        def _bound(raw: numpy.ndarray, parent: Individual, sigma: float, big_a: numpy.ndarray):
-            return apply_box_bounds(
-                raw,
-                self.low,
-                self.up,
-                self.bound_mode,
-                self.resample_limit,
-                lambda: _raw(parent, sigma, big_a, rng.standard_normal(self.dim)),
-            )
+        def _front() -> list[Individual]:
+            if all(ind.fitness.is_valid() for ind in self.parents):
+                return sort_non_dominated(self.parents, len(self.parents))[0]
+            return self.parents
 
         if not self.parents:
             return []
 
-        if self.lamb == self.mu and len(self.parents) >= self.lamb:
+        one_each = self.lamb == self.mu and len(self.parents) >= self.lamb
+        resample = self.bound_mode == "resample" and (self.low is not None or self.up is not None)
+        if resample:
+            n_dom = None if one_each else _front()
+            individuals = []
             for i in range(self.lamb):
-                raw = _raw(self.parents[i], self.sigmas[i], self.big_a[i], arz[i])
-                init = ind_init(_bound(raw, self.parents[i], self.sigmas[i], self.big_a[i]))
-                individuals.append(init)
-                individuals[-1].ps_ = "o", i
-
-        else:
-            if all(ind.fitness.is_valid() for ind in self.parents):
-                n_dom = sort_non_dominated(self.parents, len(self.parents))[0]
-            else:
-                n_dom = self.parents
-
-            for i in range(self.lamb):
-                j = rng.integers(0, len(n_dom))
-                _, p_idx = n_dom[j].ps_
+                p_idx = i if one_each else n_dom[rng.integers(0, len(n_dom))].ps_[1]
                 raw = _raw(self.parents[p_idx], self.sigmas[p_idx], self.big_a[p_idx], arz[i])
                 init = ind_init(
-                    _bound(raw, self.parents[p_idx], self.sigmas[p_idx], self.big_a[p_idx])
+                    apply_box_bounds(
+                        raw,
+                        self.low,
+                        self.up,
+                        "resample",
+                        self.resample_limit,
+                        lambda p_idx=p_idx: _raw(
+                            self.parents[p_idx],
+                            self.sigmas[p_idx],
+                            self.big_a[p_idx],
+                            rng.standard_normal(self.dim),
+                        ),
+                    )
                 )
+                init.ps_ = "o", p_idx
                 individuals.append(init)
-                individuals[-1].ps_ = "o", p_idx
+            return individuals
 
+        if one_each:
+            parent_idxs = list(range(self.lamb))
+        else:
+            n_dom = _front()
+            parent_idxs = [n_dom[rng.integers(0, len(n_dom))].ps_[1] for _ in range(self.lamb)]
+        raws = numpy.empty((self.lamb, self.dim), dtype=float)
+        for i, p_idx in enumerate(parent_idxs):
+            raws[i] = _raw(self.parents[p_idx], self.sigmas[p_idx], self.big_a[p_idx], arz[i])
+        if self.low is not None or self.up is not None:
+            low_seq = broadcast_param("low", -numpy.inf if self.low is None else self.low, self.dim)
+            up_seq = broadcast_param("up", numpy.inf if self.up is None else self.up, self.dim)
+            raws = numpy.clip(
+                raws, numpy.asarray(low_seq, dtype=float), numpy.asarray(up_seq, dtype=float)
+            )
+        individuals = []
+        for i, p_idx in enumerate(parent_idxs):
+            init = ind_init(raws[i])
+            init.ps_ = "o", p_idx
+            individuals.append(init)
         return individuals
