@@ -32,6 +32,8 @@ def _normalize_ranges(
         raise ValueError("ranges must contain at least one dimension")
     ranges_tuple = tuple((float(low), float(high)) for low, high in ranges)
     for low, high in ranges_tuple:
+        if not math.isfinite(low) or not math.isfinite(high):
+            raise ValueError("each range must be finite")
         if low >= high:
             raise ValueError("each range must satisfy low < high")
     return ranges_tuple

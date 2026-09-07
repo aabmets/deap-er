@@ -403,6 +403,10 @@ evaluation is in the
     chapter is the same length as the parent. Deleting that row no
     longer leaves chapter values behind or blanks the remaining
     cells.
+22. `GridArchive` rejects a range whose ends are not finite.
+    `(0, inf)` no longer maps every descriptor to cell 0, and
+    `(-inf, high)` no longer crashes `descriptor_to_index` with
+    `int(nan)`.
 
 ## Persistence
 

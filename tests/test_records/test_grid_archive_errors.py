@@ -34,6 +34,15 @@ def _individual(ind_cls, genes, fitness):
     return individual
 
 
+def test_non_finite_ranges_raise():
+    with pytest.raises(ValueError, match="finite"):
+        tools.GridArchive(ranges=[(0.0, math.inf)], bins=4)
+    with pytest.raises(ValueError, match="finite"):
+        tools.GridArchive(ranges=[(math.nan, 1.0)], bins=4)
+    with pytest.raises(ValueError, match="finite"):
+        tools.GridArchive(ranges=[(float("-inf"), 0.0)], bins=4)
+
+
 def test_empty_ranges_and_invalid_bins_raise():
     with pytest.raises(ValueError, match="at least one"):
         tools.GridArchive(ranges=[], bins=2)
