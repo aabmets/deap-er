@@ -99,3 +99,22 @@ set scan works. Two equal genomes count as one distinct key.
 
 **Validator.**
 `tests/test_various/test_metrics.py::test_duplicate_count_ndarray_individuals_count_twins`
+
+---
+
+## NSGA metrics read genomes instead of fitness for reference points
+
+`nsga_convergence` scores the front with ``ind.fitness.values`` but
+built the true front as ``tuple(opt)``. For a list individual that
+is the genome. `nsga_diversity` did the same for ``first`` / ``last``
+via ``first[0]``. The signatures take ``Individual``; passing a
+front of individuals with genes that differ from objectives silently
+returned the wrong $\Delta$ / $\Upsilon$.
+
+**Fix.** Read ``fitness.values`` when the point has a non-empty
+fitness; otherwise keep the raw-vector path used by existing tests.
+
+**Validators.**
+
+- `tests/test_various/test_metrics.py::test_nsga_convergence_uses_fitness_when_optimal_are_individuals`
+- `tests/test_various/test_metrics.py::test_nsga_diversity_uses_fitness_when_extremes_are_individuals`
