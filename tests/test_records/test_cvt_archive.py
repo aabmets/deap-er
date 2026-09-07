@@ -229,7 +229,8 @@ def test_large_k_add_assigns_nearest_centroid(ind_cls):
     assert archive.add(_individual(ind_cls, [7], 1.0), (10.2, 0.0)) is True
     assert archive.nearest_centroid((10.2, 0.0)) == 10
     elite = archive.elite_at((10.2, 0.0))
-    assert elite is not None and elite[0] == 7
+    assert elite is not None
+    assert elite[0] == 7
 
 
 def test_constructor_copies_caller_centroid_array(ind_cls):
