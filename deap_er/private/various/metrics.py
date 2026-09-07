@@ -126,7 +126,7 @@ def nsga_diversity(population: list[Individual], first: Individual, last: Indivi
     dm = sum(dt) / len(dt)
     di = sum(abs(d_i - dm) for d_i in dt)
     denom = df + dl + len(dt) * dm
-    if denom == 0.0:
+    if denom <= 0:
         return 1.0
     return (df + dl + di) / denom
 
