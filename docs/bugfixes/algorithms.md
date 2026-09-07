@@ -53,3 +53,21 @@ on `choice`.
 
 **Validator.**
 `tests/test_algorithms/test_variation.py::test_var_or_single_parent_with_crossover_does_not_crash`
+
+---
+
+## `ea_generate_update_restarts` discarded the last population on empty `generate`
+
+`RestartStrategy.generate` returns `[]` when the eval budget is spent,
+and a custom `generate` may use the same empty batch as a stop signal.
+The driver assigned that empty list to `population` *before* breaking,
+so a run that had already evaluated one or more batches returned `[]`
+instead of the last scored generation. Hall of fame and the logbook
+still had the work; the function result did not.
+
+**Fix.** Bind the new batch only when it is non-empty. An empty
+`generate` still stops the loop, but the returned population is the
+last evaluated one (or `[]` if no generation ran).
+
+**Validator.**
+`tests/test_algorithms/test_ea_generate_update_restarts.py::test_empty_generate_keeps_last_evaluated_population`
