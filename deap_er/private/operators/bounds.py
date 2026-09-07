@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from numbers import Integral
+from numbers import Integral, Real
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -41,6 +41,8 @@ def broadcast_param(
     Args:
         name: Argument name used in the error message.
         var: A single value or a sequence of per-gene values.
+            Python numbers, ``numbers.Integral``, and ``numbers.Real``
+            (including NumPy scalars) broadcast.
         size: Required number of values.
         subject: Noun phrase naming what ``size`` was measured from,
             used in the error message.
@@ -53,9 +55,12 @@ def broadcast_param(
     """
     if isinstance(var, int | float):
         return [var] * size
-    # NumPy integer scalars are Integral but not Python int.
+    # NumPy integers are Integral but not Python int.
+    # NumPy float32 / float16 are Real but not Python float.
     if isinstance(var, Integral):
         return [int(var)] * size
+    if isinstance(var, Real):
+        return [float(var)] * size
     if len(var) < size:
         raise ValueError(
             f"Argument '{name}' must be at least the size of {subject}: {len(var)} < {size}"
