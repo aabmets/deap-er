@@ -120,6 +120,60 @@ def test_best_point_merges_without_worst_point():
         del creator.__dict__[ind_name]
 
 
+def test_worst_point_ignores_dominated_in_pool():
+    fit_name = "AGE2_POOL_FIT"
+    ind_name = "AGE2_POOL_IND"
+    creator.create_type(fit_name, Fitness, weights=(-1.0, -1.0))
+    creator.create_type(ind_name, list, fitness=creator.__dict__[fit_name])
+    try:
+        parents = []
+        for genes, values in (([0.0], (0.0, 1.0)), ([1.0], (1.0, 0.0)), ([2.0], (0.4, 0.6))):
+            ind = creator.__dict__[ind_name](genes)
+            ind.fitness.values = values
+            parents.append(ind)
+
+        offspring = []
+        for genes, values in (([10.0], (5.0, 5.0)), ([11.0], (6.0, 6.0))):
+            ind = creator.__dict__[ind_name](genes)
+            ind.fitness.values = values
+            offspring.append(ind)
+
+        pool = parents + offspring
+        select = tools.SelAGE2WithMemory()
+        select(parents, len(parents))
+        select(pool, len(parents))
+
+        assert select.worst_point.reshape(-1).tolist() == pytest.approx([1.0, 1.0])
+        assert numpy.all(numpy.isfinite(select.worst_point))
+    finally:
+        del creator.__dict__[fit_name]
+        del creator.__dict__[ind_name]
+
+
+def test_merge_worst_ignores_non_finite_anchor():
+    from deap_er.private.operators.sel_age_moea_2_anchors import merge_worst
+
+    fitness = numpy.array([[1.0, 2.0], [3.0, 4.0]])
+    got = merge_worst(fitness, numpy.array([numpy.inf, numpy.inf]))
+    assert got.tolist() == pytest.approx([3.0, 4.0])
+
+
+def test_normalize_front_uses_front_local_worst():
+    from deap_er.private.operators.sel_age_moea_2_anchors import normalize_front
+
+    fitness = numpy.array([[0.0, 1.0], [1.0, 0.0]])
+    best = numpy.array([0.0, 0.0])
+    front_worst = numpy.array([2.0, 2.0])
+    _, _, _, tight = normalize_front(
+        fitness, best, numpy.array([0.5, 0.5]), None, front_worst=front_worst
+    )
+    _, _, _, loose = normalize_front(
+        fitness, best, numpy.array([5.0, 5.0]), None, front_worst=front_worst
+    )
+    assert tight.tolist() == pytest.approx([2.0, 2.0])
+    assert loose.tolist() == pytest.approx([1.0, 1.0])
+
+
 def test_age2_oversize_geometry_uses_first_front_only():
     fit_name = "AGE2_OVERSIZE_FIT"
     ind_name = "AGE2_OVERSIZE_IND"

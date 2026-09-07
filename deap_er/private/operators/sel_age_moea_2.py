@@ -19,86 +19,18 @@ if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 from deap_er.private.various.sort_non_dominated import sort_non_dominated
 
-from .sel_age_moea_2_helpers import (
-    estimate_curvature_nr,
-    later_front_scores,
-    survival_scores,
+from .sel_age_moea_2_anchors import (
+    estimate_geometry,
+    extreme_indexes,
+    merge_best,
+    merge_worst,
+    normalize_front,
+    pareto_front_fitness,
 )
-from .sel_nsga_3_helpers import find_extreme_points, find_intercepts
+from .sel_age_moea_2_helpers import later_front_scores, survival_scores
+from .sel_nsga_3_helpers import find_extreme_points
 
 __all__: list[str] = ["sel_age_moea_2", "SelAGE2WithMemory"]
-
-
-def _normalize_front(
-    fitness: ndarray,
-    best_point: ndarray,
-    worst_point: ndarray,
-    extreme_points: ndarray | None,
-) -> tuple[ndarray, ndarray, ndarray, ndarray]:
-    best = best_point
-    worst = worst_point
-    extreme = find_extreme_points(fitness, best, extreme_points)
-    intercepts = find_intercepts(extreme, best, worst, worst)
-    denom = intercepts - best
-    denom = numpy.where(numpy.abs(denom) < 1e-12, 1.0, denom)
-    normalized = (fitness - best) / denom
-    return normalized, best, worst, intercepts
-
-
-def _find_extreme_indexes(fitness: ndarray, best_point: ndarray) -> ndarray:
-    """Return one extreme-point index per objective.
-
-    Args:
-        fitness: Objective matrix with shape ``(n, m)``.
-        best_point: Ideal point with shape ``(m,)``.
-
-    Returns:
-        Integer indexes into ``fitness``.
-    """
-    ft = fitness - best_point
-    asf = numpy.eye(best_point.shape[0])
-    asf[asf == 0] = 1e6
-    asf = numpy.max(ft * asf[:, numpy.newaxis, :], axis=2)
-    return numpy.argmin(asf, axis=1)
-
-
-def _reference_index(front: ndarray, extreme_indexes: ndarray) -> int:
-    distances = numpy.linalg.norm(front, axis=1)
-    distances[extreme_indexes] = numpy.inf
-    if not numpy.any(numpy.isfinite(distances)):
-        return 0
-    return int(numpy.argmin(distances))
-
-
-def _merge_best(fitness: ndarray, anchor: ndarray | None) -> ndarray:
-    if anchor is None:
-        return numpy.min(fitness, axis=0)
-    row = numpy.asarray(anchor, dtype=float).reshape(1, -1)
-    return numpy.min(numpy.vstack((fitness, row)), axis=0)
-
-
-def _merge_worst(fitness: ndarray, anchor: ndarray | None) -> ndarray:
-    if anchor is None:
-        return numpy.max(fitness, axis=0)
-    row = numpy.asarray(anchor, dtype=float).reshape(1, -1)
-    return numpy.max(numpy.vstack((fitness, row)), axis=0)
-
-
-def _estimate_geometry(
-    first_front: ndarray,
-    best: ndarray,
-    worst: ndarray,
-    extreme_points: ndarray | None,
-    nr_tol: float,
-    nr_max_iter: int,
-) -> tuple[float, ndarray]:
-    normalized, _, _, intercepts = _normalize_front(first_front, best, worst, extreme_points)
-    if first_front.shape[0] < first_front.shape[1]:
-        return 1.0, intercepts
-    extreme_idx = _find_extreme_indexes(first_front, best)
-    ref = _reference_index(normalized, extreme_idx)
-    curvature = estimate_curvature_nr(normalized[ref], normalized.shape[1], nr_tol, nr_max_iter)
-    return curvature, intercepts
 
 
 def _front_survival_scores(
@@ -109,10 +41,13 @@ def _front_survival_scores(
     intercepts: ndarray,
     curvature: float,
     extreme_points: ndarray | None,
+    front_worst: ndarray,
 ) -> ndarray:
     if front_index == 0:
-        normalized, _, _, _ = _normalize_front(front_fitness, best, worst, extreme_points)
-        extreme_idx = _find_extreme_indexes(front_fitness, best)
+        normalized, _, _, _ = normalize_front(
+            front_fitness, best, worst, extreme_points, front_worst=front_worst
+        )
+        extreme_idx = extreme_indexes(front_fitness, best)
         return survival_scores(normalized, numpy.zeros(normalized.shape[1]), extreme_idx, curvature)
     return later_front_scores(front_fitness, best, intercepts, curvature)
 
@@ -209,14 +144,16 @@ def sel_age_moea_2(
     if sel_count >= len(individuals):
         if isinstance(_memory, SelAGE2WithMemory):
             fitness = -numpy.array([ind.fitness.wvalues for ind in individuals], dtype=float)
-            best = _merge_best(fitness, best_point)
-            worst = _merge_worst(fitness, worst_point)
             pareto_fronts = sort_non_dominated(individuals, len(individuals))
             index_map = {id(ind): idx for idx, ind in enumerate(individuals)}
+            front_fit = pareto_front_fitness(fitness, pareto_fronts, index_map)
+            best = merge_best(front_fit, best_point)
+            worst = merge_worst(front_fit, worst_point)
             first_indices = [index_map[id(ind)] for ind in pareto_fronts[0]]
             first_front = fitness[first_indices]
-            curvature, _ = _estimate_geometry(
-                first_front, best, worst, extreme_points, nr_tol, nr_max_iter
+            front_worst = numpy.max(first_front, axis=0)
+            curvature, _ = estimate_geometry(
+                first_front, best, worst, extreme_points, nr_tol, nr_max_iter, front_worst
             )
             _update_memory(_memory, best, worst, first_front, extreme_points, curvature)
         return list(individuals)
@@ -225,13 +162,15 @@ def sel_age_moea_2(
     fitness = -numpy.array([ind.fitness.wvalues for ind in individuals], dtype=float)
     index_map = {id(ind): idx for idx, ind in enumerate(individuals)}
 
-    best = _merge_best(fitness, best_point)
-    worst = _merge_worst(fitness, worst_point)
+    front_fit = pareto_front_fitness(fitness, pareto_fronts, index_map)
+    best = merge_best(front_fit, best_point)
+    worst = merge_worst(front_fit, worst_point)
 
     first_indices = [index_map[id(ind)] for ind in pareto_fronts[0]]
     first_front = fitness[first_indices]
-    curvature, intercepts = _estimate_geometry(
-        first_front, best, worst, extreme_points, nr_tol, nr_max_iter
+    first_front_worst = numpy.max(first_front, axis=0)
+    curvature, intercepts = estimate_geometry(
+        first_front, best, worst, extreme_points, nr_tol, nr_max_iter, first_front_worst
     )
 
     chosen: list[Individual] = []
@@ -245,6 +184,7 @@ def sel_age_moea_2(
         remaining = sel_count - len(chosen)
         front_indices = numpy.array([index_map[id(ind)] for ind in front], dtype=int)
         front_fitness = fitness[front_indices]
+        local_worst = numpy.max(front_fitness, axis=0)
         scores = _front_survival_scores(
             front_fitness,
             front_index,
@@ -253,6 +193,7 @@ def sel_age_moea_2(
             intercepts,
             curvature,
             extreme_points,
+            local_worst,
         )
         order = numpy.argsort(scores)[::-1]
         chosen.extend(front[idx] for idx in order[:remaining])
