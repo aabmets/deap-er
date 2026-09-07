@@ -35,10 +35,7 @@ __all__: list[str] = [
 
 type CaseSolved = Callable[[Individual, int], bool]
 type ExamLike = (
-    CaseExam
-    | CaseExamPool
-    | Sequence[int]
-    | Sequence[CaseExam | Sequence[int] | numpy.ndarray]
+    CaseExam | CaseExamPool | Sequence[int] | Sequence[CaseExam | Sequence[int] | numpy.ndarray]
 )
 type DifficultyMode = Literal["unsolved", "hamming"]
 
@@ -162,7 +159,8 @@ def bound_case_exams(
         return [coerce_case_exam(exams, n_cases)], None
     if _flat_catalog_indices(exams):
         return [CaseExam.from_cases(cast(Sequence[int], exams), n_cases)], None
-    return [coerce_case_exam(item, n_cases) for item in exams], None
+    remaining = cast(Sequence[CaseExam | Sequence[int] | numpy.ndarray], exams)
+    return [coerce_case_exam(item, n_cases) for item in remaining], None
 
 
 def _flat_catalog_indices(exams: Sequence[object]) -> bool:
