@@ -39,7 +39,8 @@ uv add deap-er
 - Genetic programming on prefix trees: loosely typed, strongly typed, and
   automatically defined functions
 - Evolution strategies (covariance matrix adaptation)
-- Multi-objective search (SPEA-II, NSGA-II, NSGA-III, SMS-EMOA, MO-CMA)
+- Multi-objective search (SPEA-II, NSGA-II, NSGA-III, SMS-EMOA, MOEA/D,
+  AGE-MOEA-II, MO-CMA)
 - Cooperative and competitive co-evolution
 - Parallel evaluation with multiprocessing or
   [Ray](https://github.com/ray-project/ray)
