@@ -153,6 +153,16 @@ from the original sources.
     `trust_matrix=` match lexicase. The team is a sequence of pool
     members; member fitness is not rewritten. Team scoring stays on
     the caller. DEAP has no team selector.
+24. `CaseExam` and `CaseExamPool` store case subsets as ranges or a
+    1-D bool mask — the same shapes `case_errors` and
+    `sel_lexicase(..., cases=)` consume — not as a new genome.
+    `score_case_exams` ranks exams on elites by unsolved count or
+    Hamming distance from the all-solved vector (solved ≡ $0$).
+    `mut_case_ranges` / `mut_case_mask` vary bounds or flip mask
+    runs; `guard_case_exams` blocks the empty exam and the
+    all-solved collapse. `next_lexicase_cases` returns the next
+    `cases=` list, optionally via `sample_informed_cases`.
+    Chronological splits stay on the caller.
 
 ## Evolution strategies
 

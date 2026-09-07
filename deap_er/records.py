@@ -9,6 +9,8 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from .private.records.archive_common import ArchiveStats
+from .private.records.case_exam import CaseExam
+from .private.records.case_exam_pool import CaseExamPool, coerce_case_exam
 from .private.records.cvt_archive import CvtArchive
 from .private.records.cvt_centroids import cvt_centroids
 from .private.records.grid_archive import GridArchive
@@ -21,10 +23,13 @@ from .private.records.unstructured_archive import UnstructuredArchive
 
 __all__ = [
     "ArchiveStats",
+    "CaseExam",
+    "CaseExamPool",
     "CvtArchive",
     "GridArchive",
     "SemanticSurrogate",
     "UnstructuredArchive",
+    "coerce_case_exam",
     "cvt_centroids",
     "HallOfFame",
     "ParetoFront",
