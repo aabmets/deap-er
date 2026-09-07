@@ -115,7 +115,8 @@ class PrimitiveTree(list[Any]):
             ValueError: If the replacement would change the tree arity.
         """
         if isinstance(key, slice):
-            if key.start >= len(self):
+            start = 0 if key.start is None else key.start
+            if start >= len(self):
                 raise IndexError(
                     "Trying to set a slice larger than the size "
                     "of the PrimitiveTree is not allowed."
