@@ -93,3 +93,36 @@ def test_nsga_convergence_and_inverted_generational_distance():
 def test_duplicate_count_counts_twins():
     assert tools.duplicate_count([[1], [1], [2], [1]]) == 2
     assert tools.duplicate_count(["a", "bb", "a"], key=len) == 1
+
+
+def test_duplicate_count_empty_population():
+    assert tools.duplicate_count([]) == 0
+
+
+def test_duplicate_count_single_individual():
+    assert tools.duplicate_count(["only"]) == 0
+
+
+def test_duplicate_count_all_unique_hashable():
+    assert tools.duplicate_count([0, 1, 2, 3]) == 0
+
+
+def test_duplicate_count_all_duplicates_hashable():
+    assert tools.duplicate_count([7, 7, 7, 7]) == 3
+
+
+def test_duplicate_count_mixed_hashable():
+    assert tools.duplicate_count([1, 2, 1, 3, 2, 1]) == 3
+
+
+def test_duplicate_count_unhashable_all_same():
+    assert tools.duplicate_count([[1], [1], [1]]) == 2
+
+
+def test_duplicate_count_unhashable_all_unique():
+    assert tools.duplicate_count([[1], [2], [3]]) == 0
+
+
+def test_duplicate_count_key_returns_unhashable_list():
+    assert tools.duplicate_count(["a", "bb", "ccc"], key=list) == 0
+    assert tools.duplicate_count(["aa", "b", "aa"], key=list) == 1

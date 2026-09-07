@@ -30,7 +30,7 @@ surface.
 | 11 | [SMS-EMOA](#11-sms-emoa) | `operators` | shipped |
 | 12 | [MOEA/D and AGE-MOEA-II](#12-moead-and-age-moea-ii) | `operators` | shipped |
 | 13 | [IPOP / BIPOP CMA restarts](#13-ipop-bipop-cma-restarts) | `algorithms`, `strategies` | shipped |
-| 14 | [Linear-time duplicate count](#14-linear-time-duplicate-count) | `tools` | planned |
+| 14 | [Linear-time duplicate count](#14-linear-time-duplicate-count) | `tools` | shipped |
 
 Shipping an item updates this page and the matching tutorial or
 reference stub.
@@ -427,9 +427,11 @@ Related: [Strategies](../reference/strategies.md),
 function’s contract stays the same: how many individuals are
 duplicates of an earlier one under an optional `key`.
 
-**Today.** The implementation is `value not in unique` on a list —
-$O(n^2)$. Fine for typical hall-of-fame sizes; not for a
-population-wide statistic on thousands of individuals.
+**Today.** `duplicate_count` extracts keys once, then counts
+$len(population) - distinct$ with a set when keys are hashable
+($O(n)$), a sort when they are unhashable but mutually sortable
+($O(n \log n)$), or list membership otherwise ($O(n^2)$). The
+public contract is unchanged.
 
 **Benefit.** Housekeeping that does not change the search language.
 Callers who log uniqueness on a large population get a linear
