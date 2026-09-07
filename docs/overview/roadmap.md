@@ -40,15 +40,15 @@ surface.
 | 21 | [Growing primitive language](#21-growing-primitive-language) | `gp` | planned |
 | 22 | [Semantic search space](#22-semantic-search-space) | `gp`, `records` | planned |
 | 23 | [Co-evolving cases](#23-co-evolving-cases) | `operators`, `records` | planned |
-| 24 | [Memetic constants](#24-memetic-constants) | `gp`, `strategies` | planned |
+| 24 | [Memetic constants](#24-memetic-constants) | `gp`, `strategies` | shipped |
 | 25 | [Streaming and island ecology](#25-streaming-and-island-ecology) | `algorithms` | shipped |
 | 26 | [Program teams](#26-program-teams) | `operators` | shipped |
 
 Shipping an item updates this page and the matching tutorial or
 reference stub. Items 15–20 are the toolbox-shaped holes after
-the first backlog; they are shipped. Items 21–24 compose pieces
+the first backlog; they are shipped. Items 21–23 compose pieces
 that already shipped (tapes, SlimGP, lexicase, archives, CMA)
-into a longer program-search loop. Items 25 and 26 are shipped.
+into a longer program-search loop. Items 24–26 are shipped.
 Still not a second genome family.
 
 !!! note
@@ -782,9 +782,16 @@ back onto those nodes. Invalidate fitness and the compile
 cache for that individual. Register as something like
 `tune_ephemerals(ind, strategy, n_gen=...)`.
 
-**Today.** Ephemerals are drawn once. `mut_ephemeral` redraws
-them at random. CMA lives on real vectors that *are* the
-individual, not on leaves inside a `PrimitiveTree`.
+**Today.** `tune_ephemerals(ind, strategy, evaluate, n_gen=5)`
+extracts ephemeral floats and `Window` ints in documented
+prefix order (`SlimTree`: `head`, then each delta), runs a
+short boxed `Strategy` or `StrategySeparable` `generate` /
+`update` loop, writes the repaired centroid back, and
+invalidates fitness plus the compile-cache entry for the old
+expression. Trials are scored with the caller's `evaluate` on
+clones, or `evaluate_batch` on a pack of clones. Window
+values are rounded and clamped to the ephemeral's legal
+range. `mut_ephemeral` is unchanged.
 
 **Benefit.** Symbolic structure plus a real optimizer is how
 you get a law instead of a mess that interpolates. Both halves
