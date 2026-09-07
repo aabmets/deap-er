@@ -152,6 +152,48 @@ def test_mut_gaussian_bounded_skips_empty_interval():
     assert mutant == [0.3, 0.7]
 
 
+def test_mut_gaussian_bounded_skips_empty_interval_per_gene():
+    genes = [0.3, 0.7]
+    low = [1.0, 0.0]
+    up = [0.0, 1.0]
+    tools.rng.seed(12)
+    expected = list(genes)
+    for i, xl, xu in zip(range(len(genes)), low, up, strict=True):
+        if tools.rng.random() < 1.0:
+            if xu <= xl:
+                continue
+            expected[i] = min(max(expected[i] + tools.rng.gauss(0.0, 1.0), xl), xu)
+
+    tools.rng.seed(12)
+    individual: Any = list(genes)
+    (mutant,) = tools.mut_gaussian_bounded(individual, 0.0, 1.0, low, up, 1.0)
+    assert mutant[0] == genes[0]
+    assert mutant == expected
+    assert 0.0 <= mutant[1] <= 1.0
+
+
+def test_mut_gaussian_bounded_unselected_out_of_box_stays():
+    genes = [10.0, -5.0]
+    mut_prob = 0.5
+    tools.rng.seed(0)
+    draws = [tools.rng.random() for _ in genes]
+    assert draws[0] >= mut_prob
+    assert draws[1] < mut_prob
+
+    tools.rng.seed(0)
+    expected = list(genes)
+    for i, gene in enumerate(expected):
+        if tools.rng.random() < mut_prob:
+            expected[i] = min(max(gene + tools.rng.gauss(0.0, 1.0), 0.0), 1.0)
+
+    tools.rng.seed(0)
+    individual: Any = list(genes)
+    (mutant,) = tools.mut_gaussian_bounded(individual, 0.0, 1.0, 0.0, 1.0, mut_prob)
+    assert mutant == expected
+    assert mutant[0] == genes[0]
+    assert 0.0 <= mutant[1] <= 1.0
+
+
 def test_mut_gaussian_bounded_rejects_short_parameter_sequences():
     individual: Any = [0.0, 1.0]
     with pytest.raises(ValueError, match="at least the size"):
@@ -166,8 +208,8 @@ def test_mut_gaussian_bounded_rejects_short_parameter_sequences():
 
 def test_mut_gaussian_bounded_accepts_numpy_integer_bounds():
     individual: Any = [10.0, -5.0]
+    low: Any = numpy.int64(0)
+    up: Any = numpy.int64(1)
     tools.rng.seed(1)
-    (mutant,) = tools.mut_gaussian_bounded(
-        individual, 0.0, 1.0, numpy.int64(0), numpy.int64(1), 1.0
-    )
+    (mutant,) = tools.mut_gaussian_bounded(individual, 0.0, 1.0, low, up, 1.0)
     assert all(0.0 <= gene <= 1.0 for gene in mutant)
