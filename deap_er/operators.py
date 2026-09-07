@@ -39,6 +39,7 @@ from .private.operators.mut_various import (
     mut_shuffle_indexes,
     mut_uniform_int,
 )
+from .private.operators.sample_informed_cases import sample_informed_cases
 from .private.operators.sel_helpers import assign_crowding_dist, uniform_reference_points
 from .private.operators.sel_lexicase import sel_epsilon_lexicase, sel_lexicase
 from .private.operators.sel_nsga_2 import sel_nsga_2
@@ -80,6 +81,7 @@ __all__: list[str] = [
     "mut_uniform_int",
     "assign_crowding_dist",
     "uniform_reference_points",
+    "sample_informed_cases",
     "sel_epsilon_lexicase",
     "sel_lexicase",
     "sel_nsga_2",
