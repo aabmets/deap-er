@@ -188,6 +188,26 @@ finite, the same way non-finite descriptors are rejected.
 
 ---
 
+## HallOfFame archived invalid and non-finite fitness
+
+`update` only skipped a missing `fitness` attribute. A typical
+creator individual has the attribute before evaluation, so
+unevaluated members occupied hall-of-fame slots. Assigned NaN
+compared as incomparable under `bisect_right`, so a NaN key
+sorted to the front as if it were the best member. `ParetoFront`
+kept the same invalid and all-NaN individuals on the front.
+
+**Fix.** Skip an individual whose fitness is missing, invalid, or
+non-finite, matching MAP-Elites `add`.
+
+**Validators.**
+
+- `tests/test_records/test_hall_of_fame.py::test_update_skips_invalid_fitness_and_keeps_later_members`
+- `tests/test_records/test_hall_of_fame.py::test_update_rejects_non_finite_fitness`
+- `tests/test_records/test_hall_of_fame.py::test_pareto_front_skips_invalid_and_non_finite_fitness`
+
+---
+
 ## `MultiStatistics.compile` exhausted a generator
 
 Each chapter iterated `data`. A one-shot iterable (generator,

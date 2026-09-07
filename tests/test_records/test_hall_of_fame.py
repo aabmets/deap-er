@@ -8,6 +8,7 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+import math
 from typing import Any
 
 import pytest
@@ -82,6 +83,37 @@ def test_update_replaces_similar_member_when_fitness_is_better(ind_cls):
     assert [(list(ind), ind.fitness.values[0]) for ind in hof] == [([1], 10.0), ([0], 8.0)]
 
 
+def test_update_skips_invalid_fitness_and_keeps_later_members(ind_cls):
+    unevaluated = ind_cls([0])
+    good = ind_cls([9])
+    good.fitness.values = (7.0,)
+    hof = tools.HallOfFame(maxsize=5)
+    hof.update([unevaluated, good])
+    assert len(hof) == 1
+    assert list(hof[0]) == [9]
+    assert hof[0].fitness.values == (7.0,)
+
+
+def test_update_rejects_non_finite_fitness(ind_cls):
+    finite = ind_cls([1])
+    finite.fitness.values = (10.0,)
+    nan_ind = ind_cls([2])
+    nan_ind.fitness.values = (math.nan,)
+    hof = tools.HallOfFame(maxsize=2)
+    hof.update([finite, nan_ind])
+    assert len(hof) == 1
+    assert list(hof[0]) == [1]
+    assert hof[0].fitness.values == (10.0,)
+
+    empty = tools.HallOfFame(maxsize=2)
+    empty.update([nan_ind])
+    assert len(empty) == 0
+    inf_ind = ind_cls([3])
+    inf_ind.fitness.values = (math.inf,)
+    empty.update([inf_ind])
+    assert len(empty) == 0
+
+
 def test_update_skips_no_fitness_bootstrap_and_keeps_later_members(ind_cls):
     class Bare(list[Any]):
         pass
@@ -136,6 +168,26 @@ def test_pareto_front_keeps_non_dominated_and_drops_twins():
     finally:
         del creator.__dict__["PF_FIT"]
         del creator.__dict__["PF_IND"]
+
+
+def test_pareto_front_skips_invalid_and_non_finite_fitness():
+    creator.create_type("PF_SKIP_FIT", Fitness, weights=(1.0, 1.0))
+    creator.create_type("PF_SKIP_IND", list, fitness=creator.__dict__["PF_SKIP_FIT"])
+    try:
+        front = tools.ParetoFront()
+        unevaluated = creator.__dict__["PF_SKIP_IND"]([0])
+        member = creator.__dict__["PF_SKIP_IND"]([1])
+        member.fitness.values = (1.0, 4.0)
+        later = creator.__dict__["PF_SKIP_IND"]([2])
+        later.fitness.values = (4.0, 1.0)
+        nan_ind = creator.__dict__["PF_SKIP_IND"]([3])
+        nan_ind.fitness.values = (math.nan, math.nan)
+        front.update([unevaluated, member, nan_ind, later])
+        assert len(front) == 2
+        assert {ind.fitness.values for ind in front} == {(1.0, 4.0), (4.0, 1.0)}
+    finally:
+        del creator.__dict__["PF_SKIP_FIT"]
+        del creator.__dict__["PF_SKIP_IND"]
 
 
 def test_pareto_front_skips_individual_without_fitness():
