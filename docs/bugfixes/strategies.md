@@ -121,3 +121,9 @@ if that window's best-of-generation range is below `tol_fun`.
 ## $(1+\lambda)$ restart parent counted as $\lambda$ failures
 
 See [one-plus-lambda-invalid-parent](strategies/one-plus-lambda-invalid-parent.md).
+
+---
+
+## BIPOP small-regime $\sigma$ ignored $\sigma_{\mathrm{large}}$
+
+See [bipop-small-sigma](strategies/bipop-small-sigma.md).

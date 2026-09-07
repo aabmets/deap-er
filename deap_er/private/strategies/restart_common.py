@@ -91,9 +91,16 @@ def sample_small_lambda(lambda_default: int, lambda_large: int) -> int:
     return max(1, int(lambda_default * ratio ** rng.random()))
 
 
-def sample_small_sigma() -> float:
-    """Sample a BIPOP small-regime initial step size."""
-    return float(2.0 * 10.0 ** (-2.0 * rng.random()))
+def sample_small_sigma(sigma_large: float = 2.0) -> float:
+    """Sample a BIPOP small-regime step size ``sigma_large * 10^{-2U}``.
+
+    Args:
+        sigma_large: First-run / large-regime step size (Hansen's ``σ0``).
+
+    Returns:
+        A step size in ``[0.01 * sigma_large, sigma_large]``.
+    """
+    return float(sigma_large * 10.0 ** (-2.0 * rng.random()))
 
 
 def scalar_fitness(ind: Individual, key: Callable[[Individual], float] | None = None) -> float:

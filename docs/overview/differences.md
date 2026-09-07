@@ -209,6 +209,9 @@ from the original sources.
    than every offspring. After `reset_state` / an IPOP restart the
    first update adopts the best child without a fake
    $p_{\mathrm{succ}}=1$ step-size blow-up.
+10. BIPOP small-regime $\sigma$ is $\sigma_{\mathrm{large}}\cdot
+    10^{-2U[0,1]}$, not a hardcoded $2.0$. A custom first-run step
+    size no longer launches small restarts in $[0.02, 2]$.
 
 ## Genetic programming
 
