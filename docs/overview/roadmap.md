@@ -37,10 +37,19 @@ surface.
 | 18 | [Constraint-dominance selection](#18-constraint-dominance-selection) | `operators` | shipped |
 | 19 | [Sep-CMA](#19-sep-cma) | `strategies` | shipped |
 | 20 | [CVT / unstructured MAP-Elites](#20-cvt-unstructured-map-elites) | `records` | shipped |
+| 21 | [Growing primitive language](#21-growing-primitive-language) | `gp` | planned |
+| 22 | [Semantic search space](#22-semantic-search-space) | `gp`, `records` | planned |
+| 23 | [Co-evolving cases](#23-co-evolving-cases) | `operators`, `records` | planned |
+| 24 | [Memetic constants](#24-memetic-constants) | `gp`, `strategies` | planned |
+| 25 | [Streaming and island ecology](#25-streaming-and-island-ecology) | `algorithms` | planned |
+| 26 | [Program teams](#26-program-teams) | `operators` | planned |
 
 Shipping an item updates this page and the matching tutorial or
-reference stub. Items 16–20 are the remaining toolbox-shaped holes
-after the first backlog shipped — not a second genome family.
+reference stub. Items 15–20 are the toolbox-shaped holes after
+the first backlog; they are shipped. Items 21–26 compose pieces
+that already shipped (tapes, SlimGP, lexicase, archives, CMA)
+into a longer program-search loop. Still not a second genome
+family.
 
 !!! note
     deap-er stays a pure-Python package. Native work remains an
@@ -619,6 +628,279 @@ Related: [Records](../reference/records.md),
 
 ---
 
+## 21. Growing primitive language
+
+**What.** Library evolution on the existing prefix-tree + tape
+surface. A helper (for example `promote_subtree`) lifts a typed
+subtree into `PrimitiveSetTyped` as a new primitive: generated
+name, the subtree’s argument types and return type, and — when
+the set is columnar — an opcode binding so `lower_tree` /
+`interpret_tapes` see it. Later `generate` / mutation can sample
+that name like any other primitive. `add_adf` stays the static
+“register this other pset” path; this item is *dynamic* accretion
+from successful individuals.
+
+**Today.** The primitive set is fixed at toolbox setup.
+`add_adf` / `compile_adf_tree` support Koza-style ADFs decided
+up front. `add_primitive` already rejects names that collide
+with arguments.
+
+**Benefit.** Search stops reshuffling the same kit and starts
+building vocabulary. The thing you keep at the end can be a
+small dialect plus shallow trees, not one giant expression.
+
+**Design notes.**
+
+- Promotion is an operator the caller fires (threshold on
+  fitness, archive cell, or frequency). Do not auto-promote
+  every generation — the language bloats and the compile cache
+  dies.
+- The extracted node list must be a complete typed tree. Reuse
+  the same closure rules as `generate()`.
+- Existing `compile_tree` / tape caches key on expression text
+  and context identity. A pset mutation changes context: drop
+  or namespace the cache; stale lambdas are wrong.
+- Columnar path: bind at or above `USER_BASE` and pass one
+  dispatcher, same as `bind_numba_opcode`. Python reference
+  implementation is the definition; opcode and Numba follow.
+- Cap library size. Evict the least-used promoted name, not a
+  built-in kit primitive.
+
+**Scope.** Feature construction on prefix trees. Not a catalog of
+named domain indicators. Not a second genome. Not an LLM that
+proposes names.
+
+Related: [Genetic programming](../reference/gp.md),
+[item 9](#9-compile-and-clone-path).
+
+---
+
+## 22. Semantic search space
+
+**What.** Treat `interpret_tapes(...)`’s
+$(n_{\mathrm{ind}}, n_{\mathrm{rows}})$ matrix as the search
+geometry, not only as a fitness source. Two concrete pieces:
+
+1. **Semantic descriptors** — project that matrix (per-individual
+   moments, case-solve bits, a PCA / random projection the
+   caller supplies) into a behavior vector and `add` it to
+   `GridArchive` or the item-20 archive. Variation stays SlimGP
+   / ordinary GP; the archive keeps *different functions*, not
+   different strings.
+2. **Semantic nearest-neighbor** — optional parent or surrogate
+   lookup in that matrix (cosine / Euclidean on the finite
+   mask). A cheap stand-in for “what does this program *do*.”
+   Not a trained QD model.
+
+`SlimTree` + `mut_slim` already move in output space. This item
+hooks that geometry to the archive and to selection.
+
+**Today.** Semantics exist at evaluation time and are thrown
+away. `GridArchive` takes whatever descriptor the caller
+invented. Lexicase reads `fitness.values` (or `matrix=`), which
+is usually a reduction of the series, not the series.
+
+**Benefit.** Breeding and keeping happen in the space SlimGP
+already mutates. You keep a zoo of competent specialists
+instead of one tree that won a scalar.
+
+**Design notes.**
+
+- Warmup `nan`s: reuse the `valid=` contract from `case_errors`.
+  A descriptor or distance that sees warmup is a lookahead bug.
+- `trust_matrix=True` stays a footgun with the same meaning as
+  on lexicase — the pack must match the current individuals.
+- Do not replace `ind.fitness`. The archive still ranks a cell
+  by fitness; the descriptor is *which* cell.
+- A linear or nearest-neighbor surrogate of last generation’s
+  semantics is in scope. A learned quality-diversity model is
+  not (see [Not planned](#not-planned)).
+
+Related: [item 7](#7-non-bloating-semantic-variation),
+[item 8](#8-quality-diversity-archive),
+[item 4](#4-batch-tape-evaluation).
+
+---
+
+## 23. Co-evolving cases
+
+**What.** A second, cheap population whose individuals are
+**case subsets** — index ranges or boolean masks in the same
+shape `case_errors` and `sel_lexicase(..., cases=)` already
+consume. Each generation (or each island step):
+
+1. Score programs on the current case subset (caller’s
+   `evaluate` / `evaluate_batch`).
+2. Score case subsets on the current elites: how many they
+   still *fool*. The library needs a convention, not a domain
+   metric. Match item 5: a case is solved when its value is
+   $0$; a subset’s “difficulty” is the unsolved count or a
+   Hamming distance from the all-solved vector.
+3. Vary the subsets (mutate ranges, flip mask runs, informed
+   resample via `sample_informed_cases`). Feed the next
+   lexicase call.
+
+POET is the reference *loop*, not the deliverable. No
+environment simulator, no neural teacher.
+
+**Today.** Cases are static. `sample_informed_cases` picks a
+subset from a *fixed* solve matrix. `case_errors` reduces a
+series once. Nothing writes a new exam.
+
+**Benefit.** The stand-in loss cannot sit still. Programs that
+memorized last generation’s cases get a new test. This is the
+machine-checkable replacement for a human staring at trees.
+
+**Design notes.**
+
+- Store subsets as data (`list[tuple[int, int]]` or a 1-D
+  `bool` mask), not as a new genome type. `creator` can wrap
+  them if someone wants a hall of fame of exams.
+- Chronological / walk-forward splits stay on the caller. The
+  library does not invent time. It shuffles or mutates *given*
+  segments.
+- Reuse `fitness_case_matrix` so program selection and exam
+  scoring share one pack.
+- Guard against the empty exam and the “every case always
+  solved” collapse (bump subset size, or inject a held-out
+  segment the caller marks).
+- Do not put trading labels, Sharpe, or a metric catalog here.
+
+Related: [item 5](#5-down-sampled-and-informed-lexicase),
+[item 6](#6-case-structured-evaluation-helper).
+
+---
+
+## 24. Memetic constants
+
+**What.** Split a generation into **shape** then **numbers**.
+GP / SlimGP proposes or varies the tree. A helper extracts the
+numeric leaves (ephemeral floats, `Window` ints) into a vector,
+runs an existing `Strategy` (or item-19 Sep-CMA) for a few
+`generate` / `update` steps, and writes the repaired values
+back onto those nodes. Invalidate fitness and the compile
+cache for that individual. Register as something like
+`tune_ephemerals(ind, strategy, n_gen=...)`.
+
+**Today.** Ephemerals are drawn once. `mut_ephemeral` redraws
+them at random. CMA lives on real vectors that *are* the
+individual, not on leaves inside a `PrimitiveTree`.
+
+**Benefit.** Symbolic structure plus a real optimizer is how
+you get a law instead of a mess that interpolates. Both halves
+already exist; they do not meet.
+
+**Design notes.**
+
+- Walk the tree (and `SlimTree.head` / deltas if you support
+  it) for `Ephemeral` nodes and `Window` terminals. Order is
+  part of the contract — document it, keep it stable.
+- `Window` is an inclusive integer length. After CMA, round
+  and clamp to the ephemeral’s legal range. A non-integer
+  window is a causality bug, not a style issue.
+- Box the CMA strategy to those legal ranges (`low` / `up`,
+  `bound_mode="clip"`).
+- Evaluation of trial vectors is the caller’s `evaluate` on a
+  clone with leaves written back — or `evaluate_batch` on a
+  pack of clones. Do not add a domain fitness.
+- Small inner budget. This is a local polish, not a second
+  full ES run per offspring.
+- No in-tree Autograd / Adam. CMA is the numeric engine
+  unless a later profile says otherwise.
+
+Related: [Strategies](../reference/strategies.md),
+[item 19](#19-sep-cma).
+
+---
+
+## 25. Streaming and island ecology
+
+**What.** Two thin algorithm pieces, not a runtime product.
+
+1. **Append-only evaluation.** A packed `(rows, columns)`
+   matrix grows by rows. Re-score with `interpret_tapes` on
+   the new pack (or a dirty suffix if you can prove the
+   opcode is causal and has a bounded window).
+   `evaluate_invalid` already prefers `evaluate_batch`.
+   `Checkpoint.range` already persists a run. Document the
+   recipe; add a helper only if the dirty-row bookkeeping is
+   easy to get wrong (row count vs warmup vs `valid=`).
+2. **Heterogeneous islands.** Several demes, each with its
+   *own* registered `select` / `vary` (lexicase on one,
+   `sel_sms_emoa` on another, `ea_map_elites` on a third).
+   `mig_ring` already moves individuals. A small
+   `step_islands(demes, migrate=...)` loop is enough: evaluate
+   → vary → select on each deme, then migrate. Different
+   *pressures*, not different topologies.
+
+**Today.** A run is `for gen in range(ngen)` on one toolbox
+and one fixed matrix. `mig_ring` exists; nothing steps
+unlike demes.
+
+**Benefit.** Evolution can sit on a pipe, and a population
+can disagree about what “good” means. Specialists survive
+because some island is still selecting for them.
+
+**Design notes.**
+
+- Causality: new rows are the present. A program must not
+  see a row that has not arrived. Window warmup on the new
+  suffix is the same `nan` contract as the unary kit.
+- Full-matrix rescore is the correct default. Incremental
+  kernels (item 3) make that cheap; a custom dirty-suffix
+  path is optional and must match the Python oracle.
+- Migrants keep their fitness only if the destination’s
+  cases / matrix are the same. Otherwise invalidate.
+  Cross-island archives do not merge automatically.
+- No Ray/GPU runtime, no daemon. Checkpoint + caller loop.
+
+Related: [item 4](#4-batch-tape-evaluation),
+[Algorithms](../reference/algorithms.md),
+[Multiprocessing](../tutorials/multiprocessing.md).
+
+---
+
+## 26. Program teams
+
+**What.** Selection of a **set** of programs that covers cases
+together, plus an optional router individual. `sel_team(pool,
+k, matrix=)` (name flexible) treats the case-solve matrix from
+`fitness_case_matrix` as a set-cover / max-coverage problem:
+greedy or lexicase-style, return $k$ members whose union of
+solved cases is large. A team is a sequence of individuals.
+Scoring the *team* (vote, mask-router, winner-take-regime)
+stays on the caller — same rule as `evaluate`.
+
+**Today.** Lexicase produces specialists, then `sel_best` /
+`HallOfFame` throws them away for one champion.
+Co-evolution examples exist for sorting networks, not for
+columnar programs. `GridArchive` keeps diversity in behavior
+space; nothing turns that diversity into a jointly scored
+object.
+
+**Benefit.** The thing you ship is an ensemble that covers
+regimes, which is what lexicase and MAP-Elites were already
+pointing at.
+
+**Design notes.**
+
+- Do not overwrite member `fitness` with the team score. Team
+  quality is a separate value the caller assigns if they want
+  a hall of fame of teams.
+- `matrix=` / `trust_matrix=` match lexicase. Solved ≡ $0$.
+- Router-as-tree is just another individual the caller
+  evaluates. Do not add a built-in gating primitive.
+- $k=1$ reduces to “pick the best coverage individual” and
+  must not crash.
+- Cooperative coevolution of members (species per slot) is
+  allowed as an example, not required in the operator.
+
+Related: [item 5](#5-down-sampled-and-informed-lexicase),
+[item 8](#8-quality-diversity-archive),
+[item 22](#22-semantic-search-space).
+
+---
+
 ## Not planned
 
 These ideas stay off the library surface. They are listed so the
@@ -630,6 +912,7 @@ backlog above is not read as “everything in the 2025 GP literature.”
 | Transformer or LLM mutation | Heavy optional dependencies, unstable operators, and they do not compose with the tape. A recipe in a notebook is enough. |
 | A catalog of named domain indicators as primitives | Composable windows and user opcodes. Named catalogs age badly. |
 | Built-in domain fitness functions | They need application state the library does not own. |
-| Learned quality-diversity / meta-BBO | A research paper, not a toolbox function. |
+| Learned quality-diversity / meta-BBO | A research paper, not a toolbox function. Item 22 is a semantic descriptor and nearest-neighbor, not a trained QD model. |
+| Interactive / human-in-the-loop evolution | A notebook over `archive` + `tree_to_infix`. Machine-checkable pressure is items 22–23 and 26, not clicks. |
 | Switching persistence off dill, or replacing `creator` with dataclasses | Forbidden by the project contract. |
 | An in-tree C / Cython rewrite of operators, CMA, or selection | Not the bottleneck; those modules must stay readable. Revisit an *optional* tape backend only after items 3, 4, and 9 are in and a profile still points at `interpret`. |
