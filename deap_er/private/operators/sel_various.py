@@ -56,18 +56,22 @@ def _wheel_prefix(
         fit_attr: Attribute used as the selection criterion.
 
     Returns:
-        Sorted individuals (best first), inclusive prefix sums, and the
-        wheel total. ``None`` when every slice is zero.
+        Sorted individuals (best first), inclusive prefix sums of the
+        sorted wheel, and the encounter-order total used to scale
+        draws. ``None`` when every slice is zero.
     """
     sorted_ = sorted(individuals, key=attrgetter(fit_attr), reverse=True)
     floor = min(getattr(ind, fit_attr).wvalues[0] for ind in individuals)
-    prefix: list[float] = []
     total = 0.0
-    for ind in sorted_:
+    for ind in individuals:
         total += _wheel_weight(getattr(ind, fit_attr), floor)
-        prefix.append(total)
     if total == 0:
         return None
+    prefix: list[float] = []
+    acc = 0.0
+    for ind in sorted_:
+        acc += _wheel_weight(getattr(ind, fit_attr), floor)
+        prefix.append(acc)
     return sorted_, prefix, total
 
 
