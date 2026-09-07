@@ -20,6 +20,10 @@ from .private.various.initializers import *
 from .private.various.least_contrib import *
 from .private.various.metrics import *
 from .private.various.rng import *
+from .private.various.semantic_descriptors import *
+from .private.various.semantic_mask import *
+from .private.various.semantic_neighbors import *
+from .private.various.semantic_project import *
 from .private.various.sort_non_dominated import *
 from .private.various.sorting_network import *
 from .records import *

@@ -15,6 +15,7 @@ from .private.records.grid_archive import GridArchive
 from .private.records.hall_of_fame import HallOfFame, ParetoFront
 from .private.records.history import History
 from .private.records.logbook import Logbook
+from .private.records.semantic_surrogate import SemanticSurrogate
 from .private.records.statistics import MultiStatistics, Statistics
 from .private.records.unstructured_archive import UnstructuredArchive
 
@@ -22,6 +23,7 @@ __all__ = [
     "ArchiveStats",
     "CvtArchive",
     "GridArchive",
+    "SemanticSurrogate",
     "UnstructuredArchive",
     "cvt_centroids",
     "HallOfFame",
