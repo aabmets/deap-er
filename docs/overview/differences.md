@@ -9,7 +9,7 @@ changed. Same toolbox model. Counted from the sections below:
   implemented (some older than a decade)
 - **36** correctness bugs fixed — operators, GP, CMA, records,
   checkpoints, and published benchmarks
-- **26** capabilities DEAP does not have, including boxed CMA,
+- **33** capabilities DEAP does not have, including boxed CMA,
   mixed-gene mutation, logbook JSON, and
   [columnar GP](../tutorials/columnar_gp.md)
 
@@ -106,6 +106,21 @@ from the original sources.
     still use every case. `sample_informed_cases` builds that subset
     by farthest-first traversal of Hamming distances between case
     solve vectors, so synonymous cases are not over-sampled.
+    `fitness_case_matrix` packs `fitness.values` into a dense matrix;
+    optional `matrix=` and `trust_matrix=` let lexicase and informed
+    down-sampling reuse one pack per generation.
+16. `sel_sms_emoa` reduces a pool by non-dominated sorting, then
+    removes the least hypervolume contributor on the critical front
+    until the quota is met. Optional `ref_point` follows the same
+    minimization-space convention as `hypervolume` and `least_contrib`.
+    Works on `parents + offspring` or steady-state `parents + [child]`.
+17. `sel_moead` and `SelMOEADWithMemory` pick one winner per
+    decomposition weight from `uniform_reference_points`, using
+    Tchebycheff or PBI scalarization with Pareto-rank-aware tie
+    breaks and NSGA-II-style crowding on the fill pass.
+18. `sel_age_moea_2` and `SelAGE2WithMemory` advance front by front:
+    geodesic diversity on partial $F_1$, inverse Minkowski on later
+    partial fronts, with Newton–Raphson curvature on the first front.
 
 ## Evolution strategies
 
@@ -128,6 +143,10 @@ from the original sources.
    $\lambda \neq \mu$, so several children of the same parent do not
    stack $\sigma$ updates. `generate` samples every parent if any
    parent fitness is invalid; `update` ranks only valid fitnesses.
+5. `RestartStrategy` wraps standard, $(1+\lambda)$, or MO-CMA with
+   IPOP or BIPOP restart scheduling. `ea_generate_update_restarts`
+   runs the generate/update loop and logs restart regime, population
+   size, and evaluation budget each generation.
 
 ## Genetic programming
 
@@ -208,6 +227,11 @@ The following is extra.
     compiled loop; `parallel=True` gives each thread its own
     workspace. Unique programs are compiled once by `str(tree)`
     and lowered from the tree object.
+20. `SlimTree` stores a GP head plus semantic delta blocks. `mut_slim`,
+    `mut_slim_inflate`, and `mut_slim_deflate` append or remove deltas
+    without re-wrapping the whole tree; `cx_slim_donor` swaps a donor
+    block size-preservingly. `compile_slim_tree` evaluates
+    $\mathrm{head} + \sum \delta_i$.
 
 The columnar contract is in the
 [columnar GP tutorial](../tutorials/columnar_gp.md). Shared-array
@@ -228,7 +252,8 @@ evaluation is in the
    nested chapters, and the header. NumPy scalars become Python
    numbers.
 5. `duplicate_count` is a [variety statistic][deap-350]: population
-   length minus distinct keys.
+   length minus distinct keys. Hashable keys scan in linear time;
+   unhashable but sortable keys use an adjacent-run count after sort.
 6. The four `ea_*` algorithms accept `log_time` ([per-generation
    wall time][deap-426]), `logger` ([instead of only
    `print`][deap-750]), and `fronts` (append a new `ParetoFront` of
@@ -246,6 +271,12 @@ evaluation is in the
     `gen` and every index in a slice — not the same list index.
 11. `History.update` records every member of a batch. A single
     individual without `history_index` no longer orphans the rest.
+12. `GridArchive` tessellates behavior descriptors into a MAP-Elites
+    grid: `add` keeps the best individual per cell, `random_elites`
+    samples parent copies, and `stats` reports coverage and
+    `qd_score`. `ea_map_elites` drives evaluate → archive → `var_or`
+    and logs archive metrics each generation. Fitness stays on
+    `ind.fitness`; behavior measurement stays on the caller.
 
 ## Persistence
 
@@ -272,6 +303,11 @@ evaluation is in the
 2. `SortingNetwork.evaluate` copies each case, sorts the copy, and
    compares it to `sorted(original)`, so integer cases are not
    scored as bit-count patterns.
+3. `case_errors` reduces aligned 1D `predicted` and `target` series
+   into one mean-squared error per case segment. Accepts explicit
+   half-open `(start, stop)` ranges or a boolean mask (one case per
+   contiguous `True` run). Non-finite samples are skipped; optional
+   `valid=` covers the `vwhere` warmup trap from columnar GP.
 
 ## Benchmarks
 
