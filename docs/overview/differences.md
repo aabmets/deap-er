@@ -142,6 +142,12 @@ from the original sources.
     on a binomial gene subset (`cx_prob`, at least one gene). Optional
     `low` / `up` clamp the written genes. Selection stays on the
     caller. DEAP only has this loop in examples.
+22. `constraint_dominates` is Deb's feasibility-first comparison:
+    feasible beats infeasible; two feasibles use ordinary Pareto;
+    two infeasibles prefer the smaller constraint violation.
+    `sel_nsga_2` accepts optional `feasible=` / `violation=`
+    callables and ranks with that rule. Defaults stay unconstrained
+    NSGA-II. Fitness values are not rewritten.
 
 ## Evolution strategies
 
