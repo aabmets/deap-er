@@ -31,9 +31,16 @@ surface.
 | 12 | [MOEA/D and AGE-MOEA-II](#12-moead-and-age-moea-ii) | `operators` | shipped |
 | 13 | [IPOP / BIPOP CMA restarts](#13-ipop-bipop-cma-restarts) | `algorithms`, `strategies` | shipped |
 | 14 | [Linear-time duplicate count](#14-linear-time-duplicate-count) | `tools` | shipped |
+| 15 | [Heterogeneous crossover](#15-heterogeneous-crossover) | `operators` | planned |
+| 16 | [Bounded Gaussian mutation](#16-bounded-gaussian-mutation) | `operators` | planned |
+| 17 | [Differential evolution operators](#17-differential-evolution-operators) | `operators` | planned |
+| 18 | [Constraint-dominance selection](#18-constraint-dominance-selection) | `operators` | planned |
+| 19 | [Sep-CMA](#19-sep-cma) | `strategies` | planned |
+| 20 | [CVT / unstructured MAP-Elites](#20-cvt-unstructured-map-elites) | `records` | planned |
 
 Shipping an item updates this page and the matching tutorial or
-reference stub.
+reference stub. Items 15–20 are the remaining toolbox-shaped holes
+after the first backlog shipped — not a second genome family.
 
 !!! note
     deap-er stays a pure-Python package. Native work remains an
@@ -405,10 +412,9 @@ it does not add a new covariance-update variant.
 and ``StrategyMultiObjective`` with IPOP or BIPOP restart scheduling
 (BBOB-style stagnation, λ doubling, and small-regime sampling).
 ``ea_generate_update_restarts`` runs until the evaluation budget is
-spent. Box constraints from the inner strategy are preserved. No
-Sep-CMA, LM-CMA, or learned step-size controller is planned until a
-user hits a documented wall; high-dimension Sep-CMA is the only
-plausible next variant.
+spent. Box constraints from the inner strategy are preserved.
+LM-CMA and learned step-size controllers stay off the list.
+High-dimension Sep-CMA is [item 19](#19-sep-cma).
 
 **Benefit.** This is how CMA is used on hard landscapes: enlarge
 the population, reset the model, continue. ES users stop writing
@@ -438,6 +444,158 @@ Callers who log uniqueness on a large population get a linear
 scan instead of a quadratic one. No new operator.
 
 Related: [Utilities](../reference/utilities.md).
+
+---
+
+## 15. Heterogeneous crossover
+
+**What.** `cx_heterogeneous` next to `mut_heterogeneous`: one
+crossover callable per gene (or per slice) so a mixed encoding —
+bit + int range + choice + boxed real — does not need a one-off
+`mate()`. Each callable receives the pair of gene values and
+returns the two replacements. The individual is modified in place.
+
+**Today.** `mut_heterogeneous` applies one mutator per gene. The
+[mixed-encoding example](../examples/genetic_algorithms/mixed_encoding.md)
+still writes a custom `mate()` that swaps the discrete genes and
+blend-crosses the floats.
+
+**Benefit.** Mixed genomes already have a mutator. Crossover is the
+missing pair. Callers stop forking `mate()` every time the
+encoding is heterogeneous.
+
+**Scope.** A per-gene (or per-slice) dispatcher, not a catalog of
+typed crossovers. Existing `cx_*` operators remain the callables
+you pass in.
+
+Related: [Operators](../reference/operators.md).
+
+---
+
+## 16. Bounded Gaussian mutation
+
+**What.** `mut_gaussian_bounded`: the same $N(\mu, \sigma)$ draw as
+`mut_gaussian`, then a clamp (or a redraw) so each gene stays in
+`[low, up]`. `low` / `up` may be scalars or per-gene sequences,
+matching `mut_polynomial_bounded`.
+
+**Today.** `mut_gaussian` adds a Gaussian and leaves the gene
+wherever it lands. Boxed SBX, boxed blend, boxed polynomial
+mutation, and boxed CMA already keep variation inside a box.
+
+**Benefit.** The usual real-coded GA mutation when the search space
+is a box and polynomial mutation is not wanted. Out-of-box genes
+are the class of defect that made unbounded SBX write NaN or
+complex values.
+
+**Scope.** One operator. No new bound-repair framework.
+
+Related: [Operators](../reference/operators.md).
+
+---
+
+## 17. Differential evolution operators
+
+**What.** The DE trial-vector recipe as toolbox functions, for
+example `mut_de` / `cx_de` (or one `de_trial`). For a parent,
+pick three others $a$, $b$, $c$, write
+
+$$
+y_i = a_i + F\,(b_i - c_i)
+$$
+
+on a binomial subset of genes (rate `CR`, at least one gene
+forced), and let the caller keep $y$ when it is better. Register
+them like any other variation operator.
+
+**Today.** That loop lives in
+[the DE examples](../examples/genetic_algorithms/diff_evo.md).
+PSO stays an example. There is no `ea_de`.
+
+**Benefit.** DE is the algorithm that is still a recipe. Operators
+close that without a new algorithm family.
+
+**Scope.** Variation operators only. No first-class DE or PSO
+algorithm, no adaptive $F$ / `CR` controller.
+
+Related: [Operators](../reference/operators.md).
+
+---
+
+## 18. Constraint-dominance selection
+
+**What.** Feasibility-first comparison (Deb) for environmental
+selection, usable from `sel_nsga_2` or as a thin wrapper. Three
+rules: feasible beats infeasible; two feasibles use ordinary
+Pareto / crowding on objectives; two infeasibles prefer the
+smaller constraint violation. The caller supplies a feasibility
+flag or a violation amount. Fitness values are not rewritten.
+
+**Today.** `DeltaPenalty` and `ClosestValidPenalty` turn an invalid
+individual into a bad fitness number, then ordinary selection
+runs.
+
+**Benefit.** Constrained NSGA-II users stop inventing a penalty
+scale. Penalties remain the other path.
+
+**Scope.** One comparison rule (and the selector that uses it).
+Not a constraint framework, not a catalog of violation metrics.
+
+Related: [Operators](../reference/operators.md),
+[Utilities](../reference/utilities.md).
+
+---
+
+## 19. Sep-CMA
+
+**What.** A separable CMA strategy next to `Strategy`: the
+covariance $C$ stays diagonal — one variance per gene, no learned
+correlations. Memory and update drop from $O(n^2)$ / $O(n^3)$ to
+$O(n)$. Same `generate` / `update` surface, including the existing
+`low` / `up` box. `RestartStrategy` can wrap it.
+
+**Today.** `Strategy` learns a full $n \times n$ covariance. That
+is the wall around hundreds of dimensions. Item 13 already named
+Sep-CMA as the only plausible next CMA variant.
+
+**Benefit.** High-dimension continuous search keeps a CMA-shaped
+strategy when a full matrix no longer fits. Weaker when variables
+interact; the right tool when they are roughly independent or $n$
+is large.
+
+**Scope.** Diagonal $C$ only. No LM-CMA, VkD-CMA, or learned
+step-size controller until a user hits a documented wall after
+this.
+
+Related: [Strategies](../reference/strategies.md).
+
+---
+
+## 20. CVT / unstructured MAP-Elites
+
+**What.** A second quality-diversity archive next to `GridArchive`.
+A **CVT** archive places $k$ centroids in descriptor space
+(usually from a sample of possible behaviors) and assigns each
+individual to the nearest centroid. An **unstructured** archive
+skips a fixed tessellation and keeps elites by distance: add if
+far enough from existing members, or replace a neighbor. Same
+`add` / `random_elites` surface; `ea_map_elites` can take either
+archive.
+
+**Today.** `GridArchive` cuts each behavior axis into equal bins.
+That wastes cells in empty corners and fits poorly when the
+descriptor is not a nice box.
+
+**Benefit.** The usual next MAP-Elites data structure when
+descriptors are irregular. Diversity stays in *behavior*, not
+only in fitness. The caller still supplies the descriptor.
+
+**Scope.** Archive data structures, not learned QD / meta-BBO
+(see [Not planned](#not-planned)). Fitness stays on
+`ind.fitness`.
+
+Related: [Records](../reference/records.md),
+[item 8](#8-quality-diversity-archive).
 
 ---
 
