@@ -7,7 +7,7 @@ changed. Same toolbox model. Counted from the sections below:
 
 - **18** still-open [DEAP](https://github.com/DEAP/deap) issues
   [implemented](../bugfixes/deap_fixes.md) (some older than a decade)
-- **36** correctness bugs fixed — [operators](../bugfixes/operators.md),
+- **37** correctness bugs fixed — [operators](../bugfixes/operators.md),
   [GP](../bugfixes/gp.md),
   [CMA](../bugfixes/strategies.md),
   [records](../bugfixes/records.md),
@@ -280,9 +280,13 @@ evaluation is in the
 10. `Logbook.__delitem__` removes the chapter row that shares the
     same generation — including a later occurrence of a repeated
     `gen` and every index in a slice — not the same list index.
-11. `History.update` records every member of a batch. A single
+11. `Logbook.stream` and `str` pair chapter cells by `gen`. A
+    generation recorded without a chapter no longer shifts later
+    values onto the wrong row or IndexErrors once the stream cursor
+    is past the shorter chapter.
+12. `History.update` records every member of a batch. A single
     individual without `history_index` no longer orphans the rest.
-12. `GridArchive` tessellates behavior descriptors into a MAP-Elites
+13. `GridArchive` tessellates behavior descriptors into a MAP-Elites
     grid: `add` keeps the best individual per cell, `random_elites`
     samples parent copies, and `stats` reports coverage and
     `qd_score`. `ea_map_elites` drives evaluate → archive → `var_or`
