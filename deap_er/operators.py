@@ -42,6 +42,7 @@ from .private.operators.mut_various import (
 from .private.operators.sample_informed_cases import sample_informed_cases
 from .private.operators.sel_helpers import assign_crowding_dist, uniform_reference_points
 from .private.operators.sel_lexicase import sel_epsilon_lexicase, sel_lexicase
+from .private.operators.sel_lexicase_matrix import fitness_case_matrix
 from .private.operators.sel_nsga_2 import sel_nsga_2
 from .private.operators.sel_nsga_3 import SelNSGA3WithMemory, sel_nsga_3
 from .private.operators.sel_spea_2 import sel_spea_2
@@ -81,6 +82,7 @@ __all__: list[str] = [
     "mut_uniform_int",
     "assign_crowding_dist",
     "uniform_reference_points",
+    "fitness_case_matrix",
     "sample_informed_cases",
     "sel_epsilon_lexicase",
     "sel_lexicase",

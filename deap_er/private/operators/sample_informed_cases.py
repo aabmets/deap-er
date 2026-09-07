@@ -21,6 +21,8 @@ if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 from deap_er.private.various.rng import rng
 
+from .sel_lexicase_matrix import validate_case_matrix
+
 __all__: list[str] = ["sample_informed_cases"]
 
 type CaseSolved = Callable[[Individual, int], bool]
@@ -66,11 +68,17 @@ def _farthest_first_cases(solve: numpy.ndarray, case_count: int) -> list[int]:
     return chosen
 
 
+def _solve_from_matrix(matrix: numpy.ndarray) -> numpy.ndarray:
+    return numpy.isclose(matrix.T, 0.0, atol=1e-12)
+
+
 def sample_informed_cases(
     individuals: list[Individual],
     case_count: int,
     *,
     solved: CaseSolved | None = None,
+    matrix: numpy.ndarray | None = None,
+    trust_matrix: bool = False,
 ) -> list[int]:
     """Build a down-sample that prefers distinct fitness cases.
 
@@ -91,6 +99,11 @@ def sample_informed_cases(
             number of cases are capped. ``case_count <= 0`` returns
             an empty list.
         solved: Predicate ``(individual, case) -> bool``. Optional.
+            When not the default zero test, ``matrix`` is ignored.
+        matrix: Optional ``(n_individuals, n_cases)`` case matrix.
+            Used only with the default ``solved`` predicate.
+        trust_matrix: When ``True``, ``matrix`` is accepted on shape
+            alone. Defaults to ``False``.
 
     Returns:
         Distinct fitness-case indices, in the order they were picked.
@@ -113,4 +126,9 @@ def sample_informed_cases(
         raise ValueError("every individual must have a valid fitness of the same length")
     size = min(count, n_cases)
     predicate = solved if solved is not None else _default_solved
-    return _farthest_first_cases(_solve_matrix(individuals, n_cases, predicate), size)
+    if matrix is not None and predicate is _default_solved:
+        validate_case_matrix(matrix, individuals, trust=trust_matrix)
+        solve = _solve_from_matrix(matrix)
+    else:
+        solve = _solve_matrix(individuals, n_cases, predicate)
+    return _farthest_first_cases(solve, size)
