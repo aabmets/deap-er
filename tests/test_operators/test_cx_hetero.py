@@ -91,55 +91,63 @@ def test_toolbox_register_partial_slice_specs():
 
 
 def test_aligned_length_mismatch_raises():
+    first: Any = [1, 2]
+    second: Any = [3, 4]
     with pytest.raises(ValueError, match="same length"):
-        tools.cx_heterogeneous([1, 2], [3, 4], [_swap])
+        tools.cx_heterogeneous(first, second, [_swap])
 
 
 def test_unequal_individuals_raise():
+    first: Any = [1, 2]
+    second: Any = [3]
     with pytest.raises(ValueError, match="individuals must have the same length"):
-        tools.cx_heterogeneous([1, 2], [3], [_swap, _swap])
+        tools.cx_heterogeneous(first, second, [_swap, _swap])
 
 
 def test_overlapping_slices_raise():
+    first: Any = [1, 2, 3]
+    second: Any = [4, 5, 6]
     with pytest.raises(ValueError, match="must not overlap"):
         tools.cx_heterogeneous(
-            [1, 2, 3],
-            [4, 5, 6],
+            first,
+            second,
             ((slice(0, 2), _as_seq_swap), (slice(1, 3), _as_seq_swap)),
         )
 
 
 def test_stepped_slice_raises():
+    first: Any = [1, 2, 3, 4]
+    second: Any = [5, 6, 7, 8]
     with pytest.raises(ValueError, match="contiguous"):
-        tools.cx_heterogeneous(
-            [1, 2, 3, 4],
-            [5, 6, 7, 8],
-            ((slice(0, 4, 2), _as_seq_swap),),
-        )
+        tools.cx_heterogeneous(first, second, ((slice(0, 4, 2), _as_seq_swap),))
 
 
 def test_mixed_shapes_raise():
+    first: Any = [1, 2]
+    second: Any = [3, 4]
     with pytest.raises(ValueError, match="either one callable per gene"):
-        tools.cx_heterogeneous([1, 2], [3, 4], [_swap, (slice(1, 2), _as_seq_swap)])
+        tools.cx_heterogeneous(first, second, [_swap, (slice(1, 2), _as_seq_swap)])
     with pytest.raises(ValueError, match="either one callable per gene"):
-        tools.cx_heterogeneous(
-            [1, 2], [3, 4], ((slice(0, 1), _as_seq_swap), _swap)
-        )
+        tools.cx_heterogeneous(first, second, ((slice(0, 1), _as_seq_swap), _swap))
 
 
 def test_non_callable_raises():
+    first: Any = [1]
+    second: Any = [2]
     with pytest.raises(ValueError, match="must be callable"):
-        tools.cx_heterogeneous([1], [2], [None])
+        tools.cx_heterogeneous(first, second, [None])
     with pytest.raises(ValueError, match="must be callable"):
-        tools.cx_heterogeneous([1], [2], ((slice(0, 1), None),))
+        tools.cx_heterogeneous(first, second, ((slice(0, 1), None),))
 
 
 def test_length_changing_slice_operator_raises():
     def grow(left: Any, right: Any) -> tuple[Any, Any]:
         return [*left, 0], [*right, 0]
 
+    first: Any = [1, 2]
+    second: Any = [3, 4]
     with pytest.raises(ValueError, match="preserve unit length"):
-        tools.cx_heterogeneous([1, 2], [3, 4], ((slice(0, 2), grow),))
+        tools.cx_heterogeneous(first, second, ((slice(0, 2), grow),))
 
 
 def test_empty_individuals_with_empty_crossovers_are_noop():
@@ -154,9 +162,7 @@ def test_numpy_slice_writeback_does_not_alias_parents():
     first: Any = numpy.array([0, 1, 2, 3], dtype=int)
     second: Any = numpy.array([9, 8, 7, 6], dtype=int)
     tools.rng.seed(2)
-    tools.cx_heterogeneous(
-        first, second, ((slice(0, 4), partial(tools.cx_uniform, cx_prob=1.0)),)
-    )
+    tools.cx_heterogeneous(first, second, ((slice(0, 4), partial(tools.cx_uniform, cx_prob=1.0)),))
     assert list(first) == [9, 8, 7, 6]
     assert list(second) == [0, 1, 2, 3]
     first[0] = -1
@@ -164,8 +170,8 @@ def test_numpy_slice_writeback_does_not_alias_parents():
 
 
 def test_fitness_values_are_left_intact():
-    first = _FitList([1, 2], (4.0,))
-    second = _FitList([3, 4], (5.0,))
+    first: Any = _FitList([1, 2], (4.0,))
+    second: Any = _FitList([3, 4], (5.0,))
     tools.cx_heterogeneous(first, second, [_swap, _swap])
     assert first.fitness.values == (4.0,)
     assert second.fitness.values == (5.0,)
@@ -185,13 +191,13 @@ def test_uniform_slice_matches_per_index_random_stream():
     tools.rng.seed(11)
     first: Any = list(left_genes)
     second: Any = list(right_genes)
-    tools.cx_heterogeneous(
-        first, second, ((slice(0, 4), partial(tools.cx_uniform, cx_prob=0.35)),)
-    )
+    tools.cx_heterogeneous(first, second, ((slice(0, 4), partial(tools.cx_uniform, cx_prob=0.35)),))
     assert first == expected_left
     assert second == expected_right
 
 
 def test_per_gene_bad_return_raises():
+    first: Any = [1]
+    second: Any = [2]
     with pytest.raises(ValueError, match="two replacements"):
-        tools.cx_heterogeneous([1], [2], [lambda a, b: a])
+        tools.cx_heterogeneous(first, second, [lambda a, b: a])
