@@ -156,4 +156,4 @@ def test_score_unknown_mode_raises(ind_cls):
     elites = [_make(ind_cls, [0], (0.0, 1.0, 1.0, 1.0))]
     exam = tools.CaseExam.from_cases([1], 4)
     with pytest.raises(ValueError, match="unsolved"):
-        tools.score_case_exams([exam], elites, mode="sharpe")
+        tools.score_case_exams([exam], elites, mode="sharpe")  # ty: ignore[invalid-argument-type]
