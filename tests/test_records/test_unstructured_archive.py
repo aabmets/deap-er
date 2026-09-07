@@ -11,6 +11,7 @@
 import math
 from typing import Any
 
+import numpy
 import pytest
 from deap_er import Fitness, creator, tools
 
@@ -192,6 +193,19 @@ def test_random_elites_returns_copies_not_live_references(ind_cls):
     sampled = archive.random_elites(1)[0]
     sampled[0] = 99
     elite = archive.elite_at((0.0,))
+    assert elite is not None
+    assert elite[0] == 0
+
+
+def test_add_copies_caller_descriptor_array(ind_cls):
+    archive = tools.UnstructuredArchive(2, min_distance=0.5)
+    descriptor = numpy.array([0.0, 0.0], dtype=numpy.float64)
+    archive.add(_individual(ind_cls, [0], 1.0), descriptor)
+
+    descriptor[0] = 99.0
+
+    assert archive.descriptors[0, 0] == 0.0
+    elite = archive.elite_at((0.0, 0.0))
     assert elite is not None
     assert elite[0] == 0
 

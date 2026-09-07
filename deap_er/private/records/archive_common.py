@@ -75,7 +75,7 @@ class MapElitesArchive(Protocol):
 
 def check_archive_add(
     individual: Any,
-    descriptor: Sequence[float],
+    descriptor: Sequence[float] | numpy.ndarray,
     dimensions: int,
     archive_name: str,
 ) -> bool:
