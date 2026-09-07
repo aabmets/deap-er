@@ -168,7 +168,9 @@ from the original sources.
 25. `mig_ring` pairs source emigrants with dest vacancies by
     length, and stops claiming slots once a deme is full. Unequal
     island sizes, or `sel_random` with `k` larger than a deme, no
-    longer `IndexError` or `StopIteration`.
+    longer `IndexError` or `StopIteration`. An unreplaced home
+    vacancy clones the leftover emigrant so two demes do not
+    share one object.
 
 ## Evolution strategies
 
