@@ -56,3 +56,26 @@ def test_setitem_rejects_arity_changes():
         tree[10:] = tree
     with pytest.raises(ValueError, match="subtree with an arity"):
         tree[0:] = [tree[-1], tree[-1]]
+
+
+def test_setitem_open_start_slice_replaces_whole_tree():
+    pset = _add_pset()
+    tree = gp.PrimitiveTree.from_string("add(ARG0, 2)", pset)
+    replacement = gp.PrimitiveTree.from_string("ARG0", pset)
+
+    tree[:] = replacement
+
+    assert str(tree) == "ARG0"
+    assert len(tree) == 1
+    assert gp.compile_tree(tree, pset)(7) == 7
+
+
+def test_setitem_stop_only_slice_replaces_whole_tree():
+    pset = _add_pset()
+    tree = gp.PrimitiveTree.from_string("add(ARG0, 2)", pset)
+    replacement = gp.PrimitiveTree.from_string("ARG0", pset)
+
+    tree[: len(tree)] = replacement
+
+    assert str(tree) == "ARG0"
+    assert list(tree) == list(replacement)
