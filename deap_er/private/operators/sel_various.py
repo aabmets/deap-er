@@ -10,6 +10,7 @@
 #
 from __future__ import annotations
 
+import bisect
 from operator import attrgetter
 from typing import TYPE_CHECKING
 
@@ -43,6 +44,31 @@ def _wheel_weight(fitness: Fitness, floor: float) -> float:
     if floor < 0.0:
         return weight - floor + _WHEEL_EPS
     return weight
+
+
+def _wheel_prefix(
+    individuals: list[Individual], fit_attr: str
+) -> tuple[list[Individual], list[float], float] | None:
+    """Build a sorted wheel with prefix sums, or None if the total is 0.
+
+    Args:
+        individuals: Non-empty pool to rank.
+        fit_attr: Attribute used as the selection criterion.
+
+    Returns:
+        Sorted individuals (best first), inclusive prefix sums, and the
+        wheel total. ``None`` when every slice is zero.
+    """
+    sorted_ = sorted(individuals, key=attrgetter(fit_attr), reverse=True)
+    floor = min(getattr(ind, fit_attr).wvalues[0] for ind in individuals)
+    prefix: list[float] = []
+    total = 0.0
+    for ind in sorted_:
+        total += _wheel_weight(getattr(ind, fit_attr), floor)
+        prefix.append(total)
+    if total == 0:
+        return None
+    return sorted_, prefix, total
 
 
 def sel_random(individuals: list[Individual], sel_count: int) -> list[Individual]:
@@ -116,22 +142,16 @@ def sel_roulette(
     """
     if sel_count <= 0 or not individuals:
         return []
-    key = attrgetter(fit_attr)
-    sorted_ = sorted(individuals, key=key, reverse=True)
-    floor = min(getattr(ind, fit_attr).wvalues[0] for ind in individuals)
-    sum_fits = sum(_wheel_weight(getattr(ind, fit_attr), floor) for ind in individuals)
-    if sum_fits == 0:
+    wheel = _wheel_prefix(individuals, fit_attr)
+    if wheel is None:
         return [rng.choice(individuals) for _ in range(sel_count)]
+    sorted_, prefix, total = wheel
     chosen = []
     for _ in range(sel_count):
-        u = rng.random() * sum_fits
-        sum_ = 0
-        for ind in sorted_:
-            sum_ += _wheel_weight(getattr(ind, fit_attr), floor)
-            if sum_ > u:
-                chosen.append(ind)
-                break
-
+        idx = bisect.bisect_right(prefix, rng.random() * total)
+        if idx >= len(sorted_):
+            idx = len(sorted_) - 1
+        chosen.append(sorted_[idx])
     return chosen
 
 
@@ -154,25 +174,16 @@ def sel_stochastic_universal_sampling(
     """
     if sel_count <= 0 or not individuals:
         return []
-
-    key = attrgetter(fit_attr)
-    sorted_ = sorted(individuals, key=key, reverse=True)
-    floor = min(getattr(ind, fit_attr).wvalues[0] for ind in individuals)
-    sum_fits = sum(_wheel_weight(getattr(ind, fit_attr), floor) for ind in individuals)
-    if sum_fits == 0:
+    wheel = _wheel_prefix(individuals, fit_attr)
+    if wheel is None:
         return [rng.choice(individuals) for _ in range(sel_count)]
-
-    distance = sum_fits / float(sel_count)
+    sorted_, prefix, total = wheel
+    distance = total / float(sel_count)
     start = rng.uniform(0, distance)
-    points = [start + i * distance for i in range(sel_count)]
-
     chosen = []
-    for p in points:
-        i = 0
-        sum_ = _wheel_weight(getattr(sorted_[i], fit_attr), floor)
-        while sum_ < p:
-            i += 1
-            sum_ += _wheel_weight(getattr(sorted_[i], fit_attr), floor)
-        chosen.append(sorted_[i])
-
+    for i in range(sel_count):
+        idx = bisect.bisect_left(prefix, start + i * distance)
+        if idx >= len(sorted_):
+            idx = len(sorted_) - 1
+        chosen.append(sorted_[idx])
     return chosen
