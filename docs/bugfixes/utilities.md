@@ -83,3 +83,19 @@ on a correct network.
 
 **Validator.**
 `tests/test_various/test_sorting_network.py::test_sorting_network_evaluate_provided_cases_against_sorted_original`
+
+---
+
+## `duplicate_count` crashed on NumPy individuals
+
+NumPy arrays are unhashable, so the set scan raised `TypeError` as
+intended. The sort fallback then called `sorted(keys)`, and ndarray
+comparison raises `ValueError` (ambiguous truth value) instead of
+`TypeError`. The list-membership fallback would hit the same error
+on `value not in unique`.
+
+**Fix.** Hash an ndarray key by ``(shape, dtype, tobytes())`` so the
+set scan works. Two equal genomes count as one distinct key.
+
+**Validator.**
+`tests/test_various/test_metrics.py::test_duplicate_count_ndarray_individuals_count_twins`

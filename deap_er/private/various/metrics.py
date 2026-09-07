@@ -28,6 +28,8 @@ def duplicate_count(population: list[Any], key: Any | None = None) -> int:
     Hashable keys use a set scan in ``O(n)``. Unhashable but sortable keys
     use a sort in ``O(n log n)``. Keys that are neither hashable nor
     mutually sortable fall back to list membership in ``O(n^2)``.
+    A NumPy array key is hashed by shape, dtype, and bytes so ndarray
+    individuals take the set path.
 
     Hashable keys must satisfy Python's hash/equality contract: equal keys
     must hash equally. The set path counts by hash bucket; equal keys with
@@ -43,7 +45,12 @@ def duplicate_count(population: list[Any], key: Any | None = None) -> int:
     extract = key if key is not None else (lambda obj: obj)
     if not population:
         return 0
-    keys = [extract(item) for item in population]
+    keys = []
+    for item in population:
+        value = extract(item)
+        if isinstance(value, numpy.ndarray):
+            value = (value.shape, str(value.dtype), value.tobytes())
+        keys.append(value)
     try:
         return len(keys) - len(set(keys))
     except TypeError:
