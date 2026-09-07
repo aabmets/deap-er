@@ -147,4 +147,4 @@ def next_bipop_params(
         lambda_large = int(lambda_default * lambda_factor**irestart_large)
         return lambda_large, sigma_large, "large", irestart_large, lambda_large
     lamb = sample_small_lambda(lambda_default, lambda_large)
-    return lamb, sample_small_sigma(), "small", irestart_large, lambda_large
+    return lamb, sample_small_sigma(sigma_large), "small", irestart_large, lambda_large
