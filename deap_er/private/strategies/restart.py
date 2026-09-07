@@ -22,6 +22,7 @@ from deap_er.private.strategies.restart_common import (
     RunTracker,
     default_lambda,
     max_iter_limit,
+    require_stagnation_key,
     scalar_fitness,
     strategy_center,
     strategy_diagnostics,
@@ -71,12 +72,7 @@ class RestartStrategy:
         restart_centroid: str | Callable[[int], numpy.ndarray] = "random",
         stagnation_key: Callable[[Individual], float] | None = None,
     ) -> None:
-        """See the class docstring.
-
-        ``stagnation_key`` must return a higher-is-better scalar used for
-        stagnation detection and best-individual tracking. Required when the
-        wrapped strategy optimizes more than one objective.
-        """
+        """See the class docstring."""
         self.strategy = strategy
         self.mode = mode
         self.budget = budget
@@ -167,7 +163,7 @@ class RestartStrategy:
             return
         if self._fitness_weights is None:
             self._fitness_weights = population[0].fitness.weights
-        self._require_stagnation_key()
+        require_stagnation_key(self._fitness_weights, self.stagnation_key)
         self.strategy.update(population)
         self._run_evals += len(population)
         self._evals_used += len(population)
@@ -190,17 +186,6 @@ class RestartStrategy:
             self._tracker.terminate = True
         if self._evals_used >= self.budget:
             self._done = True
-
-    def _require_stagnation_key(self) -> None:
-        if (
-            self._fitness_weights is not None
-            and len(self._fitness_weights) > 1
-            and self.stagnation_key is None
-        ):
-            raise ValueError(
-                "multi-objective stagnation requires an explicit stagnation_key "
-                "callable returning a higher-is-better scalar"
-            )
 
     def should_restart(self) -> bool:
         """Return whether the current run ended and a restart is due."""

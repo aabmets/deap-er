@@ -26,6 +26,7 @@ __all__: list[str] = [
     "RunTracker",
     "default_lambda",
     "max_iter_limit",
+    "require_stagnation_key",
     "sample_centroid",
     "sample_small_lambda",
     "sample_small_sigma",
@@ -120,6 +121,18 @@ def scalar_fitness(ind: Individual, key: Callable[[Individual], float] | None = 
         "multi-objective stagnation requires an explicit stagnation_key "
         "callable returning a higher-is-better scalar"
     )
+
+
+def require_stagnation_key(
+    weights: tuple[float, ...] | None,
+    stagnation_key: Callable[[Individual], float] | None,
+) -> None:
+    """Raise if multi-objective fitness has no ``stagnation_key``."""
+    if weights is not None and len(weights) > 1 and stagnation_key is None:
+        raise ValueError(
+            "multi-objective stagnation requires an explicit stagnation_key "
+            "callable returning a higher-is-better scalar"
+        )
 
 
 class RunTracker:
