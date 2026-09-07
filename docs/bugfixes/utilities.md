@@ -32,6 +32,21 @@ numerator (for example $\sqrt{2}$).
 
 ---
 
+## Collapsed multi-point front divided by zero
+
+With $N \ge 2$ identical points and both extremes at that location,
+every consecutive distance is $0$, so $d_m = 0$ and
+$d_f + d_l + N_{\mathrm{gaps}} d_m = 0$. Deb's $\Delta$ is $0/0$.
+The $N=1$ path already returns $1$; two copies of the same point
+raised `ZeroDivisionError`.
+
+**Fix.** Return `1.0` when the denominator is $0$.
+
+**Validator.**
+`tests/test_various/test_metrics.py::test_nsga_diversity_collapsed_front_is_one`
+
+---
+
 ## `DeltaPenalty` treated an `ndarray` as a scalar
 
 `numpy.ndarray` is not a `collections.abc.Sequence`, so a
