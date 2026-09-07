@@ -242,6 +242,31 @@ def select(individuals, sel_count):
 toolbox.register("select", select)
 ```
 
+## Case-structured fitness
+
+When fitness is one error per segment — walk-forward folds, regimes,
+or any case split you define — reduce the aligned series with
+`tools.case_errors`. It returns one mean-squared error per case for
+lexicase or a multi-objective fitness vector:
+
+```python
+predicted = func(*columns)
+errors = tools.case_errors(predicted, target, [(0, 256), (256, 512)])
+return errors
+```
+
+Pass a one-dimensional `bool` mask instead of explicit ranges when
+each contiguous run of `True` should be its own case. Use the
+optional `valid` mask when a comparison or `vwhere` can hide warmup:
+the default keeps only samples where **both** `predicted` and `target`
+are finite, which still scores a finite branch that replaced a `nan`
+operand. Exclude that prefix explicitly rather than assuming `nan`
+propagates through the tree.
+
+Segment boundaries and prediction–target alignment stay on the caller.
+This helper does not choose a chronological split and does not ship
+application-specific metrics beyond per-case MSE.
+
 `parallel=True` evaluates those tapes on several Numba threads. Each
 thread keeps a workspace of shape `(depth + 1, n_rows)`, so a long
 book costs `n_threads` full-length stacks. A consumer `dispatch`
