@@ -103,6 +103,26 @@ def test_compute_params_weight_schemes_and_unknown():
         raise AssertionError("expected RuntimeError for unknown weights")
 
 
+def test_offsprings_one_defaults_to_one_survivor():
+    creator.create_type(SO_FIT, Fitness, weights=(-1.0,))
+    creator.create_type(SO_IND, list, fitness=creator.__dict__[SO_FIT])
+    try:
+        strategy = tools.Strategy([0.0, 0.0], 1.0, offsprings=1)
+        assert strategy.lamb == 1
+        assert strategy.mu == 1
+        assert strategy.mu_eff == 1.0
+        tools.rng.seed(0)
+        population = strategy.generate(creator.__dict__[SO_IND])
+        assert len(population) == 1
+        for individual in population:
+            individual.fitness.values = tools.bm_sphere(individual)
+        strategy.update(population)
+        assert numpy.isfinite(strategy.centroid).all()
+    finally:
+        del creator.__dict__[SO_FIT]
+        del creator.__dict__[SO_IND]
+
+
 def test_invalid_bound_mode_and_resample_limit():
     try:
         tools.Strategy([0.0, 0.0], 1.0, bound_mode="wrap")

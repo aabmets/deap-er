@@ -127,3 +127,9 @@ See [one-plus-lambda-invalid-parent](strategies/one-plus-lambda-invalid-parent.m
 ## BIPOP small-regime $\sigma$ ignored $\sigma_{\mathrm{large}}$
 
 See [bipop-small-sigma](strategies/bipop-small-sigma.md).
+
+---
+
+## CMA $\lambda=1$ default $\mu=0$ divides by zero
+
+See [lambda-one-empty-weights](strategies/lambda-one-empty-weights.md).
