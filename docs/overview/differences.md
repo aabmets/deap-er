@@ -298,6 +298,13 @@ The following is extra.
     `SemanticSurrogate` is a last-generation linear or nearest-neighbor
     stand-in. Fitness stays on `ind.fitness`; the archive still ranks
     a cell by fitness.
+24. `promote_subtree` lifts a complete typed subtree into the same
+    `PrimitiveSetTyped` as a generated primitive (`promo0`, …).
+    Later `generate` / mutation can sample that name. The library
+    is capped; the least-used promoted name is evicted, not a
+    built-in. Columnar sets bind at `USER_BASE` and `lower_tree`
+    expands the body so tapes stay on builtin opcodes. `add_adf`
+    remains the static path.
 
 The columnar contract is in the
 [columnar GP tutorial](../tutorials/columnar_gp.md). Shared-array

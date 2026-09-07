@@ -37,7 +37,7 @@ surface.
 | 18 | [Constraint-dominance selection](#18-constraint-dominance-selection) | `operators` | shipped |
 | 19 | [Sep-CMA](#19-sep-cma) | `strategies` | shipped |
 | 20 | [CVT / unstructured MAP-Elites](#20-cvt-unstructured-map-elites) | `records` | shipped |
-| 21 | [Growing primitive language](#21-growing-primitive-language) | `gp` | planned |
+| 21 | [Growing primitive language](#21-growing-primitive-language) | `gp` | shipped |
 | 22 | [Semantic search space](#22-semantic-search-space) | `gp`, `records` | shipped |
 | 23 | [Co-evolving cases](#23-co-evolving-cases) | `operators`, `records` | planned |
 | 24 | [Memetic constants](#24-memetic-constants) | `gp`, `strategies` | shipped |
@@ -46,9 +46,9 @@ surface.
 
 Shipping an item updates this page and the matching tutorial or
 reference stub. Items 15–20 are the toolbox-shaped holes after
-the first backlog; they are shipped. Items 21–23 compose pieces
+the first backlog; they are shipped. Item 23 composes pieces
 that already shipped (tapes, SlimGP, lexicase, archives, CMA)
-into a longer program-search loop. Items 22 and 24–26 are shipped.
+into a longer program-search loop. Items 21–22 and 24–26 are shipped.
 Still not a second genome family.
 
 !!! note
@@ -640,10 +640,16 @@ that name like any other primitive. `add_adf` stays the static
 “register this other pset” path; this item is *dynamic* accretion
 from successful individuals.
 
-**Today.** The primitive set is fixed at toolbox setup.
-`add_adf` / `compile_adf_tree` support Koza-style ADFs decided
-up front. `add_primitive` already rejects names that collide
-with arguments.
+**Today.** `promote_subtree` lifts a complete typed subtree into
+the same `PrimitiveSetTyped` as a generated name (`promo0`, …).
+Formals are the set's argument terminals that appear in the
+subtree; constants and ephemerals stay in the body. Later
+`generate` / mutation can sample that name. The library is
+capped (`max_library`); the least-used promoted name is evicted,
+not a built-in. Promotion clears the compile cache. On a
+columnar set the name is bound at or above `USER_BASE` and
+`lower_tree` expands the body so tapes stay on builtin opcodes.
+`add_adf` / `compile_adf_tree` remain the static path.
 
 **Benefit.** Search stops reshuffling the same kit and starts
 building vocabulary. The thing you keep at the end can be a
@@ -660,9 +666,10 @@ small dialect plus shallow trees, not one giant expression.
 - Existing `compile_tree` / tape caches key on expression text
   and context identity. A pset mutation changes context: drop
   or namespace the cache; stale lambdas are wrong.
-- Columnar path: bind at or above `USER_BASE` and pass one
-  dispatcher, same as `bind_numba_opcode`. Python reference
-  implementation is the definition; opcode and Numba follow.
+- Columnar path: bind at or above `USER_BASE` with
+  `bind_numba_opcode`. Python is the definition; `lower_tree`
+  expands the body so opcode and Numba follow without a
+  consumer dispatcher.
 - Cap library size. Evict the least-used promoted name, not a
   built-in kit primitive.
 
