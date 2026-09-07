@@ -9,6 +9,7 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from array import array
+from typing import Any
 
 from deap_er import Fitness, creator, gp, tools
 
@@ -89,3 +90,37 @@ def test_clone_individual_falls_back_when_strategy_is_set():
     finally:
         del creator.__dict__["CLONE_ES_FIT"]
         del creator.__dict__["CLONE_ES_IND"]
+
+
+class _SlotStrategy:
+    __slots__ = ("strategy",)
+
+    def __init__(self, strategy):
+        self.strategy = strategy
+
+
+class _SlotHistory:
+    __slots__ = ("history_index",)
+
+    def __init__(self, history_index):
+        self.history_index = history_index
+
+
+def test_clone_individual_falls_back_for_slots_numpy_and_tuple():
+    slotted: Any = _SlotStrategy([0.1])
+    cloned_slot = tools.clone_individual(slotted)
+    cloned_slot.strategy[0] = 9.0
+    assert slotted.strategy == [0.1]
+
+    history: Any = _SlotHistory(3)
+    cloned_history = tools.clone_individual(history)
+    assert cloned_history.history_index == 3
+    assert cloned_history is not history
+
+    array_ind: Any = __import__("numpy").array([1.0, 2.0])
+    cloned_array = tools.clone_individual(array_ind)
+    cloned_array[0] = 9.0
+    assert array_ind[0] == 1.0
+
+    cloned_tuple: Any = (1, 2, 3)
+    assert tools.clone_individual(cloned_tuple) == (1, 2, 3)

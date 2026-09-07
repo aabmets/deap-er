@@ -148,3 +148,22 @@ class TestFitness:
         ft.values = numpy.array([1.0, 2.0, 3.0])
 
         assert ft.values == (1.0, 2.0, 3.0)
+
+    def test_dominates_four_objectives_and_length(self, monkeypatch):
+        monkeypatch.setattr(Fitness, "weights", [1, 1, 1, 1])
+        better = Fitness([2, 2, 2, 3])
+        worse = Fitness([2, 2, 2, 2])
+        mixed = Fitness([3, 1, 2, 2])
+
+        assert better.dominates(worse)
+        assert not worse.dominates(better)
+        assert not mixed.dominates(worse)
+        assert not better.dominates(mixed)
+        assert len(better) == 4
+
+    def test_equality_with_non_fitness_returns_not_implemented(self, monkeypatch):
+        monkeypatch.setattr(Fitness, "weights", [1])
+        fitness = Fitness([1.0])
+
+        assert fitness.__eq__(1.0) is NotImplemented
+        assert fitness.__ne__(1.0) is NotImplemented
