@@ -281,6 +281,29 @@ def select_team(individuals, sel_count):
     return tools.sel_team(individuals, sel_count, matrix=matrix)
 ```
 
+To co-evolve the exam with the programs, keep a cheap
+`CaseExamPool` of catalog subsets and rebuild `cases=` from
+elites each generation. Do not freeze that list on the
+toolbox. A case is still solved when its value is exactly $0$.
+
+```python
+pool = tools.CaseExamPool(
+    [tools.CaseExam.from_cases(range(8), 20)],
+    held_out=tools.CaseExam.from_cases([19], 20),
+)
+
+def select(individuals, sel_count):
+    matrix = tools.fitness_case_matrix(individuals)
+    cases = tools.next_lexicase_cases(
+        pool, individuals, matrix=matrix, case_count=8
+    )
+    return tools.sel_lexicase(individuals, sel_count, cases=cases, matrix=matrix)
+```
+
+Walk-forward or chronological splits stay on the caller. The
+library only mutates given segments and guards an empty or
+all-solved exam.
+
 ## Case-structured fitness
 
 When fitness is one error per segment — walk-forward folds, regimes,

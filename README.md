@@ -77,6 +77,7 @@ inventory:
   - `sel_tournament_dcd` for any valid `k`
   - lexicase / ε-lexicase with `cases=`, `sample_informed_cases`, and `fitness_case_matrix`
   - `sel_team` (greedy max-coverage of cases solved at 0)
+  - co-evolving case exams (`CaseExam` / `CaseExamPool`, `score_case_exams`, `next_lexicase_cases`)
   - SMS-EMOA, MOEA/D, and AGE-MOEA-II selection
   - constraint-dominance on `sel_nsga_2` (`feasible=` / `violation=`)
   - boxed CMA (`low`/`up`, clip or resample) 

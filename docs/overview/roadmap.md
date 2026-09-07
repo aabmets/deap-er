@@ -39,16 +39,16 @@ surface.
 | 20 | [CVT / unstructured MAP-Elites](#20-cvt-unstructured-map-elites) | `records` | shipped |
 | 21 | [Growing primitive language](#21-growing-primitive-language) | `gp` | shipped |
 | 22 | [Semantic search space](#22-semantic-search-space) | `gp`, `records` | shipped |
-| 23 | [Co-evolving cases](#23-co-evolving-cases) | `operators`, `records` | planned |
+| 23 | [Co-evolving cases](#23-co-evolving-cases) | `operators`, `records` | shipped |
 | 24 | [Memetic constants](#24-memetic-constants) | `gp`, `strategies` | shipped |
 | 25 | [Streaming and island ecology](#25-streaming-and-island-ecology) | `algorithms` | shipped |
 | 26 | [Program teams](#26-program-teams) | `operators` | shipped |
 
 Shipping an item updates this page and the matching tutorial or
 reference stub. Items 15–20 are the toolbox-shaped holes after
-the first backlog; they are shipped. Item 23 composes pieces
+the first backlog; they are shipped. Items 21–26 compose pieces
 that already shipped (tapes, SlimGP, lexicase, archives, CMA)
-into a longer program-search loop. Items 21–22 and 24–26 are shipped.
+into a longer program-search loop, and they are shipped.
 Still not a second genome family.
 
 !!! note
@@ -756,9 +756,19 @@ consume. Each generation (or each island step):
 POET is the reference *loop*, not the deliverable. No
 environment simulator, no neural teacher.
 
-**Today.** Cases are static. `sample_informed_cases` picks a
-subset from a *fixed* solve matrix. `case_errors` reduces a
-series once. Nothing writes a new exam.
+**Today.** `CaseExam` stores a subset as ranges or a 1-D bool
+mask. `CaseExamPool` is the cheap second population, with an
+optional caller-marked `held_out` exam. `score_case_exams`
+ranks exams on elites by unsolved count or Hamming distance
+from the all-solved vector (solved ≡ $0$, same as item 5).
+`mut_case_ranges` jitters bounds; `mut_case_mask` flips
+contiguous runs. `guard_case_exams` repairs the empty exam
+and the all-solved collapse (bump size or inject `held_out`).
+`next_lexicase_cases` varies the pool and returns the next
+`cases=` list, optionally via `sample_informed_cases`.
+Program scoring stays on the caller. Chronological splits
+stay on the caller. No environment simulator, no metric
+catalog.
 
 **Benefit.** The stand-in loss cannot sit still. Programs that
 memorized last generation’s cases get a new test. This is the

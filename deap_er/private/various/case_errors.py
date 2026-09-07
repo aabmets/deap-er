@@ -11,9 +11,10 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from numbers import Integral
 
 import numpy
+
+from deap_er.private.various.case_bounds import normalize_case_ranges
 
 __all__: list[str] = ["case_errors", "case_intervals", "case_valid_mask"]
 
@@ -29,50 +30,6 @@ def _as_series(
     if left.shape[0] != right.shape[0]:
         raise ValueError("predicted and target must have the same length")
     return left, right, int(left.shape[0])
-
-
-def _validate_interval(start: object, stop: object, length: int) -> tuple[int, int]:
-    if isinstance(start, bool) or isinstance(stop, bool):
-        raise ValueError("range endpoints must be integers")
-    if not isinstance(start, Integral) or not isinstance(stop, Integral):
-        raise ValueError("range endpoints must be integers")
-    begin = int(start)
-    end = int(stop)
-    if begin < 0 or end < 0 or begin > end or end > length:
-        raise ValueError("range endpoints must satisfy 0 <= start <= stop <= length")
-    return begin, end
-
-
-def _ranges_from_mask(mask: numpy.ndarray, length: int) -> list[tuple[int, int]]:
-    if mask.ndim != 1:
-        raise ValueError("a boolean mask must be one-dimensional")
-    if mask.shape[0] != length:
-        raise ValueError("a boolean mask must match the series length")
-    if mask.dtype != bool:
-        raise ValueError("a boolean mask must have dtype bool")
-    indices = numpy.flatnonzero(mask)
-    if indices.size == 0:
-        return []
-    breaks = numpy.flatnonzero(numpy.diff(indices) > 1) + 1
-    starts = numpy.split(indices, breaks)
-    return [(int(run[0]), int(run[-1]) + 1) for run in starts]
-
-
-def _ranges_from_array(ranges: numpy.ndarray, length: int) -> list[tuple[int, int]]:
-    if ranges.dtype == bool:
-        return _ranges_from_mask(ranges, length)
-    if ranges.ndim == 2 and ranges.shape[1] == 2 and numpy.issubdtype(ranges.dtype, numpy.integer):
-        return [_validate_interval(start, stop, length) for start, stop in ranges]
-    if ranges.ndim == 1 and numpy.issubdtype(ranges.dtype, numpy.integer):
-        raise ValueError(
-            "integer arrays are not accepted as case boundaries; "
-            "pass explicit (start, stop) pairs, a (n_cases, 2) integer array, "
-            "or a one-dimensional boolean mask"
-        )
-    raise ValueError(
-        "ranges must be explicit (start, stop) pairs, a (n_cases, 2) integer "
-        "array, or a one-dimensional boolean mask"
-    )
 
 
 def case_intervals(
@@ -93,9 +50,7 @@ def case_intervals(
         ValueError: If a bound is invalid or a mask has the wrong shape
             or dtype.
     """
-    if isinstance(ranges, numpy.ndarray):
-        return _ranges_from_array(ranges, length)
-    return [_validate_interval(start, stop, length) for start, stop in ranges]
+    return normalize_case_ranges(ranges, length)
 
 
 def case_valid_mask(
