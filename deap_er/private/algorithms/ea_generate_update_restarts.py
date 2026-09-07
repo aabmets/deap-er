@@ -89,7 +89,8 @@ def ea_generate_update_restarts(
 
     Requires ``generate``, ``update``, and ``evaluate`` on ``toolbox``.
     The toolbox operators should be bound to ``restart_strategy.generate``
-    and ``restart_strategy.update``.
+    and ``restart_strategy.update``. An empty ``generate`` batch stops
+    the loop and returns the last evaluated population.
 
     Args:
         toolbox: Toolbox with generate, update, and evaluate operators.
@@ -116,9 +117,10 @@ def ea_generate_update_restarts(
     gen = 0
     while not restart_strategy.is_done():
         t0 = time.perf_counter()
-        population = toolbox.generate()
-        if not population:
+        next_population = toolbox.generate()
+        if not next_population:
             break
+        population = next_population
         nevals = evaluate_invalid(toolbox, population)
         restart_strategy.update(population)
         gen += 1
