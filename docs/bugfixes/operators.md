@@ -227,9 +227,10 @@ operators then called `len()` on the scalar and raised `TypeError`.
 DEAP treats a non-sequence as a scalar, so `mutUniformInt(ind, 0,
 np.int64(5), …)` works there.
 
-**Fix.** Treat `numbers.Integral` and `numbers.Real` as scalars,
-including NumPy integer and float scalars. Sequences, including
-`ndarray`, still go through the length check.
+**Fix.** After the Python `int | float` check, treat remaining
+`numbers.Integral` values (NumPy integer scalars) as a broadcast
+scalar. Sequences, including `ndarray`, still go through the length
+check.
 
 **Validator.**
 `tests/test_operators/test_mut_various.py::test_mut_uniform_int_accepts_numpy_integer_bounds`
