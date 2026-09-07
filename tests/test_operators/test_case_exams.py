@@ -131,7 +131,7 @@ def test_next_informed_matches_sample_informed_cases(ind_cls):
         _make(ind_cls, [1], (1.0, 0.0, 1.0, 0.0)),
         _make(ind_cls, [2], (0.0, 0.0, 1.0, 1.0)),
     ]
-    exam = tools.CaseExam.from_cases([0, 1], 4)
+    exam = tools.CaseExam.from_cases([0, 2], 4)
     matrix = tools.fitness_case_matrix(elites)
 
     tools.rng.seed(5)

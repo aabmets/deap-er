@@ -63,8 +63,10 @@ class CaseExam:
             self._mask = array.copy()
             self._ranges = None
             return
+        if ranges is None:
+            raise ValueError("CaseExam requires exactly one of ranges or mask")
         self._mask = None
-        self._ranges = [tuple(pair) for pair in ranges]  # type: ignore[union-attr]
+        self._ranges = [tuple(pair) for pair in ranges]
 
     @classmethod
     def from_cases(cls, cases: Sequence[int], n_cases: int) -> CaseExam:

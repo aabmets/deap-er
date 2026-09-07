@@ -33,6 +33,7 @@ def test_case_exam_ranges_paint_mask_and_catalog_indices():
 def test_case_exam_from_cases_and_copy_assign():
     exam = tools.CaseExam.from_cases([0, 2], 4)
     clone = exam.copy()
+    assert clone.mask is not None
     clone.mask[1] = True
     other = tools.CaseExam(ranges=[(1, 3)])
     exam.assign(other)
