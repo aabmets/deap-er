@@ -149,6 +149,6 @@ def add_window_ephemeral(prim_set: PrimitiveSetTyped, name: str, low: int, high:
         )
 
     draw = _samplers[name][2]
-    draw.low = low
-    draw.high = high
+    setattr(draw, "low", low)  # noqa: B010
+    setattr(draw, "high", high)  # noqa: B010
     prim_set.add_ephemeral_constant(name, draw, Window)
