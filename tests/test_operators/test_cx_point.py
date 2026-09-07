@@ -8,6 +8,7 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+import array
 from typing import Any
 
 import numpy
@@ -95,6 +96,31 @@ def test_two_point_variants():
     copy1, copy2 = tools.cx_two_point_copy(arr1, arr2)
     assert list(copy1) == list(first)
     assert list(copy2) == list(second)
+
+
+def test_cx_two_point_swaps_array_module_slices():
+    tools.rng.seed(3)
+    list_left: Any = [0, 1, 2, 3, 4]
+    list_right: Any = [9, 8, 7, 6, 5]
+    list1, list2 = tools.cx_two_point(list_left, list_right)
+    tools.rng.seed(3)
+    first: Any = array.array("b", [0, 1, 2, 3, 4])
+    second: Any = array.array("b", [9, 8, 7, 6, 5])
+    first, second = tools.cx_two_point(first, second)
+    assert isinstance(first, array.array)
+    assert isinstance(second, array.array)
+    assert list(first) == list1
+    assert list(second) == list2
+
+
+def test_cx_messy_one_point_swaps_array_module_slices():
+    tools.rng.seed(2)
+    first: Any = array.array("b", [0, 1, 2, 3])
+    second: Any = array.array("b", [9, 8, 7, 6, 5])
+    first, second = tools.cx_messy_one_point(first, second)
+    assert isinstance(first, array.array)
+    assert isinstance(second, array.array)
+    assert len(first) + len(second) == 9
 
 
 def test_es_two_point_also_swaps_strategy():

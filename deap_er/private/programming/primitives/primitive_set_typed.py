@@ -144,7 +144,9 @@ class PrimitiveSetTyped:
         self.context[prim.name] = primitive
         self.prims_count += 1
 
-    def add_terminal(self, terminal: Any, ret_type: type, name: str | None = None) -> None:
+    def add_terminal(
+        self, terminal: Any, ret_type: type, name: str | None = None, *, call_zero: bool = False
+    ) -> None:
         """Add a terminal to the set.
 
         Args:
@@ -152,6 +154,8 @@ class PrimitiveSetTyped:
             ret_type: Type returned by the terminal.
             name: Optional name. Defaults to ``terminal.__name__``
                 when ``terminal`` is callable.
+            call_zero: If True, format a callable terminal as ``name()``
+                so eval calls it. False keeps action terminals as names.
 
         Raises:
             ValueError: If ``name`` is already registered, or matches
@@ -174,16 +178,16 @@ class PrimitiveSetTyped:
                 f"rename your second '{name}' terminal."
             )
 
-        call_zero = False
+        invoke_zero = False
         if name is not None:
-            call_zero = callable(terminal)
+            invoke_zero = call_zero and callable(terminal)
             self.context[name] = terminal
             terminal = name
             symbolic = True
         elif terminal in (True, False):
             self.context[str(terminal)] = terminal
 
-        prim = Terminal(terminal, symbolic, ret_type, call_zero=call_zero)
+        prim = Terminal(terminal, symbolic, ret_type, call_zero=invoke_zero)
         self._add_prim(prim)
         self.terms_count += 1
 

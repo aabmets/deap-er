@@ -65,7 +65,12 @@ class PrimitiveSet(PrimitiveSetTyped):
 
     @override
     def add_terminal(  # type: ignore[override]
-        self, terminal: Any, name: str | None = None, *_: Any, **__: Any
+        self,
+        terminal: Any,
+        name: str | None = None,
+        *_: Any,
+        call_zero: bool = False,
+        **__: Any,
     ) -> None:
         """Add an untyped terminal to the set.
 
@@ -73,8 +78,10 @@ class PrimitiveSet(PrimitiveSetTyped):
             terminal: Value or callable to register as a terminal.
             name: Optional name. Defaults to ``terminal.__name__``
                 when ``terminal`` is callable.
+            call_zero: If True, format a callable terminal as
+                ``name()`` so the default eval compile path calls it.
         """
-        super().add_terminal(terminal, object, name)
+        super().add_terminal(terminal, object, name, call_zero=call_zero)
 
     @override
     def add_ephemeral_constant(  # type: ignore[override]
