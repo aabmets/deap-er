@@ -139,3 +139,25 @@ as upstream DEAP.
 
 - `tests/test_programming/test_primitives/test_primitive_tree.py::test_setitem_open_start_slice_replaces_whole_tree`
 - `tests/test_programming/test_primitives/test_primitive_tree.py::test_setitem_stop_only_slice_replaces_whole_tree`
+
+---
+
+## `from_string` rejected integer `Window` leaves
+
+`Window` is a type tag whose runtime value is `int`. `str(tree)`
+writes a window as `3`, but `from_string` required
+`issubclass(int, Window)`. Every windowed tree failed to
+round-trip. `compile_tree` of that text on the opcode backend
+calls `from_string` while lowering, so a cold cache raised
+`TypeError` even though the Python backend `eval`s the same
+string. A warm cache keyed by the text could hide the miss.
+
+**Fix.** Accept a Python `int` literal in a `Window` slot. `bool`
+and non-integers stay rejected.
+
+**Validators.**
+
+- `tests/test_programming/test_columnar.py::test_from_string_accepts_a_window_integer_leaf`
+- `tests/test_programming/test_columnar.py::test_stringified_window_tree_round_trips`
+- `tests/test_programming/test_columnar.py::test_opcode_backend_compiles_a_stringified_window_tree`
+- `tests/test_programming/test_columnar.py::test_from_string_rejects_a_non_integer_window_literal`

@@ -333,6 +333,10 @@ The following is extra.
     built-in. Columnar sets bind at `USER_BASE` and `lower_tree`
     expands the body so tapes stay on builtin opcodes. `add_adf`
     remains the static path.
+25. `PrimitiveTree.from_string` accepts an `int` literal in a
+    `Window` slot. `str(tree)` writes window lengths as integers;
+    the opcode backend no longer `TypeError`s when compiling that
+    text, and a stringified windowed tree round-trips.
 
 The columnar contract is in the
 [columnar GP tutorial](../tutorials/columnar_gp.md). Shared-array
