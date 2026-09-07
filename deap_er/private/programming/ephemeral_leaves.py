@@ -86,9 +86,7 @@ def assign_ephemerals(individual: Any, values: Sequence[float]) -> None:
     """
     leaves = numeric_leaves(individual)
     if len(values) != len(leaves):
-        raise ValueError(
-            f"Expected {len(leaves)} numeric-leaf values, got {len(values)}."
-        )
+        raise ValueError(f"Expected {len(leaves)} numeric-leaf values, got {len(values)}.")
     for (tree, index), value in zip(leaves, values, strict=True):
         tree[index] = _replaced_leaf(tree[index], value)
 

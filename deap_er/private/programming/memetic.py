@@ -82,7 +82,7 @@ def tune_ephemerals(
         strategy.update(trials)
     old_exprs = [str(individual)]
     old_exprs.extend(str(tree) for tree, _ in leaves)
-    assign_ephemerals(individual, _clipped_centroid(strategy))
+    assign_ephemerals(individual, _clipped_centroid(strategy).tolist())
     for expr in dict.fromkeys(old_exprs):
         invalidate_compiled(expr)
     fitness = getattr(individual, "fitness", None)
@@ -100,9 +100,7 @@ def _box_strategy(strategy: Any, nodes: Sequence[Any]) -> None:
     strategy.compute_params(low=lows, up=highs, bound_mode="clip")
 
 
-def _merged_box(
-    strategy: Any, nodes: Sequence[Any]
-) -> tuple[list[float], list[float]] | None:
+def _merged_box(strategy: Any, nodes: Sequence[Any]) -> tuple[list[float], list[float]] | None:
     """Intersect caller ``low`` / ``up`` with per-leaf legal ranges."""
     dim = len(nodes)
     leaf_lo = []
@@ -149,9 +147,7 @@ def _clipped_centroid(strategy: Any) -> numpy.ndarray:
     if low is None and up is None:
         return vector
     dim = len(vector)
-    lo = numpy.asarray(
-        broadcast_param("low", -numpy.inf if low is None else low, dim), dtype=float
-    )
+    lo = numpy.asarray(broadcast_param("low", -numpy.inf if low is None else low, dim), dtype=float)
     hi = numpy.asarray(broadcast_param("up", numpy.inf if up is None else up, dim), dtype=float)
     return numpy.clip(vector, lo, hi)
 
@@ -187,7 +183,7 @@ def _score_trials(
         trial.fitness.values = fit
 
 
-class _Trial(list):
+class _Trial(list[Any]):
     """CMA trial vector that carries a fitness slot."""
 
     fitness: Any

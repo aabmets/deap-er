@@ -148,7 +148,7 @@ def add_window_ephemeral(prim_set: PrimitiveSetTyped, name: str, low: int, high:
             f"bounds [{known[0]}, {known[1]}]. Use a different name."
         )
 
-    sampler = _samplers[name][2]
-    sampler.low = low
-    sampler.high = high
-    prim_set.add_ephemeral_constant(name, sampler, Window)
+    draw = _samplers[name][2]
+    draw.low = low
+    draw.high = high
+    prim_set.add_ephemeral_constant(name, draw, Window)
