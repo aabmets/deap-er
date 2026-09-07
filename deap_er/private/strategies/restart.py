@@ -68,7 +68,6 @@ class RestartStrategy:
         stagnation_window: int = 20,
         tol_fun: float = 1e-12,
         condition_limit: float = 1e14,
-        tol_up_sigma: float = 1e20,
         restart_centroid: str | Callable[[int], numpy.ndarray] = "random",
         stagnation_key: Callable[[Individual], float] | None = None,
     ) -> None:
@@ -109,7 +108,6 @@ class RestartStrategy:
             stagnation_window=stagnation_window,
             tol_fun=tol_fun,
             condition_limit=condition_limit,
-            tol_up_sigma=tol_up_sigma,
         )
         set_strategy_sigma(self.strategy, sigma_large)
         self._begin_run(self._lambda_default, sigma_large)
