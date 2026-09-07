@@ -126,10 +126,10 @@ def test_mig_ring_duplicate_emigrants_do_not_alias_in_dest(ind_cls):
     for deme in demes:
         assert len({id(member) for member in deme}) == len(deme)
 
-    dest_copies = [member for member in demes[1] if member[0] == 10]
+    dest_copies = [member for member in demes[1] if member[0] == 0]
     assert len(dest_copies) == 2
     dest_copies[0][0] = 999
-    assert dest_copies[1][0] == 10
+    assert dest_copies[1][0] == 0
 
 
 def test_mig_ring_overlapping_destinations_completes(ind_cls):
