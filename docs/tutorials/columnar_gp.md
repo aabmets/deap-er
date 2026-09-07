@@ -243,6 +243,17 @@ def select(individuals, sel_count):
 toolbox.register("select", select)
 ```
 
+`sel_team` turns the same packed matrix into a covering ensemble:
+greedy maximum coverage of cases solved at $0$. Member `fitness` is
+not rewritten; score the team (vote, router, winner-take-regime) on
+the caller.
+
+```python
+def select_team(individuals, sel_count):
+    matrix = tools.fitness_case_matrix(individuals)
+    return tools.sel_team(individuals, sel_count, matrix=matrix)
+```
+
 ## Case-structured fitness
 
 When fitness is one error per segment — walk-forward folds, regimes,

@@ -42,7 +42,7 @@ surface.
 | 23 | [Co-evolving cases](#23-co-evolving-cases) | `operators`, `records` | planned |
 | 24 | [Memetic constants](#24-memetic-constants) | `gp`, `strategies` | planned |
 | 25 | [Streaming and island ecology](#25-streaming-and-island-ecology) | `algorithms` | planned |
-| 26 | [Program teams](#26-program-teams) | `operators` | planned |
+| 26 | [Program teams](#26-program-teams) | `operators` | shipped |
 
 Shipping an item updates this page and the matching tutorial or
 reference stub. Items 15–20 are the toolbox-shaped holes after
@@ -871,12 +871,14 @@ solved cases is large. A team is a sequence of individuals.
 Scoring the *team* (vote, mask-router, winner-take-regime)
 stays on the caller — same rule as `evaluate`.
 
-**Today.** Lexicase produces specialists, then `sel_best` /
-`HallOfFame` throws them away for one champion.
-Co-evolution examples exist for sorting networks, not for
-columnar programs. `GridArchive` keeps diversity in behavior
-space; nothing turns that diversity into a jointly scored
-object.
+**Today.** `sel_team` builds a team of `sel_count` individuals by
+greedy maximum coverage on the case-solve matrix: a case is
+solved at $0$ (`isclose` $10^{-12}$). Optional `matrix=` /
+`trust_matrix=` / `cases=` match lexicase. Members are unique
+pool objects; `sel_count=1` is the widest cover and does not
+crash. Member `fitness` is not rewritten. Team scoring (vote,
+router) stays on the caller. Cooperative coevolution remains
+an example-level recipe.
 
 **Benefit.** The thing you ship is an ensemble that covers
 regimes, which is what lexicase and MAP-Elites were already

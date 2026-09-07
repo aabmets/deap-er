@@ -16,7 +16,7 @@ changed. Same toolbox model. Counted from the sections below:
   [creator](../bugfixes/creator.md),
   [utilities](../bugfixes/utilities.md),
   and [algorithms](../bugfixes/algorithms.md)
-- **36** capabilities DEAP does not have, including boxed CMA,
+- **37** capabilities DEAP does not have, including boxed CMA,
   mixed-gene mutation, logbook JSON, and
   [columnar GP](../tutorials/columnar_gp.md)
 
@@ -148,6 +148,11 @@ from the original sources.
     `sel_nsga_2` accepts optional `feasible=` / `violation=`
     callables and ranks with that rule. Defaults stay unconstrained
     NSGA-II. Fitness values are not rewritten.
+23. `sel_team` assembles `sel_count` individuals by greedy maximum
+    coverage of cases solved at 0. Optional `cases=`, `matrix=`, and
+    `trust_matrix=` match lexicase. The team is a sequence of pool
+    members; member fitness is not rewritten. Team scoring stays on
+    the caller. DEAP has no team selector.
 
 ## Evolution strategies
 
