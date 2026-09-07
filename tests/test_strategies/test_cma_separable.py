@@ -211,3 +211,21 @@ def test_separable_sphere_smoke():
         assert strategy.big_c.ndim == 1
     finally:
         _teardown()
+
+
+def test_separable_rejects_non_positive_cm_init():
+    cases = (0.0, -1.0, [1.0, 0.0], [1.0, -0.5])
+    for cm_init in cases:
+        try:
+            tools.StrategySeparable([0.0, 0.0], 1.0, cm_init=cm_init)
+        except ValueError as err:
+            assert "cm_init" in str(err)
+        else:
+            raise AssertionError(f"expected ValueError for cm_init={cm_init!r}")
+    strategy = tools.StrategySeparable([0.0, 0.0], 1.0)
+    try:
+        strategy.compute_params(cm_init=[2.0, 0.0])
+    except ValueError as err:
+        assert "cm_init" in str(err)
+    else:
+        raise AssertionError("expected ValueError for zero variance in compute_params")
