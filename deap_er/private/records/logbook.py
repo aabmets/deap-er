@@ -157,6 +157,15 @@ class Logbook(list[dict[str, Any]]):
         else:
             self.pop(key)
 
+    @override
+    def clear(self) -> None:
+        """Remove every entry and the matching chapter rows.
+
+        Uses the same chapter pairing and stream-cursor rules as
+        ``del logbook[:]``.
+        """
+        del self[:]
+
     def __txt__(self, start_index: int) -> list[str]:
         """Format rows from ``start_index`` as aligned column strings.
 
