@@ -292,11 +292,14 @@ evaluation is in the
     `qd_score`. `ea_map_elites` drives evaluate → archive → `var_or`
     and logs archive metrics each generation. Fitness stays on
     `ind.fitness`; behavior measurement stays on the caller.
-13. `var_or` mates two clones of the only parent when the pool has a
+14. `var_or` mates two clones of the only parent when the pool has a
     single individual, so $(1,\lambda)$ / $(1+\lambda)$ with
     `cx_prob > 0` no longer raises `ValueError` on `sample(..., 2)`.
     `ea_mu_comma_lambda` with `survivors=1` can run past generation
     one.
+15. `GridArchive.add` rejects a non-finite first weighted objective.
+    NaN or infinity no longer replaces a finite elite or occupies an
+    empty cell.
 
 ## Persistence
 

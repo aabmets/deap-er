@@ -145,6 +145,21 @@ the attribute.
 
 ---
 
+## GridArchive NaN fitness replaced a finite elite
+
+`add` required a valid single-objective fitness but did not require
+finite values. `nan <= incumbent` is False, so a NaN candidate
+replaced a finite elite and `stats.qd_score` became NaN. `inf`
+did the same. An empty cell would also store a non-finite elite.
+
+**Fix.** Reject a candidate whose first weighted objective is not
+finite, the same way non-finite descriptors are rejected.
+
+**Validator.**
+`tests/test_records/test_grid_archive.py::test_add_rejects_non_finite_fitness`
+
+---
+
 ## `MultiStatistics.compile` exhausted a generator
 
 Each chapter iterated `data`. A one-shot iterable (generator,
