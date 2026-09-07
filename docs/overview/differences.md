@@ -449,6 +449,9 @@ evaluation is in the
    the objective vector when fitness is set.
 6. `inv_gen_dist` uses the same fitness-first point extraction.
    Two fronts of individuals are no longer scored as gene lists.
+7. `nsga_diversity` returns $1$ when Deb's denominator is $0$
+   (several copies of one point, extremes at that point). It no
+   longer raises `ZeroDivisionError`.
 
 ## Benchmarks
 
