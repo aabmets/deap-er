@@ -161,3 +161,27 @@ and non-integers stay rejected.
 - `tests/test_programming/test_columnar.py::test_stringified_window_tree_round_trips`
 - `tests/test_programming/test_columnar.py::test_opcode_backend_compiles_a_stringified_window_tree`
 - `tests/test_programming/test_columnar.py::test_from_string_rejects_a_non_integer_window_literal`
+
+---
+
+## `from_string` compiled leftover tokens as the program
+
+`from_string` never checked that the token stream was exactly one
+complete tree. Extra tokens after a finished expression became a
+second root; a truncated call left unused argument types on the
+deque. `__str__` and the Python `compile_tree` path then returned
+the last completed fragment.
+
+`add(ARG0, 2, 3)` parsed as `[add, ARG0, 2, 3]`, stringified as
+`3`, and compiled to the constant $3$ instead of $ARG0+2$.
+`add(ARG0)` stringified as `ARG0` and compiled as the identity.
+Same tokenizer as upstream DEAP.
+
+**Fix.** Planned: reject a token that arrives after the root is
+complete, and reject a stream that still owes argument types.
+
+**Validators.**
+
+- `tests/test_programming/test_primitives/test_primitive_tree.py::test_from_string_rejects_an_extra_argument`
+- `tests/test_programming/test_primitives/test_primitive_tree.py::test_from_string_rejects_a_trailing_literal`
+- `tests/test_programming/test_primitives/test_primitive_tree.py::test_from_string_rejects_an_incomplete_call`
