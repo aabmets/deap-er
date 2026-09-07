@@ -16,6 +16,52 @@ from typing import Any
 __all__: list[str] = ["chapter_blocks", "build_rows", "build_header", "format_txt"]
 
 
+def _chapter_row_for_parent(logbook: Any, chapter: Any, parent_index: int) -> dict[str, Any]:
+    """Return the chapter entry that belongs with a parent row.
+
+    Rows pair by ``gen`` when that field is present. Without ``gen``,
+    pairing is positional only if the chapter already has one row per
+    parent entry.
+
+    Args:
+        logbook: Parent logbook that owns ``parent_index``.
+        chapter: Nested logbook to read.
+        parent_index: Parent row being rendered.
+
+    Returns:
+        Matching chapter entry, or an empty dict when none exists.
+    """
+    generation = logbook[parent_index].get("gen")
+    match = logbook.chapter_index_for_generation(chapter, generation, parent_index)
+    if match is not None:
+        return chapter[match]
+    if generation is None and len(chapter) == len(logbook):
+        return chapter[parent_index]
+    return {}
+
+
+class _AlignedChapter:
+    """Chapter rows lined up with a parent logbook."""
+
+    def __init__(self, logbook: Any, chapter: Any) -> None:
+        self.header = chapter.header
+        self.log_header = chapter.log_header
+        self.columns_len = list(chapter.columns_len)
+        self._rows = [_chapter_row_for_parent(logbook, chapter, i) for i in range(len(logbook))]
+        self.chapters = {
+            name: _AlignedChapter(logbook, nested) for name, nested in chapter.chapters.items()
+        }
+
+    def __len__(self) -> int:
+        return len(self._rows)
+
+    def __getitem__(self, key: Any) -> Any:
+        return self._rows[key]
+
+    def __txt__(self, start_index: int) -> list[str]:
+        return format_txt(self, start_index)
+
+
 def chapter_blocks(
     logbook: Any, start_index: int
 ) -> tuple[dict[str, list[str]], defaultdict[str, int]]:
@@ -35,7 +81,8 @@ def chapter_blocks(
     chapters_txt: dict[str, list[str]] = {}
     offsets: defaultdict[str, int] = defaultdict(int)
     for name, chapter in logbook.chapters.items():
-        chapters_txt[name] = chapter.__txt__(start_index)
+        view = chapter if isinstance(chapter, _AlignedChapter) else _AlignedChapter(logbook, chapter)
+        chapters_txt[name] = view.__txt__(start_index)
         if start_index == 0:
             offsets[name] = len(chapters_txt[name]) - len(logbook)
     return chapters_txt, offsets

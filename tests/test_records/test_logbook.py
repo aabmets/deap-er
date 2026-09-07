@@ -157,6 +157,38 @@ def test_empty_stream_without_header_still_prints_banner_on_first_record():
     assert "3" in first
 
 
+def test_stream_omitted_chapter_does_not_raise():
+    logbook = Logbook()
+    logbook.header = ["gen", "size"]
+    logbook.chapters["size"].header = ["avg"]
+    logbook.record(gen=0, size={"avg": 10.0})
+    first = logbook.stream
+    assert "10" in first
+    logbook.record(gen=1)
+    second = logbook.stream
+    assert "1" in second
+    assert "10" not in second
+    logbook.record(gen=2, size={"avg": 30.0})
+    third = logbook.stream
+    assert "30" in third
+
+
+def test_str_keeps_chapter_values_on_their_generation():
+    logbook = Logbook()
+    logbook.header = ["gen", "size"]
+    logbook.chapters["size"].header = ["avg"]
+    logbook.record(gen=0, size={"avg": 10.0})
+    logbook.record(gen=1)
+    logbook.record(gen=2, size={"avg": 30.0})
+
+    lines = str(logbook).splitlines()
+    data = [line.split("\t") for line in lines if line[:1].isdigit()]
+    assert [row[0].strip() for row in data] == ["0", "1", "2"]
+    assert data[0][1].strip() == "10"
+    assert data[1][1].strip() == ""
+    assert data[2][1].strip() == "30"
+
+
 def test_json_round_trip_restores_chapters_and_numpy_scalars():
     import numpy
 
