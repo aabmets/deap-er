@@ -38,14 +38,13 @@ def bm_royal_road_1(individual: Individual, order: int) -> tuple[int]:
         The royal road function value.
     """
     nelem = len(individual) // order
-    max_value = int(2**order - 1)
     total = 0
     for i in range(nelem):
         start = i * order
         stop = i * order + order
         values = individual[start:stop]
-        gene = int("".join(str(int(bool(bit))) for bit in values), 2)
-        total += order * int(gene / max_value)
+        if all(values):
+            total += order
     return (total,)
 
 
