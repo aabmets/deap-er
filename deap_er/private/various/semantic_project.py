@@ -77,7 +77,10 @@ def semantic_pca_basis(
     packed = as_semantic_matrix(matrix)
     keep = semantic_column_keep(packed.shape[1], valid, target)
     kept = packed[:, keep]
-    finite_rows = numpy.all(numpy.isfinite(kept), axis=1) if kept.size else numpy.zeros(0, dtype=bool)
+    if kept.size:
+        finite_rows = numpy.all(numpy.isfinite(kept), axis=1)
+    else:
+        finite_rows = numpy.zeros(0, dtype=bool)
     kept = kept[finite_rows]
     if kept.shape[0] == 0 or kept.shape[1] == 0:
         raise ValueError("semantic_pca_basis needs at least one finite row on kept columns")
