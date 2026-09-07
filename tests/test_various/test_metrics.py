@@ -8,7 +8,7 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from typing import Any
+from typing import Any, override
 
 import pytest
 from deap_er import Fitness, creator, tools
@@ -93,3 +93,83 @@ def test_nsga_convergence_and_inverted_generational_distance():
 def test_duplicate_count_counts_twins():
     assert tools.duplicate_count([[1], [1], [2], [1]]) == 2
     assert tools.duplicate_count(["a", "bb", "a"], key=len) == 1
+
+
+def test_duplicate_count_empty_population():
+    assert tools.duplicate_count([]) == 0
+
+
+def test_duplicate_count_single_individual():
+    assert tools.duplicate_count(["only"]) == 0
+
+
+def test_duplicate_count_all_unique_hashable():
+    assert tools.duplicate_count([0, 1, 2, 3]) == 0
+
+
+def test_duplicate_count_all_duplicates_hashable():
+    assert tools.duplicate_count([7, 7, 7, 7]) == 3
+
+
+def test_duplicate_count_mixed_hashable():
+    assert tools.duplicate_count([1, 2, 1, 3, 2, 1]) == 3
+
+
+def test_duplicate_count_unhashable_all_same():
+    assert tools.duplicate_count([[1], [1], [1]]) == 2
+
+
+def test_duplicate_count_unhashable_all_unique():
+    assert tools.duplicate_count([[1], [2], [3]]) == 0
+
+
+def test_duplicate_count_key_returns_unhashable_list():
+    assert tools.duplicate_count(["a", "bb", "ccc"], key=list) == 0
+    assert tools.duplicate_count(["aa", "b", "aa"], key=list) == 1
+
+
+class _SortableUnhashable:
+    """Unhashable key with total ordering (exercises the sort branch)."""
+
+    __slots__ = ("value",)
+
+    def __init__(self, value: int) -> None:
+        self.value = value
+
+    @override
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, _SortableUnhashable) and self.value == other.value
+
+    def __lt__(self, other: object) -> bool:
+        if not isinstance(other, _SortableUnhashable):
+            return NotImplemented
+        return self.value < other.value
+
+
+class _UnsortableUnhashable:
+    """Unhashable key with no ordering (exercises the list fallback)."""
+
+    @override
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, _UnsortableUnhashable)
+
+    def __lt__(self, other: object) -> bool:
+        raise TypeError("no ordering")
+
+
+def test_duplicate_count_sortable_unhashable_keys_use_sort_path():
+    population = [
+        _SortableUnhashable(2),
+        _SortableUnhashable(1),
+        _SortableUnhashable(2),
+    ]
+    assert tools.duplicate_count(population) == 1
+
+
+def test_duplicate_count_unsortable_unhashable_keys_use_list_fallback():
+    population = [
+        _UnsortableUnhashable(),
+        _UnsortableUnhashable(),
+        _UnsortableUnhashable(),
+    ]
+    assert tools.duplicate_count(population) == 2
