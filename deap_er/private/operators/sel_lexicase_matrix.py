@@ -25,10 +25,24 @@ __all__: list[str] = [
     "case_subset",
     "fitness_case_matrix",
     "lexicase_select_vectorized",
+    "require_population",
     "validate_case_matrix",
 ]
 
 type LexicaseMode = Literal["strict", "epsilon_auto", "epsilon_fixed"]
+
+
+def require_population(individuals: list[Individual]) -> None:
+    """Require a non-empty population, matching legacy selector errors.
+
+    Args:
+        individuals: Candidate pool.
+
+    Raises:
+        IndexError: If ``individuals`` is empty.
+    """
+    if not individuals:
+        raise IndexError("list index out of range")
 
 
 def case_index(idx: object, n_obj: int) -> int:
@@ -63,8 +77,9 @@ def case_subset(individuals: list[Individual], cases: Sequence[int] | None) -> l
         Case indices in caller order.
 
     Raises:
-        IndexError: If a case index is outside the fitness length.
+        IndexError: If the population is empty or a case index is invalid.
     """
+    require_population(individuals)
     n_obj = len(individuals[0].fitness.values)
     if cases is None:
         return list(range(n_obj))
@@ -75,7 +90,8 @@ def fitness_case_matrix(individuals: list[Individual]) -> numpy.ndarray:
     """Pack ``fitness.values`` into a dense ``(n_individuals, n_cases)`` matrix.
 
     Args:
-        individuals: Evaluated population.
+        individuals: Evaluated population. Zero-case fitness is packed
+            as ``(n_individuals, 0)``.
 
     Returns:
         Case values with one row per individual.
@@ -86,32 +102,46 @@ def fitness_case_matrix(individuals: list[Individual]) -> numpy.ndarray:
     if not individuals:
         raise ValueError("individuals must be non-empty")
     n_cases = len(individuals[0].fitness.values)
-    if n_cases == 0:
-        raise ValueError("every individual must have a valid fitness of the same length")
     matrix = numpy.empty((len(individuals), n_cases), dtype=numpy.float64)
     for row, individual in enumerate(individuals):
         values = individual.fitness.values
         if len(values) != n_cases:
             raise ValueError("every individual must have a valid fitness of the same length")
-        matrix[row] = values
+        if n_cases:
+            matrix[row] = values
     return matrix
 
 
-def validate_case_matrix(matrix: numpy.ndarray, individuals: list[Individual]) -> None:
+def validate_case_matrix(
+    matrix: numpy.ndarray,
+    individuals: list[Individual],
+    *,
+    trust: bool = False,
+) -> None:
     """Check that ``matrix`` matches ``individuals`` fitness.
 
     Args:
         matrix: Pre-packed case matrix.
         individuals: Population the matrix describes.
+        trust: When ``True``, only the shape is checked.
 
     Raises:
         ValueError: If the shape or values do not match ``fitness.values``.
     """
-    expected = fitness_case_matrix(individuals)
-    if matrix.shape != expected.shape:
-        raise ValueError(f"matrix must have shape {expected.shape}, got {matrix.shape}")
-    if not numpy.array_equal(matrix, expected):
-        raise ValueError("matrix does not match fitness.values")
+    if not individuals:
+        raise ValueError("individuals must be non-empty")
+    n_cases = len(individuals[0].fitness.values)
+    expected_shape = (len(individuals), n_cases)
+    if matrix.shape != expected_shape:
+        raise ValueError(f"matrix must have shape {expected_shape}, got {matrix.shape}")
+    if trust:
+        return
+    for row, individual in enumerate(individuals):
+        values = individual.fitness.values
+        if len(values) != n_cases:
+            raise ValueError("every individual must have a valid fitness of the same length")
+        if n_cases and not numpy.array_equal(matrix[row], values):
+            raise ValueError("matrix does not match fitness.values")
 
 
 def _apply_strict(
@@ -154,6 +184,15 @@ def _slack_for_case(
     vals = col[active]
     median = float(numpy.median(vals))
     return float(numpy.median(numpy.abs(vals - median)))
+
+
+def _choice_from_survivors(
+    individuals: list[Individual],
+    survivors: numpy.ndarray,
+) -> Individual:
+    if survivors.size == 0:
+        return rng.choice(individuals)
+    return rng.choice([individuals[i] for i in survivors])
 
 
 def lexicase_select_vectorized(
@@ -201,6 +240,5 @@ def lexicase_select_vectorized(
                 slack = _slack_for_case(col, active, mode, epsilon)
                 active = _apply_epsilon(active, col, maximize, slack)
         survivors = numpy.flatnonzero(active)
-        choice = rng.choice([individuals[i] for i in survivors])
-        selected.append(choice)
+        selected.append(_choice_from_survivors(individuals, survivors))
     return selected

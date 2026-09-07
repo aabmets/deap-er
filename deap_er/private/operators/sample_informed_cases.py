@@ -78,6 +78,7 @@ def sample_informed_cases(
     *,
     solved: CaseSolved | None = None,
     matrix: numpy.ndarray | None = None,
+    trust_matrix: bool = False,
 ) -> list[int]:
     """Build a down-sample that prefers distinct fitness cases.
 
@@ -101,6 +102,8 @@ def sample_informed_cases(
             When not the default zero test, ``matrix`` is ignored.
         matrix: Optional ``(n_individuals, n_cases)`` case matrix.
             Used only with the default ``solved`` predicate.
+        trust_matrix: When ``True``, ``matrix`` is accepted on shape
+            alone. Defaults to ``False``.
 
     Returns:
         Distinct fitness-case indices, in the order they were picked.
@@ -124,7 +127,7 @@ def sample_informed_cases(
     size = min(count, n_cases)
     predicate = solved if solved is not None else _default_solved
     if matrix is not None and predicate is _default_solved:
-        validate_case_matrix(matrix, individuals)
+        validate_case_matrix(matrix, individuals, trust=trust_matrix)
         solve = _solve_from_matrix(matrix)
     else:
         solve = _solve_matrix(individuals, n_cases, predicate)

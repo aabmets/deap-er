@@ -23,6 +23,7 @@ from .sel_lexicase_matrix import (
     case_subset,
     fitness_case_matrix,
     lexicase_select_vectorized,
+    require_population,
     validate_case_matrix,
 )
 
@@ -56,7 +57,8 @@ def lexicase_select(
         The selected individuals.
 
     Raises:
-        IndexError: If a case index is outside the fitness length.
+        IndexError: If the population is empty or a case index is
+            outside the fitness length.
     """
     if sel_count <= 0:
         return []
@@ -71,18 +73,20 @@ def lexicase_select(
             case = order[0]
             candidates = keep(candidates, case, fit_weights[case] > 0)
             order.pop(0)
-        choice = rng.choice(candidates)
-        selected.append(choice)
+        pool = candidates if candidates else individuals
+        selected.append(rng.choice(pool))
     return selected
 
 
 def _resolve_matrix(
     individuals: list[Individual],
     matrix: numpy.ndarray | None,
+    *,
+    trust_matrix: bool,
 ) -> numpy.ndarray:
     if matrix is None:
         return fitness_case_matrix(individuals)
-    validate_case_matrix(matrix, individuals)
+    validate_case_matrix(matrix, individuals, trust=trust_matrix)
     return matrix
 
 
@@ -92,6 +96,7 @@ def sel_lexicase(
     *,
     cases: Sequence[int] | None = None,
     matrix: numpy.ndarray | None = None,
+    trust_matrix: bool = False,
 ) -> list[Individual]:
     """Select individuals by lexicase filtering of fitness cases.
 
@@ -108,17 +113,21 @@ def sel_lexicase(
             freeze it on the toolbox.
         matrix: Optional ``(n_individuals, n_cases)`` case matrix.
             When omitted, values are read from ``fitness.values``.
+        trust_matrix: When ``True``, ``matrix`` is accepted on shape
+            alone. Defaults to ``False``.
 
     Returns:
         The selected individuals.
 
     Raises:
-        IndexError: If a case index is outside the fitness length.
+        IndexError: If the population is empty or a case index is
+            outside the fitness length.
         ValueError: If ``matrix`` shape or values do not match fitness.
     """
     if sel_count <= 0:
         return []
-    packed = _resolve_matrix(individuals, matrix)
+    require_population(individuals)
+    packed = _resolve_matrix(individuals, matrix, trust_matrix=trust_matrix)
     subset = case_subset(individuals, cases)
     return lexicase_select_vectorized(
         individuals,
@@ -137,6 +146,7 @@ def sel_epsilon_lexicase(
     *,
     cases: Sequence[int] | None = None,
     matrix: numpy.ndarray | None = None,
+    trust_matrix: bool = False,
 ) -> list[Individual]:
     """Select individuals by epsilon-lexicase filtering of fitness cases.
 
@@ -157,17 +167,21 @@ def sel_epsilon_lexicase(
             freeze it on the toolbox.
         matrix: Optional ``(n_individuals, n_cases)`` case matrix.
             When omitted, values are read from ``fitness.values``.
+        trust_matrix: When ``True``, ``matrix`` is accepted on shape
+            alone. Defaults to ``False``.
 
     Returns:
         The selected individuals.
 
     Raises:
-        IndexError: If a case index is outside the fitness length.
+        IndexError: If the population is empty or a case index is
+            outside the fitness length.
         ValueError: If ``matrix`` shape or values do not match fitness.
     """
     if sel_count <= 0:
         return []
-    packed = _resolve_matrix(individuals, matrix)
+    require_population(individuals)
+    packed = _resolve_matrix(individuals, matrix, trust_matrix=trust_matrix)
     subset = case_subset(individuals, cases)
     mode = "epsilon_auto" if epsilon is None else "epsilon_fixed"
     return lexicase_select_vectorized(
