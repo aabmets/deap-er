@@ -10,6 +10,7 @@
 #
 from typing import Any
 
+import numpy
 import pytest
 from deap_er import tools
 
@@ -77,6 +78,13 @@ def test_polynomial_bounded_out_of_box_stays_finite():
     (mutant,) = tools.mut_polynomial_bounded(individual, 2.0, 0.0, 1.0, 1.0)
     assert all(0.0 <= gene <= 1.0 for gene in mutant)
     assert all(gene == gene for gene in mutant)
+
+
+def test_mut_uniform_int_accepts_numpy_integer_bounds():
+    individual: Any = [0, 0, 0]
+    tools.rng.seed(1)
+    (mutant,) = tools.mut_uniform_int(individual, numpy.int64(0), numpy.int64(3), 1.0)
+    assert all(0 <= gene <= 3 for gene in mutant)
 
 
 def test_mut_heterogeneous_applies_one_callable_per_gene():

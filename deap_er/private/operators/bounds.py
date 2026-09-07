@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from numbers import Integral, Real
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -50,7 +51,7 @@ def broadcast_param(
     Raises:
         ValueError: If ``var`` is a sequence shorter than ``size``.
     """
-    if isinstance(var, int | float):
+    if isinstance(var, Integral | Real):
         return [var] * size
     if len(var) < size:
         raise ValueError(
