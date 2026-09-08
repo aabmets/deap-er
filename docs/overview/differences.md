@@ -7,7 +7,7 @@ changed. Same toolbox model. Counted from the sections below:
 
 - **18** still-open [DEAP](https://github.com/DEAP/deap) issues
   [implemented](../bugfixes/deap_fixes.md) (some older than a decade)
-- **71** correctness bugs fixed — [operators](../bugfixes/operators.md),
+- **73** correctness bugs fixed — [operators](../bugfixes/operators.md),
   [GP](../bugfixes/gp.md),
   [CMA](../bugfixes/strategies.md),
   [records](../bugfixes/records.md),
@@ -237,6 +237,10 @@ from the original sources.
     so `Strategy` / `StrategySeparable` and a `RestartStrategy`
     leftover budget of one evaluation no longer raise
     `ZeroDivisionError` on an empty weight vector.
+12. `Strategy.compute_params` rebuilds $C$, $B$, and $D$ only on
+    first init or when `cm_init` is in `kwargs`. A later
+    `compute_params(offsprings=…)` no longer wipes the learned
+    covariance.
 
 ## Genetic programming
 
@@ -482,12 +486,15 @@ evaluation is in the
 2. `Fitness.dominates` returns `False` when the other fitness is
    invalid or the compared objective counts differ. An unevaluated
    opponent no longer raises `ValueError` or `IndexError`.
+3. `copy.copy` on a numpy or `array.array` individual keeps the
+   created type and rebinds `fitness`. The overrides no longer
+   drop `__dict__` or return a plain `array.array`.
 
 ## Constraints and utilities
 
-1. `ClosestValidPenalty` treats a scalar NumPy distance like
-   `DeltaPenalty` does: a 0-d array is broadcast, so an `ndarray`
-   is not passed to `itertools.repeat`.
+1. `DeltaPenalty` and `ClosestValidPenalty` treat an `ndarray`
+   `delta` or `distance` as a per-objective sequence. A 0-d array
+   is broadcast; a 1-d vector is not passed to `itertools.repeat`.
 2. `SortingNetwork.evaluate` copies each case, sorts the copy, and
    compares it to `sorted(original)`, so integer cases are not
    scored as bit-count patterns.
@@ -504,9 +511,11 @@ evaluation is in the
    the objective vector when fitness is set.
 6. `inv_gen_dist` uses the same fitness-first point extraction.
    Two fronts of individuals are no longer scored as gene lists.
-7. `nsga_diversity` returns $1$ when Deb's denominator is $0$
-   (several copies of one point, extremes at that point). It no
-   longer raises `ZeroDivisionError`.
+7. `nsga_diversity` sorts the front by the first objective before
+   Deb's $\Delta$ (a permutation of the same points no longer
+   changes the value), and returns $1$ when the denominator is $0$
+   (a single point, or several copies of one point with extremes
+   at that point). It no longer raises `ZeroDivisionError`.
 8. `SortingNetwork.draw` sizes the ASCII grid so empty and
    one-level networks no longer IndexError when writing wire
    labels or last-level spacers.
@@ -525,9 +534,9 @@ evaluation is in the
    fits the bit string. The top-level schema is included, so a
    64-bit all-ones individual with order $8$ scores $256$.
 5. Kotanchek uses the published denominator $1.2$, not $3.2$.
-6. Royal Road R1 (and R2, which sums R1) decodes each block with
-   `int(bool(bit))` before the base-2 parse. Boolean bits from
-   `mut_flip_bit` no longer become `"TrueTrue"` and raise
+6. Royal Road R1 (and R2, which sums R1) and `bin2float` treat
+   boolean bits like integers. `mut_flip_bit` preserves `bool`;
+   bits no longer stringify as `"True"` / `"False"` and raise
    `ValueError`.
 
 [deap-24]: https://github.com/DEAP/deap/issues/24
