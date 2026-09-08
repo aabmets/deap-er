@@ -32,5 +32,14 @@
    collide with process-wide `tools.rng` and does not depend
    on pool scheduling ([user-provided streams][deap-75]). The
    parent generator stays checkpointable.
+10. <a id="10-policy-observation-schema"></a>`PolicyObservation` and `policy_observe` define the fixed
+   Push policy observation schema. Summary helpers coerce
+   outputs from `case_errors`, `score_case_exams`,
+   `ArchiveStats`, and promoted-library counters; raw NumPy
+   packs and column slices are rejected at the boundary.
+   `policy_exam_scores` splits train vs held-out exam
+   difficulty without exposing `matrix[t]`. Not a genome and
+   not a domain metric — the firewall before a private Push
+   loop ([Push GP P11](../roadmap/push_gp.md#p11-policy-observation-schema)).
 
 [deap-75]: https://github.com/DEAP/deap/issues/75
