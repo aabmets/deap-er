@@ -11,7 +11,7 @@ This page is a backlog, not a schedule. Status matches the
 library: shipped preconditions are **shipped**; the rest are
 **planned**. Shipped items are not re-specified here; the item
 column links the matching write-up on a [Features](index.md)
-page. Planned items 30, 31, and 37 are the same rows as on
+page. Planned items 31 and 37 are the same rows as on
 those pages — ship them once.
 
 | # | Item | Surface | Status |
@@ -31,7 +31,7 @@ those pages — ship them once.
 | P13 | [Held-out policy fitness](#p13-held-out-policy-fitness) | `records`, `operators` | planned |
 | P14 | [Action guards and cooldowns](#p14-action-guards-and-cooldowns) | `operators` | planned |
 | P15 | [Evaluation budget and eval cache](features_31_40.md#37-evaluation-budget-and-eval-cache) (item 37) | `algorithms`, `utilities` | planned |
-| P16 | [Causal lookback and suffix rescore](features_21_30.md#30-causal-lookback-and-suffix-rescore) (item 30) | `gp` | planned |
+| P16 | [Causal lookback and suffix rescore](features_21_30.md#30-causal-lookback-and-suffix-rescore) (item 30) | `gp` | shipped |
 | P17 | [Affine scaling and Lamarckian writeback](features_31_40.md#31-affine-scaling-and-lamarckian-writeback) (item 31) | `gp`, `utilities` | planned |
 | P18 | [Parallel RNG streams](features_31_40.md#38-parallel-rng-streams) (item 38) | `rng` | shipped |
 | P19 | [Push GP as the loop](#p19-push-gp-as-the-loop) | `gp` (private policy) | planned |
@@ -169,11 +169,11 @@ rescore recipe.
 
 **Today.** Shipped as
 [item 25](features_21_30.md#25-streaming-and-island-ecology).
-Suffix-only rescore is not a library path until
+Legal dirty suffixes are
 [item 30](features_21_30.md#30-causal-lookback-and-suffix-rescore).
 
 **Role.** Migrate / deme pressure and “rescore now” are
-actions. Legal dirty suffixes wait on P16.
+actions. Legal dirty suffixes are [P16](#p16-causal-lookback-and-suffix-rescore).
 
 ---
 
@@ -315,13 +315,14 @@ metered.
 **What.** `tape_lookback` plus a suffix rescore that matches
 the full-matrix oracle.
 
-**Today.** Planned as
+**Today.** Shipped as
 [item 30](features_21_30.md#30-causal-lookback-and-suffix-rescore).
-Item 25’s append-only path is still a full rescore.
+`tape_lookback` is the certificate; `suffix_rescore` writes
+the dirty suffix onto a cached prefix and matches the
+full-matrix oracle.
 
-**Role.** Required only if a policy may say “new rows;
-rescore now.” Until this ships, keep Push off streaming or
-always full-rescore and do not let it choose.
+**Role.** A policy may say “new rows; rescore now.” The
+lookback bound is what makes that action legal.
 
 ---
 
