@@ -33,6 +33,8 @@ def ea_generate_update(
     """Evolve a strategy that generates and updates a population.
 
     Requires ``generate``, ``update``, and ``evaluate`` on ``toolbox``.
+    An empty ``generate`` batch stops the loop and returns the last
+    evaluated population. ``update`` is not called with ``[]``.
 
     Args:
         toolbox: Toolbox with the generate, update, and evaluate operators.
@@ -53,7 +55,10 @@ def ea_generate_update(
     population: list[Individual] = []
     for gen in range(1, generations + 1):
         t0 = time.perf_counter()
-        population = toolbox.generate()
+        next_population = toolbox.generate()
+        if not next_population:
+            break
+        population = next_population
         nevals = evaluate_invalid(toolbox, population)
 
         toolbox.update(population)
