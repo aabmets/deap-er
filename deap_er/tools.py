@@ -17,6 +17,7 @@ from .private.various.case_errors import *
 from .private.various.clone import *
 from .private.various.constraints import *
 from .private.various.decorators import *
+from .private.various.eval_cache import *
 from .private.various.hypervolume import *
 from .private.various.initializers import *
 from .private.various.least_contrib import *

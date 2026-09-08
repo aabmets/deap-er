@@ -476,6 +476,15 @@ evaluation is in the
 27. `ea_generate_update` keeps the last evaluated population
     when `generate` returns empty. The empty batch is still a
     stop signal and does not call `update([])`.
+28. `n_evals=` is an optional evaluation-budget stop on
+    `ea_simple`, `ea_mu_plus_lambda`, `ea_mu_comma_lambda`, and
+    `ea_map_elites`. Generations stay the default. `EvalCache`
+    wraps `evaluate` / `evaluate_batch` by expression text (or
+    a caller key) plus matrix identity and row count. A hit
+    does not call `evaluate` again. `promote_subtree` and
+    `tune_ephemerals` drop matching fitness-cache keys when they
+    invalidate the compile cache. DEAP's `ea_*` drivers stop on
+    generations only.
 
 ## Persistence
 

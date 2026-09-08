@@ -16,7 +16,14 @@ from deap_er.private.toolbox import Toolbox
 from deap_er.private.typedefs import EvoRecords, EvoStats, Individual
 from deap_er.records import Logbook, ParetoFront
 
-__all__: list[str] = ["new_logbook", "evaluate_invalid", "record_generation"]
+__all__: list[str] = [
+    "budget_spent",
+    "check_n_evals",
+    "consume_evals",
+    "evaluate_invalid",
+    "new_logbook",
+    "record_generation",
+]
 
 
 def new_logbook(stats: EvoStats | None, log_time: bool = False) -> Logbook:
@@ -34,6 +41,55 @@ def new_logbook(stats: EvoStats | None, log_time: bool = False) -> Logbook:
     extra = ["duration"] if log_time else []
     logbook.header = ["gen", "nevals"] + extra + (stats.fields if stats else [])
     return logbook
+
+
+def check_n_evals(n_evals: int | None) -> None:
+    """Reject a negative evaluation budget.
+
+    Args:
+        n_evals: Optional maximum number of evaluations.
+
+    Raises:
+        ValueError: If ``n_evals`` is negative.
+    """
+    if n_evals is not None and n_evals < 0:
+        raise ValueError("n_evals must be at least 0.")
+
+
+def budget_spent(n_evals: int | None, used: int) -> bool:
+    """Return whether an optional evaluation budget is exhausted.
+
+    Args:
+        n_evals: Optional maximum number of evaluations.
+        used: Evaluations already consumed.
+
+    Returns:
+        True when ``n_evals`` is set and ``used`` has reached it.
+    """
+    return n_evals is not None and used >= n_evals
+
+
+def consume_evals(
+    toolbox: Toolbox,
+    individuals: Sequence[Any],
+    n_evals: int | None,
+    used: int,
+) -> tuple[int, int]:
+    """Evaluate invalids unless the evaluation budget is already spent.
+
+    Args:
+        toolbox: Toolbox with the evaluate and map operators.
+        individuals: Individuals to scan for invalid fitness.
+        n_evals: Optional maximum number of evaluations.
+        used: Evaluations already consumed.
+
+    Returns:
+        The number evaluated this call and the new total used.
+    """
+    if budget_spent(n_evals, used):
+        return 0, used
+    nevals = evaluate_invalid(toolbox, individuals)
+    return nevals, used + nevals
 
 
 def evaluate_invalid(toolbox: Toolbox, individuals: Sequence[Any]) -> int:

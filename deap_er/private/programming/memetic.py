@@ -45,8 +45,9 @@ def tune_ephemerals(
 
     Extracts ephemeral floats and ``Window`` ints, runs ``n_gen``
     ``generate`` / ``update`` steps on ``strategy``, writes the
-    repaired centroid back, then invalidates fitness and the compile
-    cache for the previous expression. Evaluation is the caller's
+    repaired centroid back, then invalidates fitness, the compile
+    cache, and matching ``EvalCache`` keys for the previous
+    expression. Evaluation is the caller's
     ``evaluate`` on clones, or ``evaluate_batch`` on a pack of clones.
     Provide one of those callables; when both are set, the batch path
     is used.

@@ -193,9 +193,18 @@ Related: [item 4](features_1_10.md#4-batch-tape-evaluation),
    invalidate compile-cache entries; the fitness cache must
    drop those keys too.
 
-**Today.** Most `ea_*` drivers stop on generations.
-`evaluate_invalid` recomputes every invalid individual.
-`compile_tree` caches code, not fitness.
+**Today.** `n_evals=` is an optional stop on `ea_simple`,
+`ea_mu_plus_lambda`, `ea_mu_comma_lambda`, and `ea_map_elites`.
+The generation that meets or exceeds the budget is finished,
+then the loop returns. Generations remain the default.
+`ea_generate_update_restarts` already stops on evaluations.
+`EvalCache` wraps `evaluate` / `evaluate_batch` with a key of
+expression text (or a caller key) plus matrix identity and
+row count. A hit does not call the wrapped callable.
+`clear_compile_cache` clears every live `EvalCache`;
+`invalidate_compiled` drops matching expression keys. That is
+the same path `promote_subtree` and `tune_ephemerals` already
+use for the compile LRU.
 
 **Benefit.** GP papers report evaluation budgets. A cache is the
 other half of the compile LRU: the same tree on the same matrix

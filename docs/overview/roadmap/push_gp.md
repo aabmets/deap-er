@@ -11,8 +11,7 @@ This page is a backlog, not a schedule. Status matches the
 library: shipped preconditions are **shipped**; the rest are
 **planned**. Shipped items are not re-specified here; the item
 column links the matching write-up on a [Features](index.md)
-page. Planned item 37 is the same row as on
-those pages — ship it once.
+page. Items 30, 31, 37, and 38 are shipped on both pages.
 
 | # | Item | Surface | Status |
 |:--|:-----|:--------|:-------|
@@ -30,7 +29,7 @@ those pages — ship it once.
 | P12 | [Policy action applicator](#p12-policy-action-applicator) | `algorithms` | planned |
 | P13 | [Held-out policy fitness](#p13-held-out-policy-fitness) | `records`, `operators` | planned |
 | P14 | [Action guards and cooldowns](#p14-action-guards-and-cooldowns) | `operators` | planned |
-| P15 | [Evaluation budget and eval cache](features_31_40.md#37-evaluation-budget-and-eval-cache) (item 37) | `algorithms`, `utilities` | planned |
+| P15 | [Evaluation budget and eval cache](features_31_40.md#37-evaluation-budget-and-eval-cache) (item 37) | `algorithms`, `utilities` | shipped |
 | P16 | [Causal lookback and suffix rescore](features_21_30.md#30-causal-lookback-and-suffix-rescore) (item 30) | `gp` | shipped |
 | P17 | [Affine scaling and Lamarckian writeback](features_31_40.md#31-affine-scaling-and-lamarckian-writeback) (item 31) | `gp`, `utilities` | shipped |
 | P18 | [Parallel RNG streams](features_31_40.md#38-parallel-rng-streams) (item 38) | `rng` | shipped |
@@ -38,8 +37,7 @@ those pages — ship it once.
 
 P1–P10 are shipped on the main table and still sit on this
 path: the two-level loop *uses* them. P11–P14 are new
-firewall pieces. P15 is planned on Features 31–40; this page
-does not fork it. P16–P18 are shipped. P19 is last on purpose.
+firewall pieces. P15–P18 are shipped. P19 is last on purpose.
 
 !!! note
     A linear policy or a fixed decision list on the same
@@ -297,11 +295,16 @@ keyed by expression plus matrix identity. Every tune,
 rescore, and promote-induced recompile spends that budget.
 Policy fitness is held-out quality *per eval*.
 
-**Today.** Planned as
+**Today.** Shipped as
 [item 37](features_31_40.md#37-evaluation-budget-and-eval-cache).
-`ea_generate_update_restarts` already stops on evaluations;
-the other `ea_*` drivers do not. `compile_tree` caches code,
-not fitness.
+`n_evals=` stops `ea_simple`, `ea_mu_plus_lambda`,
+`ea_mu_comma_lambda`, and `ea_map_elites` when the evaluation
+count is spent; generations remain the default.
+`ea_generate_update_restarts` already stops on evaluations.
+`EvalCache` wraps `evaluate` / `evaluate_batch` by expression
+text or a caller key plus matrix identity and row count.
+`promote_subtree` and `tune_ephemerals` drop matching fitness
+keys when they invalidate the compile cache.
 
 **Role.** Without this, a policy that tunes every generation
 wins by spending. Do not evolve Push until actions are
