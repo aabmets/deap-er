@@ -519,6 +519,11 @@ evaluation is in the
 8. `SortingNetwork.draw` sizes the ASCII grid so empty and
    one-level networks no longer IndexError when writing wire
    labels or last-level spacers.
+9. `spawn_rng(seed, worker_id)` and `map_spawned` give each
+   mapped item an independent, seedable stream that does not
+   collide with process-wide `tools.rng` and does not depend
+   on pool scheduling ([user-provided streams][deap-75]). The
+   parent generator stays checkpointable.
 
 ## Benchmarks
 
@@ -540,6 +545,7 @@ evaluation is in the
    `ValueError`.
 
 [deap-24]: https://github.com/DEAP/deap/issues/24
+[deap-75]: https://github.com/DEAP/deap/issues/75
 [deap-121]: https://github.com/DEAP/deap/issues/121
 [deap-321]: https://github.com/DEAP/deap/issues/321
 [deap-350]: https://github.com/DEAP/deap/issues/350

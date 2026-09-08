@@ -213,10 +213,13 @@ stays checkpointable. A worker map (or a documented
 does not collide with the parent and does not depend on
 scheduling order.
 
-**Today.** `deap_er.rng` is one process-wide NumPy `Generator`.
-`Checkpoint` persists it. `toolbox.map` as a process pool gives
-each worker a fresh interpreter — and either a duplicate stream
-or an unreproducible one.
+**Today.** Process-wide `tools.rng` is still the default NumPy
+`Generator`, and `Checkpoint` still persists it.
+`spawn_rng(seed, worker_id)` derives an independent child
+stream from the run seed and a stable task id without
+advancing the parent. `map_spawned` binds that stream for
+each item and returns results in input order, so a pool's
+completion order cannot change the run.
 
 **Benefit.** The last reproducibility hole that is still open on
 DEAP ([user-provided streams][deap-75] for parallel runs). Golden

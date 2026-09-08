@@ -54,14 +54,14 @@ surface.
 | 35 | [Adaptive DE strategy](features_31_40.md#35-adaptive-de-strategy) | `strategies` | planned |
 | 36 | [Population tape CSE](features_31_40.md#36-population-tape-cse) | `gp` | planned |
 | 37 | [Evaluation budget and eval cache](features_31_40.md#37-evaluation-budget-and-eval-cache) | `algorithms`, `utilities` | planned |
-| 38 | [Parallel RNG streams](features_31_40.md#38-parallel-rng-streams) | `rng` | planned |
+| 38 | [Parallel RNG streams](features_31_40.md#38-parallel-rng-streams) | `rng` | shipped |
 
 Shipping an item updates the matching feature page and tutorial or
 reference stub. Items 15–20 are the toolbox-shaped holes after
 the first backlog; they are shipped. Items 21–26 compose pieces
 that already shipped (tapes, SlimGP, lexicase, archives, CMA)
 into a longer program-search loop, and they are shipped.
-Items 27–38 are the next backlog: case-selection schedules,
+Items 27–37 are the next backlog: case-selection schedules,
 archive search, causal streaming, memetic symbolic regression,
 and the remaining toolbox holes. Ideas that compose the same
 pieces but wait on a profile, a sequel, or a recipe stay in

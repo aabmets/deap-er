@@ -11,7 +11,7 @@ This page is a backlog, not a schedule. Status matches the
 library: shipped preconditions are **shipped**; the rest are
 **planned**. Shipped items are not re-specified here; the item
 column links the matching write-up on a [Features](index.md)
-page. Planned items 30, 31, 37, and 38 are the same rows as on
+page. Planned items 30, 31, and 37 are the same rows as on
 those pages — ship them once.
 
 | # | Item | Surface | Status |
@@ -33,13 +33,14 @@ those pages — ship them once.
 | P15 | [Evaluation budget and eval cache](features_31_40.md#37-evaluation-budget-and-eval-cache) (item 37) | `algorithms`, `utilities` | planned |
 | P16 | [Causal lookback and suffix rescore](features_21_30.md#30-causal-lookback-and-suffix-rescore) (item 30) | `gp` | planned |
 | P17 | [Affine scaling and Lamarckian writeback](features_31_40.md#31-affine-scaling-and-lamarckian-writeback) (item 31) | `gp`, `utilities` | planned |
-| P18 | [Parallel RNG streams](features_31_40.md#38-parallel-rng-streams) (item 38) | `rng` | planned |
+| P18 | [Parallel RNG streams](features_31_40.md#38-parallel-rng-streams) (item 38) | `rng` | shipped |
 | P19 | [Push GP as the loop](#p19-push-gp-as-the-loop) | `gp` (private policy) | planned |
 
 P1–P10 are shipped on the main table and still sit on this
 path: the two-level loop *uses* them. P11–P14 are new
-firewall pieces. P15–P18 are planned on Features 21–30 /
-31–40; this page does not fork them. P19 is last on purpose.
+firewall pieces. P15–P17 are planned on Features 21–30 /
+31–40; this page does not fork them. P18 is shipped. P19 is last
+on purpose.
 
 !!! note
     A linear policy or a fixed decision list on the same
@@ -343,8 +344,11 @@ before Push if `tune` is in the action set.
 **What.** Independent, seedable worker streams that still
 reproduce.
 
-**Today.** Planned as
+**Today.** Shipped as
 [item 38](features_31_40.md#38-parallel-rng-streams).
+`spawn_rng(seed, worker_id)` and `map_spawned` derive
+independent worker streams. The process-wide generator stays
+the default and stays checkpointable.
 
 **Role.** Two populations (tapes and policies) under
 `toolbox.map`. Skip only if both stay in-process.
