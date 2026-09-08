@@ -1,6 +1,8 @@
-# Features 31-38
+# Features 31-40
 
-Numbered items 31–38 from the [roadmap overview](index.md). Status and surfaces live on that table.
+Items in this decade from the [roadmap overview](index.md).
+Status and surfaces live on that table. Empty slots stay empty
+until an item is numbered into this range.
 
 ---
 
