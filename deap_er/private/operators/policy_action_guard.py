@@ -64,7 +64,7 @@ class PolicyActionGuard:
     last_promote_gen: int | None = None
 
     def __post_init__(self) -> None:
-        """Reject negative or zero-valued cap configuration."""
+        """Reject invalid cap configuration at construction."""
         if self.max_promotes_per_gen < 0:
             raise ValueError("max_promotes_per_gen must be at least 0")
         if self.max_tune_gen < 1:
