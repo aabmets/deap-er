@@ -185,3 +185,18 @@ and reject a stream that still owes argument types.
 - `tests/test_programming/test_primitives/test_primitive_tree.py::test_from_string_rejects_an_extra_argument`
 - `tests/test_programming/test_primitives/test_primitive_tree.py::test_from_string_rejects_a_trailing_literal`
 - `tests/test_programming/test_primitives/test_primitive_tree.py::test_from_string_rejects_an_incomplete_call`
+
+---
+
+## HARM `natural_histogram` wrapped `hist[-1]` at size 0
+
+A size-0 tree (`PrimitiveTree([])`) is valid.
+`hist[ind_size - 1] += 0.2` had no `ind_size >= 1`
+guard, so the last bin absorbed the left-neighbor
+weight. `ind_size - 2` was already guarded.
+
+**Fix.** Add to the previous bin only when
+`ind_size >= 1`.
+
+**Validator.**
+`tests/test_programming/test_harm/test_harm.py::test_natural_histogram_size_zero_does_not_wrap_to_last_bin`

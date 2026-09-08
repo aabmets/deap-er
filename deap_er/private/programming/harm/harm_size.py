@@ -69,7 +69,8 @@ def natural_histogram(sizes: list[int], pop_len: int, nb_model: int) -> list[flo
     hist: list[float] = [0.0] * (max(sizes) + 3)
     for ind_size in sizes:
         hist[ind_size] += 0.4
-        hist[ind_size - 1] += 0.2
+        if ind_size >= 1:
+            hist[ind_size - 1] += 0.2
         hist[ind_size + 1] += 0.2
         hist[ind_size + 2] += 0.1
         if ind_size - 2 >= 0:

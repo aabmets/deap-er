@@ -13,6 +13,7 @@ from functools import partial
 
 import pytest
 from deap_er import Fitness, Toolbox, creator, gp, tools
+from deap_er.private.programming.harm.harm_size import natural_histogram
 
 HARM_FIT = "HARM_FIT"
 HARM_IND = "HARM_IND"
@@ -206,3 +207,10 @@ def test_harm_verbose_prints_and_default_model_size(toolbox, capsys):
         verbose=True,
     )
     assert capsys.readouterr().out
+
+
+def test_natural_histogram_size_zero_does_not_wrap_to_last_bin():
+    hist = natural_histogram([0], pop_len=100, nb_model=1)
+    assert hist[0] == pytest.approx(40.0)
+    assert hist[1] == pytest.approx(20.0)
+    assert hist[2] == pytest.approx(10.0)
