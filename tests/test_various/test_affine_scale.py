@@ -64,6 +64,23 @@ def test_affine_scale_constant_prediction_is_intercept_only():
     numpy.testing.assert_allclose([intercept, slope], [5.0, 1.0])
 
 
+def test_affine_scale_zero_variance_predicted_uses_intercept_only():
+    predicted = numpy.array([4.0, 4.0, 9.0, 4.0])
+    target = numpy.array([1.0, 5.0, 99.0, 9.0])
+    valid = numpy.array([True, True, False, True])
+    intercept, slope = tools.affine_scale(predicted, target, valid=valid)
+    scaled = intercept + slope * predicted[valid]
+    numpy.testing.assert_allclose([intercept, slope], [1.0, 1.0])
+    numpy.testing.assert_allclose(scaled, numpy.full(3, 5.0))
+    assert numpy.isfinite(intercept) and numpy.isfinite(slope)
+
+    one_pred = numpy.array([3.0])
+    one_tgt = numpy.array([8.0])
+    intercept, slope = tools.affine_scale(one_pred, one_tgt)
+    numpy.testing.assert_allclose([intercept, slope], [5.0, 1.0])
+    numpy.testing.assert_allclose(intercept + slope * one_pred, one_tgt)
+
+
 def test_affine_scale_darwinian_lowers_case_errors_without_a_tree():
     predicted = numpy.array([0.0, 1.0, 2.0, 3.0])
     target = numpy.array([1.0, 3.0, 5.0, 7.0])

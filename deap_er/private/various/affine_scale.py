@@ -71,7 +71,7 @@ def affine_scale(
     observed_mean = float(numpy.mean(observed))
     centered = forecast - forecast_mean
     denom = float(numpy.dot(centered, centered))
-    if denom == 0.0 or not numpy.isfinite(denom):
+    if not numpy.isfinite(denom) or denom <= 0.0:
         return observed_mean - forecast_mean, 1.0
     slope = float(numpy.dot(observed - observed_mean, centered) / denom)
     intercept = observed_mean - slope * forecast_mean
