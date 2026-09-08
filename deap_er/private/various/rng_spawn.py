@@ -167,8 +167,7 @@ def map_spawned[T, R](
     payloads: list[SpawnedPayload[T]] = [
         (seed, index, func, item) for index, item in enumerate(items)
     ]
-    pairs = list(map_func(call_spawned, payloads))
-    ordered = sorted(pairs, key=lambda pair: pair[0])
+    ordered = sorted(map_func(call_spawned, payloads), key=lambda pair: pair[0])
     ids = [pair[0] for pair in ordered]
     if ids != list(range(len(items))):
         raise ValueError("map_func must return one (worker_id, value) per item")
