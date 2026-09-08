@@ -344,11 +344,18 @@ walking every case:
 
 `sel_lexicase` and `sel_epsilon_lexicase` defaults do not change.
 
-**Today.** Lexicase and MAD-ε already filter a packed
-$(n, \textit{cases})$ matrix. `sample_informed_cases` builds a
-subset. Tournament still reads a scalar `wvalues[0]`. There is no
-batch reduction of cases and no tournament that sees a case
-subset.
+**Today.** `sel_batch_epsilon_lexicase` shuffles the active cases,
+groups them into batches of at most ``batch_size``, and reduces each
+batch with mean squared error by default. A fresh partition is drawn
+for every selected individual, then the usual epsilon-lexicase filter
+runs on the shorter matrix. Optional ``reduction=`` overrides the
+batch aggregate. ``sel_tournament_cases`` scores each individual on a
+case subset (column mean by default, or ``reduction=``), then runs
+ordinary tournament selection on those scalars. Pass
+``sample_informed_cases`` output as ``cases=``; ``case_count=`` draws
+a random subset when ``cases`` is omitted. Both accept ``matrix=`` /
+``trust_matrix=`` like lexicase. ``sel_lexicase`` and
+``sel_epsilon_lexicase`` defaults are unchanged.
 
 **Benefit.** Batch-ε-lexicase is the usual next lexicase variant
 on noisy regression (Geiger et al.). Tournament plus down-sampling
