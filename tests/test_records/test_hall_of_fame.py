@@ -8,7 +8,9 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+import json
 import math
+from operator import eq
 from typing import Any
 
 import pytest
@@ -166,6 +168,46 @@ def test_from_json_requires_ind_cls_for_members(ind_cls):
     hof.update(_population(ind_cls, count=1))
     with pytest.raises(ValueError, match="ind_cls"):
         tools.HallOfFame.from_json(hof.to_json())
+
+
+def test_json_round_trip_resets_similar_to_default_eq(ind_cls):
+    def always_similar(_left: Any, _right: Any) -> bool:
+        return True
+
+    hof = tools.HallOfFame(maxsize=2, similar=always_similar)
+    first = ind_cls([1])
+    first.fitness.values = (10.0,)
+    second = ind_cls([2])
+    second.fitness.values = (5.0,)
+    hof.update([first, second])
+    assert hof.similar is always_similar
+    assert len(hof) == 1
+
+    payload = json.loads(hof.to_json())
+    assert "similar" not in payload
+
+    restored = tools.HallOfFame.from_json(hof.to_json(), ind_cls)
+    assert restored.similar is eq
+    third = ind_cls([3])
+    third.fitness.values = (1.0,)
+    restored.update([third])
+    assert len(restored) == 2
+
+
+def test_json_round_trip_drops_extra_individual_attributes(ind_cls):
+    hof = tools.HallOfFame(maxsize=1)
+    ind = ind_cls([42])
+    ind.fitness.values = (9.0,)
+    ind.extra_tag = "survivor"  # type: ignore[attr-defined]
+    hof.update([ind])
+
+    payload = json.loads(hof.to_json())
+    assert set(payload["items"][0]) == {"genes", "fitness"}
+
+    restored = tools.HallOfFame.from_json(hof.to_json(), ind_cls)
+    assert list(restored[0]) == [42]
+    assert restored[0].fitness.values == (9.0,)
+    assert not hasattr(restored[0], "extra_tag")
 
 
 def test_pareto_front_keeps_non_dominated_and_drops_twins():

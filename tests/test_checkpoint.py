@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 from typing import Any, override
 
+import dill
 import pytest
 from deap_er import Checkpoint, Fitness, creator, tools
 
@@ -212,9 +213,43 @@ class TestCheckpoint:
         assert [list(ind) for ind in loaded.hof] == [[7], [3]]
         assert [ind.fitness.values for ind in loaded.hof] == [(7.0,), (3.0,)]
 
-        import dill
-
         with open(tmp_path / "hof.dcpf", "rb") as f:
             payload = dill.load(f)
         assert "hof" not in payload
         assert '"maxsize": 2' in payload["_hof_json_"]
+
+    def test_hof_json_saved_without_ind_cls_restored_only_when_provided(
+        self, tmp_path, hof_ind_cls
+    ):
+        hof = tools.HallOfFame(maxsize=1)
+        ind = hof_ind_cls([5])
+        ind.fitness.values = (5.0,)
+        hof.update([ind])
+
+        writer = Checkpoint(file_name="noclazz.dcpf", dir_path=tmp_path, autoload=False)
+        writer.hof = hof
+        assert writer.save() is True
+
+        with open(tmp_path / "noclazz.dcpf", "rb") as f:
+            payload = dill.load(f)
+        assert "hof" not in payload
+        assert isinstance(payload["_hof_json_"], str)
+
+        loaded_no_cls = Checkpoint(
+            file_name="noclazz.dcpf", dir_path=tmp_path, autoload=False
+        )
+        assert loaded_no_cls.load() is True
+        assert not hasattr(loaded_no_cls, "hof")
+        assert "_hof_json_" in loaded_no_cls.__dict__
+
+        loaded_with_cls = Checkpoint(
+            file_name="noclazz.dcpf",
+            dir_path=tmp_path,
+            autoload=False,
+            hof_ind_cls=hof_ind_cls,
+        )
+        assert loaded_with_cls.load() is True
+        assert hasattr(loaded_with_cls, "hof")
+        assert not hasattr(loaded_with_cls, "_hof_json_")
+        assert list(loaded_with_cls.hof[0]) == [5]
+        assert loaded_with_cls.hof[0].fitness.values == (5.0,)
