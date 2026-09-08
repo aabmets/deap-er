@@ -47,14 +47,14 @@ surface.
 | 28 | [Dynamic epsilon and downsample schedule](features_21_30.md#28-dynamic-epsilon-and-downsample-schedule) | `operators` | planned |
 | 29 | [Novelty selection and iso+line](features_21_30.md#29-novelty-selection-and-isoline) | `operators`, `records` | planned |
 | 30 | [Causal lookback and suffix rescore](features_21_30.md#30-causal-lookback-and-suffix-rescore) | `gp` | planned |
-| 31 | [Affine scaling and Lamarckian writeback](features_31_38.md#31-affine-scaling-and-lamarckian-writeback) | `gp`, `utilities` | planned |
-| 32 | [Constraint-dominance on remaining selectors](features_31_38.md#32-constraint-dominance-on-remaining-selectors) | `operators` | planned |
-| 33 | [Archive-improving CMA](features_31_38.md#33-archive-improving-cma) | `strategies` | planned |
-| 34 | [RVEA and R-NSGA-II](features_31_38.md#34-rvea-and-r-nsga-ii) | `operators` | planned |
-| 35 | [Adaptive DE strategy](features_31_38.md#35-adaptive-de-strategy) | `strategies` | planned |
-| 36 | [Population tape CSE](features_31_38.md#36-population-tape-cse) | `gp` | planned |
-| 37 | [Evaluation budget and eval cache](features_31_38.md#37-evaluation-budget-and-eval-cache) | `algorithms`, `utilities` | planned |
-| 38 | [Parallel RNG streams](features_31_38.md#38-parallel-rng-streams) | `rng` | planned |
+| 31 | [Affine scaling and Lamarckian writeback](features_31_40.md#31-affine-scaling-and-lamarckian-writeback) | `gp`, `utilities` | planned |
+| 32 | [Constraint-dominance on remaining selectors](features_31_40.md#32-constraint-dominance-on-remaining-selectors) | `operators` | planned |
+| 33 | [Archive-improving CMA](features_31_40.md#33-archive-improving-cma) | `strategies` | planned |
+| 34 | [RVEA and R-NSGA-II](features_31_40.md#34-rvea-and-r-nsga-ii) | `operators` | planned |
+| 35 | [Adaptive DE strategy](features_31_40.md#35-adaptive-de-strategy) | `strategies` | planned |
+| 36 | [Population tape CSE](features_31_40.md#36-population-tape-cse) | `gp` | planned |
+| 37 | [Evaluation budget and eval cache](features_31_40.md#37-evaluation-budget-and-eval-cache) | `algorithms`, `utilities` | planned |
+| 38 | [Parallel RNG streams](features_31_40.md#38-parallel-rng-streams) | `rng` | planned |
 
 Shipping an item updates the matching feature page and tutorial or
 reference stub. Items 15–20 are the toolbox-shaped holes after
@@ -69,7 +69,8 @@ pieces but wait on a profile, a sequel, or a recipe stay in
 numbered items are on [Features 1-10](features_1_10.md),
 [Features 11-20](features_11_20.md),
 [Features 21-30](features_21_30.md), and
-[Features 31-38](features_31_38.md). Still not a second
+[Features 31-40](features_31_40.md). Feature pages are
+full decades even when the last decade is not full. Still not a second
 genome family.
 
 !!! note
