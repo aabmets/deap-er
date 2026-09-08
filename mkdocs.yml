@@ -28,7 +28,6 @@ theme:
         name: Switch to system preference
   features:
     - navigation.sections
-    - navigation.expand
     - content.code.copy
     - search.highlight
 
@@ -80,9 +79,18 @@ nav:
   - Home: index.md
   - Overview:
       - Introduction: overview/introduction.md
-      - Important Differences: overview/differences.md
-      - Performance: overview/performance.md
       - Getting Started: overview/getting_started.md
+      - Performance: overview/performance.md
+      - Differences with DEAP:
+          - Overview: overview/differences/index.md
+          - Operators and selection: overview/differences/operators.md
+          - Evolution strategies: overview/differences/strategies.md
+          - Genetic programming: overview/differences/gp.md
+          - Records, statistics, and algorithms: overview/differences/records.md
+          - Persistence: overview/differences/persistence.md
+          - Creator: overview/differences/creator.md
+          - Constraints and utilities: overview/differences/utilities.md
+          - Benchmarks: overview/differences/benchmarks.md
       - Roadmap:
           - Overview: overview/roadmap/index.md
           - Features 1-10: overview/roadmap/features_1_10.md
@@ -148,7 +156,4 @@ nav:
       - Persistence: bugfixes/persistence.md
       - Records: bugfixes/records.md
       - Strategies: bugfixes/strategies.md
-      - CMA (1+λ) unevaluated parent: bugfixes/strategies/one-plus-lambda-invalid-parent.md
-      - BIPOP small-regime sigma: bugfixes/strategies/bipop-small-sigma.md
-      - CMA lambda-1 empty weights: bugfixes/strategies/lambda-one-empty-weights.md
       - Utilities: bugfixes/utilities.md

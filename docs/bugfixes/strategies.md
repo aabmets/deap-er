@@ -118,18 +118,58 @@ if that window's best-of-generation range is below `tol_fun`.
 
 ---
 
-## $(1+\lambda)$ restart parent counted as $\lambda$ failures
+## $(1+\lambda)$ CMA treated an unevaluated parent as a failure
 
-See [one-plus-lambda-invalid-parent](strategies/one-plus-lambda-invalid-parent.md).
+`StrategyOnePlusLambda.update` compared `parent.fitness` to every
+offspring with tuple order. An invalid fitness is `()`, and
+`() <= (value,)` is true, so every child counted as a success.
+
+`RestartStrategy` / `reset_state` delete the new parent's fitness.
+The first update after a restart therefore set $p_{\mathrm{succ}}=1$,
+grew $\sigma$, and replaced the parent even when every offspring was
+worse than the pre-restart parent would have been.
+
+**Fix.** If the parent has no valid fitness, adopt the best evaluated
+offspring and skip the Igel success-rate / $\sigma$ / $C$ step.
+
+**Validator.**
+`tests/test_strategies/test_cma_one_plus_lambda.py::test_update_invalid_parent_adopts_best_without_fake_success`
 
 ---
 
 ## BIPOP small-regime $\sigma$ ignored $\sigma_{\mathrm{large}}$
 
-See [bipop-small-sigma](strategies/bipop-small-sigma.md).
+Hansen's BIPOP draws a small-regime step size
+$\sigma = \sigma_0\cdot 10^{-2U[0,1]}$, so the sample lives in
+$[0.01\,\sigma_0,\,\sigma_0]$. `sample_small_sigma` used a hardcoded
+$2.0$ instead of `sigma_large`.
+
+The default `sigma_large=2.0` hid the bug. A tighter box
+(`sigma_large=0.25`) still drew $\sigma$ up to $2$.
+
+**Fix.** Scale the draw by `sigma_large`.
+
+**Validator.**
+`tests/test_strategies/test_restart_ops.py::test_bipop_small_sigma_scales_with_sigma_large`
 
 ---
 
 ## CMA $\lambda=1$ default $\mu=0$ divides by zero
 
-See [lambda-one-empty-weights](strategies/lambda-one-empty-weights.md).
+Hansen's default $\mu=\lfloor\lambda/2\rfloor$ is $0$ when
+$\lambda=1$. `apply_cma_hyperparams` then builds an empty weight
+vector and computes $\mu_{\mathrm{eff}}=1/\sum w^2$, which is
+`ZeroDivisionError`.
+
+`Strategy(offsprings=1)` and `StrategySeparable(offsprings=1)`
+crash in the constructor. `RestartStrategy` hits the same path
+when the leftover evaluation budget is $1$: `resize_offsprings`
+calls `compute_params(offsprings=1)` and the last `generate`
+raises. Explicit `survivors=1` already works, so $\lambda=1$ is a
+valid CMA degeneracy — only the default $\mu$ is wrong.
+
+**Fix.** Default $\mu$ to at least $1$ when $\lambda\ge 1$.
+
+**Validator.**
+`tests/test_strategies/test_cma_standard.py::test_offsprings_one_defaults_to_one_survivor`
+`tests/test_strategies/test_restart_edges.py::test_last_batch_of_one_completes_restart_budget`

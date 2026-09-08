@@ -1,12 +1,16 @@
 # DEAP-ER documentation
 
-**DEAP-ER** is a rewrite of [DEAP](https://github.com/DEAP/deap) for
-Python 3.12 and newer. The toolbox model is the same — register
-operators, run an algorithm — but the package is typed, uses
-snake_case, and is not a drop-in rename.
+**DEAP-ER** is a typed evolutionary-algorithm toolbox for Python 3.12
+and newer. Register operators, run an algorithm. The published surface
+covers genetic algorithms and mixed encodings, tree and columnar GP,
+CMA (boxed, separable, and restarting), multi-objective and
+quality-diversity search, and case-structured selection.
+
+The library started as a rewrite of [DEAP](https://github.com/DEAP/deap).
+The toolbox model is the same; it is not a drop-in rename.
 
 - [Introduction](overview/introduction.md)
-- [Important differences](overview/differences.md)
+- [Differences with DEAP](overview/differences/index.md)
 - [Performance](overview/performance.md)
 - [Getting started](overview/getting_started.md)
 - [Roadmap](overview/roadmap/index.md)

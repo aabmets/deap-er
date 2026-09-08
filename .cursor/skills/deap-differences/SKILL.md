@@ -3,8 +3,8 @@ name: deap-differences
 description: >-
   Keeps the Relative-to-DEAP scoreboard and differences inventory in sync.
   Use when fixing a DEAP bug, implementing a still-open DEAP issue, adding a
-  capability DEAP does not have, or editing README.md / docs/overview/differences.md
-  scoreboard counts.
+  capability DEAP does not have, or editing README.md /
+  docs/overview/differences/index.md scoreboard counts.
 ---
 
 # DEAP differences scoreboard
@@ -14,7 +14,7 @@ except for hrefs:
 
 | File | Role |
 |:-----|:-----|
-| `docs/overview/differences.md` | Inventory (source of truth) + scoreboard |
+| `docs/overview/differences/` | Inventory (source of truth); scoreboard on `index.md` |
 | `README.md` (`## Relative to DEAP`) | Same three counts; Pages URLs |
 
 This update is **in scope** for a DEAP bug, DEAP issue, or new
@@ -41,9 +41,10 @@ or other docs unless those are already in scope. Follow
 
 ## Workflow
 
-1. Add or edit **one numbered item** in the matching section of
-   `docs/overview/differences.md` (not under `## Rewrite and public API`).
-   Match the tone and density of neighboring items.
+1. Add or edit **one numbered item** on the matching page under
+   `docs/overview/differences/` (not on the Overview page under
+   `## Rewrite and public API`). Match the tone and density of
+   neighboring items.
 2. If it implements a DEAP issue, cite it (`[deap-N]`) and add the
    footnote next to the existing `[deap-*]` list. Confirm the issue
    exists on `DEAP/deap` before linking.
@@ -58,7 +59,8 @@ or other docs unless those are already in scope. Follow
 
 ## How to count
 
-Ignore `## Rewrite and public API`. Walk every later numbered item.
+Ignore the Overview page (`## Rewrite and public API`). Walk every
+numbered item on the other pages in `docs/overview/differences/`.
 
 | Bucket | What increments it |
 |:-------|:-------------------|
@@ -87,7 +89,7 @@ Baseline that these rules reproduce (do not hard-code; re-derive):
 
 ## Scoreboard copy
 
-Docs (`differences.md` already has relative links):
+Docs (`docs/overview/differences/index.md` already has relative links):
 
 ```markdown
 - **N** still-open [DEAP](https://github.com/DEAP/deap) issues
@@ -96,7 +98,7 @@ Docs (`differences.md` already has relative links):
   checkpoints, and published benchmarks
 - **N** capabilities DEAP does not have, including boxed CMA,
   mixed-gene mutation, logbook JSON, and
-  [columnar GP](../tutorials/columnar_gp.md)
+  [columnar GP](../../tutorials/columnar_gp.md)
 ```
 
 README uses the same sentences with
@@ -113,5 +115,5 @@ columnar GP.
 - [ ] Inventory item is in the right section, numbered, and (if
       applicable) linked
 - [ ] All three counts re-derived from the full inventory
-- [ ] README and `differences.md` show the same three numbers and
-      the same bullet wording (hrefs excepted)
+- [ ] README and `docs/overview/differences/index.md` show the same
+      three numbers and the same bullet wording (hrefs excepted)

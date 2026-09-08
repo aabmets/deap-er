@@ -14,14 +14,15 @@
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=aabmets_deap-er&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=aabmets_deap-er)
 [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=aabmets_deap-er&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=aabmets_deap-er)
 
-DEAP-ER is a rewrite of [DEAP](https://github.com/DEAP/deap) for Python 3.12
-and newer. The toolbox model is the same — register operators, run an
-algorithm — and so are the families of methods listed below. The package is
-typed, uses snake_case, and the published API is what the documentation
-describes.
+DEAP-ER is a typed evolutionary-algorithm toolbox for Python 3.12 and
+newer. Register operators, run an algorithm. The published surface
+covers genetic algorithms and mixed encodings, tree and columnar GP,
+CMA (boxed, separable, and restarting), multi-objective and
+quality-diversity search, and case-structured selection.
 
-It is not a drop-in rename. Function names, parameter order, and a few
-contracts changed. The
+The library started as a rewrite of [DEAP](https://github.com/DEAP/deap).
+The toolbox model is the same; the API is not a drop-in rename.
+Function names, parameter order, and a few contracts changed. The
 [differences page](https://aabmets.github.io/deap-er/overview/differences/)
 is the migration note.
 
@@ -35,20 +36,27 @@ uv add deap-er
 ## Capabilities
 
 - Genetic algorithms on ordinary Python containers (list, array, set,
-  dict, tree, NumPy array, and similar)
-- Genetic programming on prefix trees: loosely typed, strongly typed, and
-  automatically defined functions
-- Evolution strategies (covariance matrix adaptation)
+  dict, tree, NumPy array, and similar), including mixed encodings
+- Genetic programming: prefix trees (loosely typed, strongly typed,
+  ADFs), SlimGP, and columnar programs over named `float64` columns
+- Evolution strategies: CMA, boxed CMA, separable CMA, IPOP/BIPOP
+  restarts, and MO-CMA
 - Multi-objective search (SPEA-II, NSGA-II, NSGA-III, SMS-EMOA, MOEA/D,
-  AGE-MOEA-II, MO-CMA)
-- Cooperative and competitive co-evolution
+  AGE-MOEA-II) with optional constraint-dominance on NSGA-II
+- Quality-diversity search (MAP-Elites: grid, CVT, and unstructured
+  archives)
+- Case-structured selection (lexicase, ε-lexicase, informed
+  down-sampling, program teams, co-evolving case exams)
+- Cooperative and competitive co-evolution, plus heterogeneous island
+  stepping
 - Parallel evaluation with multiprocessing or
   [Ray](https://github.com/ray-project/ray)
-- Statistics, hall of fame, and a NetworkX-compatible genealogy
+- Statistics, hall of fame, evaluation cache and budget, and a
+  NetworkX-compatible genealogy
 - Checkpoints that persist a run to disk
 - Benchmarks against common test functions
 - Worked examples of symbolic regression, particle swarm, differential
-  evolution, and estimation of distribution
+  evolution, MAP-Elites, mixed encoding, lexicase, and columnar GP
 
 ## Relative to DEAP
 
@@ -69,42 +77,15 @@ inventory:
   and [algorithms](https://aabmets.github.io/deap-er/bugfixes/algorithms/)
 - **46** capabilities DEAP does not have, including boxed CMA,
   mixed-gene mutation, logbook JSON, and
-  [columnar GP](https://aabmets.github.io/deap-er/tutorials/columnar_gp/):
-  - boxed blend crossover (`cx_blend_bounded`)
-  - boxed Gaussian mutation (`mut_gaussian_bounded`)
-  - per-gene `mut_heterogeneous` / `cx_heterogeneous`
-  - crowding on `wvalues` (`use_weights`)
-  - `sel_tournament_dcd` for any valid `k`
-  - lexicase / ε-lexicase with `cases=`, `sample_informed_cases`, and `fitness_case_matrix`
-  - `sel_team` (greedy max-coverage of cases solved at 0)
-  - co-evolving case exams (`CaseExam` / `CaseExamPool`, `score_case_exams`, `next_lexicase_cases`)
-  - SMS-EMOA, MOEA/D, and AGE-MOEA-II selection
-  - constraint-dominance on `sel_nsga_2` (`feasible=` / `violation=`)
-  - boxed CMA (`low`/`up`, clip or resample) 
-  - separable CMA (`StrategySeparable`)
-  - IPOP/BIPOP `RestartStrategy` / `ea_generate_update_restarts`
-  - leaf-only `generate()` 
-  - weighted primitives 
-  - `call_zero` terminals 
-  - infix pretty-printer
-  - [columnar GP](https://aabmets.github.io/deap-er/tutorials/columnar_gp/):
-    `make_column_pset`, NumPy / window / pair-window / time-series
-    kits, opcode and Numba backends, `interpret_tapes`,
-    `evaluate_batch`, `case_errors`
-  - `clone_individual` 
-  - SlimGP (`SlimTree`, `mut_slim`, `cx_slim_donor`)
-  - `MultiStatistics.register(..., chapters=)` 
-  - empty Logbook header 
-  - logbook JSON 
-  - `duplicate_count`
-  - `ea_*` `log_time`, `logger`, and per-generation `fronts`
-  - MAP-Elites `GridArchive` / `CvtArchive` / `UnstructuredArchive` / `ea_map_elites`
-  - semantic search space (`semantic_descriptors`, `semantic_nearest`, `SemanticSurrogate`)
-  - `mut_de` (DE/rand/1/bin trial)
-  - `step_islands` (heterogeneous island step) and append-only tape rescore
+  [columnar GP](https://aabmets.github.io/deap-er/tutorials/columnar_gp/)
 
 The package is typed, uses snake_case, and is Apache-2.0. Hypervolume
 work delegates to [moocore](https://pypi.org/project/moocore/).
+
+## Documentation
+
+See the [documentation](https://aabmets.github.io/deap-er/) for the
+complete guide.
 
 ## Performance
 
@@ -124,11 +105,6 @@ the percent change versus DEAP
 (`(deap_er − deap) / deap × 100`; negative is faster). Details and
 how to reproduce are on the
 [performance page](https://aabmets.github.io/deap-er/overview/performance/).
-
-## Documentation
-
-See the [documentation](https://aabmets.github.io/deap-er/) for the
-complete guide.
 
 ## Acknowledgments
 

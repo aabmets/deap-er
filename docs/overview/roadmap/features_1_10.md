@@ -281,8 +281,8 @@ compile working set, stop restacking columns, start faster in
 worker processes, and do not recopy whole trees on every rejected
 variation. No new language, no new selector.
 
-Related: [Performance](performance.md),
-[Important differences](differences.md).
+Related: [Performance](../performance.md),
+[Differences with DEAP](../differences/gp.md).
 
 ---
 

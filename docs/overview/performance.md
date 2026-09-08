@@ -1,9 +1,8 @@
 # Performance
 
-deap-er is a rewrite, not a drop-in rename, but the same genomes and
-GP expressions can be timed on both libraries. The chart below is
-**mean wall time of one deap-er run** for each component. Shared
-DEAP↔deap-er cases append
+The same genomes and GP expressions can be timed on both libraries.
+The chart below is **mean wall time of one deap-er run** for each
+component. Shared DEAP↔deap-er cases append
 `(deap_er − deap) / deap × 100` in parentheses (negative means
 deap-er was faster than DEAP). Unique deap-er features show the time
 only.
@@ -52,7 +51,7 @@ still does in Python loops:
   individual plus a deepcopy of fitness. The default
   `Toolbox.clone` is still `deepcopy` (the near-parity bar). Register
   the fast clone when genes are a plain sequence and extra state is
-  only fitness. See [Important differences](differences.md).
+  only fitness. See [Differences with DEAP](differences/gp.md).
 - **`sel_tournament`** — all contestant indices come from one
   `rng.integers(..., size=rounds * contestants)` draw. Winners are
   compared in Python. That stream differs from scalar `choice`.
@@ -88,7 +87,7 @@ look like `ea_simple`.
 ## Unique features
 
 The same bench also times deap-er-only capabilities from the
-[differences inventory](differences.md) (features, not bugs): boxed
+[differences inventory](differences/index.md) (features, not bugs): boxed
 operators and CMA, SMS-EMOA / MOEA/D / AGE-MOEA-II, MAP-Elites
 archives, island stepping, columnar GP tapes, SlimGP, and related
 helpers. Pure docs or API cosmetics (`tree_to_infix`, `call_zero`,
