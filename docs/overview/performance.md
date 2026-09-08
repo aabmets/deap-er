@@ -8,7 +8,7 @@ DEAP↔deap-er cases append
 deap-er was faster than DEAP). Unique deap-er features show the time
 only.
 
-![Hot-path time of aabmets/deap-er versus DEAP/deap when shared](../images/hotpath-speedups.png)
+![Hot-path time of aabmets/deap-er versus DEAP/deap when shared](../images/deaper_perf_bench.png)
 
 Each bar is the mean of 50 timed runs after 2 warmups unless the JSON
 `notes` field records a smaller repeat for a heavy CMA, MAP-Elites,
@@ -102,7 +102,7 @@ there. `tools/bench_hotpaths.py` is a thin shim for the same entry.
 The chart is written by importing `write_chart` directly (no
 subprocess). To redraw the figure from an existing JSON, call
 ``plot_main`` from ``tools/perf_bench`` with the same ``-d``. Copy
-`reports/deaper_perf_bench.png` to `docs/images/hotpath-speedups.png`
+`reports/deaper_perf_bench.png` to `docs/images/deaper_perf_bench.png`
 to refresh the page figure.
 
 Both libraries receive the same numeric genomes and the same GP

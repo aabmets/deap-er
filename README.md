@@ -117,7 +117,7 @@ mutation drains leftover uniforms with `rng.take_floats`, but `var_and`
 still draws one scalar `rng.random()` per mate-or-skip and per
 mutate-or-skip.
 
-![Hot-path time of aabmets/deap-er versus DEAP/deap when shared](docs/images/hotpath-speedups.png)
+![Hot-path time of aabmets/deap-er versus DEAP/deap when shared](docs/images/deaper_perf_bench.png)
 
 Each bar is the mean time of one deap-er run. Shared cases append
 the percent change versus DEAP
