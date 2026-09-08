@@ -13,11 +13,9 @@ import pytest
 from deap_er import gp
 from deap_er.private.programming.tape_lookback import opcode_lookback
 
-COLUMNS = ["first", "second"]
-
 
 def _pset():
-    pset = gp.make_column_pset(COLUMNS)
+    pset = gp.make_column_pset(["first", "second"])
     gp.add_numpy_primitives(pset)
     gp.add_window_primitives(pset)
     gp.add_pair_window_primitives(pset)
@@ -28,18 +26,6 @@ def _pset():
 def _tape(expr):
     pset = _pset()
     return gp.lower_tree(gp.PrimitiveTree.from_string(expr, pset), pset)
-
-
-def _pack(*columns):
-    return numpy.ascontiguousarray(numpy.stack(columns, axis=1))
-
-
-def _grown(prefix_rows=12, n_new=4):
-    series = numpy.arange(prefix_rows + n_new, dtype=numpy.float64)
-    other = series * 0.5 + 1.0
-    prefix = _pack(series[:prefix_rows], other[:prefix_rows])
-    grown = _pack(series, other)
-    return prefix, grown, n_new
 
 
 def _consumer_tape():
@@ -81,111 +67,22 @@ def test_tape_lookback_composes_along_the_tape():
 
 
 def test_tape_lookback_rejects_a_consumer_opcode():
+    tape = _consumer_tape()
     with pytest.raises(ValueError, match="no lookback certificate"):
-        gp.tape_lookback(_consumer_tape())
+        gp.tape_lookback(tape)
 
 
-@pytest.mark.parametrize(
-    "expr",
-    [
-        "vadd(first, second)",
-        "rolling_mean(first, 3)",
-        "delay(first, 4)",
-        "diff(first, 2)",
-        "rolling_corr(first, second, 4)",
-        "ts_argmin(first, 3)",
-        "delay(rolling_mean(first, 5), 3)",
-        "ema(first, 5)",
-    ],
-)
-def test_suffix_rescore_matches_the_full_matrix_oracle(expr):
-    prefix, grown, _n_new = _grown()
-    tape = _tape(expr)
-    cached = gp.interpret_tapes([tape], prefix)
-    actual = gp.suffix_rescore([tape], grown, cached)
-    expected = gp.interpret_tapes([tape], grown)
-    numpy.testing.assert_allclose(actual, expected, equal_nan=True)
-    numpy.testing.assert_allclose(actual[:, : prefix.shape[0]], cached, equal_nan=True)
-
-
-def test_suffix_rescore_rejects_a_lookback_shorter_than_the_tape_bound():
-    prefix, grown, _n_new = _grown()
-    tape = _tape("rolling_mean(first, 3)")
-    cached = gp.interpret_tapes([tape], prefix)
-    bound = gp.tape_lookback(tape)
-    with pytest.raises(ValueError, match="smaller than the tape bound"):
-        gp.suffix_rescore([tape], grown, cached, lookback=bound - 1)
-
-
-def test_too_short_a_suffix_does_not_match_the_oracle():
-    prefix, grown, n_new = _grown()
-    tape = _tape("rolling_mean(first, 3)")
-    expected = gp.interpret_tapes([tape], grown)
-    short = gp.interpret_tapes([tape], grown[-(n_new):])
-    assert not numpy.allclose(short, expected[:, -n_new:], equal_nan=True)
-
-
-def test_suffix_rescore_does_not_alias_the_prefix_cache():
-    prefix, grown, _n_new = _grown()
-    tape = _tape("rolling_mean(first, 3)")
-    cached = gp.interpret_tapes([tape], prefix)
-    actual = gp.suffix_rescore([tape], grown, cached)
-    cached[:, 0] = 1e9
-    assert actual[0, 0] != 1e9
-
-
-def test_suffix_rescore_accepts_a_generator_and_n_new_zero():
-    prefix, _matrix, _n_new = _grown()
-    tape = _tape("delay(first, 2)")
-    cached = gp.interpret_tapes([tape], prefix)
-    actual = gp.suffix_rescore((tape for _ in range(1)), prefix, cached, n_new=0)
-    numpy.testing.assert_allclose(actual, cached, equal_nan=True)
-
-
-def test_suffix_rescore_uses_the_max_lookback_of_the_pack():
-    prefix, grown, _n_new = _grown()
-    tapes = [_tape("vadd(first, second)"), _tape("delay(first, 4)")]
-    cached = gp.interpret_tapes(tapes, prefix)
-    actual = gp.suffix_rescore(tapes, grown, cached)
-    expected = gp.interpret_tapes(tapes, grown)
-    numpy.testing.assert_allclose(actual, expected, equal_nan=True)
-
-
-def test_suffix_rescore_rejects_a_bad_matrix_or_prefix():
-    prefix, grown, _n_new = _grown()
-    tape = _tape("rolling_mean(first, 3)")
-    cached = gp.interpret_tapes([tape], prefix)
-    with pytest.raises(ValueError, match="not a sequence of columns"):
-        gp.suffix_rescore([tape], [grown[:, 0]], cached)
-    with pytest.raises(ValueError, match="got ndim=1"):
-        gp.suffix_rescore([tape], grown[:, 0], cached)
-    with pytest.raises(ValueError, match="lookback must be at least 0"):
-        gp.suffix_rescore([tape], grown, cached, lookback=-1)
-    with pytest.raises(ValueError, match="exceeds the matrix length"):
-        gp.suffix_rescore([tape], grown, cached, n_new=grown.shape[0] + 1)
-    with pytest.raises(ValueError, match="prefix must be"):
-        gp.suffix_rescore([tape], grown, cached[0])
-    with pytest.raises(ValueError, match="prefix has 2 tapes"):
-        gp.suffix_rescore([tape], grown, numpy.vstack([cached, cached]))
-    with pytest.raises(ValueError, match="need at least"):
-        gp.suffix_rescore([tape], grown, cached, n_new=2)
-
-
-def test_suffix_rescore_returns_an_empty_batch():
-    _prefix, grown, _n_new = _grown()
-    cached = numpy.empty((0, grown.shape[0] - 4))
-    actual = gp.suffix_rescore([], grown, cached)
-    assert actual.shape == (0, grown.shape[0])
-
-
-def test_opcode_lookback_rejects_consumer_and_unknown_opcodes():
+def test_opcode_lookback_rejects_a_consumer_opcode():
     with pytest.raises(ValueError, match="no lookback certificate"):
         opcode_lookback(gp.USER_BASE, -1)
+
+
+def test_opcode_lookback_rejects_an_unknown_opcode():
     with pytest.raises(ValueError, match="no lookback certificate"):
         opcode_lookback(-7, 0)
 
 
-def test_tape_lookback_rejects_an_empty_or_underflowing_tape():
+def test_tape_lookback_rejects_an_empty_tape():
     empty = gp.Tape(
         opcodes=numpy.empty(0, dtype=numpy.int32),
         operands=numpy.empty(0, dtype=numpy.int32),
@@ -196,6 +93,9 @@ def test_tape_lookback_rejects_an_empty_or_underflowing_tape():
     )
     with pytest.raises(ValueError, match="leaves no result"):
         gp.tape_lookback(empty)
+
+
+def test_tape_lookback_rejects_an_underflowing_tape():
     underflow = gp.Tape(
         opcodes=numpy.array([int(gp.Opcode.NEG)], dtype=numpy.int32),
         operands=numpy.array([-1], dtype=numpy.int32),

@@ -100,14 +100,12 @@ def _as_grown_matrix(matrix: Any) -> numpy.ndarray:
     """Pack the grown column table as C-contiguous ``float64``."""
     if isinstance(matrix, (list, tuple)):
         raise ValueError(
-            "suffix_rescore expects a packed (n_rows, n_columns) matrix, "
-            "not a sequence of columns."
+            "suffix_rescore expects a packed (n_rows, n_columns) matrix, not a sequence of columns."
         )
     packed = numpy.asarray(matrix)
     if packed.ndim != 2:
         raise ValueError(
-            f"suffix_rescore expects a packed (n_rows, n_columns) matrix, "
-            f"got ndim={packed.ndim}."
+            f"suffix_rescore expects a packed (n_rows, n_columns) matrix, got ndim={packed.ndim}."
         )
     return numpy.ascontiguousarray(packed, dtype=numpy.float64)
 
@@ -134,15 +132,11 @@ def _check_prefix(prefix: numpy.ndarray, n_tapes: int, kept: int) -> None:
     """Reject a prefix cache that does not line up with the rescore."""
     cached = numpy.asarray(prefix)
     if cached.ndim != 2:
-        raise ValueError(
-            f"prefix must be a (n_tapes, n_prefix_rows) pack, got ndim={cached.ndim}."
-        )
+        raise ValueError(f"prefix must be a (n_tapes, n_prefix_rows) pack, got ndim={cached.ndim}.")
     if cached.shape[0] != n_tapes:
         raise ValueError(f"prefix has {cached.shape[0]} tapes, expected {n_tapes}.")
     if cached.shape[1] < kept:
-        raise ValueError(
-            f"prefix has {cached.shape[1]} rows, need at least {kept} cached scores."
-        )
+        raise ValueError(f"prefix has {cached.shape[1]} rows, need at least {kept} cached scores.")
 
 
 def _has_ema(tapes: tuple[Tape, ...]) -> bool:
