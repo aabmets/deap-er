@@ -16,6 +16,7 @@ import numpy
 
 from ..opcodes import USER_BASE
 from ..tape import Tape
+from ..tape_cse import run_opcode_cse
 from . import numba_kernels
 from .numba_compile import build
 from .numba_ops import reserve
@@ -195,6 +196,12 @@ def run_tapes(
     run, idle, many = _serial_kernel()
     if dispatch is None:
         dispatch = idle
+    use_parallel = parallel and numba.get_num_threads() > 1
+    has_consumer = any(numpy.any(tape.opcodes >= USER_BASE) for tape in tapes)
+    if not use_parallel and not has_consumer:
+        max_depth = max(tape.depth for tape in tapes)
+        reserve(max_depth, rows)
+        return run_opcode_cse(tapes, matrix)
     packed = _pack(tapes)
     streams = (packed["opcodes"], packed["operands"], packed["constants"])
     layout = (
@@ -204,7 +211,6 @@ def run_tapes(
         packed["c_lens"],
         packed["fills"],
     )
-    use_parallel = parallel and numba.get_num_threads() > 1
     if use_parallel:
         n_threads = numba.get_num_threads()
         stacks = numpy.empty((n_threads, int(packed["max_depth"]) + 1, rows), dtype=numpy.float64)

@@ -13,8 +13,9 @@ from typing import Any
 
 import numpy
 
-from .opcodes import USER_BASE, interpret_tape
+from .opcodes import USER_BASE
 from .tape import Tape
+from .tape_cse import run_opcode_cse
 
 __all__: list[str] = ["interpret_tapes"]
 
@@ -84,21 +85,8 @@ def _reject_consumer(tapes: tuple[Tape, ...]) -> None:
             )
 
 
-def _write_opcode_row(out: numpy.ndarray, index: int, result: Any, rows: int) -> None:
-    """Broadcast one opcode-backend result into an output row.
-
-    Args:
-        out: Batch result of shape ``(n_tapes, n_rows)``.
-        index: Row to write.
-        result: Scalar or column returned by ``interpret_tape``.
-        rows: Expected row length.
-    """
-    values = numpy.asarray(result, dtype=numpy.float64)
-    out[index] = numpy.broadcast_to(values, (rows,))
-
-
 def _run_opcode(tapes: tuple[Tape, ...], matrix: numpy.ndarray) -> numpy.ndarray:
-    """Run every tape on the NumPy stack machine.
+    """Run every tape on the NumPy stack machine with CSE.
 
     Args:
         tapes: Tapes to evaluate.
@@ -108,11 +96,7 @@ def _run_opcode(tapes: tuple[Tape, ...], matrix: numpy.ndarray) -> numpy.ndarray
         ``(n_tapes, n_rows)`` results.
     """
     _reject_consumer(tapes)
-    rows = matrix.shape[0]
-    out = numpy.empty((len(tapes), rows), dtype=numpy.float64)
-    for index, tape in enumerate(tapes):
-        _write_opcode_row(out, index, interpret_tape(tape, matrix), rows)
-    return out
+    return run_opcode_cse(tapes, matrix)
 
 
 def interpret_tapes(
@@ -132,11 +116,10 @@ def interpret_tapes(
     but an ephemeral class identity is not part of the text.
 
     The ``'opcode'`` backend unpacks the matrix columns once and runs
-    the NumPy stack machine. The ``'numba'`` backend is a compiled
-    loop over the same tapes. ``parallel=True`` evaluates tapes on
-    several threads, each with its own workspace of shape
-    ``(depth + 1, n_rows)``. It is ignored when Numba reports one
-    thread. ``parallel=True`` is not available on the opcode backend.
+    the NumPy stack machine with common-subexpression elimination
+    across the batch. The ``'numba'`` backend uses the same CSE plan
+    on the serial path; ``parallel=True`` keeps the compiled per-tape
+    loop. ``parallel=True`` is not available on the opcode backend.
 
     Args:
         tapes: Tapes produced by ``lower_tree``, in the order of the
