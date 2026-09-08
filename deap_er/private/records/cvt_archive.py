@@ -10,9 +10,7 @@
 #
 from __future__ import annotations
 
-import math
 from collections.abc import Iterator, Sequence
-from copy import deepcopy
 from typing import TYPE_CHECKING, Any
 
 import numpy
@@ -21,8 +19,10 @@ from scipy.spatial import KDTree
 from deap_er.private.records.archive_common import (
     ArchiveStats,
     check_archive_add,
+    elite_at_descriptor,
     make_archive_stats,
     nearest_index,
+    replace_cell_if_better,
     sample_random_elites,
 )
 from deap_er.private.records.cvt_centroids import cvt_centroids, parse_centroids
@@ -152,11 +152,7 @@ class CvtArchive:
         if not check_archive_add(individual, descriptor, self.dimensions, "CvtArchive"):
             return False
         cell = self._centroid_index(descriptor)
-        incumbent = self._cells.get(cell)
-        if incumbent is not None and individual.fitness <= incumbent.fitness:
-            return False
-        self._cells[cell] = deepcopy(individual)
-        return True
+        return replace_cell_if_better(self._cells, cell, individual)
 
     def elite_at(self, descriptor: Sequence[float]) -> Individual | None:
         """Return the elite in the cell for ``descriptor``.
@@ -172,13 +168,7 @@ class CvtArchive:
             ValueError: If ``descriptor`` length does not match
                 ``dimensions``.
         """
-        if len(descriptor) != self.dimensions:
-            raise ValueError(
-                f"descriptor length {len(descriptor)} does not match {self.dimensions} dimensions"
-            )
-        if not all(math.isfinite(float(value)) for value in descriptor):
-            return None
-        return self._cells.get(self._centroid_index(descriptor))
+        return elite_at_descriptor(self._cells, descriptor, self.dimensions, self._centroid_index)
 
     def get(self, index: int) -> Individual | None:
         """Return the elite stored at centroid ``index``.

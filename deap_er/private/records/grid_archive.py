@@ -10,15 +10,15 @@
 #
 from __future__ import annotations
 
-import math
 from collections.abc import Iterator, Sequence
-from copy import deepcopy
 from typing import TYPE_CHECKING, Any
 
 from deap_er.private.records.archive_common import (
     ArchiveStats,
     check_archive_add,
+    elite_at_descriptor,
     make_archive_stats,
+    replace_cell_if_better,
     sample_random_elites,
 )
 from deap_er.private.records.grid_archive_helpers import (
@@ -134,11 +134,7 @@ class GridArchive:
         if not check_archive_add(individual, descriptor, self.dimensions, "GridArchive"):
             return False
         cell = self.descriptor_to_index(descriptor)
-        incumbent = self._cells.get(cell)
-        if incumbent is not None and individual.fitness <= incumbent.fitness:
-            return False
-        self._cells[cell] = deepcopy(individual)
-        return True
+        return replace_cell_if_better(self._cells, cell, individual)
 
     def elite_at(self, descriptor: Sequence[float]) -> Individual | None:
         """Return the elite in the cell for ``descriptor``.
@@ -154,13 +150,9 @@ class GridArchive:
             ValueError: If ``descriptor`` length does not match
                 ``dimensions``.
         """
-        if len(descriptor) != self.dimensions:
-            raise ValueError(
-                f"descriptor length {len(descriptor)} does not match {self.dimensions} dimensions"
-            )
-        if not all(math.isfinite(float(value)) for value in descriptor):
-            return None
-        return self._cells.get(self.descriptor_to_index(descriptor))
+        return elite_at_descriptor(
+            self._cells, descriptor, self.dimensions, self.descriptor_to_index
+        )
 
     def get(self, index: tuple[int, ...]) -> Individual | None:
         """Return the elite stored at ``index``.

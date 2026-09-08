@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 import math
-from collections.abc import Iterable, Sequence
+from collections.abc import Callable, Iterable, Sequence
 from copy import deepcopy
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Protocol
@@ -28,8 +28,10 @@ __all__: list[str] = [
     "ArchiveStats",
     "MapElitesArchive",
     "check_archive_add",
+    "elite_at_descriptor",
     "make_archive_stats",
     "nearest_index",
+    "replace_cell_if_better",
     "sample_random_elites",
 ]
 
@@ -106,6 +108,55 @@ def check_archive_add(
     if len(individual.fitness.weights) != 1:
         raise ValueError(f"{archive_name} requires single-objective fitness")
     return True
+
+
+def replace_cell_if_better(cells: dict[Any, Any], key: Any, individual: Any) -> bool:
+    """Insert ``individual`` when the cell is empty or the candidate is better.
+
+    Args:
+        cells: Archive cell map.
+        key: Cell key in ``cells``.
+        individual: Candidate with a comparable fitness.
+
+    Returns:
+        True when ``cells[key]`` was written.
+    """
+    incumbent = cells.get(key)
+    if incumbent is not None and individual.fitness <= incumbent.fitness:
+        return False
+    cells[key] = deepcopy(individual)
+    return True
+
+
+def elite_at_descriptor(
+    cells: dict[Any, Any],
+    descriptor: Sequence[float],
+    dimensions: int,
+    index_of: Callable[..., Any],
+) -> Any | None:
+    """Return the elite for ``descriptor``, or None if it is non-finite.
+
+    Args:
+        cells: Archive cell map.
+        descriptor: Continuous behavior coordinates.
+        dimensions: Expected descriptor length.
+        index_of: Maps a finite descriptor to a cell key.
+
+    Returns:
+        The stored elite, or None when the cell is empty or
+        ``descriptor`` is non-finite.
+
+    Raises:
+        ValueError: If ``descriptor`` length does not match
+            ``dimensions``.
+    """
+    if len(descriptor) != dimensions:
+        raise ValueError(
+            f"descriptor length {len(descriptor)} does not match {dimensions} dimensions"
+        )
+    if not all(math.isfinite(float(value)) for value in descriptor):
+        return None
+    return cells.get(index_of(descriptor))
 
 
 def make_archive_stats(elites: Iterable[Individual], num_cells: int) -> ArchiveStats:
