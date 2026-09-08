@@ -92,14 +92,13 @@ empty Logbook header, logbook JSON, `ea_* logger`) are skipped.
 From the repo root, with the `dev` extra (DEAP and seaborn):
 
 ```text
-uv run python -m tools.perf_bench
-uv run python -m tools.perf_bench --chart docs/images/hotpath-speedups.png
+uv run python tools/perf_bench
+uv run python tools/perf_bench --chart docs/images/hotpath-speedups.png
 ```
 
-The compatibility shims `tools/bench_hotpaths.py` and
-`tools/plot_hotpath_speedups.py` call the same package. The bench
-writes `reports/hotpath-bench.json` (gitignored) and then writes the
-chart by importing `write_chart` directly (no subprocess). Both
-libraries receive the same numeric genomes and the same GP
+`tools/bench_hotpaths.py` is a thin shim for the same entry. The
+bench writes `reports/hotpath-bench.json` (gitignored) and then
+writes the chart by importing `write_chart` directly (no subprocess).
+Both libraries receive the same numeric genomes and the same GP
 expression strings on shared cases. First-time compile skips warmup
 and clears deap-er's compile cache on every sample.

@@ -161,7 +161,7 @@ def load_report(path: Path) -> dict[str, Any]:
         SystemExit: If the file is missing or not a valid bench report.
     """
     if not path.is_file():
-        sys.exit(f"Bench JSON not found: {path}\nRun: uv run python -m tools.perf_bench")
+        sys.exit(f"Bench JSON not found: {path}\nRun: uv run python tools/perf_bench")
     try:
         report = json.loads(path.read_text())
     except json.JSONDecodeError as exc:
