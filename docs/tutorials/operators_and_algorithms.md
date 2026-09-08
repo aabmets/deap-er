@@ -124,8 +124,11 @@ evolution processes. There are a variety of selection operators available in
 the `deap_er.tools` module. Besides the usual tournament, roulette, and
 best/worst helpers, that module also ships the multi-objective selectors
 (SPEA-II, NSGA-II, NSGA-III, SMS-EMOA, MOEA/D, AGE-MOEA-II),
-case-structured lexicase variants, program-team selection (`sel_team`),
-novelty selection for MAP-Elites archives (`sel_novelty`), and Deb
+case-structured lexicase variants (including batch ε-lexicase,
+`sel_tournament_cases`, and dynamic ε via `mode=` on
+`sel_epsilon_lexicase`), program-team selection (`sel_team`),
+novelty selection for MAP-Elites archives (`sel_novelty`), iso+line
+mutation (`mut_iso_line`), and Deb
 constraint-dominance (`constraint_dominates`, optional on
 NSGA-II). Each selection operator has its own characteristics
 and therefore it's recommended to read their documentation before use to avoid
@@ -169,7 +172,9 @@ kind of individuals and operators as input. Besides `ea_simple`,
 `ea_mu_plus_lambda`, and `ea_mu_comma_lambda`, the module includes
 `ea_generate_update` / `ea_generate_update_restarts` for CMA,
 `ea_map_elites` for quality-diversity, and `step_islands` for deme
-ecology. The generational loops accept an optional `n_evals=` budget.
+ecology (`mig_ring`, `mig_fully_connected`, `mig_random`, and
+`island_eval_keys`). The generational loops accept an optional `n_evals=`
+budget.
 Wrap `evaluate` with `EvalCache` when the same expression should not be
 scored twice:
 

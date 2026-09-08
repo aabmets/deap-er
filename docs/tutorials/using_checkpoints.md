@@ -22,6 +22,12 @@ are derived again from the run seed. `save_freq = -1` disables
 automatic saves during `range()`. `last_op` is one of `none`,
 `load_success`, `load_error`, `save_success`, or `save_error`.
 
+Pass `hof_ind_cls=` when the hall of fame should round-trip as JSON
+instead of dill. `HallOfFame.to_json` / `from_json` serialize
+`maxsize` and members as `genes` plus `fitness` values — the same
+pattern as `Logbook`. Omit `hof_ind_cls` to keep dill for custom
+record types.
+
 The default file is a UUID with a `.dcpf` extension under
 `<cwd>/deap-er`. Pass `file_name` (and optionally `dir_path`) to
 choose the path. `autoload=True` (the default) calls `load()` during
@@ -39,7 +45,7 @@ from deap_er import Checkpoint, tools
 
 def main(file=None):
     toolbox, stats = setup()
-    cp = Checkpoint(file)
+    cp = Checkpoint(file, hof_ind_cls=creator.Individual)
     cp.save_freq = 10  # every 10 seconds
 
     if not cp.is_loaded():  # skip if loaded

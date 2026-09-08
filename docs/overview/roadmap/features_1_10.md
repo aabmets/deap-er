@@ -151,7 +151,9 @@ uses every case. A subset buys more individuals per evaluation
 budget. Informed sampling avoids wasting that budget on cases that
 the current population already treats as interchangeable.
 
-Related: [Push GP P2](push_gp.md#p2-down-sampled-and-informed-lexicase).
+Related: [Push GP P2](push_gp.md#p2-down-sampled-and-informed-lexicase),
+[item 27](features_21_30.md#27-batch-epsilon-lexicase-and-down-sampled-tournament),
+[item 28](features_21_30.md#28-dynamic-epsilon-and-downsample-schedule).
 
 ---
 

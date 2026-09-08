@@ -295,7 +295,10 @@ size_avgs = logbook.chapters["size"].select("avg")
 `HallOfFame` keeps the `maxsize` best individuals seen so far.
 `ParetoFront` keeps the non-dominated set. Both skip an individual
 whose fitness is missing, invalid, or non-finite. Pass either as
-`hof=` to a builtin algorithm.
+`hof=` to a builtin algorithm. `HallOfFame.to_json` /
+`from_json` round-trip `maxsize` and members as `genes` plus
+`fitness` values; pair with `Checkpoint(..., hof_ind_cls=)` to
+persist the archive as JSON instead of dill.
 
 ```python
 hof = tools.HallOfFame(maxsize=1)
@@ -305,7 +308,10 @@ front = tools.ParetoFront()
 MAP-Elites archives sit next to that pair. `GridArchive` bins a
 caller-supplied behavior descriptor. `CvtArchive` and
 `UnstructuredArchive` are the centroid and nearest-neighbor
-variants. `ea_map_elites` is the matching loop. See the
+variants. `ea_map_elites` is the matching loop. Register
+`tools.sel_novelty` for parent selection by archive distance and
+`tools.mut_iso_line` for iso+line variation toward a donor elite;
+fitness stays on `ind.fitness`. See the
 [MAP-Elites example](../examples/genetic_algorithms/map_elites.md).
 
 `History` records a NetworkX-compatible genealogy. Call

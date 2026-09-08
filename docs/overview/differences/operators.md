@@ -159,6 +159,7 @@ from the original sources.
     genomes. `ea_map_elites` registers both like any other
     `select` / `mutate`; `random_elites` stays the parent source.
     DEAP has no novelty selector or archive-aware iso+line mutator.
+    See the [MAP-Elites example](../../examples/genetic_algorithms/map_elites.md).
 34. `mig_fully_connected` and `mig_random` sit next to `mig_ring`.
     Fully connected selects emigrants once per source, clones them
     along each outgoing edge, and claims distinct destination
@@ -168,6 +169,7 @@ from the original sources.
     match — and optional matrix identity for
     `step_islands(..., eval_keys=)`. Custom graphs stay
     `mig_ring(..., mig_indices=)`. DEAP has no named topologies.
+    See the [multiprocessing tutorial](../../tutorials/multiprocessing.md).
 35. `sel_batch_epsilon_lexicase` shuffles active cases into batches
     of at most ``batch_size``, reduces each batch (mean squared error
     by default), and runs epsilon-lexicase on the shorter matrix.
@@ -179,6 +181,7 @@ from the original sources.
     Informed down-sampling stays on ``sample_informed_cases``;
     ``case_count=`` draws a random subset when ``cases`` is omitted.
     DEAP has no batch epsilon-lexicase or case-subset tournament.
+    See the [columnar GP tutorial](../../tutorials/columnar_gp.md).
 36. ``sel_epsilon_lexicase`` accepts ``mode=`` on the vectorized filter:
     ``epsilon_auto`` / ``epsilon_static`` (population MAD and elite),
     ``epsilon_semi`` (population MAD, pool elite), and
@@ -187,7 +190,8 @@ from the original sources.
     ``random``, ``informed``, ``cohort``, or ``held_out`` (rotate
     through a caller-marked held-out exam). Chronological meaning stays
     on the caller. DEAP has no filter-pool epsilon modes or generation
-    downsample schedule.
+    downsample schedule. See the
+    [columnar GP tutorial](../../tutorials/columnar_gp.md).
 37. `mut_iso_line` treats NumPy integer genes as integers. A
     `numpy.int64` gene no longer takes the float path and writes a
     non-integer value.

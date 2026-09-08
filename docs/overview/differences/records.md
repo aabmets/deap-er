@@ -120,7 +120,8 @@
     `maxsize` and archive members as ``genes`` plus ``fitness``
     values. `Checkpoint(..., hof_ind_cls=)` stores ``hof`` as
     JSON instead of dill and rebuilds it on load. DEAP has no
-    text serialization for the hall of fame.
+    text serialization for the hall of fame. See
+    [Using checkpoints](../../tutorials/using_checkpoints.md).
 31. `HallOfFame.insert` and `ParetoFront.insert` skip an individual
     whose fitness is missing, invalid, or non-finite, matching
     `update`. `from_json` no longer restores a NaN member.
