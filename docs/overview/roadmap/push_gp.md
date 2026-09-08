@@ -1,0 +1,382 @@
+# Push GP
+
+Two-level program search: **tapes stay the laws**, Push evolves the
+**loop around them**. Push never sees raw columns or `matrix[t]`.
+It reads summaries and emits discrete actions that already exist
+as toolbox calls. That is not a second public genome — prefix
+trees plus the tape remain the program. A public Push / Cartesian
+/ linear genome stays on [Not planned](not_planned.md).
+
+This page is a backlog, not a schedule. Every row is **planned**
+for this path. Preconditions that already shipped are not
+re-specified here; the item column links the matching write-up
+on a [Features](index.md) page. Planned items 30, 31, 37, and 38
+are the same rows as on those pages — ship them once.
+
+| # | Item | Surface | Status |
+|:--|:-----|:--------|:-------|
+| P1 | [Batch tape evaluation](features_1_10.md#4-batch-tape-evaluation) (item 4) | `gp` | planned |
+| P2 | [Down-sampled and informed lexicase](features_1_10.md#5-down-sampled-and-informed-lexicase) (item 5) | `operators` | planned |
+| P3 | [Case-structured evaluation helper](features_1_10.md#6-case-structured-evaluation-helper) (item 6) | utilities | planned |
+| P4 | [Quality-diversity archive](features_1_10.md#8-quality-diversity-archive) (item 8) | `records` | planned |
+| P5 | [Growing primitive language](features_21_30.md#21-growing-primitive-language) (item 21) | `gp` | planned |
+| P6 | [Semantic search space](features_21_30.md#22-semantic-search-space) (item 22) | `gp`, `records` | planned |
+| P7 | [Co-evolving cases](features_21_30.md#23-co-evolving-cases) (item 23) | `operators`, `records` | planned |
+| P8 | [Memetic constants](features_21_30.md#24-memetic-constants) (item 24) | `gp`, `strategies` | planned |
+| P9 | [Streaming and island ecology](features_21_30.md#25-streaming-and-island-ecology) (item 25) | `algorithms` | planned |
+| P10 | [Program teams](features_21_30.md#26-program-teams) (item 26) | `operators` | planned |
+| P11 | [Policy observation schema](#p11-policy-observation-schema) | `records`, `utilities` | planned |
+| P12 | [Policy action applicator](#p12-policy-action-applicator) | `algorithms` | planned |
+| P13 | [Held-out policy fitness](#p13-held-out-policy-fitness) | `records`, `operators` | planned |
+| P14 | [Action guards and cooldowns](#p14-action-guards-and-cooldowns) | `operators` | planned |
+| P15 | [Evaluation budget and eval cache](features_31_40.md#37-evaluation-budget-and-eval-cache) (item 37) | `algorithms`, `utilities` | planned |
+| P16 | [Causal lookback and suffix rescore](features_21_30.md#30-causal-lookback-and-suffix-rescore) (item 30) | `gp` | planned |
+| P17 | [Affine scaling and Lamarckian writeback](features_31_40.md#31-affine-scaling-and-lamarckian-writeback) (item 31) | `gp`, `utilities` | planned |
+| P18 | [Parallel RNG streams](features_31_40.md#38-parallel-rng-streams) (item 38) | `rng` | planned |
+| P19 | [Push GP as the loop](#p19-push-gp-as-the-loop) | `gp` (private policy) | planned |
+
+P1–P10 are shipped on the main table and still sit on this
+path: the two-level loop *uses* them. P11–P14 are new
+firewall pieces. P15–P18 are planned on Features 21–30 /
+31–40; this page does not fork them. P19 is last on purpose.
+
+!!! note
+    A linear policy or a fixed decision list on the same
+    observe / action interface is a valid test that the
+    firewall works. If that cannot beat
+    `next_lexicase_cases` plus periodic tune on held-out
+    quality per eval, stacks will not save the path.
+
+---
+
+## P1. Batch tape evaluation
+
+**What.** Population-wide tape scoring against one packed
+`(rows, columns)` matrix. The laws Push must not reimplement.
+
+**Today.** Shipped as
+[item 4](features_1_10.md#4-batch-tape-evaluation).
+`interpret_tapes` and `evaluate_batch` are the only row
+kernels on this path.
+
+**Role.** Push never interprets a column. It may *request* a
+rescore; the tape does the work.
+
+---
+
+## P2. Down-sampled and informed lexicase
+
+**What.** Case-subset lexicase (`cases=`, informed sampling,
+matrix filter). The geometry the policy chooses among.
+
+**Today.** Shipped as
+[item 5](features_1_10.md#5-down-sampled-and-informed-lexicase).
+
+**Role.** A policy action sets the next `cases=` list. It
+does not replace the selector.
+
+---
+
+## P3. Case-structured evaluation helper
+
+**What.** Series → per-case errors with a `valid=` mask.
+
+**Today.** Shipped as
+[item 6](features_1_10.md#6-case-structured-evaluation-helper).
+
+**Role.** Observations and held-out scores are reductions of
+`case_errors`, not raw rows.
+
+---
+
+## P4. Quality-diversity archive
+
+**What.** Behavior-binned elites (`add`, `random_elites`,
+coverage / `qd_score`).
+
+**Today.** Shipped as
+[item 8](features_1_10.md#8-quality-diversity-archive).
+[Item 20](features_11_20.md#20-cvt-unstructured-map-elites)
+is the same surface on CVT / unstructured archives.
+
+**Role.** Coverage and `qd_score` are legal observation
+fields. Push does not write descriptors.
+
+---
+
+## P5. Growing primitive language
+
+**What.** `promote_subtree` lifts a typed chunk into the pset.
+
+**Today.** Shipped as
+[item 21](features_21_30.md#21-growing-primitive-language).
+Do not auto-promote every generation.
+
+**Role.** Promote is a policy *action*, rate-limited by
+[P14](#p14-action-guards-and-cooldowns).
+
+---
+
+## P6. Semantic search space
+
+**What.** Tape outputs → moments, solve bits, projections,
+nearest neighbors.
+
+**Today.** Shipped as
+[item 22](features_21_30.md#22-semantic-search-space).
+
+**Role.** Solve bits and distances are summaries Push may
+read. The pack stays behind `valid=` / `trust_matrix=`.
+
+---
+
+## P7. Co-evolving cases
+
+**What.** `CaseExam` / `CaseExamPool`, `score_case_exams`,
+`next_lexicase_cases`, `guard_case_exams`.
+
+**Today.** Shipped as
+[item 23](features_21_30.md#23-co-evolving-cases).
+
+**Role.** The hand-written loop Push is allowed to replace.
+`held_out` must remain unmarked by policy actions
+([P13](#p13-held-out-policy-fitness)).
+
+---
+
+## P8. Memetic constants
+
+**What.** Short boxed CMA / sep-CMA on ephemeral leaves and
+`Window` ints.
+
+**Today.** Shipped as
+[item 24](features_21_30.md#24-memetic-constants).
+
+**Role.** Tune is a costly action.
+[P15](#p15-evaluation-budget-and-eval-cache) charges it to
+`n_evals`.
+[P17](#p17-affine-scaling-and-lamarckian-writeback) makes the
+polish worth firing.
+
+---
+
+## P9. Streaming and island ecology
+
+**What.** `step_islands` and the full-matrix append-only
+rescore recipe.
+
+**Today.** Shipped as
+[item 25](features_21_30.md#25-streaming-and-island-ecology).
+Suffix-only rescore is not a library path until
+[item 30](features_21_30.md#30-causal-lookback-and-suffix-rescore).
+
+**Role.** Migrate / deme pressure and “rescore now” are
+actions. Legal dirty suffixes wait on P16.
+
+---
+
+## P10. Program teams
+
+**What.** Greedy coverage of cases solved at 0.
+
+**Today.** Shipped as
+[item 26](features_21_30.md#26-program-teams).
+Team scoring stays on the caller.
+
+**Role.** A policy may pick `sel_count` or feed `sel_team`
+a `cases=` list. It is not a per-row router.
+
+---
+
+## P11. Policy observation schema
+
+**What.** `policy_observe(...)` returns one fixed, typed
+vector. Allowed fields are summaries only: case-solve bits,
+unsolved count, train vs held-out score, archive coverage /
+`qd_score`, `nevals` used, rows seen, promoted-library size,
+fitness-invalid flag, last action rejected. No `Array`, no
+column slice, no `matrix[t]`.
+
+**Today.** Every field is computable from items 5, 6, 8, 21,
+22, and 23. There is no contract that forbids a later
+instruction from loading a column.
+
+**Benefit.** This *is* the firewall. Without it, Push grows
+a load-column opcode and the causal story is gone.
+
+**Scope.** A helper and a documented layout. Not a new
+genome. Not a domain metric.
+
+Related: [P3](#p3-case-structured-evaluation-helper),
+[P4](#p4-quality-diversity-archive),
+[P6](#p6-semantic-search-space),
+[P7](#p7-co-evolving-cases).
+
+---
+
+## P12. Policy action applicator
+
+**What.** `apply_policy_action(action, ...)` maps a discrete
+action onto existing callables only:
+
+- set next `cases=` / pick an exam (`next_lexicase_cases`)
+- tune / skip (`tune_ephemerals`)
+- promote / skip (`promote_subtree`)
+- invalidate and rescore (`evaluate_invalid` / `interpret_tapes`)
+- migrate / pick deme pressure (`step_islands`)
+
+**Today.** Those functions exist. Nothing accepts a policy
+token and refuses anything else.
+
+**Benefit.** Push emits actions, not trees. The applicator
+is the thin loop that must not become a second `ea_*`
+framework.
+
+**Scope.** Schema plus dispatch. Evaluation stays on the
+caller. No `step_program_search` that owns fitness.
+
+Related: [P2](#p2-down-sampled-and-informed-lexicase),
+[P5](#p5-growing-primitive-language),
+[P8](#p8-memetic-constants),
+[P9](#p9-streaming-and-island-ecology).
+
+---
+
+## P13. Held-out policy fitness
+
+**What.** Policy individuals are scored only on a
+caller-marked `held_out` exam (and/or a later slice the
+action schema cannot name). Train-exam quality is an
+observation, not the policy objective. Log the
+generalization gap as its own Logbook chapter.
+
+**Today.** `CaseExamPool` can mark `held_out`.
+`score_case_exams` ranks exams on elites. Nothing stops a
+policy from being rewarded for the exam it just mutated.
+
+**Benefit.** Otherwise Push evolves “make the exam easy.”
+
+**Scope.** A scoring convention and a chapter. Chronological
+meaning stays on the caller. Not a metric catalog.
+
+Related: [P7](#p7-co-evolving-cases),
+[P11](#p11-policy-observation-schema).
+
+---
+
+## P14. Action guards and cooldowns
+
+**What.** Hard caps next to `guard_case_exams`: max promotes
+per generation, max inner `tune` generations, minimum exam
+size, promote cooldown, reject any action that exceeds
+remaining `n_evals`. A rejected action is an observation,
+not a crash. A uniform random policy must run thousands of
+generations without melting the compile cache.
+
+**Today.** `guard_case_exams` blocks the empty exam and the
+all-solved collapse. Promote-every-generation is still a
+caller footgun ([item 21](features_21_30.md#21-growing-primitive-language)).
+
+**Benefit.** If a random policy cannot survive, do not add
+Exec stacks.
+
+**Scope.** Guards on [P12](#p12-policy-action-applicator)
+only. Not a new selector.
+
+Related: [P5](#p5-growing-primitive-language),
+[P7](#p7-co-evolving-cases),
+[P15](features_31_40.md#37-evaluation-budget-and-eval-cache).
+
+---
+
+## P15. Evaluation budget and eval cache
+
+**What.** `n_evals=` on the shared loop and an `EvalCache`
+keyed by expression plus matrix identity. Every tune,
+rescore, and promote-induced recompile spends that budget.
+Policy fitness is held-out quality *per eval*.
+
+**Today.** Planned as
+[item 37](features_31_40.md#37-evaluation-budget-and-eval-cache).
+`ea_generate_update_restarts` already stops on evaluations;
+the other `ea_*` drivers do not. `compile_tree` caches code,
+not fitness.
+
+**Role.** Without this, a policy that tunes every generation
+wins by spending. Do not evolve Push until actions are
+metered.
+
+---
+
+## P16. Causal lookback and suffix rescore
+
+**What.** `tape_lookback` plus a suffix rescore that matches
+the full-matrix oracle.
+
+**Today.** Planned as
+[item 30](features_21_30.md#30-causal-lookback-and-suffix-rescore).
+Item 25’s append-only path is still a full rescore.
+
+**Role.** Required only if a policy may say “new rows;
+rescore now.” Until this ships, keep Push off streaming or
+always full-rescore and do not let it choose.
+
+---
+
+## P17. Affine scaling and Lamarckian writeback
+
+**What.** Keijzer \(a + b\,f(x)\) before or as writeback
+from `tune_ephemerals`.
+
+**Today.** Planned as
+[item 31](features_31_40.md#31-affine-scaling-and-lamarckian-writeback).
+
+**Role.** Makes tune actions polish a law instead of
+fighting intercept and slope. Not a firewall piece; ship
+before Push if `tune` is in the action set.
+
+---
+
+## P18. Parallel RNG streams
+
+**What.** Independent, seedable worker streams that still
+reproduce.
+
+**Today.** Planned as
+[item 38](features_31_40.md#38-parallel-rng-streams).
+
+**Role.** Two populations (tapes and policies) under
+`toolbox.map`. Skip only if both stay in-process.
+
+---
+
+## P19. Push GP as the loop
+
+**What.** A **private** policy individual: a tiny Push
+instruction set on `int` / `bool` / a short solve-bit
+vector. `policy_observe` in, `apply_policy_action` out.
+No column loads, no `Window` as a Push type, no public
+`PushTree` on `gp` / `tools`. Tapes remain the only thing
+`interpret_tapes` runs.
+
+**Today.** PyshGP is an external package, not a dependency.
+Nothing in-tree speaks Push. P1–P18 are the preconditions;
+this row is last so it cannot be started first.
+
+**Benefit.** Evolves the *operator of specialists* — which
+exam, when to tune or promote, when to rescore, which
+pressure — when a second prefix tree is too clumsy and a
+hand-written `next_lexicase_cases` plus periodic tune is
+too rigid.
+
+**Scope.** Optional extra or in-tree interpreter, either
+way behind the firewall. Not a second public genome. Not
+per-row Push. Not `rolling_mean` as a Push instruction.
+A linear policy on the same interface may ship first as
+the acceptance test.
+
+Related: [P11](#p11-policy-observation-schema),
+[P12](#p12-policy-action-applicator),
+[P13](#p13-held-out-policy-fitness),
+[P14](#p14-action-guards-and-cooldowns),
+[Not planned](not_planned.md).

@@ -56,7 +56,8 @@ named domain indicators. Not a second genome. Not an LLM that
 proposes names.
 
 Related: [Genetic programming](../../reference/gp.md),
-[item 9](features_1_10.md#9-compile-and-clone-path).
+[item 9](features_1_10.md#9-compile-and-clone-path),
+[Push GP P5](push_gp.md#p5-growing-primitive-language).
 
 ---
 
@@ -109,7 +110,8 @@ instead of one tree that won a scalar.
 
 Related: [item 7](features_1_10.md#7-non-bloating-semantic-variation),
 [item 8](features_1_10.md#8-quality-diversity-archive),
-[item 4](features_1_10.md#4-batch-tape-evaluation).
+[item 4](features_1_10.md#4-batch-tape-evaluation),
+[Push GP P6](push_gp.md#p6-semantic-search-space).
 
 ---
 
@@ -169,7 +171,8 @@ machine-checkable replacement for a human staring at trees.
 - Do not put trading labels, Sharpe, or a metric catalog here.
 
 Related: [item 5](features_1_10.md#5-down-sampled-and-informed-lexicase),
-[item 6](features_1_10.md#6-case-structured-evaluation-helper).
+[item 6](features_1_10.md#6-case-structured-evaluation-helper),
+[Push GP P7](push_gp.md#p7-co-evolving-cases).
 
 ---
 
@@ -218,7 +221,8 @@ already exist; they do not meet.
   unless a later profile says otherwise.
 
 Related: [Strategies](../../reference/strategies.md),
-[item 19](features_11_20.md#19-sep-cma).
+[item 19](features_11_20.md#19-sep-cma),
+[Push GP P8](push_gp.md#p8-memetic-constants).
 
 ---
 
@@ -274,7 +278,8 @@ because some island is still selecting for them.
 
 Related: [item 4](features_1_10.md#4-batch-tape-evaluation),
 [Algorithms](../../reference/algorithms.md),
-[Multiprocessing](../../tutorials/multiprocessing.md).
+[Multiprocessing](../../tutorials/multiprocessing.md),
+[Push GP P9](push_gp.md#p9-streaming-and-island-ecology).
 
 ---
 
@@ -317,7 +322,8 @@ pointing at.
 
 Related: [item 5](features_1_10.md#5-down-sampled-and-informed-lexicase),
 [item 8](features_1_10.md#8-quality-diversity-archive),
-[item 22](#22-semantic-search-space).
+[item 22](#22-semantic-search-space),
+[Push GP P10](push_gp.md#p10-program-teams).
 
 ---
 
@@ -452,6 +458,7 @@ daemon. Not a custom dirty-row protocol per caller.
 
 Related: [item 3](features_1_10.md#3-incremental-window-kernels),
 [item 4](features_1_10.md#4-batch-tape-evaluation),
-[item 25](#25-streaming-and-island-ecology).
+[item 25](#25-streaming-and-island-ecology),
+[Push GP P16](push_gp.md#p16-causal-lookback-and-suffix-rescore).
 
 ---

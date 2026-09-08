@@ -71,7 +71,9 @@ numbered items are on [Features 1-10](features_1_10.md),
 [Features 21-30](features_21_30.md), and
 [Features 31-40](features_31_40.md). Feature pages are
 full decades even when the last decade is not full. Still not a second
-genome family.
+genome family. A separate [Push GP](push_gp.md) page lists the planned
+*policy* track — observation schema through a private Push individual.
+That table is not part of items 1–38.
 
 !!! note
     deap-er stays a pure-Python package. Native work remains an
