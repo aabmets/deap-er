@@ -83,7 +83,14 @@ nav:
       - Important Differences: overview/differences.md
       - Performance: overview/performance.md
       - Getting Started: overview/getting_started.md
-      - Roadmap: overview/roadmap.md
+      - Roadmap:
+          - Overview: overview/roadmap/index.md
+          - Features 1-10: overview/roadmap/features_1_10.md
+          - Features 11-20: overview/roadmap/features_11_20.md
+          - Features 21-30: overview/roadmap/features_21_30.md
+          - Features 31-38: overview/roadmap/features_31_38.md
+          - Under consideration: overview/roadmap/under_consideration.md
+          - Not planned: overview/roadmap/not_planned.md
   - Tutorials:
       - Using the Toolbox: tutorials/using_the_toolbox.md
       - Creating Individuals: tutorials/creating_individuals.md
