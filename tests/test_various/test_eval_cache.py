@@ -149,27 +149,27 @@ def test_tune_ephemerals_drops_old_eval_cache_key(ind_cls):
     eph = pset.terminals[object][-1]
     tree = ind_cls([pset.mapping["add"], eph(), pset.mapping["ARG0"]])
     gp.assign_ephemerals(tree, [0.0])
-    calls = []
+    cache_calls = []
 
     def evaluate(individual):
         func = gp.compile_tree(individual, pset)
-        calls.append(str(individual))
         value = func(0.0)
         return (value * value,)
 
     def cached_evaluate(individual):
-        calls.append(str(individual))
+        cache_calls.append(str(individual))
         return evaluate(individual)
 
+    snapshot = ind_cls(list(tree))
     cache = tools.EvalCache(cached_evaluate)
     cache.evaluate(tree)
-    old = str(tree)
+    cache.evaluate(snapshot)
     strategy = tools.Strategy([0.0], 0.8, offsprings=2, survivors=1)
     tools.rng.seed(7)
     gp.tune_ephemerals(tree, strategy, evaluate, n_gen=1)
-    cache.evaluate(gp.PrimitiveTree.from_string(old, pset))
+    cache.evaluate(snapshot)
 
-    assert calls.count(old) == 2
+    assert cache_calls == [str(snapshot), str(snapshot)]
 
 
 def test_eval_cache_requires_a_callable():
