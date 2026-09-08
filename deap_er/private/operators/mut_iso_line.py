@@ -12,6 +12,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import numpy
+
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual, Mutant, NumOrSeq
 from deap_er.private.various.rng import rng
@@ -27,6 +29,10 @@ __all__: list[str] = [
 
 _DONOR_SHORT = "Donor must be at least the size of the individual"
 _BOUNDS_PAIR = "Arguments 'low' and 'up' must both be set or both omitted."
+
+
+def _is_bool_gene(value: object) -> bool:
+    return type(value) is bool or isinstance(value, numpy.bool_)
 
 
 def _sample_t(iso: float) -> float:
@@ -158,8 +164,9 @@ def mut_iso_line(
     for index in range(size):
         parent = individual[index]
         elite = donor[index]
-        if type(parent) is bool:
-            individual[index] = iso_line_bit(parent, bool(elite), iso, sigma)
+        if _is_bool_gene(parent):
+            value = iso_line_bit(bool(parent), bool(elite), iso, sigma)
+            individual[index] = type(parent)(value)
             continue
         if isinstance(parent, int):
             xl = int(lows[index]) if lows is not None else int(parent)

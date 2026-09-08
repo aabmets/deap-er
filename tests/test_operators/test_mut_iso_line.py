@@ -10,6 +10,7 @@
 #
 from typing import Any
 
+import numpy
 import pytest
 from deap_er import tools
 
@@ -63,6 +64,18 @@ def test_mut_iso_line_bit_can_copy_donor():
     tools.rng.seed(4)
     (mutant,) = tools.mut_iso_line(parent, donor, iso=0.0, sigma=0.0)
     assert mutant[0] is True
+
+
+def test_mut_iso_line_preserves_numpy_bool_gene_type(monkeypatch):
+    monkeypatch.setattr(
+        "deap_er.private.operators.mut_iso_line._sample_t",
+        lambda iso: 1.0,
+    )
+    parent: Any = [numpy.bool_(False)]
+    donor: Any = [numpy.bool_(True)]
+    (mutant,) = tools.mut_iso_line(parent, donor, iso=0.0, sigma=0.0)
+    assert type(mutant[0]) is numpy.bool_
+    assert mutant[0] == numpy.bool_(True)
 
 
 def test_mut_heterogeneous_can_compose_iso_line_helpers(monkeypatch):
