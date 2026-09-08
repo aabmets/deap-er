@@ -94,8 +94,12 @@ def _serial_kernel() -> tuple[Any, Any, Any]:
     """
     run, idle = build()
     if "many" not in _batch:
-        jit = numba.njit(cache=True, nogil=True, error_model="numpy")
-        compiled = jit(numba_kernels.interpret_many)
+        # These wrappers take other compiled functions as arguments.
+        # Numba's disk cache pickles those Dispatcher types via weakrefs
+        # and raises ReferenceError when a consumer kernel is passed.
+        compiled = numba.njit(cache=False, nogil=True, error_model="numpy")(
+            numba_kernels.interpret_many
+        )
         _batch["many"] = compiled
     return run, idle, _batch["many"]
 
@@ -107,7 +111,7 @@ def _parallel_kernel() -> Any:
         The ``prange`` batch kernel.
     """
     if "many_parallel" not in _batch:
-        compiled = numba.njit(cache=True, nogil=True, error_model="numpy", parallel=True)(
+        compiled = numba.njit(cache=False, nogil=True, error_model="numpy", parallel=True)(
             interpret_many_parallel
         )
         _batch["many_parallel"] = compiled
