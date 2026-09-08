@@ -44,7 +44,7 @@ surface.
 | 25 | [Streaming and island ecology](features_21_30.md#25-streaming-and-island-ecology) | `algorithms` | shipped |
 | 26 | [Program teams](features_21_30.md#26-program-teams) | `operators` | shipped |
 | 27 | [Batch-epsilon-lexicase and down-sampled tournament](features_21_30.md#27-batch-epsilon-lexicase-and-down-sampled-tournament) | `operators` | shipped |
-| 28 | [Dynamic epsilon and downsample schedule](features_21_30.md#28-dynamic-epsilon-and-downsample-schedule) | `operators` | planned |
+| 28 | [Dynamic epsilon and downsample schedule](features_21_30.md#28-dynamic-epsilon-and-downsample-schedule) | `operators` | shipped |
 | 29 | [Novelty selection and iso+line](features_21_30.md#29-novelty-selection-and-isoline) | `operators`, `records` | shipped |
 | 30 | [Causal lookback and suffix rescore](features_21_30.md#30-causal-lookback-and-suffix-rescore) | `gp` | shipped |
 | 31 | [Affine scaling and Lamarckian writeback](features_31_40.md#31-affine-scaling-and-lamarckian-writeback) | `gp`, `utilities` | shipped |
@@ -61,9 +61,7 @@ that already shipped (tapes, SlimGP, lexicase, archives, CMA)
 into a longer program-search loop, and they are shipped.
 Item 30 is the legal dirty-suffix path item 25 deferred.
 Item 31 (Keijzer affine scaling next to `tune_ephemerals`) is
-shipped. Item 28 is the next backlog:
-dynamic epsilon and downsample schedules. Items 27, 29, 32, 35, and
-36 are shipped. Constraint-dominance
+shipped. Items 27–36 are shipped. Constraint-dominance
 on the remaining selectors, archive-improving CMA, RVEA /
 R-NSGA-II, and adaptive DE stay in
 [Under consideration](under_consideration.md). Write-ups for the

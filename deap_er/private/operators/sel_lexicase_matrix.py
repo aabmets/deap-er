@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from numbers import Integral
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING
 
 import numpy
 
@@ -20,7 +20,16 @@ if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 from deap_er.private.various.rng import rng
 
+from .epsilon_lexicase_slack import (
+    LexicaseMode,
+    apply_epsilon_filter,
+    apply_strict_filter,
+    epsilon_mode_uses_pool_elite,
+    slack_for_case,
+)
+
 __all__: list[str] = [
+    "LexicaseMode",
     "case_index",
     "case_subset",
     "fitness_case_matrix",
@@ -28,8 +37,6 @@ __all__: list[str] = [
     "require_population",
     "validate_case_matrix",
 ]
-
-type LexicaseMode = Literal["strict", "epsilon_auto", "epsilon_fixed"]
 
 
 def require_population(individuals: list[Individual]) -> None:
@@ -144,48 +151,6 @@ def validate_case_matrix(
             raise ValueError("matrix does not match fitness.values")
 
 
-def _apply_strict(
-    active: numpy.ndarray,
-    col: numpy.ndarray,
-    maximize: bool,
-) -> numpy.ndarray:
-    vals = col[active]
-    best = numpy.max(vals) if maximize else numpy.min(vals)
-    keep = col == best
-    return numpy.where(active, keep, False)
-
-
-def _apply_epsilon(
-    active: numpy.ndarray,
-    col: numpy.ndarray,
-    maximize: bool,
-    slack: float,
-) -> numpy.ndarray:
-    vals = col[active]
-    if maximize:
-        bound = numpy.max(vals) - slack
-        keep = col >= bound
-    else:
-        bound = numpy.min(vals) + slack
-        keep = col <= bound
-    return numpy.where(active, keep, False)
-
-
-def _slack_for_case(
-    col: numpy.ndarray,
-    active: numpy.ndarray,
-    mode: LexicaseMode,
-    epsilon: float | None,
-) -> float:
-    if mode == "epsilon_fixed":
-        if epsilon is None:
-            raise ValueError("epsilon must be set for epsilon_fixed mode")
-        return float(epsilon)
-    vals = col[active]
-    median = float(numpy.median(vals))
-    return float(numpy.median(numpy.abs(vals - median)))
-
-
 def _choice_from_survivors(
     individuals: list[Individual],
     survivors: numpy.ndarray,
@@ -213,8 +178,10 @@ def lexicase_select_vectorized(
         matrix: Case matrix with shape ``(len(individuals), n_cases)``.
         subset: Fitness-case indices to filter on.
         fit_weights: Per-case maximize/minimize signs from fitness.
-        mode: ``strict``, per-case MAD (``epsilon_auto``), or fixed
-            slack (``epsilon_fixed``).
+        mode: ``strict``, population MAD (``epsilon_auto`` /
+            ``epsilon_static``), semi-dynamic pool elite
+            (``epsilon_semi``), dynamic pool MAD and elite
+            (``epsilon_dynamic``), or fixed slack (``epsilon_fixed``).
         epsilon: Fixed slack when ``mode`` is ``epsilon_fixed``.
 
     Returns:
@@ -222,23 +189,28 @@ def lexicase_select_vectorized(
     """
     if sel_count <= 0:
         return []
-    n_ind = len(individuals)
-    active = numpy.ones(n_ind, dtype=bool)
+    pool_elite = epsilon_mode_uses_pool_elite(mode)
     selected: list[Individual] = []
     for _ in range(sel_count):
         order = list(subset)
         rng.shuffle(order)
-        active.fill(True)
+        active = numpy.ones(len(individuals), dtype=bool)
         for case in order:
             if active.sum() <= 1:
                 break
             col = matrix[:, case]
             maximize = fit_weights[case] > 0
             if mode == "strict":
-                active = _apply_strict(active, col, maximize)
+                active = apply_strict_filter(active, col, maximize)
             else:
-                slack = _slack_for_case(col, active, mode, epsilon)
-                active = _apply_epsilon(active, col, maximize, slack)
+                slack = slack_for_case(col, active, mode, epsilon)
+                active = apply_epsilon_filter(
+                    active,
+                    col,
+                    maximize,
+                    slack,
+                    pool_elite=pool_elite,
+                )
         survivors = numpy.flatnonzero(active)
         selected.append(_choice_from_survivors(individuals, survivors))
     return selected

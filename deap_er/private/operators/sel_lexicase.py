@@ -20,6 +20,7 @@ if TYPE_CHECKING:
 from deap_er.private.various.rng import rng
 
 from .sel_lexicase_matrix import (
+    LexicaseMode,
     case_subset,
     fitness_case_matrix,
     lexicase_select_vectorized,
@@ -28,6 +29,15 @@ from .sel_lexicase_matrix import (
 )
 
 __all__: list[str] = ["lexicase_select", "sel_lexicase", "sel_epsilon_lexicase"]
+
+_EPSILON_MODES = frozenset(
+    {
+        "epsilon_auto",
+        "epsilon_static",
+        "epsilon_semi",
+        "epsilon_dynamic",
+    }
+)
 
 
 def lexicase_select(
@@ -144,6 +154,7 @@ def sel_epsilon_lexicase(
     sel_count: int,
     epsilon: float | None = None,
     *,
+    mode: LexicaseMode | None = None,
     cases: Sequence[int] | None = None,
     matrix: numpy.ndarray | None = None,
     trust_matrix: bool = False,
@@ -162,6 +173,11 @@ def sel_epsilon_lexicase(
         epsilon: Slack around the best case value. If omitted, it is
             computed from the median absolute deviation of the case
             values, separately for every case.
+        mode: Epsilon variant when ``epsilon`` is omitted:
+            ``epsilon_auto`` or ``epsilon_static`` (population MAD and
+            elite), ``epsilon_semi`` (population MAD, pool elite), or
+            ``epsilon_dynamic`` (pool MAD and elite). Defaults to
+            ``epsilon_auto``.
         cases: Fitness-case indices to filter on. All cases are used
             when omitted. Rebuild the subset each generation; do not
             freeze it on the toolbox.
@@ -183,13 +199,20 @@ def sel_epsilon_lexicase(
     require_population(individuals)
     packed = _resolve_matrix(individuals, matrix, trust_matrix=trust_matrix)
     subset = case_subset(individuals, cases)
-    mode = "epsilon_auto" if epsilon is None else "epsilon_fixed"
+    if epsilon is not None:
+        resolved = "epsilon_fixed"
+    elif mode is None:
+        resolved = "epsilon_auto"
+    else:
+        if mode not in _EPSILON_MODES:
+            raise ValueError(f"mode must be one of {sorted(_EPSILON_MODES)}")
+        resolved = mode
     return lexicase_select_vectorized(
         individuals,
         sel_count,
         packed,
         subset,
         individuals[0].fitness.weights,
-        mode=mode,
+        mode=resolved,
         epsilon=epsilon,
     )
