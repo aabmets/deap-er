@@ -57,6 +57,12 @@ print(ind1.fitness.values)      # (float, float)
     All evaluation functions must return a **tuple of float(s)** for all types
     of fitness objectives.
 
+Register `evaluate_batch` when a whole generation should be scored
+in one call. The builtin loops (`ea_simple`, `ea_mu_plus_lambda`,
+`ea_mu_comma_lambda`, `ea_map_elites`, `ea_generate_update`,
+`step_islands`, and `harm`) use it in place of `map` + `evaluate`.
+See [Multiprocessing](multiprocessing.md).
+
 ### Mutation
 
 Mutation operators are responsible for mutating the solution values of an
@@ -75,6 +81,7 @@ fitness values of the mutant must be deleted, because they are no longer
 relevant to the solution values of the mutant.
 
 ```python
+toolbox.register("clone", tools.clone_individual)
 clone = toolbox.clone(ind1)
 tools.mut_flip_bit(clone, mut_prob=0.2)
 del clone.fitness.values
@@ -99,7 +106,7 @@ offspring.
 ```python
 clone1 = toolbox.clone(ind1)
 clone2 = toolbox.clone(ind2)
-tools.cx_blend(clone1, clone2, cx_prob=0.5)
+tools.cx_blend(clone1, clone2, alpha=0.5)
 del clone1.fitness.values
 del clone2.fitness.values
 ```
@@ -172,14 +179,17 @@ optimization problems:
 ```python
 # toolbox and population setup is omitted for brevity
 
-args = dict(
+pop, log = tools.ea_simple(
     toolbox=toolbox,
     population=pop,
     generations=500,
     cx_prob=0.5,
-    mut_prob=0.2
+    mut_prob=0.2,
+    hof=hof,
+    stats=stats,
+    log_time=True,
+    n_evals=50_000,
 )
-pop, log = tools.ea_simple(**args)
 ```
 
 **Using a variation function**
@@ -189,9 +199,8 @@ pop, log = tools.ea_simple(**args)
 
 for gen in range(GENS):
     selection = toolbox.select(pop, len(pop))
-    offspring = map(toolbox.clone, selection)
-
-    offspring = tools.var_and(toolbox, offspring, CX_PROB, MUT_PROB)
+    # var_and clones the pool; do not map toolbox.clone first
+    offspring = tools.var_and(toolbox, selection, CX_PROB, MUT_PROB)
 
     invalids = [ind for ind in offspring if not ind.fitness.is_valid()]
     fitness = toolbox.map(toolbox.evaluate, invalids)
@@ -207,16 +216,15 @@ for gen in range(GENS):
 # toolbox and population setup is omitted for brevity
 
 for gen in range(GENS):
-    offspring = toolbox.select(pop, len(pop))
-    offspring = map(toolbox.clone, offspring)
+    offspring = [toolbox.clone(ind) for ind in toolbox.select(pop, len(pop))]
 
     for child1, child2 in zip(offspring[::2], offspring[1::2]):
-        if random.random() < CX_PROB:
+        if tools.rng.random() < CX_PROB:
             toolbox.mate(child1, child2)
             del child1.fitness.values
             del child2.fitness.values
     for mutant in offspring:
-        if random.random() < MUT_PROB:
+        if tools.rng.random() < MUT_PROB:
             toolbox.mutate(mutant)
             del mutant.fitness.values
 

@@ -43,7 +43,7 @@ creator.create_type("FitnessMax", Fitness, weights=(1.0,))  # Maximizing
 
 ```python
 creator.create_type("FitnessMulti", Fitness, weights=(-1.0, 1.0))  # Min and max
-creator.create_type("FitnessVaried", Fitness, weights(0.5, 1.1, -1.7))  # Varied importance
+creator.create_type("FitnessVaried", Fitness, weights=(0.5, 1.1, -1.7))  # Varied importance
 ```
 
 ### Individuals
@@ -60,6 +60,9 @@ types of `Collection`. In addition to the standard `list` class, it is also poss
 to create individuals based on the `array.array` or `numpy.ndarray` classes:
 
 ```python
+import array
+import numpy
+
 creator.create_type("Individual", list, fitness=creator.FitnessMax)
 creator.create_type("Individual", numpy.ndarray, fitness=creator.FitnessMax)
 creator.create_type("Individual", array.array, typecode="i", fitness=creator.FitnessMax)
@@ -101,6 +104,7 @@ numbers and has a **fitness** attribute of the single-objective maximizing type.
 
 ```python
 from deap_er import Fitness, Toolbox, creator, tools
+import random
 
 creator.create_type("FitnessMax", Fitness, weights=(1.0,))
 creator.create_type("Individual", list, fitness=creator.FitnessMax)
@@ -124,6 +128,7 @@ single-objective minimizing type.
 
 ```python
 from deap_er import Fitness, Toolbox, creator, tools
+import random
 
 creator.create_type("FitnessMin", Fitness, weights=(-1.0,))
 creator.create_type("Individual", list, fitness=creator.FitnessMin)
@@ -175,6 +180,13 @@ toolbox.register("individual", tools.init_iterate,
 ind = toolbox.individual()
 ```
 
+A strongly typed set is `PrimitiveSetTyped` (argument types plus a
+return type). `SlimTree` is a GP head plus semantic delta blocks.
+Columnar programs over named `float64` columns, window kits, and
+the tape / Numba backends are in the
+[columnar programs](columnar_gp.md) tutorial. `promote_subtree`
+grows the language after a tree is built.
+
 ### Evolution Strategies
 
 Individuals with evolution strategies are slightly different as they generally
@@ -207,6 +219,12 @@ toolbox.register("individual", init_evo_strat,
 )
 ind = toolbox.individual()
 ```
+
+That two-list genome is the classic ES individual. The usual
+continuous path in this library is a CMA strategy
+(`tools.Strategy`, boxed, separable, or IPOP/BIPOP restarts) with
+`ea_generate_update` / `ea_generate_update_restarts`. See the
+[evolution strategy examples](../examples/evolution_strategies/cma_strat.md).
 
 ### Moving Particles
 
@@ -269,6 +287,11 @@ toolbox.register("individual", tools.init_cycle,
 )
 ind = toolbox.individual()
 ```
+
+A mixed encoding that stays one list (bit + int range + boxed real)
+registers `cx_heterogeneous` and `mut_heterogeneous` instead of a
+one-off mate/mutate pair. See the
+[mixed-encoding example](../examples/genetic_algorithms/mixed_encoding.md).
 
 ## Types of Populations
 
@@ -339,6 +362,12 @@ DEME_SIZES = [10, 50, 100]
 toolbox.register("deme", tools.init_repeat, list, toolbox.individual)
 population = [toolbox.deme(size=size) for size in DEME_SIZES]
 ```
+
+`step_islands` runs one evaluate → vary → select step on each
+deme. `mig_ring` then moves emigrants by object identity. Persist
+the demes on a `Checkpoint`. See
+[Operators and Algorithms](operators_and_algorithms.md) and
+[Using Checkpoints](using_checkpoints.md).
 
 ## Seeding Populations
 

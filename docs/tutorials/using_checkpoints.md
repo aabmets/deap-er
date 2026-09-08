@@ -14,11 +14,23 @@ generator. The builtin algorithms don't implement automatic checkpointing due
 to their simplistic nature, but the user is able to implement manual
 checkpointing around them.
 
+`save()` writes a sibling `.tmp` file and replaces the destination, so
+a dump that fails part-way through does not truncate a good file. The
+process-wide `tools.rng` state is persisted with the attributes you
+set on the checkpoint. Child streams from `spawn_rng` are not — those
+are derived again from the run seed. `save_freq = -1` disables
+automatic saves during `range()`. `last_op` is one of `none`,
+`load_success`, `load_error`, `save_success`, or `save_error`.
+
+The default file is a UUID with a `.dcpf` extension under
+`<cwd>/deap-er`. Pass `file_name` (and optionally `dir_path`) to
+choose the path. `autoload=True` (the default) calls `load()` during
+construction.
+
 In the following example, we will use the `range()` generator to save the
 progress to disk every **save_freq** seconds. If one should wish to resume
-the computation later, they would only have to pass the name or path of the
-checkpoint file to the checkpoint constructor, as the data is automatically
-loaded from the disk on object initialization by default.
+the computation later, they would only have to pass the name of the
+checkpoint file to the constructor.
 
 ```python
 from deap_er import Checkpoint, tools
@@ -55,7 +67,7 @@ def main(file=None):
         cp.hof.update(offspring)
         record = stats.compile(offspring)
         cp.log.record(gen=gen, nevals=len(invalids), **record)
-        cp.pop = toolbox.select(offspring, sel_count=len(offspring))
+        cp.pop = toolbox.select(offspring, len(offspring))
 
         # the range() generator persists the cp to disk
         # if saving conditions are fulfilled

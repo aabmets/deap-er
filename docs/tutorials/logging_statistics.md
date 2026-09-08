@@ -56,9 +56,20 @@ pop, log = tools.ea_simple(
     cx_prob=0.5,
     mut_prob=0.2,
     stats=stats,
-    verbose=True
+    hof=hof,
+    verbose=True,
+    logger=logger,
+    log_time=True,
+    fronts=fronts,
+    n_evals=50_000,
 )
 ```
+
+`log_time` adds a per-generation `duration`. `logger` receives the
+stream instead of `print` when `verbose` is True. `fronts` appends
+a new `ParetoFront` of the current population each generation.
+`n_evals` stops after the generation that meets the evaluation
+budget. `hof` is a `HallOfFame` or `ParetoFront` updated in place.
 
 ### Custom Algorithms
 
@@ -130,20 +141,28 @@ In order to achieve this, we define multiple regular statistics objects
 with the required key functions and then pass them into a
 `MultiStatistics` constructor. The statistical functions can be
 registered only once either in the multi-statistics object or
-individually in each statistics objects. The multi-statistics object
+individually in each statistics objects. `mstats.register(...,
+chapters=)` can target a subset of chapter names when one function
+should not run on every chapter. The multi-statistics object
 can be then given to a builtin algorithm or they can be compiled using
 the exact same procedure as for the simple statistics objects. A
 compiled multi-statistics record is a dictionary of statistics objects.
+`compile` materializes the input once so a generator is not consumed
+by the first chapter.
 
 ```python
 stats_size = tools.Statistics(key=len)
 stats_fit = tools.Statistics(key=lambda ind: ind.fitness.values)
-mstats = tools.MultiStatistics(fitness=stats_fit, size=stats_size)
+stats_dups = tools.Statistics()
+stats_dups.register("dups", tools.duplicate_count)
+mstats = tools.MultiStatistics(
+    fitness=stats_fit, size=stats_size, variety=stats_dups
+)
 
-mstats.register("avg", numpy.mean)
-mstats.register("std", numpy.std)
-mstats.register("min", numpy.min)
-mstats.register("max", numpy.max)
+mstats.register("avg", numpy.mean, chapters=("fitness", "size"))
+mstats.register("std", numpy.std, chapters=("fitness", "size"))
+mstats.register("min", numpy.min, chapters=("fitness", "size"))
+mstats.register("max", numpy.max, chapters=("fitness", "size"))
 
 record = mstats.compile(population)
 ```
@@ -207,7 +226,11 @@ logbook.header = "gen", "food", "avg"
 ```
 
 If an entry is missing from a row, the space in the column will be left
-blank for that entry.
+blank for that entry. An empty logbook that already has a `header`
+still prints that header.
+
+`Logbook.to_json` / `from_json` round-trip entries, chapters, and
+the header. NumPy scalars become Python numbers.
 
 ```text
 >>> print(logbook)
@@ -266,3 +289,26 @@ gen = logbook.select("gen")
 fit_mins = logbook.chapters["fitness"].select("min")
 size_avgs = logbook.chapters["size"].select("avg")
 ```
+
+## Hall of fame and archives
+
+`HallOfFame` keeps the `maxsize` best individuals seen so far.
+`ParetoFront` keeps the non-dominated set. Both skip an individual
+whose fitness is missing, invalid, or non-finite. Pass either as
+`hof=` to a builtin algorithm.
+
+```python
+hof = tools.HallOfFame(maxsize=1)
+front = tools.ParetoFront()
+```
+
+MAP-Elites archives sit next to that pair. `GridArchive` bins a
+caller-supplied behavior descriptor. `CvtArchive` and
+`UnstructuredArchive` are the centroid and nearest-neighbor
+variants. `ea_map_elites` is the matching loop. See the
+[MAP-Elites example](../examples/genetic_algorithms/map_elites.md).
+
+`History` records a NetworkX-compatible genealogy. Call
+`history.update` on the seed population and after each variation,
+or wrap `mate` / `mutate` with `toolbox.decorate("mate",
+history.decorator)`. `update` records every member of a batch.

@@ -164,8 +164,9 @@ to a vectorized kernel that amortizes its setup.
 Register an `evaluate_batch` operator for that. It takes the list of
 individuals whose fitness is invalid and returns their fitness values
 in the same order. When it is present, `ea_simple`, `ea_mu_plus_lambda`,
-`ea_mu_comma_lambda`, and `harm` call it instead of going through `map`
-and `evaluate`.
+`ea_mu_comma_lambda`, `ea_map_elites`, `ea_generate_update`,
+`ea_generate_update_restarts`, `step_islands`, and `harm` call it
+instead of going through `map` and `evaluate`.
 
 ```python
 def evaluate_batch(individuals):

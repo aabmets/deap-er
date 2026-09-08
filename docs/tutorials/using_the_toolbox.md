@@ -13,7 +13,8 @@ subsequent arguments, if there are any, will be implicitly passed into the assoc
 function when the registered method is called.
 
 !!! attention
-    Alias names must be valid Python identifiers and can be registered into each toolbox only once.
+    Alias names must be valid Python identifiers. Registering the same
+    alias again overwrites the previous callable.
 
 ```python
 from deap_er import Toolbox
@@ -45,20 +46,22 @@ module can be registered into a toolbox, some of them such as algorithms or stat
 are equally useful independently. More on tools in the
 [Operators and Algorithms](operators_and_algorithms.md) chapter.
 
-Because tools are registered into toolboxes dynamically at runtime, linting hints are not
-available for these toolbox methods and IDEs incorrectly mark their usage as erroneous due
-to lack of object references.
-
-!!! note
-    Some commonly used aliases, such as **mate**, **mutate**, **select**, **evaluate** and
-    others, do have *abstract* references available, which enables IDE autocompletion
-    support for them. Note that these references are *abstract* and must be implemented
-    by the user before they can be used.
+Aliases are attached at runtime, so type checkers do not see
+`toolbox.mate` until you register it. A new toolbox already has
+`clone` (`copy.deepcopy`) and `map` (`map`). For list or
+`array.array` individuals, register `tools.clone_individual`
+instead — it copies the genes and the fitness without a full
+deepcopy. Register `evaluate_batch` when a generation should be
+scored in one call; the builtin loops use it in place of
+`map` + `evaluate`. See
+[Operators and Algorithms](operators_and_algorithms.md) and
+[Multiprocessing](multiprocessing.md).
 
 ```python
 from deap_er import Toolbox, tools
 
 toolbox = Toolbox()
+toolbox.register("clone", tools.clone_individual)
 toolbox.register("mate", tools.cx_two_point)
 toolbox.register("mutate", tools.mut_flip_bit, mut_prob=0.2)
 toolbox.register("select", tools.sel_tournament, contestants=3)
@@ -94,7 +97,7 @@ def clamp(min, max):
                         child[i] = max
                     elif child[i] < min:
                         child[i] = min
-            return offspring
+            return offsprings
         return wrapped
     return wrapper
 
@@ -107,5 +110,6 @@ toolbox.decorate("mutate", clamp(MIN, MAX))
 ```
 
 For Gaussian mutation alone, `tools.mut_gaussian_bounded` clamps each
-mutated gene into `[low, up]` inside the operator. The decorator
-remains the generic wrap for any other tool.
+mutated gene into `[low, up]` inside the operator. Blend has a boxed
+form too (`cx_blend_bounded`). The decorator remains the generic wrap
+for any other tool.
