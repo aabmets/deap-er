@@ -15,7 +15,7 @@ the same points changed $\Delta$ (perfectly uniform $0$ vs $0.5$).
 computing $d_f$, $d_l$, and $d_t$.
 
 **Validator.**
-`tests/test_utilities/test_metrics.py::test_nsga_diversity_is_invariant_to_front_order`
+`tests/test_various/test_nsga_metrics.py::test_nsga_diversity_is_invariant_to_front_order`
 
 ---
 
@@ -28,7 +28,7 @@ numerator (for example $\sqrt{2}$).
 **Fix.** Return `1.0` when `len(population) == 1`.
 
 **Validator.**
-`tests/test_utilities/test_metrics.py::test_nsga_diversity_for_a_single_point_is_one`
+`tests/test_various/test_nsga_metrics.py::test_nsga_diversity_for_a_single_point_is_one`
 
 ---
 
@@ -43,7 +43,7 @@ raised `ZeroDivisionError`.
 **Fix.** Return `1.0` when the denominator is $0$.
 
 **Validator.**
-`tests/test_various/test_metrics.py::test_nsga_diversity_collapsed_front_is_one`
+`tests/test_various/test_nsga_metrics.py::test_nsga_diversity_collapsed_front_is_one`
 
 ---
 
@@ -131,8 +131,8 @@ fitness; otherwise keep the raw-vector path used by existing tests.
 
 **Validators.**
 
-- `tests/test_various/test_metrics.py::test_nsga_convergence_uses_fitness_when_optimal_are_individuals`
-- `tests/test_various/test_metrics.py::test_nsga_diversity_uses_fitness_when_extremes_are_individuals`
+- `tests/test_various/test_nsga_metrics.py::test_nsga_convergence_uses_fitness_when_optimal_are_individuals`
+- `tests/test_various/test_nsga_metrics.py::test_nsga_diversity_uses_fitness_when_extremes_are_individuals`
 
 ---
 
@@ -149,7 +149,43 @@ helper: ``fitness.values`` when present and non-empty, otherwise
 the raw-vector path used by existing tests.
 
 **Validator.**
-`tests/test_various/test_metrics.py::test_inv_gen_dist_uses_fitness_when_sets_are_individuals`
+`tests/test_various/test_nsga_metrics.py::test_inv_gen_dist_uses_fitness_when_sets_are_individuals`
+
+---
+
+## `sort_non_dominated` crashed on invalid or mixed fitness
+
+Building `numpy.array([ind.fitness.wvalues ...])` raised
+`ValueError` when some individuals were unevaluated (`wvalues=()`)
+and others were not. An all-invalid pool became a `(n, 0)` array;
+`moocore.pareto_rank` assigned rank 0, so unevaluated individuals
+occupied the first front. `sel_count < 0` only tested `== 0`, so
+`sort_non_dominated(pop, -1)` returned the first front instead of
+`[]`. Hall of fame and MAP-Elites already skip missing, invalid,
+and non-finite fitness.
+
+**Fix.** Ignore an individual whose fitness is missing, invalid, or
+non-finite. An empty rankable pool with a positive `sel_count`
+returns `[[]]`, matching an empty input. `sel_count <= 0` returns
+`[]`. `sort_constraint_dominated` uses the same count guard.
+
+**Validators.**
+
+- `tests/test_various/test_sort_non_dominated.py::test_mixed_and_invalid_fitness_are_not_ranked`
+- `tests/test_various/test_sort_non_dominated.py::test_non_positive_sel_count_returns_empty`
+
+---
+
+## `nsga_diversity` crashed on an empty front
+
+`ordered[0]` raised `IndexError` when `population` was empty.
+A single point and a collapsed front already return Deb's
+$\Delta = 1$.
+
+**Fix.** Return `1.0` when the front is empty.
+
+**Validator.**
+`tests/test_various/test_nsga_metrics.py::test_nsga_diversity_empty_front_is_one`
 
 ---
 

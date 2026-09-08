@@ -41,5 +41,11 @@
    difficulty without exposing `matrix[t]`. Not a genome and
    not a domain metric — the firewall before a private Push
    loop ([Push GP P11](../roadmap/push_gp.md#p11-policy-observation-schema)).
+11. `sort_non_dominated` ranks only individuals with a finite,
+    valid fitness. A mixed or all-invalid pool no longer raises
+    `ValueError` or places unevaluated members on the first front.
+    `sel_count <= 0` returns `[]`.
+12. `nsga_diversity` returns $1$ for an empty front. `ordered[0]`
+    no longer raises `IndexError`.
 
 [deap-75]: https://github.com/DEAP/deap/issues/75

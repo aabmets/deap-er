@@ -96,7 +96,8 @@ def nsga_diversity(population: list[Individual], first: Individual, last: Indivi
     the extreme points of the optimal Pareto front, as in Deb's
     original NSGA-II article. Each extreme may be an individual
     (objectives from ``fitness.values``) or a raw objective vector.
-    Smaller values indicate better spread.
+    Smaller values indicate better spread. An empty front returns
+    ``1.0``, the same value as a single point or a collapsed front.
 
     Args:
         population: Pareto front to evaluate.
@@ -106,6 +107,8 @@ def nsga_diversity(population: list[Individual], first: Individual, last: Indivi
     Returns:
         The diversity metric of the front.
     """
+    if not population:
+        return 1.0
     ordered = sorted(population, key=lambda ind: ind.fitness.values[0])
     start = _objective_row(first)
     end = _objective_row(last)

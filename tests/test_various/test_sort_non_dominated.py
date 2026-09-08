@@ -66,3 +66,17 @@ class TestSortNonDominated:
         fronts = tools.sort_non_dominated(pop, 1)
         assert len(fronts) == 1
         assert [ind.fitness.values for ind in fronts[0]] == [(1.0, 1.0)]
+
+    def test_non_positive_sel_count_returns_empty(self):
+        pop = _front([(1.0, 2.0)])
+        assert tools.sort_non_dominated(pop, 0) == []
+        assert tools.sort_non_dominated(pop, -1) == []
+
+    def test_mixed_and_invalid_fitness_are_not_ranked(self):
+        valid = _ind((1.0, 2.0))
+        later = _ind((4.0, 1.0))
+        unevaluated = creator.__dict__[IND]()
+        nan_ind = _ind((float("nan"), 2.0))
+        mixed = tools.sort_non_dominated([valid, unevaluated, nan_ind, later], 4)
+        assert [ind.fitness.values for ind in mixed[0]] == [(1.0, 2.0), (4.0, 1.0)]
+        assert tools.sort_non_dominated([unevaluated, nan_ind], 2) == [[]]

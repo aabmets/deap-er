@@ -194,9 +194,9 @@ def sort_constraint_dominated(
 
     Returns:
         A list of fronts. The first element is the best constrained
-        front. An empty list if ``sel_count`` is 0. A single empty
-        front if ``individuals`` is empty and ``sel_count`` is
-        positive.
+        front. An empty list if ``sel_count`` is not positive. A
+        single empty front if ``individuals`` is empty and
+        ``sel_count`` is positive.
 
     Raises:
         TypeError: If both callables are omitted, a given argument is
@@ -204,7 +204,7 @@ def sort_constraint_dominated(
             scalar.
         ValueError: If ``violation`` returns a non-finite number.
     """
-    if sel_count == 0:
+    if sel_count <= 0:
         return []
     if not individuals:
         return [[]]

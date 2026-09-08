@@ -10,8 +10,9 @@
 #
 from __future__ import annotations
 
+import math
 from collections import defaultdict
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import moocore
 import numpy
@@ -22,12 +23,31 @@ if TYPE_CHECKING:
 __all__: list[str] = ["sort_non_dominated"]
 
 
+def _rankable_fitness(individual: Any) -> bool:
+    """Return whether ``individual`` has a finite, valid fitness.
+
+    Args:
+        individual: Candidate that may lack a fitness attribute.
+
+    Returns:
+        True when fitness exists, is valid, and every weighted
+        objective is finite.
+    """
+    if not hasattr(individual, "fitness"):
+        return False
+    fitness = individual.fitness
+    if not fitness.is_valid():
+        return False
+    return all(math.isfinite(float(value)) for value in fitness.wvalues)
+
+
 def sort_non_dominated(individuals: list[Individual], sel_count: int) -> list[list[Individual]]:
     """Sort individuals into non-dominated Pareto fronts.
 
     Uses ``moocore.pareto_rank`` on ``fitness.wvalues`` (higher is
     better). Fronts are truncated once they hold at least
-    ``sel_count`` individuals.
+    ``sel_count`` individuals. Individuals without a comparable
+    fitness (missing, invalid, or non-finite) are ignored.
 
     Args:
         individuals: Individuals to sort.
@@ -35,20 +55,21 @@ def sort_non_dominated(individuals: list[Individual], sel_count: int) -> list[li
 
     Returns:
         A list of Pareto fronts. The first element is the true
-        Pareto front. An empty list if ``sel_count`` is 0. A
-        single empty front if ``individuals`` is empty and
-        ``sel_count`` is positive.
+        Pareto front. An empty list if ``sel_count`` is not
+        positive. A single empty front if no rankable individual
+        remains and ``sel_count`` is positive.
     """
-    if sel_count == 0:
+    if sel_count <= 0:
         return []
-    if not individuals:
+    ranked = [ind for ind in individuals if _rankable_fitness(ind)]
+    if not ranked:
         return [[]]
 
-    points = numpy.array([ind.fitness.wvalues for ind in individuals], dtype=float)
+    points = numpy.array([ind.fitness.wvalues for ind in ranked], dtype=float)
     ranks = moocore.pareto_rank(points, maximise=True)
 
     by_rank: defaultdict[int, list[Individual]] = defaultdict(list)
-    for ind, rank in zip(individuals, ranks, strict=True):
+    for ind, rank in zip(ranked, ranks, strict=True):
         by_rank[int(rank)].append(ind)
 
     fronts: list[list[Individual]] = []
