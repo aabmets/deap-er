@@ -70,14 +70,17 @@ def test_affine_scale_zero_variance_predicted_uses_intercept_only():
     valid = numpy.array([True, True, False, True])
     intercept, slope = tools.affine_scale(predicted, target, valid=valid)
     scaled = intercept + slope * predicted[valid]
-    numpy.testing.assert_allclose([intercept, slope], [1.0, 1.0])
+    numpy.testing.assert_allclose(intercept, 1.0)
+    numpy.testing.assert_allclose(slope, 1.0)
     numpy.testing.assert_allclose(scaled, numpy.full(3, 5.0))
-    assert numpy.isfinite(intercept) and numpy.isfinite(slope)
+    assert numpy.isfinite(intercept)
+    assert numpy.isfinite(slope)
 
     one_pred = numpy.array([3.0])
     one_tgt = numpy.array([8.0])
     intercept, slope = tools.affine_scale(one_pred, one_tgt)
-    numpy.testing.assert_allclose([intercept, slope], [5.0, 1.0])
+    numpy.testing.assert_allclose(intercept, 5.0)
+    numpy.testing.assert_allclose(slope, 1.0)
     numpy.testing.assert_allclose(intercept + slope * one_pred, one_tgt)
 
 
