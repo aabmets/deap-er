@@ -472,3 +472,30 @@ Related: [item 3](features_1_10.md#3-incremental-window-kernels),
 [Push GP P16](push_gp.md#p16-causal-lookback-and-suffix-rescore).
 
 ---
+
+## 31. Held-out policy fitness
+
+**What.** Policy individuals are scored only on a caller-marked
+`held_out` exam. Train-exam quality is an observation, not the
+policy objective. Log the generalization gap as its own Logbook
+chapter.
+
+**Today.** `policy_held_out_fitness` scores only the caller-marked
+`held_out` exam on tape elites. `guard_policy_fitness_exam` refuses
+train exams or a freshly mutated exam as the fitness target.
+`policy_exam_scores` and `policy_observe` keep train quality as
+summaries. `record_policy_generalization_gap` logs train,
+held-out, and gap under a `generalization_gap` Logbook chapter.
+Chronological meaning stays on the caller.
+
+**Benefit.** Push cannot evolve “make the exam easy” on the train
+pool and call that policy success.
+
+**Scope.** A scoring convention and a chapter. Not a metric
+catalog. Not the private Push loop ([Push GP P19](push_gp.md#p19-push-gp-as-the-loop)).
+
+Related: [item 23](#23-co-evolving-cases),
+[Push GP P11](push_gp.md#p11-policy-observation-schema),
+[Push GP P13](push_gp.md#p13-held-out-policy-fitness).
+
+---

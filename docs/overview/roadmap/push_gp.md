@@ -27,7 +27,7 @@ page. Items 30, 31, 37, and 38 are shipped on both pages.
 | P10 | [Program teams](features_21_30.md#26-program-teams) (item 26) | `operators` | shipped |
 | P11 | [Policy observation schema](#p11-policy-observation-schema) | `records`, `utilities` | shipped |
 | P12 | [Policy action applicator](#p12-policy-action-applicator) | `algorithms` | shipped |
-| P13 | [Held-out policy fitness](#p13-held-out-policy-fitness) | `records`, `operators` | planned |
+| P13 | [Held-out policy fitness](#p13-held-out-policy-fitness) | `records`, `operators` | shipped |
 | P14 | [Action guards and cooldowns](#p14-action-guards-and-cooldowns) | `operators` | planned |
 | P15 | [Evaluation budget and eval cache](features_31_40.md#37-evaluation-budget-and-eval-cache) (item 37) | `algorithms`, `utilities` | shipped |
 | P16 | [Causal lookback and suffix rescore](features_21_30.md#30-causal-lookback-and-suffix-rescore) (item 30) | `gp` | shipped |
@@ -36,8 +36,8 @@ page. Items 30, 31, 37, and 38 are shipped on both pages.
 | P19 | [Push GP as the loop](#p19-push-gp-as-the-loop) | `gp` (private policy) | planned |
 
 P1–P10 are shipped on the main table and still sit on this
-path: the two-level loop *uses* them. P11–P12 are shipped
-firewall pieces; P13–P14 remain planned. P15–P18 are shipped.
+path: the two-level loop *uses* them. P11–P13 are shipped
+firewall pieces; P14 remains planned. P15–P18 are shipped.
 P19 is last on purpose.
 
 !!! note
@@ -258,9 +258,15 @@ action schema cannot name). Train-exam quality is an
 observation, not the policy objective. Log the
 generalization gap as its own Logbook chapter.
 
-**Today.** `CaseExamPool` can mark `held_out`.
-`score_case_exams` ranks exams on elites. Nothing stops a
-policy from being rewarded for the exam it just mutated.
+**Today.** Shipped as
+[item 31](features_21_30.md#31-held-out-policy-fitness) on the
+features page. ``policy_held_out_fitness`` scores only the
+caller-marked ``held_out`` exam; ``guard_policy_fitness_exam``
+refuses train or freshly mutated exams as the objective.
+``policy_exam_scores`` and ``policy_observe`` keep train quality
+as an observation. ``record_policy_generalization_gap`` logs
+train, held-out, and gap as a ``generalization_gap`` Logbook
+chapter.
 
 **Benefit.** Otherwise Push evolves “make the exam easy.”
 

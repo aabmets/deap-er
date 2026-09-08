@@ -134,6 +134,13 @@ from the original sources.
 30. `broadcast_param` treats a 0-d `ndarray` as a scalar, so
     `numpy.array(0.0)` bounds no longer raise `TypeError` from
     `len()` on an unsized object.
+31. <a id="31-held-out-policy-fitness"></a>`policy_held_out_fitness`
+    scores policy individuals only on a caller-marked `held_out`
+    exam. `guard_policy_fitness_exam` refuses train exams or a
+    freshly mutated exam as the objective. Train quality stays in
+    `policy_exam_scores` / `policy_observe`; `record_policy_generalization_gap`
+    logs train, held-out, and gap as a `generalization_gap` Logbook
+    chapter ([Push GP P13](../roadmap/push_gp.md#p13-held-out-policy-fitness)).
 
 [deap-321]: https://github.com/DEAP/deap/issues/321
 [deap-472]: https://github.com/DEAP/deap/issues/472
