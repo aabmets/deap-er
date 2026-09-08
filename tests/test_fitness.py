@@ -149,6 +149,14 @@ class TestFitness:
 
         assert ft.values == (1.0, 2.0, 3.0)
 
+    def test_numpy_0d_array_is_accepted(self, monkeypatch):
+        monkeypatch.setattr(Fitness, "weights", [1])
+
+        ft = Fitness()
+        ft.values = numpy.array(3.0)
+
+        assert ft.values == (3.0,)
+
     def test_dominates_four_objectives_and_length(self, monkeypatch):
         monkeypatch.setattr(Fitness, "weights", [1, 1, 1, 1])
         better = Fitness([2, 2, 2, 3])

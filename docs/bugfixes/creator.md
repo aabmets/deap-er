@@ -35,6 +35,21 @@ typecode `"b"`. Float genomes then raised `TypeError`.
 
 ---
 
+## `Fitness.values` crashed on a 0-d NumPy array
+
+`numpy.array(1.0)` is `Iterable`, so the setter called
+`tuple(values)`. Iterating a 0-d array raises `TypeError`.
+NumPy scalars (`float64`, `int64`) and a 1-d array already
+worked. Bounded operators already treat a 0-d bound as a scalar.
+
+**Fix.** A 0-d array is unwrapped with `.item()` before the
+length check.
+
+**Validator.**
+`tests/test_fitness.py::TestFitness::test_numpy_0d_array_is_accepted`
+
+---
+
 ## `Fitness.dominates` crashed on invalid fitness
 
 An unevaluated fitness has empty `wvalues`. The two- and three-objective

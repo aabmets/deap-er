@@ -8,3 +8,5 @@
 3. `copy.copy` on a numpy or `array.array` individual keeps the
    created type and rebinds `fitness`. The overrides no longer
    drop `__dict__` or return a plain `array.array`.
+4. `Fitness.values` accepts a 0-d `ndarray`. `numpy.array(1.0)` no
+   longer raises `TypeError` from iterating an unsized array.

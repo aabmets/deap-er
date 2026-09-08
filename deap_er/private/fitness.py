@@ -73,10 +73,11 @@ class Fitness:
     def values(self) -> tuple[float, ...]:
         """Objective values of the individual.
 
-        The setter accepts a number or a sequence of numbers. A single
-        number is stored as a one-element sequence. The getter returns
-        a tuple of floats, or an empty tuple when the fitness is
-        invalid. Deleting the property clears the stored values.
+        The setter accepts a number, a 0-d NumPy array, or a sequence
+        of numbers. A single number is stored as a one-element
+        sequence. The getter returns a tuple of floats, or an empty
+        tuple when the fitness is invalid. Deleting the property
+        clears the stored values.
 
         Raises:
             TypeError: If the assigned sequence length does not match
@@ -88,8 +89,11 @@ class Fitness:
 
     @values.setter
     def values(self, values: FitnessValues) -> None:
-        if isinstance(values, tuple):
-            raw: tuple[Any, ...] = values
+        item = getattr(values, "item", None)
+        if getattr(values, "ndim", None) == 0 and callable(item):
+            raw: tuple[Any, ...] = (item(),)
+        elif isinstance(values, tuple):
+            raw = values
         elif isinstance(values, Iterable):
             raw = tuple(values)
         else:
