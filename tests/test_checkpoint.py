@@ -235,9 +235,7 @@ class TestCheckpoint:
         assert "hof" not in payload
         assert isinstance(payload["_hof_json_"], str)
 
-        loaded_no_cls = Checkpoint(
-            file_name="noclazz.dcpf", dir_path=tmp_path, autoload=False
-        )
+        loaded_no_cls = Checkpoint(file_name="noclazz.dcpf", dir_path=tmp_path, autoload=False)
         assert loaded_no_cls.load() is True
         assert not hasattr(loaded_no_cls, "hof")
         assert "_hof_json_" in loaded_no_cls.__dict__
