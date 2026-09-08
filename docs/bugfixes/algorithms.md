@@ -73,6 +73,29 @@ the interval test the same way.
 
 ---
 
+## `ea_generate_update` clobbered the last population on empty `generate`
+
+A custom `generate` may return `[]` as a stop signal (no more
+samples). The driver assigned that empty list to `population` and
+then called `toolbox.update([])`. The returned population was `[]`
+instead of the last scored generation, and CMA `Strategy.update`
+crashed (`ValueError` from `numpy.dot` of weights against an empty
+batch). Hall of fame and the logbook still had earlier work; the
+function result did not.
+
+**Fix.** Bind the new batch only when it is non-empty. An empty
+`generate` still stops the loop. `update` is not called with `[]`.
+The returned population is the last evaluated one (or `[]` if no
+generation ran).
+
+**Validators.**
+
+- `tests/test_algorithms/test_ea_generate_update.py::test_empty_generate_keeps_last_evaluated_population`
+- `tests/test_algorithms/test_ea_generate_update.py::test_empty_generate_from_the_start_returns_empty`
+- `tests/test_algorithms/test_ea_generate_update.py::test_empty_generate_does_not_call_cma_update`
+
+---
+
 ## `ea_generate_update_restarts` discarded the last population on empty `generate`
 
 `RestartStrategy.generate` returns `[]` when the eval budget is spent,
