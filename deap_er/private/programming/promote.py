@@ -70,7 +70,8 @@ def promote_subtree(
     expanded before the body is stored, so evicting an inner name
     does not leave ``USER_BASE`` in later tapes. On a columnar set
     the name is bound at or above ``USER_BASE`` and ``lower_tree``
-    expands the body so tapes stay on builtin opcodes.
+    expands the body so tapes stay on builtin opcodes. Promotion
+    clears the compile cache and every live ``EvalCache``.
 
     Args:
         prim_set: Set that receives the new primitive.
