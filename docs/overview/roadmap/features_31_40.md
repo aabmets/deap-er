@@ -19,9 +19,17 @@ least-squares sense.
   wrapping Slim delta, then invalidate fitness and the compile
   cache for that expression.
 
-**Today.** `tune_ephemerals` polishes numeric leaves with a short
-boxed CMA / sep-CMA loop. `case_errors` is unscaled MSE.
-There is no affine correction before the memetic step.
+**Today.** `affine_scale(predicted, target, *, valid=)` fits
+Keijzer $a + b\,f(x)$ in the least-squares sense on the same
+`valid=` mask `case_errors` uses. Darwinian callers apply
+$a + b\,f(x)$ only when writing fitness or case errors; the
+tree is unchanged. `write_affine_scale(ind, a, b, prim_set)`
+writes $a$ and $b$ back as ephemeral leaves wrapping a
+`PrimitiveTree`, or as wrapping Slim deltas
+($a + b\cdot\mathrm{head}$, and $b$ on each existing delta),
+then invalidates fitness and the compile-cache entries for the
+old expression. No Autograd. No domain fitness.
+`tune_ephemerals` is unchanged.
 
 **Benefit.** Structure plus $a + b\,f(x)$ is the usual difference
 between a shape that still fights intercept and slope and a law
