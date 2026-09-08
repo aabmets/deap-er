@@ -86,7 +86,9 @@ from .private.programming.slim.slim_ops import (
     mut_slim_inflate,
 )
 from .private.programming.slim.slim_tree import SlimTree, compile_slim_tree
+from .private.programming.suffix_rescore import suffix_rescore
 from .private.programming.tape_batch import interpret_tapes
+from .private.programming.tape_lookback import tape_lookback
 from .private.programming.window_ops import (
     add_window_ephemeral,
     add_window_primitives,
@@ -174,6 +176,8 @@ __all__ = [
     "lower_tree",
     "interpret_tape",
     "interpret_tapes",
+    "tape_lookback",
+    "suffix_rescore",
     "semantic_descriptors",
     "semantic_moments",
     "semantic_pca_basis",
