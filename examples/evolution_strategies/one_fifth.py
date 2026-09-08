@@ -37,6 +37,31 @@ def print_results(best_fit):
     print(f"\nBest sphere fitness: {best_fit:.6f}")
 
 
+def run_generation(toolbox, parent, best):
+    successes = 0
+    challenger = parent
+    parent_fit = parent.fitness.values[0]
+    for _ in range(LAMBDA):
+        child = mutate(parent)
+        child.fitness.values = toolbox.evaluate(child)
+        fit = child.fitness.values[0]
+        if fit < best:
+            best = fit
+        if fit >= parent_fit:
+            continue
+        successes += 1
+        if fit < challenger.fitness.values[0]:
+            challenger = child
+    if successes > 0:
+        parent = challenger
+    rate = successes / LAMBDA
+    if rate > 0.2:
+        parent.sigma *= 1.2
+    elif rate < 0.2:
+        parent.sigma /= 1.2
+    return parent, best
+
+
 def main():
     toolbox = setup()
     parent = toolbox.individual()
@@ -45,25 +70,7 @@ def main():
     best = parent.fitness.values[0]
 
     for _ in range(GENERATIONS):
-        successes = 0
-        challenger = parent
-        for _ in range(LAMBDA):
-            child = mutate(parent)
-            child.fitness.values = toolbox.evaluate(child)
-            if child.fitness.values[0] < best:
-                best = child.fitness.values[0]
-            if child.fitness.values[0] >= parent.fitness.values[0]:
-                continue
-            successes += 1
-            if child.fitness.values[0] < challenger.fitness.values[0]:
-                challenger = child
-        if successes > 0:
-            parent = challenger
-        rate = successes / LAMBDA
-        if rate > 0.2:
-            parent.sigma *= 1.2
-        elif rate < 0.2:
-            parent.sigma /= 1.2
+        parent, best = run_generation(toolbox, parent, best)
 
     print_results(best)
 

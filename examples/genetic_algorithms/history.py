@@ -28,7 +28,7 @@ def setup():
 def print_results(history, best_ind):
     if not history.genealogy_tree:
         raise RuntimeError("Genealogy tree is empty.")
-    has_parents = any(parents for parents in history.genealogy_tree.values())
+    has_parents = any(history.genealogy_tree.values())
     if not has_parents:
         raise RuntimeError("Genealogy recorded no parent links.")
     tree = history.get_genealogy(best_ind)
