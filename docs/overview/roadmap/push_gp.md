@@ -1,5 +1,9 @@
 # Push GP
 
+How to use the published firewall is the
+[Push GP tutorial](../../tutorials/push_gp.md). This page is the
+backlog that assembled that path.
+
 Two-level program search: **tapes stay the laws**, Push evolves the
 **loop around them**. Push never sees raw columns or `matrix[t]`.
 It reads summaries and emits discrete actions that already exist

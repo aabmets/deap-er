@@ -133,6 +133,13 @@ Evaluation stays on the caller: pass `evaluate`, or
 `evaluate_batch` to score a pack of clones. This is a local
 polish, not a second full ES run.
 
+`affine_scale(predicted, target, *, valid=)` fits Keijzer
+$a + b\,f(x)$ on the same mask `case_errors` uses. Use the scaled
+series only when writing fitness (Darwinian), or call
+`write_affine_scale` to write $a$ and $b$ back as ephemeral leaves
+or Slim deltas (Lamarckian). The tree shape stays the same either
+way.
+
 `add_pair_window_primitives` is an optional second kit for two series
 and one `Window`: `rolling_corr`, `rolling_cov`, and `rolling_beta`.
 Moments use the same population divisor as `rolling_std`. Beta is the

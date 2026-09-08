@@ -61,10 +61,12 @@ print(ind1.fitness.values)      # (float, float)
 
 Mutation operators are responsible for mutating the solution values of an
 individual. There are a variety of mutation operators available in the
-`deap_er.tools` module. Each mutation operator has its own characteristics
-and therefore it's recommended to read their documentation before use to
-avoid undesirable behavior. See the [Operators](../reference/operators.md)
-reference.
+`deap_er.tools` module, including bounded Gaussian (`mut_gaussian_bounded`),
+per-gene heterogeneous mutation (`mut_heterogeneous`), and a
+DE/rand/1/bin trial (`mut_de`). Each mutation operator has its own
+characteristics and therefore it's recommended to read their documentation
+before use to avoid undesirable behavior. See the
+[Operators](../reference/operators.md) reference.
 
 In the following example, the original individual is cloned and the clone is
 mutated. This can be done to preserve the original individual if needed, as
@@ -112,7 +114,12 @@ pairs so an existing operator runs on a block. See the
 
 Selection operators are responsible for selecting individuals for subsequent
 evolution processes. There are a variety of selection operators available in
-the `deap_er.tools` module. Each selection operator has its own characteristics
+the `deap_er.tools` module. Besides the usual tournament, roulette, and
+best/worst helpers, that module also ships the multi-objective selectors
+(SPEA-II, NSGA-II, NSGA-III, SMS-EMOA, MOEA/D, AGE-MOEA-II),
+case-structured lexicase variants, program-team selection (`sel_team`),
+and Deb constraint-dominance (`constraint_dominates`, optional on
+NSGA-II). Each selection operator has its own characteristics
 and therefore it's recommended to read their documentation before use to avoid
 undesirable behavior. See the [Operators](../reference/operators.md) reference.
 
@@ -150,9 +157,15 @@ toolbox to solve optimization problems.
 
 A few generic evolutionary algorithms have been built into this library, which
 can be used for various different optimization problems and can accept any
-kind of individuals and operators as input. See the
-[Algorithms](../reference/algorithms.md) reference. The following examples
-demonstrate the most basic ways of solving optimization problems:
+kind of individuals and operators as input. Besides `ea_simple`,
+`ea_mu_plus_lambda`, and `ea_mu_comma_lambda`, the module includes
+`ea_generate_update` / `ea_generate_update_restarts` for CMA,
+`ea_map_elites` for quality-diversity, and `step_islands` for deme
+ecology. The generational loops accept an optional `n_evals=` budget.
+Wrap `evaluate` with `EvalCache` when the same expression should not be
+scored twice. See the [Algorithms](../reference/algorithms.md) reference.
+The following examples demonstrate the most basic ways of solving
+optimization problems:
 
 **Using a builtin algorithm**
 

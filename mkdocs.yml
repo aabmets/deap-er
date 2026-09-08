@@ -105,6 +105,7 @@ nav:
       - Creating Individuals: tutorials/creating_individuals.md
       - Operators and Algorithms: tutorials/operators_and_algorithms.md
       - Columnar Programs: tutorials/columnar_gp.md
+      - Push GP: tutorials/push_gp.md
       - Logging Statistics: tutorials/logging_statistics.md
       - Multiprocessing: tutorials/multiprocessing.md
       - Using Checkpoints: tutorials/using_checkpoints.md

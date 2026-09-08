@@ -19,8 +19,9 @@ Counted from the pages in this section:
   [utilities](../../bugfixes/utilities.md),
   and [algorithms](../../bugfixes/algorithms.md)
 - **51** capabilities DEAP does not have, including boxed CMA,
-  mixed-gene mutation, logbook JSON, and
-  [columnar GP](../../tutorials/columnar_gp.md)
+  mixed-gene mutation, logbook JSON,
+  [columnar GP](../../tutorials/columnar_gp.md), and
+  [Push GP](../../tutorials/push_gp.md)
 
 The rest of this section is that inventory: the rewrite itself (this
 page), then the operators, bookkeeping, genetic programming,

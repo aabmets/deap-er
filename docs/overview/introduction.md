@@ -4,7 +4,8 @@
 evolutionary-algorithm toolbox for Python 3.12 and newer. Register
 operators, run an algorithm. The published API is what this
 documentation describes: genetic algorithms and mixed encodings, tree
-and columnar GP, CMA (boxed, separable, and restarting),
+and columnar GP (including memetic and semantic search helpers), a
+private Push policy loop, CMA (boxed, separable, and restarting),
 multi-objective and quality-diversity search, and case-structured
 selection.
 
@@ -21,8 +22,14 @@ Timed hot paths versus DEAP are on the
 
 - Genetic algorithms on ordinary Python containers (list, array, set,
   dict, tree, NumPy array, and similar), including mixed encodings
+  and differential-evolution variation
 - Genetic programming: prefix trees (loosely typed, strongly typed,
-  ADFs), SlimGP, and columnar programs over named `float64` columns
+  ADFs), SlimGP, columnar programs over named `float64` columns
+  with vectorized, causal-window, and tape / Numba backends, and a
+  private [Push GP](../tutorials/push_gp.md) policy loop that evolves
+  the search around those tapes
+- Program-search helpers: growing language, semantic descriptors,
+  memetic ephemeral tuning, and Keijzer affine scaling
 - Evolution strategies: CMA, boxed CMA, separable CMA, IPOP/BIPOP
   restarts, and MO-CMA
 - Multi-objective search (SPEA-II, NSGA-II, NSGA-III, SMS-EMOA, MOEA/D,
@@ -34,10 +41,11 @@ Timed hot paths versus DEAP are on the
 - Cooperative and competitive co-evolution, plus heterogeneous island
   stepping
 - Parallel evaluation with multiprocessing or with
-  [Ray](https://github.com/ray-project/ray)
+  [Ray](https://github.com/ray-project/ray), plus spawned RNG streams
 - Statistics, hall of fame, evaluation cache and budget, and a
   NetworkX-compatible genealogy
 - Checkpoints that persist a run to disk
 - Benchmarks against common test functions
 - Worked examples of symbolic regression, particle swarm, differential
-  evolution, MAP-Elites, mixed encoding, lexicase, and columnar GP
+  evolution, MAP-Elites, mixed encoding, lexicase, columnar GP, and
+  CMA (boxed, separable, restarting)

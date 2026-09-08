@@ -138,7 +138,9 @@ The following is extra.
     ([Push GP P19](../roadmap/push_gp.md#p19-push-gp-as-the-loop)).
 
 The columnar contract is in the
-[columnar GP tutorial](../../tutorials/columnar_gp.md). Shared-array
+[columnar GP tutorial](../../tutorials/columnar_gp.md). The private
+Push policy loop is in the
+[Push GP tutorial](../../tutorials/push_gp.md). Shared-array
 evaluation is in the
 [multiprocessing tutorial](../../tutorials/multiprocessing.md).
 
