@@ -121,6 +121,9 @@
     values. `Checkpoint(..., hof_ind_cls=)` stores ``hof`` as
     JSON instead of dill and rebuilds it on load. DEAP has no
     text serialization for the hall of fame.
+31. `HallOfFame.insert` and `ParetoFront.insert` skip an individual
+    whose fitness is missing, invalid, or non-finite, matching
+    `update`. `from_json` no longer restores a NaN member.
 
 [deap-25]: https://github.com/DEAP/deap/issues/25
 [deap-121]: https://github.com/DEAP/deap/issues/121

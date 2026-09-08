@@ -253,6 +253,25 @@ Each chapter iterated `data`. A one-shot iterable (generator,
 
 ---
 
+## `HallOfFame.insert` archived invalid and non-finite fitness
+
+`update` already skips missing, invalid, and non-finite fitness.
+`insert` only required a `fitness` attribute, so a direct insert
+or `from_json` restore could archive `wvalues=()` or NaN. Those
+keys then sorted as if they were the best member.
+
+**Fix.** `insert` uses the same comparable-fitness guard as
+`update`. `ParetoFront.insert` and JSON restore go through that
+path.
+
+**Validators.**
+
+- `tests/test_records/test_hall_of_fame_insert.py::test_insert_skips_invalid_and_non_finite_fitness`
+- `tests/test_records/test_hall_of_fame_insert.py::test_pareto_insert_skips_invalid_and_non_finite_fitness`
+- `tests/test_records/test_hall_of_fame_insert.py::test_from_json_does_not_restore_non_finite_fitness`
+
+---
+
 ## `clear` left chapter rows and the stream cursor
 
 `pop` and `__delitem__` keep chapters and `buff_index` aligned.

@@ -55,10 +55,10 @@ class BaseRecordStorage:
         """Insert an individual while preserving sort order; does not enforce maxsize.
 
         Args:
-            individual: Individual to insert. Ignored if it has no
-                fitness attribute.
+            individual: Individual to insert. Ignored if fitness is
+                missing, invalid, or non-finite.
         """
-        if hasattr(individual, "fitness"):
+        if _has_comparable_fitness(individual):
             individual = deepcopy(individual)
             i = bisect_right(self.keys, individual.fitness)
             self.items.insert(len(self) - i, individual)
