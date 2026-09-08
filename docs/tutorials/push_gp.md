@@ -248,3 +248,5 @@ Related reference: [utilities](../reference/utilities.md),
 [operators](../reference/operators.md),
 [algorithms](../reference/algorithms.md),
 [genetic programming](../reference/gp.md).
+A complete script is the
+[Push GP example](../examples/genetic_programming/push_gp.md).
