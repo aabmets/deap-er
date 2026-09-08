@@ -101,6 +101,8 @@ def cx_partially_matched(ind1: Individual, ind2: Individual) -> Mates:
     """
     size = min(len(ind1), len(ind2))
     p1, p2 = _allele_maps(ind1, ind2, size)
+    if size < 2:
+        return ind1, ind2
 
     cxp1 = rng.randint(0, size)
     cxp2 = rng.randint(0, size - 1)

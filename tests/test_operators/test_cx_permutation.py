@@ -29,6 +29,16 @@ def test_partially_matched_and_uniform_pmx_keep_permutations():
     assert sorted(second) == list(range(6))
 
 
+def test_cx_partially_matched_empty_is_noop():
+    empty_left: Any = []
+    empty_right: Any = []
+    first, second = tools.cx_partially_matched(empty_left, empty_right)
+    assert first == []
+    assert second == []
+    assert first is empty_left
+    assert second is empty_right
+
+
 def test_cx_ordered_length_one_is_noop():
     left: Any = [0]
     right: Any = [0]
