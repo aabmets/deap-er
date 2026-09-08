@@ -98,8 +98,12 @@ def test_affine_scale_darwinian_leaves_tree_and_fitness_untouched(ind_cls):
 
 def test_affine_scale_rejects_misaligned_inputs():
     with pytest.raises(ValueError, match="one-dimensional"):
-        tools.affine_scale([[1.0, 2.0]], [1.0, 2.0])
+        tools.affine_scale(numpy.array([[1.0, 2.0]]), numpy.array([1.0, 2.0]))
     with pytest.raises(ValueError, match="same length"):
-        tools.affine_scale([1.0, 2.0], [1.0])
+        tools.affine_scale(numpy.array([1.0, 2.0]), numpy.array([1.0]))
     with pytest.raises(ValueError, match="valid"):
-        tools.affine_scale([1.0, 2.0], [1.0, 2.0], valid=[True])
+        tools.affine_scale(
+            numpy.array([1.0, 2.0]),
+            numpy.array([1.0, 2.0]),
+            valid=numpy.array([True]),
+        )

@@ -10,7 +10,7 @@
 #
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, override
 
 from .columnar import Window
 from .compile_cache import expression_key
@@ -30,6 +30,7 @@ class AffineEphemeral(Ephemeral):
     ret = object
 
     @staticmethod
+    @override
     def func() -> float:
         """Return a placeholder sampled before the fitted value is written."""
         return 0.0
@@ -96,7 +97,9 @@ def _leaf_ret(add_prim: Any) -> type:
     """Return the argument type used for written ``a`` and ``b`` leaves."""
     args = getattr(add_prim, "args", None)
     if args:
-        return args[0]
+        ret = args[0]
+        assert isinstance(ret, type)
+        return ret
     return object
 
 
@@ -107,6 +110,7 @@ def _ephemeral_template(prim_set: Any, ret_type: type) -> type[Ephemeral] | None
     others = [term for key, group in terminals.items() if key is not ret_type for term in group]
     for term in [*preferred, *others]:
         if _is_numeric_ephemeral_type(term):
+            assert issubclass(term, Ephemeral)
             return term
     return None
 
