@@ -16,7 +16,7 @@ from pathlib import Path
 
 from packaging.version import InvalidVersion, Version
 
-_REPO_ROOT = Path(__file__).resolve().parent.parent
+_REPO_ROOT = Path(__file__).resolve().parents[2]
 _PYPROJECT = _REPO_ROOT / "pyproject.toml"
 
 
