@@ -12,7 +12,7 @@ contracts changed. The [differences page](differences.md) is the
 migration note and the inventory of work that accumulated on top of
 the original toolbox. Timed hot paths versus DEAP are on the
 [performance page](performance.md). Planned library work is on the
-[roadmap](roadmap.md).
+[roadmap](roadmap/index.md).
 
 ## Capabilities
 
