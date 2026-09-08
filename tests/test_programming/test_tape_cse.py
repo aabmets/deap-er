@@ -148,3 +148,46 @@ def test_identical_full_tapes_share_one_root_node():
     plan = tape_cse.build_cse_plan([tape, tape, tape])
     assert len(plan.nodes) == 3
     assert plan.roots == (2, 2, 2)
+
+
+def test_evaluate_nodes_opcode_returns_one_slot_per_node_id():
+    matrix = _matrix(_samples())
+    plan = tape_cse.build_cse_plan([_tape_add_shared_mul(column) for column in COLUMNS])
+    values = tape_cse._evaluate_nodes_opcode(plan.nodes, matrix)
+    assert len(values) == len(plan.nodes)
+    for node_id in range(len(plan.nodes)):
+        assert isinstance(values[node_id], numpy.ndarray)
+        assert values[node_id].shape == (matrix.shape[0],)
+
+
+def test_compacting_evaluated_values_breaks_root_indexing():
+    matrix = _matrix(_samples())
+    plan = tape_cse.build_cse_plan([_tape("vadd(first, second)")])
+    root = plan.roots[0]
+    assert root == len(plan.nodes) - 1
+    slots: list[numpy.ndarray | None] = [None] * len(plan.nodes)
+    for node_id in range(len(plan.nodes)):
+        slots[node_id] = numpy.full(matrix.shape[0], float(node_id))
+    compacted = [value for value in slots if value is not None]
+    assert len(compacted) == len(slots)
+    slots[0] = None
+    compacted = [value for value in slots if value is not None]
+    assert len(compacted) < len(slots)
+    with pytest.raises(IndexError):
+        compacted[root]
+
+
+def test_run_opcode_cse_requires_uncompacted_node_values(monkeypatch):
+    matrix = _matrix(_samples())
+    tapes = [_tape_add_shared_mul("third")]
+    plan = tape_cse.build_cse_plan(tapes)
+    original = tape_cse._evaluate_nodes_opcode
+
+    def legacy_compacting(nodes, matrix):
+        values = original(nodes, matrix)
+        return values[1:]
+
+    monkeypatch.setattr(tape_cse, "_evaluate_nodes_opcode", legacy_compacting)
+    with pytest.raises(IndexError):
+        tape_cse.run_opcode_cse(tapes, matrix)
+    assert plan.roots[0] == len(plan.nodes) - 1

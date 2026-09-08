@@ -192,4 +192,7 @@ def _evaluate_nodes_opcode(
         operand = int(node.tape.operands[-1])
         _apply_opcode(stack, matrix, node.tape, opcode, operand)
         values[index] = numpy.asarray(stack[-1], dtype=numpy.float64)
-    return [value for value in values if value is not None]
+    for index, value in enumerate(values):
+        if value is None:
+            raise ValueError(f"CSE node {index} was not evaluated.")
+    return values

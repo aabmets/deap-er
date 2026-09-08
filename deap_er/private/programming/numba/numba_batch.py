@@ -199,6 +199,8 @@ def run_tapes(
     use_parallel = parallel and numba.get_num_threads() > 1
     has_consumer = any(numpy.any(tape.opcodes >= USER_BASE) for tape in tapes)
     if not use_parallel and not has_consumer:
+        max_depth = max(tape.depth for tape in tapes)
+        reserve(max_depth, rows)
         return run_opcode_cse(tapes, matrix)
     packed = _pack(tapes)
     streams = (packed["opcodes"], packed["operands"], packed["constants"])
