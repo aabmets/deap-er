@@ -2,40 +2,34 @@
 
 deap-er is a rewrite, not a drop-in rename, but the same genomes and
 GP expressions can be timed on both libraries. The chart below is
-**relative speed**: DEAP/deap is the unit baseline (100%). A longer
-bar means deap-er finished the same work in less wall time.
+**mean wall time of one deap-er run** for each component. Shared
+DEAP↔deap-er cases append
+`(deap_er − deap) / deap × 100` in parentheses (negative means
+deap-er was faster than DEAP). Unique deap-er features show the time
+only.
 
-![Hot-path speed of aabmets/deap-er 3.0.0 relative to DEAP/deap 1.4.4](../images/hotpath-speedups.png)
+![Hot-path time of aabmets/deap-er versus DEAP/deap when shared](../images/deaper_perf_bench.png)
 
-Each bar is the mean of 50 timed runs after 2 warmups. Versions in
-the title are the packages that produced the JSON, not whatever is
-installed when the figure is redrawn.
+Bar color is the comparison class, not the time:
 
-| Case | Relative speed |
-|:-----|---------------:|
-| `sel_lexicase` n=200 k=100 cases=500 | 64× |
-| `nsga_convergence` n=40 | 50× |
-| `sel_nsga_2` n=80 k=40 | 21× |
-| `compile_tree` 10 trees ×20 repeats | 18× |
-| `sel_spea_2` n=160 k=80 | 5.5× |
-| `sel_spea_2` n=80 k=40 | 4.8× |
-| `clone_individual` n=60 | 3.9× |
-| `sel_nsga_3` n=80 k=40 | 2.1× |
-| `sel_tournament` n=80 k=80 | 2.0× |
-| `fitness.values` ×200 on n=80 | 1.7× |
-| `fitness.dominates` pairwise n=80 | 1.6× |
-| `ParetoFront.update` n=80 | 1.3× |
-| `compile_tree` 40 unique trees | 1.1× |
-| `deepcopy` n=60 | 1.1× |
-| `ea_simple` n=40 gens=8 | 0.87× |
+- **Green** — shared DEAP↔deap-er case where deap-er is faster.
+  Darker green is a larger improvement versus DEAP, scaled to
+  the biggest win on the chart.
+- **Gray** — shared case where deap-er is slower than DEAP, or
+  where percent change is missing.
+- **Indigo** — deap-er-only feature (no DEAP counterpart).
 
-Green is darker as the speedup grows past 100%. The gray bar is
-below the DEAP baseline.
+Each bar is the mean of 50 timed runs after 2 warmups unless the JSON
+`notes` field records a smaller repeat for a heavy CMA, MAP-Elites,
+or Numba path. Versions in the title are the packages that produced
+the JSON, not whatever is installed when the figure is redrawn.
 
-## What is faster
+Shared cases keep the same workloads as the previous DEAP comparison.
 
-The largest gains sit on numeric or cached work that DEAP still does
-in Python loops:
+## What is faster than DEAP
+
+The largest shared-case gains sit on numeric or cached work that DEAP
+still does in Python loops:
 
 - **`nsga_convergence`** — pairwise distances go through SciPy
   `cdist` on fitness coordinates, not a Python double loop over
@@ -69,9 +63,9 @@ in Python loops:
   indexed loop. **`ParetoFront.update`** uses that same compare
   against a growing archive.
 
-## What is slower
+## What is slower than DEAP
 
-One case on this machine sits under 100%:
+One shared case on this machine sits under the DEAP baseline:
 
 - **`ea_simple`** — about 0.87× DEAP (2.02 ms vs 1.75 ms on n=40,
   8 generations). Isolated `sel_tournament` is ahead of DEAP.
@@ -87,20 +81,37 @@ One case on this machine sits under 100%:
 
 That one case does not cancel the selection, clone, and compile
 wins. A run that spends its time in SPEA-II, NSGA-II/III, or
-repeated GP compile will see the chart's upper bars. A tiny OneMax
-loop that is almost entirely uniform draws in variation will look
-like `ea_simple`.
+repeated GP compile will see those shared bars improve. A tiny
+OneMax loop that is almost entirely uniform draws in variation will
+look like `ea_simple`.
+
+## Unique features
+
+The same bench also times deap-er-only capabilities from the
+[differences inventory](differences.md) (features, not bugs): boxed
+operators and CMA, SMS-EMOA / MOEA/D / AGE-MOEA-II, MAP-Elites
+archives, island stepping, columnar GP tapes, SlimGP, and related
+helpers. Pure docs or API cosmetics (`tree_to_infix`, `call_zero`,
+empty Logbook header, logbook JSON, `ea_* logger`) are skipped.
 
 ## How to reproduce
 
 From the repo root, with the `dev` extra (DEAP and seaborn):
 
 ```text
-uv run python tools/bench_hotpaths.py
-uv run python tools/plot_hotpath_speedups.py -o docs/images/hotpath-speedups.png
+uv run python tools/perf_bench
+uv run python tools/perf_bench -d reports
 ```
 
-The bench writes `reports/hotpath-bench.json` (gitignored). Both
-libraries receive the same numeric genomes and the same GP
-expression strings. First-time compile skips warmup and clears
-deap-er's compile cache on every sample.
+Both `deaper_perf_bench.json` and `deaper_perf_bench.png` land in the
+same directory (`reports/` by default) and overwrite files already
+there. `tools/bench_hotpaths.py` is a thin shim for the same entry.
+The chart is written by importing `write_chart` directly (no
+subprocess). To redraw the figure from an existing JSON, call
+``plot_main`` from ``tools/perf_bench`` with the same ``-d``. Copy
+`reports/deaper_perf_bench.png` to `docs/images/deaper_perf_bench.png`
+to refresh the page figure.
+
+Both libraries receive the same numeric genomes and the same GP
+expression strings on shared cases. First-time compile skips warmup
+and clears deap-er's compile cache on every sample.
