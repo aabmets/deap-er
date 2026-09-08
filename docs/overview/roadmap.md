@@ -43,13 +43,30 @@ surface.
 | 24 | [Memetic constants](#24-memetic-constants) | `gp`, `strategies` | shipped |
 | 25 | [Streaming and island ecology](#25-streaming-and-island-ecology) | `algorithms` | shipped |
 | 26 | [Program teams](#26-program-teams) | `operators` | shipped |
+| 27 | [Batch-epsilon-lexicase and down-sampled tournament](#27-batch-epsilon-lexicase-and-down-sampled-tournament) | `operators` | planned |
+| 28 | [Dynamic epsilon and downsample schedule](#28-dynamic-epsilon-and-downsample-schedule) | `operators` | planned |
+| 29 | [Novelty selection and iso+line](#29-novelty-selection-and-isoline) | `operators`, `records` | planned |
+| 30 | [Causal lookback and suffix rescore](#30-causal-lookback-and-suffix-rescore) | `gp` | planned |
+| 31 | [Affine scaling and Lamarckian writeback](#31-affine-scaling-and-lamarckian-writeback) | `gp`, `utilities` | planned |
+| 32 | [Constraint-dominance on remaining selectors](#32-constraint-dominance-on-remaining-selectors) | `operators` | planned |
+| 33 | [Archive-improving CMA](#33-archive-improving-cma) | `strategies` | planned |
+| 34 | [RVEA and R-NSGA-II](#34-rvea-and-r-nsga-ii) | `operators` | planned |
+| 35 | [Adaptive DE strategy](#35-adaptive-de-strategy) | `strategies` | planned |
+| 36 | [Population tape CSE](#36-population-tape-cse) | `gp` | planned |
+| 37 | [Evaluation budget and eval cache](#37-evaluation-budget-and-eval-cache) | `algorithms`, `utilities` | planned |
+| 38 | [Parallel RNG streams](#38-parallel-rng-streams) | `rng` | planned |
 
 Shipping an item updates this page and the matching tutorial or
 reference stub. Items 15–20 are the toolbox-shaped holes after
 the first backlog; they are shipped. Items 21–26 compose pieces
 that already shipped (tapes, SlimGP, lexicase, archives, CMA)
 into a longer program-search loop, and they are shipped.
-Still not a second genome family.
+Items 27–38 are the next backlog: case-selection schedules,
+archive search, causal streaming, memetic symbolic regression,
+and the remaining toolbox holes. Ideas that compose the same
+pieces but wait on a profile, a sequel, or a recipe stay in
+[Being considered](#being-considered). Still not a second
+genome family.
 
 !!! note
     deap-er stays a pure-Python package. Native work remains an
@@ -943,6 +960,402 @@ Related: [item 5](#5-down-sampled-and-informed-lexicase),
 
 ---
 
+## 27. Batch-epsilon-lexicase and down-sampled tournament
+
+**What.** Two selectors that reuse `fitness_case_matrix` instead of
+walking every case:
+
+- **Batch-ε-lexicase** — collapse random groups of cases into one
+  reduction per batch (MSE is the usual one), then run the existing
+  ε-lexicase filter on the shorter matrix. Same `matrix=` /
+  `cases=` / `trust_matrix=` contract.
+- **Down-sampled tournament** — `sel_tournament_cases` (name
+  flexible) scores each individual on a case subset (mean of those
+  columns, or the caller's reduction) and tournaments. Informed
+  down-sampling stays `sample_informed_cases`.
+
+`sel_lexicase` and `sel_epsilon_lexicase` defaults do not change.
+
+**Today.** Lexicase and MAD-ε already filter a packed
+$(n, \textit{cases})$ matrix. `sample_informed_cases` builds a
+subset. Tournament still reads a scalar `wvalues[0]`. There is no
+batch reduction of cases and no tournament that sees a case
+subset.
+
+**Benefit.** Batch-ε-lexicase is the usual next lexicase variant
+on noisy regression (Geiger et al.). Tournament plus down-sampling
+is the fast path that recent symbolic-regression comparisons put
+next to ε-lexicase. Both buy more individuals per evaluation
+budget without plexicase.
+
+**Scope.** Case-matrix reductions and one tournament wrapper. Not
+a third ad-hoc lexicase family. Plexicase stays deferred (item 10)
+until a profile shows selection still dominates after this and
+[item 28](#28-dynamic-epsilon-and-downsample-schedule).
+
+Related: [item 5](#5-down-sampled-and-informed-lexicase),
+[item 10](#10-vectorized-lexicase-and-plexicase).
+
+---
+
+## 28. Dynamic epsilon and downsample schedule
+
+**What.** Two small policies on the existing lexicase path:
+
+1. **Dynamic / semi-dynamic ε** — recompute the elite error and/or
+   per-case MAD on the *current filter pool*, not only on the whole
+   population (La Cava). A `mode=` on the vectorized filter, not a
+   third selector.
+2. **Downsample schedule** — a helper that returns the next
+   `cases=` list each generation: random, informed, cohort, or
+   rotate-through-held-out. Chronological meaning stays on the
+   caller; this is index policy.
+
+**Today.** `sel_epsilon_lexicase` with `epsilon=None` uses static
+per-case MAD on the packed matrix. `sample_informed_cases` and
+`next_lexicase_cases` build one subset. There is no filter-pool
+ε and no generation-indexed schedule object.
+
+**Benefit.** Static MAD is elite on easy cases and slack on hard
+ones in a way that does not track the remaining pool. A schedule
+turns exams + lexicase into a one-liner instead of a hand-rolled
+index dance.
+
+**Scope.** Filter-pool ε and an index schedule. Not a split
+algorithm, not timestamps, not a metric catalog.
+
+Related: [item 5](#5-down-sampled-and-informed-lexicase),
+[item 23](#23-co-evolving-cases),
+[item 27](#27-batch-epsilon-lexicase-and-down-sampled-tournament).
+
+---
+
+## 29. Novelty selection and iso+line
+
+**What.** The minimum variation / selection pair that makes a
+MAP-Elites archive *search* behavior space:
+
+- `sel_novelty` ranks by distance to an archive (reuse
+  `semantic_distance` / `UnstructuredArchive` neighbors). Fitness
+  stays on `ind.fitness`; novelty is the selection key.
+- `mut_iso_line` (name flexible): pick a donor elite, interpolate,
+  add isotropic noise. Discrete / mixed encodings get the same
+  recipe on the gene types they already have.
+
+`ea_map_elites` can register them like any other `select` /
+`mutate`. `random_elites` stays the parent source.
+
+**Today.** `GridArchive`, `CvtArchive`, and `UnstructuredArchive`
+store elites. `ea_map_elites` varies with generic `var_or`.
+`semantic_nearest` looks up neighbors. There is no novelty
+selector and no archive-aware variation operator.
+
+**Benefit.** An archive that only `add`s and then runs ordinary
+crossover is a hall of fame with bins. Iso+line and novelty are
+how MAP-Elites papers actually move in descriptor space. Item 22's
+semantic geometry gets a selector that lives in that space.
+
+**Scope.** One selector and one mutator. Dominated novelty, a
+Pareto-per-cell archive, and CMA-MAE thresholds stay in
+[Being considered](#being-considered) until this pair exists.
+
+Related: [item 8](#8-quality-diversity-archive),
+[item 20](#20-cvt-unstructured-map-elites),
+[item 22](#22-semantic-search-space).
+
+---
+
+## 30. Causal lookback and suffix rescore
+
+**What.** The correct form of the incremental path item 25
+deferred. Each opcode declares a finite lookback (the `Window`
+arg, `delay` steps, `ema` warmup). A helper
+`tape_lookback(tape) -> int` returns the program's bound. A
+second helper rescores only `lookback + n_new` trailing rows
+after an append-only `vstack` and writes them back onto the
+cached prefix so the full series matches a full-matrix
+`interpret_tapes` oracle.
+
+**Today.** Append-only evaluation is a documented full-matrix
+rescore. A suffix-only score is not a library path — window
+warmup would be wrong without history.
+
+**Benefit.** Evolution can sit on a pipe without replaying the
+whole history every generation. The lookback certificate is
+what makes a dirty suffix legal; without it, incremental
+rescore is a lookahead bug.
+
+**Scope.** Lookback metadata plus a suffix rescore that matches
+the Python oracle, including `nan` warmup. Not a Ray/GPU
+daemon. Not a custom dirty-row protocol per caller.
+
+Related: [item 3](#3-incremental-window-kernels),
+[item 4](#4-batch-tape-evaluation),
+[item 25](#25-streaming-and-island-ecology).
+
+---
+
+## 31. Affine scaling and Lamarckian writeback
+
+**What.** Keijzer linear scaling next to `tune_ephemerals`.
+Given aligned `predicted` and `target` (and the same `valid=`
+mask `case_errors` already uses), fit $a + b\,f(x)$ in the
+least-squares sense.
+
+- **Darwinian:** use the scaled series only to write fitness /
+  case errors. The tree is unchanged.
+- **Lamarckian:** write $a$ and $b$ back as ephemerals or as a
+  wrapping Slim delta, then invalidate fitness and the compile
+  cache for that expression.
+
+**Today.** `tune_ephemerals` polishes numeric leaves with a short
+boxed CMA / sep-CMA loop. `case_errors` is unscaled MSE.
+There is no affine correction before the memetic step.
+
+**Benefit.** Structure plus $a + b\,f(x)$ is the usual difference
+between a shape that still fights intercept and slope and a law
+the numeric engine can finish. Both halves already exist; they
+do not meet.
+
+**Scope.** One scaling helper and an optional writeback onto
+leaves / Slim deltas. No Autograd. No domain fitness.
+
+Related: [item 6](#6-case-structured-evaluation-helper),
+[item 24](#24-memetic-constants).
+
+---
+
+## 32. Constraint-dominance on remaining selectors
+
+**What.** The same Deb rule already on `sel_nsga_2` — feasible
+beats infeasible; two feasibles use ordinary Pareto / crowding;
+two infeasibles prefer the smaller violation — on
+`sel_nsga_3`, `sel_sms_emoa`, `sel_spea_2`, and
+`sel_age_moea_2`. Optional `feasible=` / `violation=` kwargs.
+Omitted kwargs keep the unconstrained path. Fitness values are
+not rewritten.
+
+**Today.** `constraint_dominates` and `sel_nsga_2(..., feasible=,
+violation=)` exist. The other environmental selectors ignore
+feasibility.
+
+**Benefit.** Constrained many-objective users stop inventing a
+penalty scale for every selector. Penalties remain the other
+path. Closes the rest of the [constraint-handling][deap-30]
+request that item 18 started.
+
+**Scope.** One comparison rule on the selectors that already
+rank fronts. Not a constraint framework. Stochastic ranking and
+ε-level comparison stay in
+[Being considered](#being-considered).
+
+Related: [item 18](#18-constraint-dominance-selection).
+
+---
+
+## 33. Archive-improving CMA
+
+**What.** A `generate` / `update` wrapper (for example
+`ArchiveStrategy`) around `Strategy` or `StrategySeparable`.
+Each sample's *search* fitness is archive improvement: new cell,
+or strictly better elite in that cell — not `ind.fitness` alone.
+`add` still ranks the cell by the individual's real fitness.
+`RestartStrategy` can wrap it. Box constraints from the inner
+strategy are preserved.
+
+**Today.** CMA strategies optimize a fitness vector. Archives
+`add` whatever the caller evaluated. The two meet only in the
+caller's loop.
+
+**Benefit.** CMA-ME is “CMA's objective is archive improvement.”
+Both halves shipped; this is the meeting point. Not a learned
+quality-diversity model — the emitter is still Hansen CMA.
+
+**Scope.** One strategy wrapper and an improvement score.
+CMA-MAE's decaying threshold, Pareto-per-cell archives, and
+hypervolume-per-cell updates stay in
+[Being considered](#being-considered) until this object exists.
+
+Related: [item 8](#8-quality-diversity-archive),
+[item 13](#13-ipop-bipop-cma-restarts),
+[item 19](#19-sep-cma),
+[item 29](#29-novelty-selection-and-isoline).
+
+---
+
+## 34. RVEA and R-NSGA-II
+
+**What.** Two selectors that reuse `uniform_reference_points`:
+
+- **RVEA** — angle-penalized distance (APD) scalarization plus
+  reference-vector adaptation. The many-objective path when
+  NSGA-III's simplex assumption is the wrong geometry.
+- **R-NSGA-II** — caller-supplied aspiration / reference
+  point(s); crowding becomes distance-to-preference. Not
+  interactive evolution — no clicks.
+
+**Today.** NSGA-III, MOEA/D (Tchebycheff / PBI), and AGE-MOEA-II
+cover the usual many-objective set. There is no APD selector and
+no preference-point crowding.
+
+**Benefit.** The two requests those three still miss: an irregular
+front that wants reference-vector adaptation, and an engineer
+who cares about one corner of the front.
+
+**Scope.** Two selectors. IBEA, HypE, GDE3, and AGE-MOEA-II+
+stay in [Being considered](#being-considered) — they catalog
+more of pymoo rather than close a hole.
+
+Related: [item 12](#12-moead-and-age-moea-ii),
+[item 18](#18-constraint-dominance-selection).
+
+---
+
+## 35. Adaptive DE strategy
+
+**What.** A `generate` / `update` object (for example
+`StrategyDE`) with a SHADE-style success memory for $F$ and
+`CR`. `generate` writes trials with `mut_de` (and, if cheap,
+current-to-pbest/1). `update` keeps the better of parent and
+trial and records successful parameters. Optional `low` / `up`
+match the existing clamp on `mut_de`.
+
+**Today.** `mut_de` is DE/rand/1/bin. Selection and adaptive
+$F$ / `CR` stay on the caller. There is no `ea_de` — item 17
+scoped that out on purpose.
+
+**Benefit.** Adaptive DE is the algorithm people actually run.
+A strategy keeps that promise without a new algorithm family.
+
+**Scope.** One generate/update object. Extra trial recipes are
+parameters of that strategy, not a catalog. No first-class
+`ea_de` or PSO algorithm.
+
+Related: [item 17](#17-differential-evolution-operators).
+
+---
+
+## 36. Population tape CSE
+
+**What.** Hash-cons postfix suffixes across a generation, evaluate
+each unique sub-tape once against the packed matrix, and stitch
+the results. Same Python oracle, same `nan` warmup, same
+`interpret_tapes` return shape $(n_{\mathrm{ind}}, n_{\mathrm{rows}})$.
+
+**Today.** `interpret_tapes` batches individuals against one
+matrix. Shared *subexpressions* across individuals are evaluated
+again.
+
+**Benefit.** The next columnar speedup after items 3, 4, and 9
+that does not need a C rewrite. A generation of related trees
+shares most of its suffixes. Same programs, less work.
+
+**Scope.** Common-subexpression elimination inside the batch
+interpreter. Incremental `ts_rank` stays a kernel tweak in
+[Being considered](#being-considered). No new language.
+
+Related: [item 4](#4-batch-tape-evaluation),
+[item 9](#9-compile-and-clone-path).
+
+---
+
+## 37. Evaluation budget and eval cache
+
+**What.** Two plumbing pieces on the shared algorithm loop:
+
+1. **`n_evals=`** (or an equivalent stop) on `ea_simple`,
+   `ea_mu_plus_lambda`, `ea_mu_comma_lambda`, and
+   `ea_map_elites`. `ea_generate_update_restarts` already stops
+   on evaluations. Generations remain the default.
+2. **`EvalCache`** — wrap `evaluate` / `evaluate_batch` with a
+   key of expression text (or a caller key) plus matrix identity
+   / row count. `promote_subtree` and `tune_ephemerals` already
+   invalidate compile-cache entries; the fitness cache must
+   drop those keys too.
+
+**Today.** Most `ea_*` drivers stop on generations.
+`evaluate_invalid` recomputes every invalid individual.
+`compile_tree` caches code, not fitness.
+
+**Benefit.** GP papers report evaluation budgets. A cache is the
+other half of the compile LRU: the same tree on the same matrix
+should not pay `evaluate` twice.
+
+**Scope.** A stop condition and a cache with explicit
+invalidation. Not adaptive operator rates, not racing, not a
+new algorithm.
+
+Related: [item 9](#9-compile-and-clone-path),
+[item 13](#13-ipop-bipop-cma-restarts),
+[item 24](#24-memetic-constants).
+
+---
+
+## 38. Parallel RNG streams
+
+**What.** Independent, seedable streams for spawned workers that
+still reproduce a run. Process-wide `rng` stays the default and
+stays checkpointable. A worker map (or a documented
+`spawn_rng(seed, worker_id)` helper) draws from a stream that
+does not collide with the parent and does not depend on
+scheduling order.
+
+**Today.** `deap_er.rng` is one process-wide NumPy `Generator`.
+`Checkpoint` persists it. `toolbox.map` as a process pool gives
+each worker a fresh interpreter — and either a duplicate stream
+or an unreproducible one.
+
+**Benefit.** The last reproducibility hole that is still open on
+DEAP ([user-provided streams][deap-75] for parallel runs). Golden
+tests and papers that use `evaluate_batch` in a pool need a
+stream contract, not “hope the OS schedules the same way.”
+
+**Scope.** Stream derivation and a worker entry point. Not a
+second RNG library. Not switching the parent stream off NumPy.
+
+Related: [item 4](#4-batch-tape-evaluation),
+[Multiprocessing](../tutorials/multiprocessing.md).
+
+---
+
+## Being considered
+
+These ideas stay off the numbered backlog. They compose the same
+pieces as items 27–38, but they wait on a profile, a sequel to a
+planned item, or a recipe the caller can write today. Promotion
+onto the table above needs a documented gap after the item they
+depend on, not a catalog of every named algorithm.
+
+| Idea | Why later |
+|:-----|:----------|
+| Plexicase | Item 10 already deferred it until a profile shows selection dominating after matrix lexicase, [item 27](#27-batch-epsilon-lexicase-and-down-sampled-tournament), and [item 28](#28-dynamic-epsilon-and-downsample-schedule). |
+| Structural meta-case regularization | Extra case columns (size, depth, opcode histogram). A recipe on `fitness_case_matrix` until the lexicase schedules exist. |
+| Dominated novelty search | Same family as [item 29](#29-novelty-selection-and-isoline). More mechanism after `sel_novelty` exists. |
+| Multi-objective MAP-Elites (Pareto per cell) | Sequel to [item 29](#29-novelty-selection-and-isoline) / [item 33](#33-archive-improving-cma). `ParetoFront` already exists. |
+| CMA-MAE thresholds / MO-CMA-MAE | Sequel to [item 33](#33-archive-improving-cma). Decaying thresholds and hypervolume-per-cell once improvement-CMA exists. |
+| Phenotypic / probe descriptors | `interpret_tapes` on a short probe matrix plus `semantic_project`. A helper after archive search is real. |
+| Incremental `ts_rank` | Last $O(\textit{window})$ Numba scan. Kernel polish, not a new loop. |
+| Interval / range analysis on tapes | Static bounds through the opcode kit. Secondary to a legal suffix rescore ([item 30](#30-causal-lookback-and-suffix-rescore)). |
+| Homologous / semantic-aware GP crossover | Type-matched one-point exists. Alignment or `semantic_nearest` on subtrees after affine scaling and CSE. |
+| Index-only walk-forward builder | Pure index arithmetic (`ranges_from_folds`). Item 6 already refused to own splits; easy for the caller. |
+| Stochastic ranking / ε-level constraints | Second and third comparison rules. [Item 32](#32-constraint-dominance-on-remaining-selectors) finishes the Deb rule already chosen. |
+| IBEA / HypE | Indicator selection that duplicates SMS-EMOA's hypervolume story. |
+| GDE3 / NSDE | `mut_de` plus `sel_nsga_2` / `sel_nsga_3` is a recipe, not a new family. |
+| AGE-MOEA-II+ | Curvature tweak on a selector that just shipped. |
+| Extra DE trial recipes (current-to-pbest/1) | Parameters of [item 35](#35-adaptive-de-strategy), not a separate row. |
+| Active CMA / mirrored sampling | Flags on `Strategy`. Polish after sep-CMA and restarts. |
+| Mixed-integer CMA | Integer coordinates on boxed CMA. High value, sibling of shipped `Strategy`, not program search. |
+| SNES / CEM | $O(n)$ generate/update next to `StrategySeparable`. Wait until a user hits a wall after sep-CMA. |
+| Adaptive operator rates (MAB / probability matching) | Policy over `{mate, mutate, slim, tune}`. After [item 37](#37-evaluation-budget-and-eval-cache). |
+| Batched `var_and` uniforms | Closes the tiny `ea_simple` vs DEAP bar. Housekeeping, not a loop. |
+| Island topologies beyond `mig_ring` | Fully connected / random migrate. `step_islands` already accepts any `migrate`. |
+| Noisy fitness resample / racing | `resample` plus a racing stop. After the eval cache so repeats are cheap. |
+| Persistent hall of fame | DEAP persistency request. `Checkpoint` already dill-dumps arbitrary state; `Logbook` already has JSON. |
+| WFG / constrained DTLZ benchmarks | Test problems for [item 32](#32-constraint-dominance-on-remaining-selectors) and [item 34](#34-rvea-and-r-nsga-ii). Not library surface. |
+| `step_program_search` thin loop | Evaluate → exams → lexicase → Slim → tune → archive → team. Every piece exists; a wrapper wants to become a framework. |
+
+---
+
 ## Not planned
 
 These ideas stay off the library surface. They are listed so the
@@ -957,4 +1370,7 @@ backlog above is not read as “everything in the 2025 GP literature.”
 | Learned quality-diversity / meta-BBO | A research paper, not a toolbox function. Item 22 is a semantic descriptor and nearest-neighbor, not a trained QD model. |
 | Interactive / human-in-the-loop evolution | A notebook over `archive` + `tree_to_infix`. Machine-checkable pressure is items 22–23 and 26, not clicks. |
 | Switching persistence off dill, or replacing `creator` with dataclasses | Forbidden by the project contract. |
-| An in-tree C / Cython rewrite of operators, CMA, or selection | Not the bottleneck; those modules must stay readable. Revisit an *optional* tape backend only after items 3, 4, and 9 are in and a profile still points at `interpret`. |
+| An in-tree C / Cython rewrite of operators, CMA, or selection | Not the bottleneck; those modules must stay readable. Revisit an *optional* tape backend only after items 3, 4, 9, and 36 are in and a profile still points at `interpret`. |
+
+[deap-30]: https://github.com/DEAP/deap/issues/30
+[deap-75]: https://github.com/DEAP/deap/issues/75
