@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 
 import pytest
+from deap_er import gp
 from deap_er.private.programming.numba.numba_ops import (
     numba_available,
 )
@@ -29,7 +30,7 @@ __all__ = [
 
 REPO = Path(__file__).resolve().parents[2]
 NUMBA_GROUP = "numba"
-NUMBA_FILES = frozenset({"test_window_pair.py", "test_window_ts.py"})
+NUMBA_FILES = frozenset({"test_window_pair.py", "test_window_ts.py", "test_promote_columnar.py"})
 _warmed = False
 
 
@@ -49,6 +50,7 @@ def _warmup() -> None:
         return
     compile_numba(parallel=True)
     compile_numba(parallel=True, dispatch=consumer_dispatch())
+    gp.ema([0.0, 1.0, 2.0], 2)
 
 
 @pytest.hookimpl(tryfirst=True)

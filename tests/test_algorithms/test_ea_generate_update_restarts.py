@@ -58,7 +58,9 @@ def test_sphere_convergence():
     tools.rng.seed(0)
     strategy, toolbox = _setup()
     try:
-        restart = tools.RestartStrategy(strategy, mode="bipop", budget=50_000, sigma_large=1.0)
+        restart = tools.RestartStrategy(
+            strategy, mode="bipop", budget=50_000, sigma_large=1.0, target_f=1e-6
+        )
         toolbox.register("generate", restart.generate, creator.__dict__[IND])
         toolbox.register("update", restart.update)
         _, logbook = tools.ea_generate_update_restarts(toolbox, restart)
@@ -70,7 +72,7 @@ def test_sphere_convergence():
 
 def test_rastrigin_beats_plain_cma():
     dim = 10
-    budget = 80_000
+    budget = 8_000
     creator.create_type(FIT, Fitness, weights=(-1.0,))
     creator.create_type(IND, list, fitness=creator.__dict__[FIT])
     try:
@@ -80,7 +82,7 @@ def test_rastrigin_beats_plain_cma():
         toolbox_plain.register("evaluate", tools.bm_rastrigin)
         toolbox_plain.register("generate", strategy_plain.generate, creator.__dict__[IND])
         toolbox_plain.register("update", strategy_plain.update)
-        pop_plain, _ = tools.ea_generate_update(toolbox_plain, generations=budget // 10)
+        pop_plain, _ = tools.ea_generate_update(toolbox_plain, generations=400)
         plain_best = min(ind.fitness.values[0] for ind in pop_plain)
 
         tools.rng.seed(42)

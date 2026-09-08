@@ -54,6 +54,7 @@ def test_the_numba_backend_matches_the_default_backend():
     pset = _kit("NUMBA_OPS_PARITY")
     columns = _samples()
     tools.rng.seed(29)
+    gp.ema(columns[0], 2)
 
     for _ in range(250):
         tree = gp.PrimitiveTree(gp.gen_half_and_half(pset, 2, 4))
