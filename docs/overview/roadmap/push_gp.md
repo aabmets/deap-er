@@ -25,7 +25,7 @@ page. Items 30, 31, 37, and 38 are shipped on both pages.
 | P8 | [Memetic constants](features_21_30.md#24-memetic-constants) (item 24) | `gp`, `strategies` | shipped |
 | P9 | [Streaming and island ecology](features_21_30.md#25-streaming-and-island-ecology) (item 25) | `algorithms` | shipped |
 | P10 | [Program teams](features_21_30.md#26-program-teams) (item 26) | `operators` | shipped |
-| P11 | [Policy observation schema](#p11-policy-observation-schema) | `records`, `utilities` | planned |
+| P11 | [Policy observation schema](#p11-policy-observation-schema) | `records`, `utilities` | shipped |
 | P12 | [Policy action applicator](#p12-policy-action-applicator) | `algorithms` | shipped |
 | P13 | [Held-out policy fitness](#p13-held-out-policy-fitness) | `records`, `operators` | planned |
 | P14 | [Action guards and cooldowns](#p14-action-guards-and-cooldowns) | `operators` | planned |
@@ -36,8 +36,9 @@ page. Items 30, 31, 37, and 38 are shipped on both pages.
 | P19 | [Push GP as the loop](#p19-push-gp-as-the-loop) | `gp` (private policy) | planned |
 
 P1–P10 are shipped on the main table and still sit on this
-path: the two-level loop *uses* them. P11–P14 are new
-firewall pieces. P15–P18 are shipped. P19 is last on purpose.
+path: the two-level loop *uses* them. P11–P12 are shipped
+firewall pieces; P13–P14 remain planned. P15–P18 are shipped.
+P19 is last on purpose.
 
 !!! note
     A linear policy or a fixed decision list on the same
@@ -196,9 +197,14 @@ unsolved count, train vs held-out score, archive coverage /
 fitness-invalid flag, last action rejected. No `Array`, no
 column slice, no `matrix[t]`.
 
-**Today.** Every field is computable from items 5, 6, 8, 21,
-22, and 23. There is no contract that forbids a later
-instruction from loading a column.
+**Today.** Shipped as
+[`PolicyObservation`](../differences/utilities.md#10-policy-observation-schema)
+and :func:`~deap_er.tools.policy_observe`. Summary helpers
+coerce outputs from :func:`~deap_er.tools.case_errors`,
+:func:`~deap_er.tools.score_case_exams`,
+:class:`~deap_er.records.ArchiveStats`, and promoted-library
+counters. Raw NumPy packs are rejected at the observation
+boundary.
 
 **Benefit.** This *is* the firewall. Without it, Push grows
 a load-column opcode and the causal story is gone.

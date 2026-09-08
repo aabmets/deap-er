@@ -22,6 +22,7 @@ from .private.various.hypervolume import *
 from .private.various.initializers import *
 from .private.various.least_contrib import *
 from .private.various.metrics import *
+from .private.various.policy_observe import *
 from .private.various.rng import *
 from .private.various.rng_spawn import *
 from .private.various.semantic_descriptors import *
