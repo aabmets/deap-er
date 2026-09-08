@@ -323,7 +323,10 @@ The following is extra.
     The opcode path unpacks columns once. The Numba path is a
     compiled loop; `parallel=True` gives each thread its own
     workspace. Unique programs are compiled once by `str(tree)`
-    and lowered from the tree object.
+    and lowered from the tree object. `tape_lookback` returns
+    the program's causal bound; `suffix_rescore` writes a
+    dirty suffix onto a cached prefix so the series matches
+    that full-matrix oracle.
 20. `SlimTree` stores a GP head plus semantic delta blocks. `mut_slim`,
     `mut_slim_inflate`, and `mut_slim_deflate` append or remove deltas
     without re-wrapping the whole tree; `cx_slim_donor` swaps a donor
@@ -433,8 +436,9 @@ evaluation is in the
     has its own toolbox, so selection pressure can differ while the
     topology stays a ring. Migrants keep fitness when `eval_keys`
     match; distinct keys invalidate arrivals. Append-only columnar
-    evaluation is the documented full-matrix `interpret_tapes` rescore
-    after `vstack` — DEAP has neither.
+    evaluation may full-rescore with `interpret_tapes` after
+    `vstack`, or use `tape_lookback` / `suffix_rescore` for a
+    legal dirty suffix — DEAP has neither.
 20. `HallOfFame.update` and `ParetoFront.update` skip an individual
     whose fitness is missing, invalid, or non-finite. An unevaluated
     creator individual no longer occupies a slot. NaN no longer

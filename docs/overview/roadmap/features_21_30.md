@@ -253,9 +253,9 @@ lexicase, SMS-EMOA, or a MAP-Elites `vary` / `select` pair
 can apply different pressures on the same generation.
 Append-only evaluation is a documented recipe: grow the
 packed `(rows, columns)` matrix, invalidate fitness, and
-rescore with `interpret_tapes` on the full pack. A
-suffix-only score is not a library path — window warmup
-would be wrong without history. Migrants keep fitness when
+rescore with `interpret_tapes` on the full pack. A legal
+dirty suffix is [item 30](#30-causal-lookback-and-suffix-rescore)
+(`tape_lookback` plus `suffix_rescore`). Migrants keep fitness when
 `eval_keys` agree; distinct keys clear immigrant fitness.
 `Checkpoint.range` is the caller loop. No Ray/GPU daemon.
 
@@ -443,9 +443,19 @@ after an append-only `vstack` and writes them back onto the
 cached prefix so the full series matches a full-matrix
 `interpret_tapes` oracle.
 
-**Today.** Append-only evaluation is a documented full-matrix
-rescore. A suffix-only score is not a library path — window
-warmup would be wrong without history.
+**Today.** `tape_lookback(tape)` walks the postfix tape and
+returns the program's bound: the `Window` arg on rolling /
+pair / `ts_*` opcodes, `delay` / `diff` steps, and `ema`
+warmup (`window - 1`). Nested windows add; pointwise nodes
+take the max of their arguments. `suffix_rescore(tapes,
+matrix, prefix)` rescores `lookback + n_new` trailing rows
+after an append-only `vstack` and writes the new outputs
+onto the cached prefix. The full series matches a
+one-shot `interpret_tapes` oracle, including warmup `nan`.
+A lookback below the tape bound is rejected so a short
+suffix cannot drop history. Consumer opcodes have no
+certificate. `ema` is IIR and falls back to the full pack.
+No Ray/GPU daemon.
 
 **Benefit.** Evolution can sit on a pipe without replaying the
 whole history every generation. The lookback certificate is
