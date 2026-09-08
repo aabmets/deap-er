@@ -7,7 +7,7 @@ changed. Same toolbox model. Counted from the sections below:
 
 - **18** still-open [DEAP](https://github.com/DEAP/deap) issues
   [implemented](../bugfixes/deap_fixes.md) (some older than a decade)
-- **66** correctness bugs fixed — [operators](../bugfixes/operators.md),
+- **71** correctness bugs fixed — [operators](../bugfixes/operators.md),
   [GP](../bugfixes/gp.md),
   [CMA](../bugfixes/strategies.md),
   [records](../bugfixes/records.md),
@@ -177,6 +177,14 @@ from the original sources.
 27. `mig_ring` clones an emigrant that is already present in the
     destination, so a selector that returns the same object twice
     does not write that object into two dest slots.
+28. `sel_spea_2` returns `[]` when `sel_count <= 0`. A negative
+    count no longer enters archive truncation and `IndexError`s
+    on an empty list. Matches `sel_nsga_2` and `sel_best`.
+29. `cx_partially_matched` no-ops when a parent is shorter than
+    two genes. Empty permutations no longer hit `randint(0, -1)`.
+30. `broadcast_param` treats a 0-d `ndarray` as a scalar, so
+    `numpy.array(0.0)` bounds no longer raise `TypeError` from
+    `len()` on an unsized object.
 
 ## Evolution strategies
 
@@ -448,6 +456,12 @@ evaluation is in the
     `ValueError` from `max` / `numpy.max` on an empty reduction.
     Archive metrics still record. The same guard is in
     `record_generation` for the other `ea_*` drivers.
+26. `var_or` rejects each of `cx_prob` and `mut_prob` outside
+    `[0, 1]`. A negative component whose sum still sits in
+    `[0, 1]`, or a NaN, no longer produces offspring.
+27. `ea_generate_update` keeps the last evaluated population
+    when `generate` returns empty. The empty batch is still a
+    stop signal and does not call `update([])`.
 
 ## Persistence
 
