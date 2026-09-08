@@ -121,7 +121,9 @@ def ea_map_elites(
         log_time: If True, record per-generation ``duration``.
         n_evals: Optional evaluation budget. The generation that
             meets or exceeds this count is finished, then the loop
-            stops. ``None`` keeps the generation limit only.
+            stops. ``None`` keeps the generation limit only. Counts
+            fitness assignments through ``evaluate_invalid``,
+            including ``EvalCache`` hits.
 
     Returns:
         The archive and the logbook.

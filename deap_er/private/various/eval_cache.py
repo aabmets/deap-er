@@ -29,7 +29,8 @@ def clear_eval_caches() -> None:
     other language mutation) cannot leave stale fitness next to a
     dropped compile-cache table.
     """
-    for cache in list(_eval_caches):
+    # Mutate cache entries only; the WeakSet itself is not updated.
+    for cache in _eval_caches:
         cache.clear()
 
 
@@ -48,7 +49,7 @@ def invalidate_eval(expr: Any) -> int:
         The number of cache entries removed across all live caches.
     """
     fragment = expr if isinstance(expr, str | tuple) else expression_key(expr)
-    return sum(cache.invalidate(fragment) for cache in list(_eval_caches))
+    return sum(cache.invalidate(fragment) for cache in _eval_caches)
 
 
 def _expression_fragment(individual: Any, caller_key: Any) -> Any:
@@ -101,6 +102,10 @@ class EvalCache:
     drops keys for that expression. ``promote_subtree`` and
     ``tune_ephemerals`` already call those helpers, so a language
     mutation or ephemeral write-back cannot keep a stale fitness.
+
+    ``n_evals`` and logbook ``nevals`` still count every fitness
+    assignment through ``evaluate_invalid``. A cache hit skips the
+    wrapped callable only.
 
     Args:
         evaluate: Optional ``callable(ind) ->`` fitness tuple.

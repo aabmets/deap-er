@@ -186,3 +186,20 @@ def test_clear_compile_cache_clears_eval_cache(ind_cls):
     assert len(cache) == 1
     clear_compile_cache()
     assert len(cache) == 0
+
+
+def test_clear_and_invalidate_reach_every_live_eval_cache(ind_cls):
+    first = tools.EvalCache(lambda individual: (1.0,))
+    second = tools.EvalCache(lambda individual: (2.0,))
+    tree = _tree(ind_cls)
+    other = _tree(ind_cls, "add(ARG0, 7)")
+    first.evaluate(tree)
+    second.evaluate(tree)
+    second.evaluate(other)
+
+    assert invalidate_compiled(tree) >= 0
+    assert len(first) == 0
+    assert len(second) == 1
+    clear_compile_cache()
+    assert len(first) == 0
+    assert len(second) == 0

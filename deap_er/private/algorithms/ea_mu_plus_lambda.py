@@ -21,7 +21,7 @@ from .variation import var_or
 __all__ = ["ea_mu_plus_lambda"]
 
 
-def ea_mu_plus_lambda(
+def ea_mu_plus_lambda(  # NOSONAR python:S107  n_evals matches sibling ea_* drivers
     toolbox: Toolbox,
     population: list[Individual],
     generations: int,
@@ -62,7 +62,9 @@ def ea_mu_plus_lambda(
             of each generation's population.
         n_evals: Optional evaluation budget. The generation that
             meets or exceeds this count is finished, then the loop
-            stops. ``None`` keeps the generation limit only.
+            stops. ``None`` keeps the generation limit only. Counts
+            fitness assignments through ``evaluate_invalid``,
+            including ``EvalCache`` hits.
 
     Returns:
         The final population and the logbook.

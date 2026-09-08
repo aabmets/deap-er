@@ -481,7 +481,8 @@ evaluation is in the
     `ea_map_elites`. Generations stay the default. `EvalCache`
     wraps `evaluate` / `evaluate_batch` by expression text (or
     a caller key) plus matrix identity and row count. A hit
-    does not call `evaluate` again. `promote_subtree` and
+    does not call `evaluate` again; `n_evals` / `nevals` still
+    count the fitness assignment. `promote_subtree` and
     `tune_ephemerals` drop matching fitness-cache keys when they
     invalidate the compile cache. DEAP's `ea_*` drivers stop on
     generations only.

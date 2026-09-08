@@ -92,6 +92,28 @@ def test_n_evals_stops_after_a_later_generation(toolbox, name):
     assert sum(logbook.select("nevals")) == 8
 
 
+def test_n_evals_counts_eval_cache_hits_as_assignments(toolbox):
+    calls = []
+
+    def evaluate(individual):
+        calls.append(1)
+        return _evaluate(individual)
+
+    cache = tools.EvalCache(evaluate)
+    toolbox.register("evaluate", cache.evaluate)
+    genes = [0, 1, 0, 1]
+    first = [creator.__dict__[IND](list(genes)) for _ in range(4)]
+    _, logbook = tools.ea_simple(toolbox, first, 0, 0.0, 0.0, n_evals=4)
+    assert logbook.select("nevals") == [4]
+    assert calls == [1]
+
+    second = [creator.__dict__[IND](list(genes)) for _ in range(4)]
+    _, logbook = tools.ea_simple(toolbox, second, 0, 0.0, 0.0, n_evals=4)
+    assert logbook.select("nevals") == [4]
+    assert all(ind.fitness.is_valid() for ind in second)
+    assert calls == [1]
+
+
 def test_n_evals_rejects_a_negative_budget(toolbox):
     population = _unevaluated()
     with pytest.raises(ValueError, match="at least 0"):

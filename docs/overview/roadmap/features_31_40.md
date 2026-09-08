@@ -200,7 +200,8 @@ then the loop returns. Generations remain the default.
 `ea_generate_update_restarts` already stops on evaluations.
 `EvalCache` wraps `evaluate` / `evaluate_batch` with a key of
 expression text (or a caller key) plus matrix identity and
-row count. A hit does not call the wrapped callable.
+row count. A hit does not call the wrapped callable;
+`n_evals` / `nevals` still count the fitness assignment.
 `clear_compile_cache` clears every live `EvalCache`;
 `invalidate_compiled` drops matching expression keys. That is
 the same path `promote_subtree` and `tune_ephemerals` already
