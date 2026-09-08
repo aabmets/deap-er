@@ -126,6 +126,16 @@ The following is extra.
     `write_affine_scale` writes $a$ and $b$ back as ephemerals
     wrapping a `PrimitiveTree`, or as wrapping Slim deltas, then
     invalidates fitness and the compile cache for that expression.
+28. <a id="28-private-push-gp-policy-loop"></a>`LinearPolicyProgram`,
+    `PushPolicyProgram`, and `step_policy_loop` implement the
+    private Push GP loop behind the P11–P14 firewall.
+    `policy_observe` supplies summary observations;
+    `linear_policy_decide` / `push_policy_decide` emit discrete
+    action tokens; `apply_policy_action` dispatches them. No
+    column loads, no `Window` Push type, and no public
+    `PushTree` on `gp` or `tools`. Tapes remain the only
+    `interpret_tapes` target. Not a second public genome
+    ([Push GP P19](../roadmap/push_gp.md#p19-push-gp-as-the-loop)).
 
 The columnar contract is in the
 [columnar GP tutorial](../../tutorials/columnar_gp.md). Shared-array
