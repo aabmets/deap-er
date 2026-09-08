@@ -21,8 +21,27 @@ from pathlib import Path
 REPEAT = 50
 WARMUP = 2
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
-DEFAULT_JSON = REPO_ROOT / "reports" / "hotpath-bench.json"
-DEFAULT_CHART = REPO_ROOT / "reports" / "hotpath-speedups.png"
+DEFAULT_OUT_DIR = REPO_ROOT / "reports"
+JSON_NAME = "hotpath-bench.json"
+CHART_NAME = "hotpath-speedups.png"
+DEFAULT_JSON = DEFAULT_OUT_DIR / JSON_NAME
+DEFAULT_CHART = DEFAULT_OUT_DIR / CHART_NAME
+
+
+def report_paths(out_dir: Path | None = None) -> tuple[Path, Path]:
+    """Return the JSON and chart paths in one output directory.
+
+    Args:
+        out_dir: Destination directory. Defaults to ``reports/``.
+
+    Returns:
+        ``(json_path, chart_path)``. Existing files are overwritten.
+    """
+    dest = DEFAULT_OUT_DIR if out_dir is None else Path(out_dir)
+    dest = dest.expanduser()
+    return dest / JSON_NAME, dest / CHART_NAME
+
+
 LIB_DEAP = "DEAP/deap"
 LIB_ER = "aabmets/deap-er"
 PCT_CHANGE_FORMULA = "(deap_er_ms - deap_ms) / deap_ms * 100"

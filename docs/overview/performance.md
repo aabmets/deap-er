@@ -93,12 +93,18 @@ From the repo root, with the `dev` extra (DEAP and seaborn):
 
 ```text
 uv run python tools/perf_bench
-uv run python tools/perf_bench --chart docs/images/hotpath-speedups.png
+uv run python tools/perf_bench -d reports
 ```
 
+Both `hotpath-bench.json` and `hotpath-speedups.png` land in the same
+directory (`reports/` by default) and overwrite files already there.
 `tools/bench_hotpaths.py` is a thin shim for the same entry. The
-bench writes `reports/hotpath-bench.json` (gitignored) and then
-writes the chart by importing `write_chart` directly (no subprocess).
+chart is written by importing `write_chart` directly (no subprocess).
+To redraw the figure from an existing JSON, call ``plot_main`` from
+``tools/perf_bench`` with the same ``-d``. Copy
+`reports/hotpath-speedups.png` to `docs/images/` to refresh the page
+figure.
+
 Both libraries receive the same numeric genomes and the same GP
 expression strings on shared cases. First-time compile skips warmup
 and clears deap-er's compile cache on every sample.

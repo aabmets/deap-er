@@ -24,7 +24,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import seaborn
 
-from .timing import DEFAULT_CHART, DEFAULT_JSON, LIB_ER, PCT_CHANGE_FORMULA
+from .timing import LIB_ER, PCT_CHANGE_FORMULA, report_paths
 
 _UNIQUE = "#5C6BC0"
 _SLOWER = "#9E9E9E"
@@ -173,22 +173,21 @@ def load_report(path: Path) -> dict[str, Any]:
 
 
 def plot_from_json(
-    input_path: Path | None = None,
-    output: Path | None = None,
+    out_dir: Path | None = None,
     *,
     log_scale: bool = True,
 ) -> Path:
-    """Load a bench JSON and write the chart.
+    """Load a bench JSON and write the chart beside it.
 
     Args:
-        input_path: Bench JSON path. Defaults to ``reports/hotpath-bench.json``.
-        output: Image path. Defaults to ``reports/hotpath-speedups.png``.
+        out_dir: Directory that holds ``hotpath-bench.json``. The chart
+            is written to the same directory. Defaults to ``reports/``.
         log_scale: If True, use a log x-axis.
 
     Returns:
         The written image path.
     """
-    report = load_report(input_path or DEFAULT_JSON)
-    dest = output or DEFAULT_CHART
+    json_path, dest = report_paths(out_dir)
+    report = load_report(json_path)
     write_chart(report, dest, log_scale=log_scale)
     return dest
