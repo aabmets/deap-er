@@ -17,7 +17,7 @@ from deap_er.private.records.logbook import Logbook
 from deap_er.private.toolbox import Toolbox
 from deap_er.private.typedefs import EvoStats, Individual
 
-from .loop import evaluate_invalid, new_logbook
+from .loop import budget_spent, check_n_evals, consume_evals, new_logbook
 from .variation import var_or
 
 __all__: list[str] = ["ea_map_elites"]
@@ -82,12 +82,15 @@ def ea_map_elites(
     verbose: bool = False,
     logger: Logger | None = None,
     log_time: bool = False,
+    n_evals: int | None = None,
 ) -> tuple[MapElitesArchive, Logbook]:
     """Run MAP-Elites with ``var_or`` variation on archive elites.
 
     Generation zero evaluates ``initial`` and seeds the archive. Later
     generations sample parents from ``archive``, vary them with
     ``var_or``, evaluate the offspring, and try to improve cells.
+    When ``n_evals`` is set, the generation that meets or exceeds that
+    count is the last one recorded. Generations remain the default stop.
 
     Requires ``clone``, ``mate``, ``mutate``, and ``evaluate`` on
     ``toolbox``. ``archive`` stores single-objective fitness only.
@@ -116,14 +119,20 @@ def ea_map_elites(
         verbose: If True, print the logbook stream each generation.
         logger: If given with ``verbose``, the stream is logged.
         log_time: If True, record per-generation ``duration``.
+        n_evals: Optional evaluation budget. The generation that
+            meets or exceeds this count is finished, then the loop
+            stops. ``None`` keeps the generation limit only. Counts
+            fitness assignments through ``evaluate_invalid``,
+            including ``EvalCache`` hits.
 
     Returns:
         The archive and the logbook.
 
     Raises:
         ValueError: If a variation generation runs while the archive and
-            ``initial`` are both empty.
+            ``initial`` are both empty, or if ``n_evals`` is negative.
     """
+    check_n_evals(n_evals)
     logbook = new_logbook(stats, log_time=log_time)
     logbook.header = (
         ["gen", "nevals", "coverage", "num_elites", "qd_score"]
@@ -132,7 +141,7 @@ def ea_map_elites(
     )
 
     t0 = time.perf_counter()
-    nevals = evaluate_invalid(toolbox, initial)
+    nevals, used = consume_evals(toolbox, initial, n_evals, 0)
     for individual in initial:
         archive.add(individual, descriptor_fn(individual))
     duration = time.perf_counter() - t0 if log_time else None
@@ -147,12 +156,14 @@ def ea_map_elites(
         logger,
         duration,
     )
+    if budget_spent(n_evals, used):
+        return archive, logbook
 
     for gen in range(1, generations + 1):
         t0 = time.perf_counter()
         parents = _parent_pool(archive, initial, batch_size, cx_prob)
         offspring = var_or(toolbox, parents, batch_size, cx_prob, mut_prob)
-        nevals = evaluate_invalid(toolbox, offspring)
+        nevals, used = consume_evals(toolbox, offspring, n_evals, used)
         for individual in offspring:
             archive.add(individual, descriptor_fn(individual))
         duration = time.perf_counter() - t0 if log_time else None
@@ -167,5 +178,7 @@ def ea_map_elites(
             logger,
             duration,
         )
+        if budget_spent(n_evals, used):
+            break
 
     return archive, logbook

@@ -15,6 +15,8 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from deap_er.private.typedefs import GPExprTypes, GPTypedSets
 
+from deap_er.private.various.eval_cache import clear_eval_caches, invalidate_eval
+
 from .compile_cache import CompileCache, compile_cache_key, expression_key
 from .matrix_pack import as_matrix, is_packed_matrix
 from .numba.numba_ops import bind_tape
@@ -41,9 +43,11 @@ def clear_compile_cache() -> None:
 
     Call this after mutating a primitive set so a later
     ``compile_tree`` cannot return a lambda compiled against the
-    previous context.
+    previous context. Also clears every live ``EvalCache`` so a
+    language mutation cannot keep stale fitness.
     """
     _compile_cache.clear()
+    clear_eval_caches()
 
 
 def _compile_python(code: str, prim_set: PrimitiveSetTyped) -> Any:
@@ -194,20 +198,24 @@ def compile_tree(
 
 
 def invalidate_compiled(expr: Any) -> int:
-    """Drop compile-cache entries for ``expr``.
+    """Drop compile-cache and ``EvalCache`` entries for ``expr``.
 
     Matches a structural tree key, raw source text, or the historical
     ``lambda …: {expr}`` form. Pass a live tree, source text, or an
-    ``expression_key`` captured before a mutation.
+    ``expression_key`` captured before a mutation. ``tune_ephemerals``
+    calls this after write-back so both the compile LRU and any live
+    fitness cache drop the old expression.
 
     Args:
         expr: Expression whose cached compilations should be evicted.
 
     Returns:
-        The number of cache entries removed.
+        The number of compile-cache entries removed.
     """
     fragment = expr if isinstance(expr, str | tuple) else expression_key(expr)
-    return _compile_cache.discard_expression(fragment)
+    removed = _compile_cache.discard_expression(fragment)
+    invalidate_eval(fragment)
+    return removed
 
 
 def compile_adf_tree(expr: GPExprTypes, prim_sets: GPTypedSets) -> Any:
