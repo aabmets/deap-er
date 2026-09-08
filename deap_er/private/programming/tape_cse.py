@@ -195,4 +195,4 @@ def _evaluate_nodes_opcode(
     for index, value in enumerate(values):
         if value is None:
             raise ValueError(f"CSE node {index} was not evaluated.")
-    return values
+    return [numpy.asarray(value, dtype=numpy.float64) for value in values]
