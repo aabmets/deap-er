@@ -21,8 +21,12 @@ from deap_er.private.various.rng import rng
 __all__: list[str] = ["mig_fully_connected", "mig_random", "mig_ring"]
 
 
-def _claim_vacancies(population: list[Individual], dest_slots: list[Individual]) -> list[int]:
-    taken: set[int] = set()
+def _claim_vacancies(
+    population: list[Individual],
+    dest_slots: list[Individual],
+    forbidden: set[int] | None = None,
+) -> list[int]:
+    taken: set[int] = set(forbidden or ())
     vacancies: list[int] = []
     for immigrant in dest_slots:
         indx = next(
@@ -74,25 +78,21 @@ def _place_emigrants(
             dest[indx] = mover
 
 
-def _mig_edge(
+def _mig_edge_emigrants(
     populations: list[list[Individual]],
-    from_deme: int,
     to_deme: int,
-    mig_count: int,
+    selected: list[Individual],
     selection: Callable[..., Any],
     replacement: Callable[..., Any] | None,
-) -> None:
-    src = populations[from_deme]
+    forbidden: set[int] | None = None,
+) -> set[int]:
     dest = populations[to_deme]
-    selected = selection(src, mig_count)
-    if replacement is None:
-        emigrants = selected
-        dest_slots = selection(dest, mig_count)
-    else:
-        emigrants = [clone_individual(ind) for ind in selected]
-        dest_slots = replacement(dest, mig_count)
-    vacancies = _claim_vacancies(dest, dest_slots)
+    emigrants = [clone_individual(ind) for ind in selected]
+    count = len(selected)
+    dest_slots = selection(dest, count) if replacement is None else replacement(dest, count)
+    vacancies = _claim_vacancies(dest, dest_slots, forbidden)
     incoming_filled = min(len(emigrants), len(vacancies))
+    used: set[int] = set()
     for offset, (indx, immigrant) in enumerate(zip(vacancies, emigrants, strict=False)):
         already_in_dest = any(member is immigrant for member in dest)
         if (replacement is None and offset >= incoming_filled) or already_in_dest:
@@ -100,6 +100,8 @@ def _mig_edge(
         else:
             mover = immigrant
         dest[indx] = mover
+        used.add(indx)
+    return used
 
 
 def mig_fully_connected(
@@ -113,7 +115,15 @@ def mig_fully_connected(
     For each ordered pair of distinct demes ``(src, dst)``, ``selection``
     picks ``mig_count`` emigrants from ``src`` and writes them into
     ``dst`` using the same vacancy and cloning rules as ``mig_ring``.
-    Deme lengths are unchanged. Populations are modified in place.
+    Emigrants are selected once per source, then cloned along each
+    outgoing edge so a destination update on another deme does not
+    change who leaves. Destinations claim distinct vacancy indices
+    across incoming edges so a later ``src`` does not overwrite an
+    earlier immigrant in the same slot. Edges run in ``(dst, src)``
+    order; when ``replacement`` is omitted that order can still
+    matter for which home individuals are displaced. Cost is
+    ``O(n_demes² · mig_count)`` selection calls. Deme lengths are
+    unchanged. Populations are modified in place.
 
     Args:
         populations: Populations to migrate between.
@@ -124,17 +134,20 @@ def mig_fully_connected(
             slots are the vacancies.
     """
     nbr_demes = len(populations)
+    emigrants = [selection(populations[from_deme], mig_count) for from_deme in range(nbr_demes)]
+    claimed: list[set[int]] = [set() for _ in range(nbr_demes)]
     for to_deme in range(nbr_demes):
         for from_deme in range(nbr_demes):
             if from_deme != to_deme:
-                _mig_edge(
+                used = _mig_edge_emigrants(
                     populations,
-                    from_deme,
                     to_deme,
-                    mig_count,
+                    emigrants[from_deme],
                     selection,
                     replacement,
+                    claimed[to_deme],
                 )
+                claimed[to_deme].update(used)
 
 
 def mig_random(

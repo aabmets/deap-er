@@ -11,7 +11,6 @@
 import pytest
 from deap_er import Fitness, creator, tools
 
-
 MIG_FC_FIT = "MIG_FC_FIT"
 MIG_FC_IND = "MIG_FC_IND"
 ISL_EVAL_FIT = "ISL_EVAL_FIT"
@@ -46,10 +45,13 @@ def test_mig_fully_connected_moves_between_all_pairs(ind_cls):
     tools.mig_fully_connected(demes, 1, tools.sel_best)
 
     assert [len(deme) for deme in demes] == [4, 4, 4]
-    for deme in demes:
-        values = {member[0] for member in deme}
-        assert len(values) == 4
-        assert values & {20, 21, 22, 23}
+    by_deme = [{member[0] for member in deme} for deme in demes]
+    assert by_deme[0] & {10, 11, 12, 13}
+    assert by_deme[0] & {20, 21, 22, 23}
+    assert by_deme[1] & {0, 1, 2, 3}
+    assert by_deme[1] & {20, 21, 22, 23}
+    assert by_deme[2] & {0, 1, 2, 3}
+    assert by_deme[2] & {10, 11, 12, 13}
 
 
 def test_mig_fully_connected_preserves_deme_sizes(ind_cls):
@@ -60,7 +62,20 @@ def test_mig_fully_connected_preserves_deme_sizes(ind_cls):
     assert [len(deme) for deme in demes] == [5, 5, 5, 5]
 
 
-def test_mig_fully_connected_does_not_alias_across_demes(ind_cls):
+def test_mig_fully_connected_clones_emigrants_without_replacement(ind_cls):
+    demes = _demes(ind_cls, nbr_demes=2, size=3)
+
+    tools.mig_fully_connected(demes, 1, tools.sel_best)
+
+    seen: dict[int, int] = {}
+    for deme_idx, deme in enumerate(demes):
+        for member in deme:
+            key = id(member)
+            assert key not in seen
+            seen[key] = deme_idx
+
+
+def test_mig_fully_connected_does_not_alias_with_replacement(ind_cls):
     demes = _demes(ind_cls, nbr_demes=2, size=3)
 
     tools.mig_fully_connected(demes, 1, tools.sel_best, replacement=tools.sel_worst)

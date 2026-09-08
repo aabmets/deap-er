@@ -29,7 +29,10 @@ def island_eval_keys(
 
     Keys compare equal when the exam subset and optional matrix
     identity match, so migrants keep fitness only across demes that
-    evaluate on the same cases and packed matrix.
+    evaluate on the same cases and packed matrix. Catalog exams —
+    masks or ranges that fit in ``n_cases`` — are canonicalized to a
+    painted boolean mask so equivalent subsets share a key even when
+    stored differently. Series exams keep normalized ranges.
 
     Args:
         exams: One exam per deme.
@@ -61,12 +64,20 @@ def island_eval_keys(
 
 
 def _exam_part(exam: CaseExam, n_cases: int) -> tuple[Any, ...]:
-    if exam.mask is not None:
-        if exam.mask.shape[0] != n_cases:
-            raise ValueError("a boolean mask must match the series length")
-        return ("mask", exam.mask.tobytes(), exam.length)
+    if _is_catalog_exam(exam, n_cases):
+        mask = exam.as_mask(n_cases)
+        return ("mask", mask.tobytes(), exam.length)
     ranges = tuple(exam.as_ranges(n_cases))
     return ("ranges", ranges, exam.length)
+
+
+def _is_catalog_exam(exam: CaseExam, n_cases: int) -> bool:
+    if exam.length is not None and exam.length != n_cases:
+        return False
+    if exam.mask is not None:
+        return int(exam.mask.shape[0]) == n_cases
+    ranges = exam.ranges or []
+    return not ranges or all(int(stop) <= n_cases for _, stop in ranges)
 
 
 def _matrix_part(matrix: object) -> tuple[int | None, int]:

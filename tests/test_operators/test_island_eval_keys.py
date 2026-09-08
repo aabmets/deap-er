@@ -16,6 +16,14 @@ ISL_EVAL_FIT = "ISL_EVAL_FIT"
 ISL_EVAL_IND = "ISL_EVAL_IND"
 
 
+def test_island_eval_keys_mask_and_ranges_same_cases_match():
+    mask_exam = tools.CaseExam.from_cases([0, 2], 4)
+    ranges_exam = tools.CaseExam(ranges=[(0, 1), (2, 3)])
+    keys = tools.island_eval_keys([mask_exam, ranges_exam], n_cases=4)
+
+    assert keys[0] == keys[1]
+
+
 def test_island_eval_keys_same_exam_matches():
     exam = tools.CaseExam.from_cases([0, 2], 4)
     keys = tools.island_eval_keys([exam, exam.copy()], n_cases=4)
@@ -106,10 +114,10 @@ def test_step_islands_invalidates_with_island_eval_keys(ind_cls):
 
     tools.step_islands(
         [(keep, first), (keep, second)],
-        migrate=lambda pops: tools.mig_random(pops, 1, tools.sel_best),
+        migrate=lambda pops: tools.mig_ring(pops, 1, tools.sel_best),
         eval_keys=keys,
     )
 
     arrivals = [ind for ind in first if id(ind) not in first_ids]
-    if arrivals:
-        assert all(not ind.fitness.is_valid() for ind in arrivals)
+    assert arrivals
+    assert all(not ind.fitness.is_valid() for ind in arrivals)
