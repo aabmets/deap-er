@@ -8,6 +8,7 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from .private.programming.affine_write import write_affine_scale
 from .private.programming.columnar import Array, Mask, Window, make_column_pset
 from .private.programming.compilers import (
     build_tree_graph,
@@ -109,6 +110,7 @@ from .private.programming.window_roll import (
 )
 from .private.programming.window_shift import delay, diff
 from .private.programming.window_ts import add_ts_primitives, ts_argmax, ts_argmin, ts_rank
+from .private.various.affine_scale import affine_scale
 from .private.various.semantic_descriptors import (
     semantic_descriptors,
     semantic_moments,
@@ -138,6 +140,8 @@ __all__ = [
     "extract_ephemerals",
     "assign_ephemerals",
     "tune_ephemerals",
+    "affine_scale",
+    "write_affine_scale",
     "mut_uniform",
     "mut_node_replacement",
     "mut_ephemeral",

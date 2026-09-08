@@ -364,6 +364,12 @@ The following is extra.
     calls. `add(ARG0, 2, 3)` and `add(ARG0)` no longer stringify
     as a leftover leaf and compile as the constant $3$ or the
     identity.
+27. `affine_scale` fits Keijzer $a + b\,f(x)$ on the same
+    `valid=` mask as `case_errors`. Darwinian callers use the
+    scaled series only for fitness / case errors. Lamarckian
+    `write_affine_scale` writes $a$ and $b$ back as ephemerals
+    wrapping a `PrimitiveTree`, or as wrapping Slim deltas, then
+    invalidates fitness and the compile cache for that expression.
 
 The columnar contract is in the
 [columnar GP tutorial](../tutorials/columnar_gp.md). Shared-array

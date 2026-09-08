@@ -11,6 +11,7 @@
 from .algorithms import *
 from .benchmarks import *
 from .operators import *
+from .private.various.affine_scale import *
 from .private.various.bin2float import *
 from .private.various.case_errors import *
 from .private.various.clone import *
