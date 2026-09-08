@@ -147,8 +147,11 @@ def nsga_convergence(population: list[Individual], optimal: list[Individual]) ->
         optimal: Optimal Pareto front.
 
     Returns:
-        The convergence metric of the front.
+        The convergence metric of the front. An empty population
+        or empty ``optimal`` returns ``0.0``.
     """
+    if not population or not optimal:
+        return 0.0
     front = numpy.asarray([ind.fitness.values for ind in population], dtype=float)
     truth = numpy.asarray([_objective_row(opt) for opt in optimal], dtype=float)
     minima = numpy.min(spatial.distance.cdist(front, truth), axis=1)
@@ -167,8 +170,11 @@ def inv_gen_dist(ind1: Individual, ind2: Individual) -> Any:
 
     Returns:
         The average distance from each point in ``ind2`` to the
-        nearest point in ``ind1``.
+        nearest point in ``ind1``. An empty ``ind1`` or ``ind2``
+        returns ``0.0``.
     """
+    if not ind1 or not ind2:
+        return 0.0
     first = numpy.asarray([_objective_row(point) for point in ind1], dtype=float)
     second = numpy.asarray([_objective_row(point) for point in ind2], dtype=float)
     distances = spatial.distance.cdist(first, second)

@@ -47,5 +47,8 @@
     `sel_count <= 0` returns `[]`.
 12. `nsga_diversity` returns $1$ for an empty front. `ordered[0]`
     no longer raises `IndexError`.
+13. `nsga_convergence` and `inv_gen_dist` return $0$ when either
+    point set is empty. `cdist` no longer raises `ValueError`
+    on a 1-D empty array.
 
 [deap-75]: https://github.com/DEAP/deap/issues/75

@@ -152,3 +152,21 @@ def test_inv_gen_dist_uses_fitness_when_sets_are_individuals():
     finally:
         _teardown()
     assert igd == pytest.approx(0.1414213562373095, rel=1e-6)
+
+
+def test_nsga_convergence_and_igd_empty_sets_are_zero():
+    _setup()
+    try:
+        ref = [_ind((0.0, 1.0))]
+        empty: Any = []
+        raw: Any = [(0.0, 1.0)]
+        conv_empty = tools.nsga_convergence(empty, ref)
+        conv_no_opt = tools.nsga_convergence(ref, empty)
+        igd_empty = tools.inv_gen_dist(empty, raw)
+        igd_no_ref = tools.inv_gen_dist(raw, empty)
+    finally:
+        _teardown()
+    assert conv_empty == pytest.approx(0.0)
+    assert conv_no_opt == pytest.approx(0.0)
+    assert igd_empty == pytest.approx(0.0)
+    assert igd_no_ref == pytest.approx(0.0)

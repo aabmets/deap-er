@@ -210,3 +210,17 @@ columns stay at `(index + 1) * 6`.
 
 - `tests/test_various/test_sorting_network.py::test_sorting_network_draw_empty_network_labels_wires`
 - `tests/test_various/test_sorting_network.py::test_sorting_network_draw_single_level_includes_comparators`
+
+---
+
+## `nsga_convergence` and `inv_gen_dist` crashed on empty sets
+
+`scipy.spatial.distance.cdist` requires 2-D arrays.
+An empty front or empty reference became a 1-D empty
+array and raised `ValueError`. Empty `nsga_diversity`
+already returns Deb's $\Delta = 1$.
+
+**Fix.** Return `0.0` when either point set is empty.
+
+**Validator.**
+`tests/test_various/test_nsga_metrics.py::test_nsga_convergence_and_igd_empty_sets_are_zero`
