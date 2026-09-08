@@ -35,10 +35,15 @@ jobs:
           NEW_VERSION: ${{ inputs.version }}
         run: |
           uv sync --frozen --only-group release --no-install-project
-          .venv/bin/python tools/check_release_version.py
+          .venv/bin/python tools/ci/check_release_version.py
+
+  pytest-codecov:
+    needs: gate
+    uses: ./.github/workflows/pytest-codecov.yml
+    secrets: inherit
 
   bump:
-    needs: gate
+    needs: pytest-codecov
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -61,22 +66,7 @@ jobs:
           NEW_VERSION: ${{ inputs.version }}
         run: |
           uv version "$NEW_VERSION"
-          python3 -c "
-          import os, re, sys
-          from pathlib import Path
-          path = Path('.github/workflows/release.yml')
-          text = path.read_text()
-          new = os.environ['NEW_VERSION']
-          updated, n = re.subn(
-              r'default: \"[^\"]+\"  # gha-version-default',
-              f'default: \"{new}\"  # gha-version-default',
-              text,
-              count=1,
-          )
-          if n != 1:
-              sys.exit(f'Failed to update version default (replacements={n})')
-          path.write_text(updated)
-          "
+          python3 tools/ci/bump_release_version.py
 
       - name: Commit version bump
         id: commit
@@ -97,14 +87,19 @@ jobs:
       ref: ${{ needs.bump.outputs.sha }}
 
   publish:
-    needs: build
+    needs: [build, bump]
     runs-on: ubuntu-latest
     environment: pypi
     permissions:
       id-token: write
-      contents: read
+      contents: write
       actions: read
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.bump.outputs.sha }}
+
       - name: Download build artifacts
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
@@ -113,3 +108,37 @@ jobs:
 
       - name: Publish to Python Package Index
         uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33 # v1.14.2
+
+      - name: Require changelog notes for this version
+        env:
+          NEW_VERSION: ${{ inputs.version }}
+        run: |
+          first="$(grep -E '^## \[[vV]?[0-9]' CHANGELOG.md | head -n 1 || true)"
+          echo "First versioned heading: ${first:-<none>}"
+          case "$first" in
+            "## [${NEW_VERSION}]"*|"## [v${NEW_VERSION}]"*|"## [V${NEW_VERSION}]"*) ;;
+            *)
+              echo "extract-release-notes takes the first versioned H2, which must be ${NEW_VERSION}"
+              exit 1
+              ;;
+          esac
+
+      - name: Extract release notes
+        id: extract-release-notes
+        uses: ffurrer2/extract-release-notes@273da39a24fb7db106a35526c8162815faffd31d # v3.1.0
+        with:
+          changelog_file: CHANGELOG.md
+          release_notes_file: ${{ github.workspace }}/release_notes.md
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
+        with:
+          tag_name: ${{ inputs.version }}
+          name: deap-er ${{ inputs.version }}
+          target_commitish: ${{ needs.bump.outputs.sha }}
+          body_path: ${{ github.workspace }}/release_notes.md
+          body: ${{ steps.extract-release-notes.outputs.release_notes }}
+          files: |
+            dist/*.whl
+            dist/*.tar.gz
+          fail_on_unmatched_files: true
