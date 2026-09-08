@@ -45,7 +45,7 @@ surface.
 | 26 | [Program teams](features_21_30.md#26-program-teams) | `operators` | shipped |
 | 27 | [Batch-epsilon-lexicase and down-sampled tournament](features_21_30.md#27-batch-epsilon-lexicase-and-down-sampled-tournament) | `operators` | planned |
 | 28 | [Dynamic epsilon and downsample schedule](features_21_30.md#28-dynamic-epsilon-and-downsample-schedule) | `operators` | planned |
-| 29 | [Novelty selection and iso+line](features_21_30.md#29-novelty-selection-and-isoline) | `operators`, `records` | planned |
+| 29 | [Novelty selection and iso+line](features_21_30.md#29-novelty-selection-and-isoline) | `operators`, `records` | shipped |
 | 30 | [Causal lookback and suffix rescore](features_21_30.md#30-causal-lookback-and-suffix-rescore) | `gp` | shipped |
 | 31 | [Affine scaling and Lamarckian writeback](features_31_40.md#31-affine-scaling-and-lamarckian-writeback) | `gp`, `utilities` | shipped |
 | 32 | [Population tape CSE](features_31_40.md#32-population-tape-cse) | `gp` | planned |
@@ -61,10 +61,9 @@ that already shipped (tapes, SlimGP, lexicase, archives, CMA)
 into a longer program-search loop, and they are shipped.
 Item 30 is the legal dirty-suffix path item 25 deferred.
 Item 31 (Keijzer affine scaling next to `tune_ephemerals`) is
-shipped. Items 27–29, 32, and 35 are the next backlog:
+shipped. Items 27–28, 32, and 35 are the next backlog:
 case-selection schedules, population tape CSE, and named island
-topologies. Item 36 (persistent hall of fame) is shipped.
-Constraint-dominance
+topologies. Items 29 and 36 are shipped. Constraint-dominance
 on the remaining selectors, archive-improving CMA, RVEA /
 R-NSGA-II, and adaptive DE stay in
 [Under consideration](under_consideration.md). Write-ups for the
