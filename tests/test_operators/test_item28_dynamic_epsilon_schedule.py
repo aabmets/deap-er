@@ -8,7 +8,7 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from typing import Any
+from typing import Any, cast
 
 import numpy
 import pytest
@@ -207,7 +207,7 @@ def test_epsilon_lexicase_rejects_invalid_mode(multi_obj, make):
     population = [make(multi_obj, [0], (1.0, 2.0))]
 
     with pytest.raises(ValueError, match="mode"):
-        tools.sel_epsilon_lexicase(population, 1, mode="not_a_mode")
+        tools.sel_epsilon_lexicase(population, 1, mode=cast(Any, "not_a_mode"))
 
 
 def test_downsample_cohort_raises_when_smaller_than_case_count(ind_cls):
