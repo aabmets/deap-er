@@ -16,6 +16,17 @@ from deap_er import Fitness, creator, tools
 
 CASE_FIT = "ITEM27_CASE_FIT"
 CASE_IND = "ITEM27_CASE_IND"
+MIXED_FIT = "ITEM27_MIXED_FIT"
+MIXED_IND = "ITEM27_MIXED_IND"
+
+
+@pytest.fixture
+def mixed_case_types():
+    creator.create_type(MIXED_FIT, Fitness, weights=(-1.0, 1.0, -1.0, -1.0))
+    creator.create_type(MIXED_IND, list, fitness=creator.__dict__[MIXED_FIT])
+    yield creator.__dict__[MIXED_IND]
+    del creator.__dict__[MIXED_FIT]
+    del creator.__dict__[MIXED_IND]
 
 
 @pytest.fixture
@@ -96,6 +107,34 @@ def test_batch_epsilon_lexicase_invalid_batch_size(case_types, make):
 
     with pytest.raises(ValueError, match="batch_size"):
         tools.sel_batch_epsilon_lexicase(population, 1, batch_size=0)
+
+
+def test_batch_epsilon_lexicase_rejects_non_int_batch_size(case_types, make):
+    population = [make(case_types, [0], (1.0, 2.0, 3.0, 4.0))]
+    bad_size: Any = "2"
+
+    with pytest.raises(ValueError, match="batch_size"):
+        tools.sel_batch_epsilon_lexicase(population, 1, batch_size=bad_size)
+
+
+def test_batch_epsilon_lexicase_trust_matrix_skips_value_check(case_types, make, monkeypatch):
+    population = [make(case_types, [0], (1.0, 2.0, 3.0, 4.0))]
+    matrix = numpy.array([[9.0, 8.0, 7.0, 6.0]])
+
+    calls: list[str] = []
+
+    def _spy_pack(*args, **kwargs):
+        calls.append("pack")
+        raise AssertionError("fitness_case_matrix should not run during trust validation")
+
+    monkeypatch.setattr(
+        "deap_er.private.operators.sel_lexicase_matrix.fitness_case_matrix",
+        _spy_pack,
+    )
+
+    tools.sel_batch_epsilon_lexicase(population, 1, batch_size=2, matrix=matrix, trust_matrix=True)
+
+    assert calls == []
 
 
 def test_batch_epsilon_lexicase_empty_pool_with_zero_count():
@@ -241,3 +280,66 @@ def test_tournament_cases_invalid_case_count(case_types, make):
 
     with pytest.raises(ValueError, match="case_count"):
         tools.sel_tournament_cases(population, 1, 2, case_count=bad_count)
+
+
+def test_tournament_cases_empty_subset_is_uniform_random(case_types, make):
+    first = make(case_types, [0], (1.0, 2.0, 3.0, 4.0))
+    second = make(case_types, [1], (4.0, 3.0, 2.0, 1.0))
+    population = [first, second]
+    tools.rng.seed(4)
+
+    via_empty_cases = tools.sel_tournament_cases(population, 20, 2, cases=[])
+    tools.rng.seed(4)
+    via_zero_count = tools.sel_tournament_cases(population, 20, 2, case_count=0)
+
+    assert len(via_empty_cases) == 20
+    assert len(via_zero_count) == 20
+    assert via_empty_cases == via_zero_count
+    assert via_empty_cases.count(first) > 0
+    assert via_empty_cases.count(second) > 0
+
+
+def test_tournament_cases_aggregate_uses_first_case_weight(mixed_case_types, make):
+    # Case 0 minimizes; case 1 maximizes. The aggregate sign follows the first
+    # case in ``cases=``, not per-column weights.
+    better = make(mixed_case_types, [0], (0.0, 1.0, 0.0, 0.0))
+    worse = make(mixed_case_types, [1], (10.0, 0.0, 0.0, 0.0))
+    population = [worse, better]
+    tools.rng.seed(3)
+
+    chosen_min_first = tools.sel_tournament_cases(
+        population,
+        rounds=40,
+        contestants=2,
+        cases=[0, 1],
+    )
+    tools.rng.seed(3)
+    chosen_max_first = tools.sel_tournament_cases(
+        population,
+        rounds=40,
+        contestants=2,
+        cases=[1, 0],
+    )
+
+    assert chosen_min_first.count(better) > chosen_min_first.count(worse)
+    assert chosen_max_first.count(worse) > chosen_max_first.count(better)
+
+
+def test_tournament_cases_trust_matrix_skips_value_check(case_types, make, monkeypatch):
+    population = [make(case_types, [0], (1.0, 2.0, 3.0, 4.0))]
+    matrix = numpy.array([[9.0, 8.0, 7.0, 6.0]])
+
+    calls: list[str] = []
+
+    def _spy_pack(*args, **kwargs):
+        calls.append("pack")
+        raise AssertionError("fitness_case_matrix should not run during trust validation")
+
+    monkeypatch.setattr(
+        "deap_er.private.operators.sel_lexicase_matrix.fitness_case_matrix",
+        _spy_pack,
+    )
+
+    tools.sel_tournament_cases(population, 1, 2, cases=[0, 1], matrix=matrix, trust_matrix=True)
+
+    assert calls == []

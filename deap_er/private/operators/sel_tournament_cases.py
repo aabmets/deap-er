@@ -92,7 +92,12 @@ def sel_tournament_cases(
 
     Each individual is scored by reducing a case subset to one scalar
     (column mean by default), then standard tournament selection runs
-    on those scores. Informed down-sampling stays on
+    on those scores. The aggregate ranking uses the maximize/minimize
+    sign of the **first** case index in the resolved subset; mixed
+    per-case weights are not applied column-wise. When ``cases=[]`` or
+    ``case_count <= 0``, every individual ties on score zero and
+    tournament rounds draw uniformly from the pool. Informed
+    down-sampling stays on
     :func:`~deap_er.tools.sample_informed_cases`; pass its result as
     ``cases=``.
 
@@ -101,9 +106,12 @@ def sel_tournament_cases(
         rounds: Number of tournament rounds.
         contestants: Number of individuals in each round.
         cases: Fitness-case indices to score. All cases are used when
-            omitted and ``case_count`` is not set.
+            omitted and ``case_count`` is not set. An empty sequence
+            resolves to uniform tournament draws.
         case_count: When ``cases`` is omitted, draw this many distinct
             case indices at random. Ignored when ``cases`` is given.
+            ``case_count <= 0`` resolves to an empty subset (uniform
+            tournament draws).
         matrix: Optional ``(n_individuals, n_cases)`` case matrix.
             When omitted, values are read from ``fitness.values``.
         trust_matrix: When ``True``, ``matrix`` is accepted on shape
