@@ -105,3 +105,32 @@ def test_var_or_rejects_probabilities_that_sum_over_one(toolbox):
     population = _population()
     with pytest.raises(ValueError, match="sum"):
         tools.var_or(toolbox, population, 4, cx_prob=0.6, mut_prob=0.6)
+
+
+@pytest.mark.parametrize(
+    ("cx_prob", "mut_prob", "match"),
+    [
+        (-0.1, 0.1, "crossover"),
+        (0.1, -0.1, "mutation"),
+        (-0.2, 0.5, "crossover"),
+        (1.5, -0.6, "crossover"),
+    ],
+)
+def test_var_or_rejects_negative_probabilities(toolbox, cx_prob, mut_prob, match):
+    population = _population()
+    with pytest.raises(ValueError, match=match):
+        tools.var_or(toolbox, population, 4, cx_prob=cx_prob, mut_prob=mut_prob)
+
+
+@pytest.mark.parametrize(
+    ("cx_prob", "mut_prob", "match"),
+    [
+        (float("nan"), 0.1, "crossover"),
+        (0.1, float("nan"), "mutation"),
+        (float("nan"), float("nan"), "crossover"),
+    ],
+)
+def test_var_or_rejects_nan_probabilities(toolbox, cx_prob, mut_prob, match):
+    population = _population()
+    with pytest.raises(ValueError, match=match):
+        tools.var_or(toolbox, population, 4, cx_prob=cx_prob, mut_prob=mut_prob)
