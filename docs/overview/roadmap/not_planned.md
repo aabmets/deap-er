@@ -9,7 +9,7 @@ still join that table.
 
 | Idea | Why not |
 |:-----|:--------|
-| PushGP, Cartesian GP, or linear GP as a second public genome | Prefix trees plus the tape already linearize a program. A second representation needs a caller who cannot use trees or columnar arrays. |
+| PushGP, Cartesian GP, or linear GP as a second public genome | Prefix trees plus the tape already linearize a program. A second representation needs a caller who cannot use trees or columnar arrays. A *private* Push policy that only sees summaries is a different track: [Push GP](push_gp.md). |
 | Transformer or LLM mutation | Heavy optional dependencies, unstable operators, and they do not compose with the tape. A recipe in a notebook is enough. |
 | A catalog of named domain indicators as primitives | Composable windows and user opcodes. Named catalogs age badly. |
 | Built-in domain fitness functions | They need application state the library does not own. |

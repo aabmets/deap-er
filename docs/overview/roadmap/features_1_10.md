@@ -124,7 +124,8 @@ only per tree. One kernel launch, one matrix, no per-individual
 repack or result copy. That is the gap `evaluate_batch` is waiting
 on.
 
-Related: [Multiprocessing](../../tutorials/multiprocessing.md).
+Related: [Multiprocessing](../../tutorials/multiprocessing.md),
+[Push GP P1](push_gp.md#p1-batch-tape-evaluation).
 
 ---
 
@@ -149,6 +150,8 @@ $O(\textit{sel\_count} \times n \times \textit{cases})$ and always
 uses every case. A subset buys more individuals per evaluation
 budget. Informed sampling avoids wasting that budget on cases that
 the current population already treats as interchangeable.
+
+Related: [Push GP P2](push_gp.md#p2-down-sampled-and-informed-lexicase).
 
 ---
 
@@ -181,6 +184,8 @@ the reduction from a series to per-case errors.
 **Scope.** No built-in chronological split algorithm. No public
 fitness functions that assume application-specific state the
 library does not have.
+
+Related: [Push GP P3](push_gp.md#p3-case-structured-evaluation-helper).
 
 ---
 
@@ -237,7 +242,8 @@ the usual antidote to one overfit program when many competent
 shapes exist. The archive is a data structure, not a framework:
 no mandatory algorithm class, no learned QD / meta-BBO.
 
-Related: [Records](../../reference/records.md).
+Related: [Records](../../reference/records.md),
+[Push GP P4](push_gp.md#p4-quality-diversity-archive).
 
 ---
 

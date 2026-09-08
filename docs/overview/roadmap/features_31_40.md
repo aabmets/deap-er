@@ -32,7 +32,8 @@ do not meet.
 leaves / Slim deltas. No Autograd. No domain fitness.
 
 Related: [item 6](features_1_10.md#6-case-structured-evaluation-helper),
-[item 24](features_21_30.md#24-memetic-constants).
+[item 24](features_21_30.md#24-memetic-constants),
+[Push GP P17](push_gp.md#p17-affine-scaling-and-lamarckian-writeback).
 
 ---
 
@@ -198,7 +199,8 @@ new algorithm.
 
 Related: [item 9](features_1_10.md#9-compile-and-clone-path),
 [item 13](features_11_20.md#13-ipop-bipop-cma-restarts),
-[item 24](features_21_30.md#24-memetic-constants).
+[item 24](features_21_30.md#24-memetic-constants),
+[Push GP P15](push_gp.md#p15-evaluation-budget-and-eval-cache).
 
 ---
 
@@ -225,7 +227,8 @@ stream contract, not “hope the OS schedules the same way.”
 second RNG library. Not switching the parent stream off NumPy.
 
 Related: [item 4](features_1_10.md#4-batch-tape-evaluation),
-[Multiprocessing](../../tutorials/multiprocessing.md).
+[Multiprocessing](../../tutorials/multiprocessing.md),
+[Push GP P18](push_gp.md#p18-parallel-rng-streams).
 
 [deap-30]: https://github.com/DEAP/deap/issues/30
 [deap-75]: https://github.com/DEAP/deap/issues/75
