@@ -126,6 +126,21 @@ $+\infty$.
 
 ---
 
+## `sel_spea_2(pop, k)` crashed on negative `k`
+
+`len(chosen) > sel_count` is true for every first front when
+`sel_count` is negative, so truncation ran `while size > sel_count`
+past an empty archive and `del chosen[index]` raised `IndexError`.
+`sel_nsga_2`, `sel_best`, and the other modern selectors already
+return `[]` for `sel_count <= 0`.
+
+**Fix.** Return `[]` when `sel_count <= 0` before ranking.
+
+**Validator.**
+`tests/test_operators/test_sel_spea_2.py::test_spea2_non_positive_count_returns_empty`
+
+---
+
 ## `sel_spea_2([], k)` crashed
 
 An empty pool entered `fill_from_density` and indexed an empty

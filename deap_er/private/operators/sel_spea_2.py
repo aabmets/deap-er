@@ -29,12 +29,13 @@ def sel_spea_2(individuals: list[Individual], sel_count: int) -> list[Individual
 
     Args:
         individuals: Individuals to select from.
-        sel_count: Number of individuals to select.
+        sel_count: Number of individuals to select. ``sel_count <= 0``
+            returns an empty list.
 
     Returns:
         The selected individuals.
     """
-    if not individuals:
+    if not individuals or sel_count <= 0:
         return []
     fits = raw_fitness(individuals)
 
