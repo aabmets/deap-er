@@ -9,9 +9,10 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import multiprocessing
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
 from typing import Any
 
+import numpy
 import pytest
 from deap_er import Checkpoint, tools
 
@@ -24,13 +25,22 @@ def reversed_map(func: Any, items: Iterable[Any]) -> list[Any]:
     return [func(item) for item in reversed(list(items))]
 
 
+def _stream_floats(seed: int | Sequence[int], worker_id: int, n: int = 8) -> list[float]:
+    child = tools.spawn_rng(seed, worker_id)
+    return [child.random() for _ in range(n)]
+
+
+def _stream_ints(seed: int | Sequence[int], worker_id: int, n: int = 4) -> list[int]:
+    child = tools.spawn_rng(seed, worker_id)
+    return [child.randint(0, 20) for _ in range(n)]
+
+
 def test_spawn_rng_is_deterministic_and_independent_of_parent():
     tools.rng.seed(11)
     parent = [tools.rng.random() for _ in range(8)]
-    tools.rng.seed(11)
-    child_a = [tools.spawn_rng(11, 0).random() for _ in range(8)]
-    child_b = [tools.spawn_rng(11, 1).random() for _ in range(8)]
-    again = [tools.spawn_rng(11, 0).random() for _ in range(8)]
+    child_a = _stream_floats(11, 0)
+    child_b = _stream_floats(11, 1)
+    again = _stream_floats(11, 0)
     tools.rng.seed(11)
     after_spawn = [tools.rng.random() for _ in range(8)]
     assert child_a == again
@@ -41,27 +51,31 @@ def test_spawn_rng_is_deterministic_and_independent_of_parent():
 
 
 def test_spawn_rng_accepts_sequence_seed_and_numpy_worker_id():
-    first = [tools.spawn_rng([3, 5], 2).randint(0, 20) for _ in range(4)]
-    second = [tools.spawn_rng((3, 5), 2).randint(0, 20) for _ in range(4)]
-    other = [tools.spawn_rng([3, 5], 3).randint(0, 20) for _ in range(4)]
+    first = _stream_ints([3, 5], 2)
+    second = _stream_ints((3, 5), 2)
+    other = _stream_ints([3, 5], 3)
     assert first == second
     assert first != other
-    assert tools.spawn_rng(4, 0).random() == tools.spawn_rng(4, 0).random()
+    numpy_id: Any = numpy.int64(0)
+    assert _stream_floats(4, numpy_id) == _stream_floats(4, 0)
 
 
 def test_spawn_rng_rejects_bad_seed_and_worker_id():
+    bad_seed: Any = "11"
+    bad_worker: Any = 0.5
     with pytest.raises(TypeError, match="sequence of ints"):
-        tools.spawn_rng("11", 0)
+        tools.spawn_rng(bad_seed, 0)
     with pytest.raises(ValueError, match="empty"):
         tools.spawn_rng([], 0)
     with pytest.raises(TypeError, match="worker_id"):
-        tools.spawn_rng(1, 0.5)
+        tools.spawn_rng(1, bad_worker)
     with pytest.raises(ValueError, match="non-negative"):
         tools.spawn_rng(1, -1)
 
 
 def test_bind_spawned_rng_installs_the_child_on_the_process_wide_rng():
-    expected = [tools.spawn_rng(21, 4).random() for _ in range(5)]
+    child = tools.spawn_rng(21, 4)
+    expected = [child.random() for _ in range(5)]
     tools.rng.seed(0)
     tools.bind_spawned_rng(21, 4)
     assert [tools.rng.random() for _ in range(5)] == expected
@@ -83,6 +97,20 @@ def test_map_spawned_restores_the_parent_stream():
     after = [tools.rng.random() for _ in range(4)]
     tools.rng.set_state(before)
     assert [tools.rng.random() for _ in range(4)] == after
+
+
+def test_map_spawned_restores_the_parent_when_func_raises():
+    tools.rng.seed(5)
+    before = tools.rng.get_state()
+
+    def boom(_item: object) -> None:
+        raise RuntimeError("nope")
+
+    with pytest.raises(RuntimeError, match="nope"):
+        tools.map_spawned(boom, [1], seed=5)
+    after = [tools.rng.random() for _ in range(3)]
+    tools.rng.set_state(before)
+    assert [tools.rng.random() for _ in range(3)] == after
 
 
 def test_map_spawned_empty_and_incomplete_map():
