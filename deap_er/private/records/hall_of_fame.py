@@ -17,6 +17,8 @@ from copy import deepcopy
 from operator import eq
 from typing import TYPE_CHECKING, Any, override
 
+from .hof_json import hall_of_fame_from_json, hall_of_fame_to_json
+
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 
@@ -177,6 +179,15 @@ class HallOfFame(BaseRecordStorage):
             return
         for ind in population:
             self._update_one(ind)
+
+    def to_json(self) -> str:
+        """Serialize ``maxsize`` and archive members to JSON."""
+        return hall_of_fame_to_json(self)
+
+    @classmethod
+    def from_json(cls, text: str, ind_cls: type[Any] | None = None) -> HallOfFame:
+        """Rebuild a hall of fame from :meth:`to_json` output."""
+        return hall_of_fame_from_json(text, ind_cls, cls)
 
 
 class ParetoFront(BaseRecordStorage):

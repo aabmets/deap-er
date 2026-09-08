@@ -116,7 +116,13 @@
     kwargs are rejected without raising. Fitness assignment and
     rescore ownership stay on the caller — not a second `ea_*`
     driver. DEAP has no policy action schema.
+30. `HallOfFame.to_json` / `from_json` [round-trip][deap-25]
+    `maxsize` and archive members as ``genes`` plus ``fitness``
+    values. `Checkpoint(..., hof_ind_cls=)` stores ``hof`` as
+    JSON instead of dill and rebuilds it on load. DEAP has no
+    text serialization for the hall of fame.
 
+[deap-25]: https://github.com/DEAP/deap/issues/25
 [deap-121]: https://github.com/DEAP/deap/issues/121
 [deap-350]: https://github.com/DEAP/deap/issues/350
 [deap-426]: https://github.com/DEAP/deap/issues/426
