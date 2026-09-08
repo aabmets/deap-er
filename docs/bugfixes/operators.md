@@ -4,6 +4,22 @@ Correctness fixes in crossover, mutation, selection, and migration.
 
 ---
 
+## `mut_polynomial_bounded` wrote NaN or complex
+
+Polynomial mutation computed $\delta$ from a gene already outside
+`[low, up]`. The base of `** mut_pow` went negative, Python
+produced a complex or `nan`, and that value was written back onto
+the individual. `eta <= 0` also hits $1/(\eta+1)$.
+
+**Fix.** Require `eta > 0`, skip a gene when `xu <= xl`, and clamp
+the gene into `[xl, xu]` before any power. The Deb formula and the
+final clamp are unchanged, so in-box cases stay the same.
+
+**Validator.**
+`tests/test_operators/test_mut_various.py::test_polynomial_bounded_out_of_box_stays_finite`
+
+---
+
 ## Bounded SBX produced two lower children
 
 `calc_c` always subtracted $\beta_q$, so $c_2$ used the upper-bound
@@ -216,6 +232,24 @@ indices.
 
 **Validator.**
 `tests/test_operators/test_mig_ring.py::test_mig_ring_sel_random_completes_with_duplicate_draws`
+
+---
+
+## PMX and ordered crossover indexed alleles as `{0..n-1}`
+
+`cx_partially_matched`, uniform PMX, and `cx_ordered` built
+position maps as `p1[ind1[i]] = i` (or a hole array keyed by
+allele). That only works when alleles *are* the indices. Named
+cities and other non-`{0..n-1}` encodings IndexError'd or
+silently wrote the wrong genes.
+
+**Fix.** `_allele_maps` builds `dict` allele→index maps and raises
+`ValueError` on duplicates or mismatched gene sets. Ordered
+crossover uses membership sets for the kept slice. `{0..n-1}`
+still works.
+
+**Validator.**
+`tests/test_operators/test_cx_permutation.py::test_pmx_and_ordered_accept_letter_permutations`
 
 ---
 
