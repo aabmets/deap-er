@@ -15,7 +15,7 @@ returned a plain `array.array`.
 a rebound `fitness`, matching `__deepcopy__`.
 
 **Validator.**
-`tests/test_creator/test_overrides.py::test_copy_copy_keeps_type_and_fitness_on_array_individuals`
+`tests/test_overrides.py::test_copy_copy_keeps_type_and_fitness_on_array_individuals`
 
 ---
 
