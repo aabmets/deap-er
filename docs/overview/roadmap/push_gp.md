@@ -7,24 +7,25 @@ as toolbox calls. That is not a second public genome — prefix
 trees plus the tape remain the program. A public Push / Cartesian
 / linear genome stays on [Not planned](not_planned.md).
 
-This page is a backlog, not a schedule. Every row is **planned**
-for this path. Preconditions that already shipped are not
-re-specified here; the item column links the matching write-up
-on a [Features](index.md) page. Planned items 30, 31, 37, and 38
-are the same rows as on those pages — ship them once.
+This page is a backlog, not a schedule. Status matches the
+library: shipped preconditions are **shipped**; the rest are
+**planned**. Shipped items are not re-specified here; the item
+column links the matching write-up on a [Features](index.md)
+page. Planned items 30, 31, 37, and 38 are the same rows as on
+those pages — ship them once.
 
 | # | Item | Surface | Status |
 |:--|:-----|:--------|:-------|
-| P1 | [Batch tape evaluation](features_1_10.md#4-batch-tape-evaluation) (item 4) | `gp` | planned |
-| P2 | [Down-sampled and informed lexicase](features_1_10.md#5-down-sampled-and-informed-lexicase) (item 5) | `operators` | planned |
-| P3 | [Case-structured evaluation helper](features_1_10.md#6-case-structured-evaluation-helper) (item 6) | utilities | planned |
-| P4 | [Quality-diversity archive](features_1_10.md#8-quality-diversity-archive) (item 8) | `records` | planned |
-| P5 | [Growing primitive language](features_21_30.md#21-growing-primitive-language) (item 21) | `gp` | planned |
-| P6 | [Semantic search space](features_21_30.md#22-semantic-search-space) (item 22) | `gp`, `records` | planned |
-| P7 | [Co-evolving cases](features_21_30.md#23-co-evolving-cases) (item 23) | `operators`, `records` | planned |
-| P8 | [Memetic constants](features_21_30.md#24-memetic-constants) (item 24) | `gp`, `strategies` | planned |
-| P9 | [Streaming and island ecology](features_21_30.md#25-streaming-and-island-ecology) (item 25) | `algorithms` | planned |
-| P10 | [Program teams](features_21_30.md#26-program-teams) (item 26) | `operators` | planned |
+| P1 | [Batch tape evaluation](features_1_10.md#4-batch-tape-evaluation) (item 4) | `gp` | shipped |
+| P2 | [Down-sampled and informed lexicase](features_1_10.md#5-down-sampled-and-informed-lexicase) (item 5) | `operators` | shipped |
+| P3 | [Case-structured evaluation helper](features_1_10.md#6-case-structured-evaluation-helper) (item 6) | utilities | shipped |
+| P4 | [Quality-diversity archive](features_1_10.md#8-quality-diversity-archive) (item 8) | `records` | shipped |
+| P5 | [Growing primitive language](features_21_30.md#21-growing-primitive-language) (item 21) | `gp` | shipped |
+| P6 | [Semantic search space](features_21_30.md#22-semantic-search-space) (item 22) | `gp`, `records` | shipped |
+| P7 | [Co-evolving cases](features_21_30.md#23-co-evolving-cases) (item 23) | `operators`, `records` | shipped |
+| P8 | [Memetic constants](features_21_30.md#24-memetic-constants) (item 24) | `gp`, `strategies` | shipped |
+| P9 | [Streaming and island ecology](features_21_30.md#25-streaming-and-island-ecology) (item 25) | `algorithms` | shipped |
+| P10 | [Program teams](features_21_30.md#26-program-teams) (item 26) | `operators` | shipped |
 | P11 | [Policy observation schema](#p11-policy-observation-schema) | `records`, `utilities` | planned |
 | P12 | [Policy action applicator](#p12-policy-action-applicator) | `algorithms` | planned |
 | P13 | [Held-out policy fitness](#p13-held-out-policy-fitness) | `records`, `operators` | planned |
