@@ -308,6 +308,22 @@ unchanged.
 
 ---
 
+## 0-d NumPy bounds crashed `broadcast_param`
+
+NumPy scalars (`int64`, `float32`) already broadcast. A 0-d
+`ndarray` such as `numpy.array(0.0)` is not `int`, `float`,
+`Integral`, or `Real`, so `len()` raised `TypeError`. Callers that
+wrap a scalar in `numpy.array` or `numpy.asarray` hit this path.
+
+**Fix.** Treat a 0-d `ndarray` as a scalar (`var.item()`) and
+broadcast it. 1-D bound sequences still go through the length
+check.
+
+**Validator.**
+`tests/test_operators/test_bounds.py::test_bounded_operators_accept_numpy_0d_bounds`
+
+---
+
 ## `sel_best` / `sel_worst` treated a negative `sel_count` as a slice
 
 `sorted(...)[:sel_count]` uses Python's negative-index slice.

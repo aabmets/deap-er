@@ -14,6 +14,8 @@ from collections.abc import Sequence
 from numbers import Integral, Real
 from typing import TYPE_CHECKING
 
+import numpy
+
 if TYPE_CHECKING:
     from deap_er.private.typedefs import NumOrSeq
 
@@ -42,7 +44,8 @@ def broadcast_param(
         name: Argument name used in the error message.
         var: A single value or a sequence of per-gene values.
             Python numbers, ``numbers.Integral``, and ``numbers.Real``
-            (including NumPy scalars) broadcast.
+            (including NumPy scalars) broadcast. A 0-d ``ndarray`` is
+            treated as a scalar.
         size: Required number of values.
         subject: Noun phrase naming what ``size`` was measured from,
             used in the error message.
@@ -61,6 +64,9 @@ def broadcast_param(
         return [int(var)] * size
     if isinstance(var, Real):
         return [float(var)] * size
+    # 0-d ndarray is not a sequence; len() raises TypeError.
+    if isinstance(var, numpy.ndarray) and var.ndim == 0:
+        return broadcast_param(name, var.item(), size, subject)
     if len(var) < size:
         raise ValueError(
             f"Argument '{name}' must be at least the size of {subject}: {len(var)} < {size}"
