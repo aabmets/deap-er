@@ -136,6 +136,11 @@ The following is extra.
     `PushTree` on `gp` or `tools`. Tapes remain the only
     `interpret_tapes` target. Not a second public genome
     ([Push GP P19](../roadmap/push_gp.md#p19-push-gp-as-the-loop)).
+29. `interpret_tapes` hash-conses postfix subexpressions across a
+    batch and evaluates each unique sub-tape once against the
+    packed matrix. Shared suffixes are stitched from one oracle
+    result per node. The return shape, warmup ``nan`` contract,
+    and per-tape ``fill`` semantics are unchanged.
 
 The columnar contract is in the
 [columnar GP tutorial](../../tutorials/columnar_gp.md). The private

@@ -48,7 +48,7 @@ surface.
 | 29 | [Novelty selection and iso+line](features_21_30.md#29-novelty-selection-and-isoline) | `operators`, `records` | shipped |
 | 30 | [Causal lookback and suffix rescore](features_21_30.md#30-causal-lookback-and-suffix-rescore) | `gp` | shipped |
 | 31 | [Affine scaling and Lamarckian writeback](features_31_40.md#31-affine-scaling-and-lamarckian-writeback) | `gp`, `utilities` | shipped |
-| 32 | [Population tape CSE](features_31_40.md#32-population-tape-cse) | `gp` | planned |
+| 32 | [Population tape CSE](features_31_40.md#32-population-tape-cse) | `gp` | shipped |
 | 33 | [Evaluation budget and eval cache](features_31_40.md#33-evaluation-budget-and-eval-cache) | `algorithms`, `utilities` | shipped |
 | 34 | [Parallel RNG streams](features_31_40.md#34-parallel-rng-streams) | `rng` | shipped |
 | 35 | [Island topologies](features_31_40.md#35-island-topologies) | `operators` | planned |

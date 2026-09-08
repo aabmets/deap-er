@@ -52,9 +52,11 @@ each unique sub-tape once against the packed matrix, and stitch
 the results. Same Python oracle, same `nan` warmup, same
 `interpret_tapes` return shape $(n_{\mathrm{ind}}, n_{\mathrm{rows}})$.
 
-**Today.** `interpret_tapes` batches individuals against one
-matrix. Shared *subexpressions* across individuals are evaluated
-again.
+**Today.** `interpret_tapes` hash-conses postfix subexpressions
+across a batch, evaluates each unique sub-tape once against the
+packed matrix, and stitches the results. The Python oracle,
+warmup ``nan`` contract, and ``(n_ind, n_rows)`` return shape are
+unchanged. Incremental ``ts_rank`` stays deferred.
 
 **Benefit.** The next columnar speedup after items 3, 4, and 9
 that does not need a C rewrite. A generation of related trees
