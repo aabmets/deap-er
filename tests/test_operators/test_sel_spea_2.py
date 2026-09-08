@@ -126,3 +126,11 @@ def test_spea2_density_fill_prefers_tied_isolate(make):
 
 def test_spea2_empty_population_returns_empty():
     assert tools.sel_spea_2([], 1) == []
+
+
+@pytest.mark.parametrize("sel_count", [0, -1, -2])
+def test_spea2_non_positive_count_returns_empty(multi_obj, make, sel_count):
+    # Negative sel_count used to enter truncate_archive and delete
+    # past the archive (IndexError). Match sel_nsga_2 / sel_best.
+    population = _spea2_population(multi_obj, make)
+    assert tools.sel_spea_2(population, sel_count) == []
