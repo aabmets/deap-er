@@ -14,7 +14,7 @@ raised `AttributeError`, so later valid individuals were never seen.
 `HallOfFame.update`.
 
 **Validator.**
-`tests/test_records/test_hall_of_fame.py::test_pareto_front_skips_individual_without_fitness`
+`tests/test_records/test_pareto_front.py::test_pareto_front_skips_individual_without_fitness`
 
 ---
 
@@ -204,7 +204,7 @@ non-finite, matching MAP-Elites `add`.
 
 - `tests/test_records/test_hall_of_fame.py::test_update_skips_invalid_fitness_and_keeps_later_members`
 - `tests/test_records/test_hall_of_fame.py::test_update_rejects_non_finite_fitness`
-- `tests/test_records/test_hall_of_fame.py::test_pareto_front_skips_invalid_and_non_finite_fitness`
+- `tests/test_records/test_pareto_front.py::test_pareto_front_skips_invalid_and_non_finite_fitness`
 
 ---
 
