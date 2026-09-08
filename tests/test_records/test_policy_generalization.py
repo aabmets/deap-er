@@ -11,6 +11,25 @@
 from deap_er import records
 
 
+def test_regression_generalization_gap_chapter_contents():
+    logbook = records.Logbook()
+    records.record_policy_generalization_gap(
+        logbook,
+        gen=3,
+        train_score=8.0,
+        held_out_score=3.0,
+        nevals=20,
+    )
+    chapter = logbook.chapters[records.POLICY_GENERALIZATION_GAP_CHAPTER][0]
+    assert chapter == {
+        "gen": 3,
+        "nevals": 20,
+        "train": 8.0,
+        "held_out": 3.0,
+        "gap": 5.0,
+    }
+
+
 def test_policy_generalization_gap_chapter_fields():
     chapter = records.policy_generalization_gap(5.0, 2.0)
     assert chapter == {"train": 5.0, "held_out": 2.0, "gap": 3.0}
