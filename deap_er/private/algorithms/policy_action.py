@@ -68,8 +68,8 @@ class PolicyActionResult:
 
     Attributes:
         applied: True when an underlying callable ran.
-        rejected: True when the token is unknown or required
-            kwargs were missing.
+        rejected: True when the token is unknown, required kwargs were
+            missing, or a ``guard`` cap rejected the action.
         value: Return value from the underlying callable when
             ``applied`` is True; otherwise ``None``.
     """
@@ -84,8 +84,9 @@ def apply_policy_action(action: str, /, **kwargs: Any) -> PolicyActionResult:
 
     Push emits action names, not trees. This helper is schema plus
     thin dispatch only: fitness assignment and rescore ownership stay
-    on the caller. Skip tokens are intentional no-ops. Unknown tokens
-    and missing required kwargs are rejected without raising.
+    on the caller. Skip tokens are intentional no-ops. Unknown tokens,
+    missing required kwargs, and guard cap violations are rejected
+    without raising.
 
     Args:
         action: One of :data:`SUPPORTED_POLICY_ACTIONS`.

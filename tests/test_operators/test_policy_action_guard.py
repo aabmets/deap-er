@@ -229,6 +229,55 @@ def test_n_evals_budget_allows_cheaper_action(ind_cls):
     assert second.rejected is True
 
 
+def test_guard_rejection_surfaces_last_action_rejected_observation(ind_cls):
+    """Guard caps feed P11 ``last_action_rejected`` via ``rejected=True``."""
+    guard = tools.PolicyActionGuard(max_tune_gen=1)
+    pset = gp.PrimitiveSet("obs_guard_main", 1)
+    pset.add_primitive(operator.add, 2)
+    pset.add_ephemeral_constant("obs_guard_eph", lambda: 0.25)
+    eph = pset.terminals[object][-1]
+    tree = gp.PrimitiveTree([pset.mapping["add"], eph(), pset.mapping["ARG0"]])
+    strategy = tools.Strategy([0.0], 0.8, offsprings=2, survivors=1)
+    result = tools.apply_policy_action(
+        "tune_ephemerals",
+        individual=tree,
+        strategy=strategy,
+        evaluate=lambda _: (1.0,),
+        n_gen=3,
+        guard=guard,
+    )
+    assert result.applied is False
+    assert result.rejected is True
+    assert result.value is None
+
+
+def test_max_promotes_per_gen_zero_blocks_apply_without_crash(ind_cls):
+    """``max_promotes_per_gen=0`` is a permanent promote ban for this generation."""
+    guard = tools.PolicyActionGuard(max_promotes_per_gen=0)
+    guard.begin_generation(0)
+    pset = gp.PrimitiveSetTyped("zero_promo_main", [float, float], float)
+    pset.add_primitive(operator.add, [float, float], float)
+    tree = gp.PrimitiveTree.from_string("add(ARG0, ARG1)", pset)
+    result = tools.apply_policy_action(
+        "promote_subtree",
+        prim_set=pset,
+        expr=tree,
+        guard=guard,
+    )
+    assert result.applied is False
+    assert result.rejected is True
+
+
+def test_policy_action_guard_rejects_negative_caps():
+    with pytest.raises(ValueError, match="max_promotes_per_gen"):
+        tools.PolicyActionGuard(max_promotes_per_gen=-1)
+
+
+def test_policy_action_result_docstring_mentions_guard_rejection():
+    rejected_doc = tools.PolicyActionResult.__doc__ or ""
+    assert "guard" in rejected_doc.lower()
+
+
 def test_guard_policy_action_matches_apply_rejection(ind_cls):
     guard = tools.PolicyActionGuard(max_promotes_per_gen=0)
     assert tools.guard_policy_action("promote_subtree", guard) is False

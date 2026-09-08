@@ -36,7 +36,7 @@ class PolicyActionGuard:
 
     Attributes:
         max_promotes_per_gen: Maximum ``promote_subtree`` calls per
-            generation.
+            generation. ``0`` blocks every promote for that generation.
         max_tune_gen: Maximum inner ``n_gen`` accepted by
             ``tune_ephemerals``.
         min_exam_size: Minimum catalog size required for
@@ -62,6 +62,21 @@ class PolicyActionGuard:
     generation: int = 0
     promotes_this_gen: int = 0
     last_promote_gen: int | None = None
+
+    def __post_init__(self) -> None:
+        """Reject negative or zero-valued cap configuration."""
+        if self.max_promotes_per_gen < 0:
+            raise ValueError("max_promotes_per_gen must be at least 0")
+        if self.max_tune_gen < 1:
+            raise ValueError("max_tune_gen must be at least 1")
+        if self.min_exam_size < 1:
+            raise ValueError("min_exam_size must be at least 1")
+        if self.promote_cooldown < 0:
+            raise ValueError("promote_cooldown must be at least 0")
+        if self.n_evals is not None and self.n_evals < 0:
+            raise ValueError("n_evals must be at least 0")
+        if self.nevals_used < 0:
+            raise ValueError("nevals_used must be at least 0")
 
     def begin_generation(self, generation: int | None = None) -> None:
         """Reset per-generation counters and optionally bump ``generation``.
@@ -184,8 +199,6 @@ def _step_islands_eval_cost(kwargs: dict[str, Any]) -> int:
 
 
 def _exam_size_allowed(min_exam_size: int, kwargs: dict[str, Any]) -> bool:
-    if min_exam_size < 1:
-        raise ValueError("min_exam_size must be at least 1")
     floor = int(kwargs.get("min_cases", 1))
     case_count = kwargs.get("case_count")
     if case_count is not None:
