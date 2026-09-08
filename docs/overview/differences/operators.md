@@ -188,6 +188,11 @@ from the original sources.
     through a caller-marked held-out exam). Chronological meaning stays
     on the caller. DEAP has no filter-pool epsilon modes or generation
     downsample schedule.
+37. `mut_iso_line` treats NumPy integer genes as integers. A
+    `numpy.int64` gene no longer takes the float path and writes a
+    non-integer value.
+38. `sel_random` returns `[]` when the pool is empty. A positive
+    `sel_count` no longer `IndexError`s on `rng.choice([])`.
 
 [deap-321]: https://github.com/DEAP/deap/issues/321
 [deap-472]: https://github.com/DEAP/deap/issues/472

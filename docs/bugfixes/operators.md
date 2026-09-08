@@ -372,6 +372,35 @@ instead of `[]`. `sel_random`, roulette, and NSGA-II already treat
 
 ---
 
+## `mut_iso_line` treated a NumPy integer gene as a float
+
+Gene dispatch used `isinstance(parent, int)`. `numpy.int64` /
+`numpy.int32` failed that test and took `iso_line_float`, so a
+bounded integer genome became a Python `float` (for example `7.32`
+instead of `7`). `numpy.bool_` already had its own check.
+`broadcast_param` already treats `numbers.Integral` as a scalar.
+
+**Fix.** After the bool check, dispatch on `numbers.Integral`.
+Bounded and unbounded integer genes still round to `int`.
+
+**Validator.**
+`tests/test_operators/test_mut_iso_line.py::test_mut_iso_line_numpy_integer_gene_uses_int_path`
+
+---
+
+## `sel_random` crashed on an empty pool
+
+`rng.choice([])` raises `IndexError` when `sel_count > 0`.
+Roulette, SUS, NSGA-II, and SPEA-II already return `[]` for an
+empty pool.
+
+**Fix.** Return `[]` when the pool is empty or `sel_count <= 0`.
+
+**Validator.**
+`tests/test_operators/test_sel_various.py::test_sel_random_empty_pool_returns_empty`
+
+---
+
 ## `mig_ring` aliased a duplicate emigrant in the destination
 
 `sel_random` (and any selector that returns the same object twice)

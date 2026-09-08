@@ -10,6 +10,7 @@
 #
 from __future__ import annotations
 
+from numbers import Integral
 from typing import TYPE_CHECKING, Any
 
 import numpy
@@ -129,7 +130,7 @@ def _mutate_iso_line_gene(
     if _is_bool_gene(parent):
         value = iso_line_bit(bool(parent), bool(elite), iso, sigma)
         return type(parent)(value)
-    if isinstance(parent, int):
+    if isinstance(parent, Integral):
         xl = int(low) if low is not None else int(parent)
         xu = int(up) if up is not None else int(parent)
         if low is None or up is None or xu < xl:

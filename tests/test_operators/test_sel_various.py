@@ -39,6 +39,11 @@ def test_proportionate_selection_empty_or_zero_count_returns_empty(single_obj, m
     assert tools.sel_stochastic_universal_sampling(population, 0) == []
 
 
+def test_sel_random_empty_pool_returns_empty():
+    assert tools.sel_random([], 3) == []
+    assert tools.sel_random([], 0) == []
+
+
 def test_stochastic_universal_sampling_returns_requested_count(single_obj, make):
     population = [make(single_obj, [i], (float(i + 1),)) for i in range(6)]
 

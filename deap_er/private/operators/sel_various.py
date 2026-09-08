@@ -83,8 +83,11 @@ def sel_random(individuals: list[Individual], sel_count: int) -> list[Individual
         sel_count: Number of individuals to select.
 
     Returns:
-        The selected individuals.
+        The selected individuals. An empty pool or ``sel_count <= 0``
+        returns an empty list.
     """
+    if sel_count <= 0 or not individuals:
+        return []
     return [rng.choice(individuals) for _ in range(sel_count)]
 
 

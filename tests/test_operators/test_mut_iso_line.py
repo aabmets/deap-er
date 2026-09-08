@@ -58,6 +58,20 @@ def test_mut_iso_line_int_rounds_and_clamps():
     assert 1 <= mutant[0] <= 8
 
 
+def test_mut_iso_line_numpy_integer_gene_uses_int_path():
+    parent: Any = [5]
+    donor: Any = [8]
+    tools.rng.seed(42)
+    (py_mut,) = tools.mut_iso_line(parent, donor, iso=0.0, sigma=0.0, low=1, up=8)
+    tools.rng.seed(42)
+    np_parent: Any = [numpy.int64(5)]
+    np_donor: Any = [numpy.int64(8)]
+    (np_mut,) = tools.mut_iso_line(np_parent, np_donor, iso=0.0, sigma=0.0, low=1, up=8)
+    assert isinstance(py_mut[0], int)
+    assert isinstance(np_mut[0], int)
+    assert np_mut[0] == py_mut[0]
+
+
 def test_mut_iso_line_bit_can_copy_donor():
     parent: Any = [False]
     donor: Any = [True]
