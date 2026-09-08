@@ -141,4 +141,55 @@ Related: [item 4](features_1_10.md#4-batch-tape-evaluation),
 [Multiprocessing](../../tutorials/multiprocessing.md),
 [Push GP P18](push_gp.md#p18-parallel-rng-streams).
 
+---
+
+## 35. Island topologies
+
+**What.** `mig_fully_connected` / `mig_random` next to
+`mig_ring`, plus a helper that computes `eval_keys` from the
+current exam.
+
+**Today.** `step_islands(..., migrate=)` already accepts any
+migrate callable. `mig_ring` is the shipped topology. Callers
+who want a complete graph or random destinations write the
+map themselves. `eval_keys` is a caller-supplied sequence.
+
+**Benefit.** Heterogeneous islands shipped in item 25; the
+missing half is more than a ring. A named topology plus an
+exam-derived key stops every island recipe from reinventing
+`mig_indices` and a hash of the case set.
+
+**Scope.** Two migrate callables and an `eval_keys` helper.
+Archives still do not auto-merge. Custom graphs stay
+`mig_ring(..., mig_indices=)`.
+
+Related: [item 25](features_21_30.md#25-streaming-and-island-ecology),
+[Operators](../../reference/operators.md),
+[Multiprocessing](../../tutorials/multiprocessing.md).
+
+---
+
+## 36. Persistent hall of fame
+
+**What.** A first-class `hof` slot on `Checkpoint`, or
+`HallOfFame.to_json` matching `Logbook`
+([persistency of the hall of fame][deap-25]).
+
+**Today.** `Checkpoint` dill-dumps arbitrary state, including
+a caller-assigned `cp.hof`. `Logbook` already round-trips
+JSON. `HallOfFame` has no text serialization.
+
+**Benefit.** A resumed run should restore the archive without
+relying on dill for the one object papers want to inspect.
+Matches the logbook JSON path and the still-open DEAP
+request.
+
+**Scope.** A convenience API, not a new record type. Not a
+per-generation snapshot mode beyond what `fronts=` already
+logs.
+
+Related: [Using checkpoints](../../tutorials/using_checkpoints.md),
+[Logging statistics](../../tutorials/logging_statistics.md).
+
+[deap-25]: https://github.com/DEAP/deap/issues/25
 [deap-75]: https://github.com/DEAP/deap/issues/75

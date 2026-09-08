@@ -6,7 +6,7 @@ item, or a recipe the caller can write today. Promotion onto the
 [overview](index.md) table needs a documented gap after the item
 they depend on — not a catalog of every named algorithm.
 
-The next numbered backlog is 27–34. This page is the rest.
+The next numbered backlog is 27–36. This page is the rest.
 
 | Idea | Why later |
 |:-----|:----------|
@@ -34,9 +34,7 @@ The next numbered backlog is 27–34. This page is the rest.
 | [SNES and CEM](#snes-and-cem) | Wait until a user hits a wall after sep-CMA. |
 | [Adaptive operator rates](#adaptive-operator-rates) | After [item 33](features_31_40.md#33-evaluation-budget-and-eval-cache). |
 | [Batched var_and uniforms](#batched-var_and-uniforms) | Housekeeping for the tiny `ea_simple` bar. |
-| [Island topologies](#island-topologies) | `step_islands` already accepts any `migrate`. |
 | [Noisy fitness resample](#noisy-fitness-resample) | After the eval cache so repeats are cheap. |
-| [Persistent hall of fame](#persistent-hall-of-fame) | `Checkpoint` already dill-dumps arbitrary state. |
 | [WFG and constrained DTLZ](#wfg-and-constrained-dtlz) | Benchmarks, not library surface. |
 | [`step_program_search`](#step_program_search) | A wrapper that wants to become a framework. |
 
@@ -415,20 +413,6 @@ can be preserved or is deliberately versioned.
 
 ---
 
-## Island topologies
-
-**What.** `mig_fully_connected` / `mig_random` next to
-`mig_ring`, plus a helper that computes `eval_keys` from the
-current exam.
-
-**Today.** `step_islands(..., migrate=)` already accepts any
-migrate callable. `mig_ring` is the shipped topology.
-
-**Why later.** A one-function recipe. Archives still do not
-auto-merge.
-
----
-
 ## Noisy fitness resample
 
 **What.** `resample(ind, evaluate, n)` and a racing stop
@@ -439,20 +423,6 @@ auto-merge.
 
 **Why later.** After the eval cache so repeats are cheap.
 Time-series GP is the usual noisy caller.
-
----
-
-## Persistent hall of fame
-
-**What.** A first-class `hof` slot on `Checkpoint`, or
-`HallOfFame.to_json` matching `Logbook`.
-
-**Today.** `Checkpoint` dill-dumps arbitrary state. `Logbook`
-already round-trips JSON. DEAP still has the persistency
-request open.
-
-**Why later.** The mechanism exists. A convenience API, not a
-new record type.
 
 ---
 

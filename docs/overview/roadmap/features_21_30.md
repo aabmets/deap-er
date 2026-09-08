@@ -277,6 +277,7 @@ because some island is still selecting for them.
 - No Ray/GPU runtime, no daemon. Checkpoint + caller loop.
 
 Related: [item 4](features_1_10.md#4-batch-tape-evaluation),
+[item 35](features_31_40.md#35-island-topologies),
 [Algorithms](../../reference/algorithms.md),
 [Multiprocessing](../../tutorials/multiprocessing.md),
 [Push GP P9](push_gp.md#p9-streaming-and-island-ecology).
