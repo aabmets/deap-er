@@ -149,6 +149,16 @@ from the original sources.
     `PolicyActionResult(rejected=True)` without raising — the
     observation surface for `last_action_rejected`. DEAP has no
     policy action firewall ([Push GP P14](../roadmap/push_gp.md#p14-action-guards-and-cooldowns)).
+33. `sel_novelty` ranks a pool by average distance to the `k` nearest
+    archive behavior descriptors via `semantic_distance`. Fitness
+    stays on `ind.fitness`; novelty is the selection key. An empty
+    archive falls back to `sel_random`. `mut_iso_line` interpolates
+    toward a donor elite with `t ~ Uniform(-iso, 1 + iso)` and adds
+    isotropic noise; `iso_line_float`, `iso_line_int`, and
+    `iso_line_bit` compose through `mut_heterogeneous` on mixed
+    genomes. `ea_map_elites` registers both like any other
+    `select` / `mutate`; `random_elites` stays the parent source.
+    DEAP has no novelty selector or archive-aware iso+line mutator.
 
 [deap-321]: https://github.com/DEAP/deap/issues/321
 [deap-472]: https://github.com/DEAP/deap/issues/472

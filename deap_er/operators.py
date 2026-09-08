@@ -39,6 +39,7 @@ from .private.operators.mut_case_exam import mut_case_mask, mut_case_ranges
 from .private.operators.mut_de import mut_de
 from .private.operators.mut_gaussian_bounded import mut_gaussian_bounded
 from .private.operators.mut_hetero import mut_heterogeneous
+from .private.operators.mut_iso_line import iso_line_bit, iso_line_float, iso_line_int, mut_iso_line
 from .private.operators.mut_various import (
     mut_es_log_normal,
     mut_flip_bit,
@@ -68,6 +69,7 @@ from .private.operators.sel_moead_helpers import (
     scalarization_pbi,
     scalarization_tchebycheff,
 )
+from .private.operators.sel_novelty import sel_novelty
 from .private.operators.sel_nsga_2 import sel_nsga_2
 from .private.operators.sel_nsga_3 import SelNSGA3WithMemory, sel_nsga_3
 from .private.operators.sel_sms_emoa import sel_sms_emoa
@@ -107,6 +109,10 @@ __all__: list[str] = [
     "mut_gaussian",
     "mut_gaussian_bounded",
     "mut_heterogeneous",
+    "iso_line_bit",
+    "iso_line_float",
+    "iso_line_int",
+    "mut_iso_line",
     "mut_polynomial_bounded",
     "mut_shuffle_indexes",
     "mut_uniform_int",
@@ -135,6 +141,7 @@ __all__: list[str] = [
     "sel_epsilon_lexicase",
     "sel_lexicase",
     "sel_team",
+    "sel_novelty",
     "constraint_dominates",
     "sel_nsga_2",
     "SelNSGA3WithMemory",

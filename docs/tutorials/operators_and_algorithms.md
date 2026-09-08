@@ -125,7 +125,8 @@ the `deap_er.tools` module. Besides the usual tournament, roulette, and
 best/worst helpers, that module also ships the multi-objective selectors
 (SPEA-II, NSGA-II, NSGA-III, SMS-EMOA, MOEA/D, AGE-MOEA-II),
 case-structured lexicase variants, program-team selection (`sel_team`),
-and Deb constraint-dominance (`constraint_dominates`, optional on
+novelty selection for MAP-Elites archives (`sel_novelty`), and Deb
+constraint-dominance (`constraint_dominates`, optional on
 NSGA-II). Each selection operator has its own characteristics
 and therefore it's recommended to read their documentation before use to avoid
 undesirable behavior. See the [Operators](../reference/operators.md) reference.

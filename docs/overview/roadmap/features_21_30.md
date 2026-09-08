@@ -413,10 +413,15 @@ MAP-Elites archive *search* behavior space:
 `ea_map_elites` can register them like any other `select` /
 `mutate`. `random_elites` stays the parent source.
 
-**Today.** `GridArchive`, `CvtArchive`, and `UnstructuredArchive`
-store elites. `ea_map_elites` varies with generic `var_or`.
-`semantic_nearest` looks up neighbors. There is no novelty
-selector and no archive-aware variation operator.
+**Today.** `sel_novelty` ranks a pool by average distance to the
+`k` nearest archive behavior descriptors via `semantic_distance`.
+`ind.fitness` is unchanged; novelty is the selection key. An empty
+archive falls back to `sel_random`. `mut_iso_line` picks a donor
+elite, interpolates with `t ~ Uniform(-iso, 1 + iso)`, and adds
+isotropic noise. Booleans, integers, and reals use matching
+`iso_line_*` helpers; mixed genomes compose them through
+`mut_heterogeneous`. `ea_map_elites` registers both like any other
+`select` / `mutate`; `random_elites` stays the parent source.
 
 **Benefit.** An archive that only `add`s and then runs ordinary
 crossover is a hall of fame with bins. Iso+line and novelty are
