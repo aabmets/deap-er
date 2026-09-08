@@ -33,7 +33,7 @@ page. Items 30, 31, 37, and 38 are shipped on both pages.
 | P16 | [Causal lookback and suffix rescore](features_21_30.md#30-causal-lookback-and-suffix-rescore) (item 30) | `gp` | shipped |
 | P17 | [Affine scaling and Lamarckian writeback](features_31_40.md#31-affine-scaling-and-lamarckian-writeback) (item 31) | `gp`, `utilities` | shipped |
 | P18 | [Parallel RNG streams](features_31_40.md#38-parallel-rng-streams) (item 38) | `rng` | shipped |
-| P19 | [Push GP as the loop](#p19-push-gp-as-the-loop) | `gp` (private policy) | planned |
+| P19 | [Push GP as the loop](#p19-push-gp-as-the-loop) | `gp` (private policy) | shipped |
 
 P1–P10 are shipped on the main table and still sit on this
 path: the two-level loop *uses* them. P11–P14 are shipped
@@ -385,9 +385,14 @@ No column loads, no `Window` as a Push type, no public
 `PushTree` on `gp` / `tools`. Tapes remain the only thing
 `interpret_tapes` runs.
 
-**Today.** PyshGP is an external package, not a dependency.
-Nothing in-tree speaks Push. P1–P18 are the preconditions;
-this row is last so it cannot be started first.
+**Today.** Shipped as
+[item 28](../differences/gp.md#28-private-push-gp-policy-loop).
+`LinearPolicyProgram` and `PushPolicyProgram` live under
+``deap_er.private.programming`` only — not on ``gp`` or ``tools``.
+``step_policy_loop`` wires ``policy_observe`` in and
+``apply_policy_action`` out. The in-tree Push interpreter reads
+``int`` / ``bool`` / solve-bit summaries only; tapes remain the
+only ``interpret_tapes`` target.
 
 **Benefit.** Evolves the *operator of specialists* — which
 exam, when to tune or promote, when to rescore, which
