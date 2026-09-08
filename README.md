@@ -75,7 +75,7 @@ inventory:
   [creator](https://aabmets.github.io/deap-er/bugfixes/creator/),
   [utilities](https://aabmets.github.io/deap-er/bugfixes/utilities/),
   and [algorithms](https://aabmets.github.io/deap-er/bugfixes/algorithms/)
-- **48** capabilities DEAP does not have, including boxed CMA,
+- **50** capabilities DEAP does not have, including boxed CMA,
   mixed-gene mutation, logbook JSON, and
   [columnar GP](https://aabmets.github.io/deap-er/tutorials/columnar_gp/)
 
