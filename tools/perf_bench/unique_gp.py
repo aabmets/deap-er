@@ -67,21 +67,21 @@ def run_unique_gp() -> list[CaseResult]:
         er_gp.mut_slim(individual, slim_set, inflate_prob=0.8, min_depth=1, max_depth=2)
         er_gp.compile_slim_tree(individual, slim_set)(0.5)
 
+    eph = er_gp.PrimitiveSet("TUNE", 1)
+    eph.add_primitive(operator.add, 2)
+    eph.add_ephemeral_constant("BENCH_EPH", lambda: 0.25)
+    eph_node = eph.terminals[object][-1]
+
+    def evaluate_eph(individual: object) -> tuple[float]:
+        func = er_gp.compile_tree(individual, eph)
+        err = func(0.0) - 1.0
+        return (err * err,)
+
     def tune() -> None:
         er_tools.rng.seed(88)
-        eph = er_gp.PrimitiveSet("TUNE", 1)
-        eph.add_primitive(operator.add, 2)
-        eph.add_ephemeral_constant("BENCH_EPH", lambda: 0.25)
-        node = eph.terminals[object][-1]
-        tree = er_creator.U_IND_GP([eph.mapping["add"], node(), eph.mapping["ARG0"]])
+        tree = er_creator.U_IND_GP([eph.mapping["add"], eph_node(), eph.mapping["ARG0"]])
         strategy = er_tools.Strategy(centroid=[0.25], sigma=0.2, offsprings=4)
-
-        def evaluate(individual: object) -> tuple[float]:
-            func = er_gp.compile_tree(individual, eph)
-            err = func(0.0) - 1.0
-            return (err * err,)
-
-        er_gp.tune_ephemerals(tree, strategy, evaluate, n_gen=2)
+        er_gp.tune_ephemerals(tree, strategy, evaluate_eph, n_gen=2)
 
     def batch() -> None:
         toolbox = Toolbox()
