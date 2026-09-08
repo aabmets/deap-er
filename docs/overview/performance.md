@@ -10,14 +10,21 @@ only.
 
 ![Hot-path time of aabmets/deap-er versus DEAP/deap when shared](../images/deaper_perf_bench.png)
 
+Bar color is the comparison class, not the time:
+
+- **Green** — shared DEAP↔deap-er case where deap-er is faster.
+  Darker green is a larger improvement versus DEAP, scaled to
+  the biggest win on the chart.
+- **Gray** — shared case where deap-er is slower than DEAP, or
+  where percent change is missing.
+- **Indigo** — deap-er-only feature (no DEAP counterpart).
+
 Each bar is the mean of 50 timed runs after 2 warmups unless the JSON
 `notes` field records a smaller repeat for a heavy CMA, MAP-Elites,
 or Numba path. Versions in the title are the packages that produced
 the JSON, not whatever is installed when the figure is redrawn.
 
 Shared cases keep the same workloads as the previous DEAP comparison.
-Green is darker as the improvement versus DEAP grows. Gray is a
-shared case that is slower than DEAP. Indigo bars are deap-er-only.
 
 ## What is faster than DEAP
 
