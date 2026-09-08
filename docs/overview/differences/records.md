@@ -108,6 +108,14 @@
     `tune_ephemerals` drop matching fitness-cache keys when they
     invalidate the compile cache. DEAP's `ea_*` drivers stop on
     generations only.
+29. `apply_policy_action` maps a discrete policy token onto
+    existing toolbox callables only: `next_lexicase_cases`,
+    `tune_ephemerals`, `promote_subtree`, `evaluate_invalid`,
+    `interpret_tapes`, and `step_islands`. Skip tokens are
+    intentional no-ops; unknown tokens and missing required
+    kwargs are rejected without raising. Fitness assignment and
+    rescore ownership stay on the caller — not a second `ea_*`
+    driver. DEAP has no policy action schema.
 
 [deap-121]: https://github.com/DEAP/deap/issues/121
 [deap-350]: https://github.com/DEAP/deap/issues/350
