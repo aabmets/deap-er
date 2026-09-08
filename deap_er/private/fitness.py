@@ -10,16 +10,35 @@
 #
 from __future__ import annotations
 
+import math
 from collections.abc import Iterable, Sequence
 from typing import Any, SupportsFloat, cast, override
 
-__all__: list[str] = ["FitnessValues", "Fitness"]
+__all__: list[str] = ["FitnessValues", "Fitness", "has_comparable_fitness"]
 
 type FitnessValues = SupportsFloat | Iterable[SupportsFloat]
 """A single objective value or an iterable of them, including NumPy scalars and arrays.
 
 :meta private:
 """
+
+
+def has_comparable_fitness(individual: Any) -> bool:
+    """Return whether ``individual`` has a finite, valid fitness.
+
+    Args:
+        individual: Candidate that may lack a fitness attribute.
+
+    Returns:
+        True when fitness exists, is valid, and every weighted
+        objective is finite.
+    """
+    if not hasattr(individual, "fitness"):
+        return False
+    fitness = individual.fitness
+    if not fitness.is_valid():
+        return False
+    return all(math.isfinite(float(value)) for value in fitness.wvalues)
 
 
 def _dominates_pair(own: Sequence[float], theirs: Sequence[float]) -> bool:

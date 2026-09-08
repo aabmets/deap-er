@@ -10,35 +10,18 @@
 #
 from __future__ import annotations
 
-import math
 from collections import defaultdict
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 import moocore
 import numpy
+
+from deap_er.private.fitness import has_comparable_fitness
 
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 
 __all__: list[str] = ["sort_non_dominated"]
-
-
-def _rankable_fitness(individual: Any) -> bool:
-    """Return whether ``individual`` has a finite, valid fitness.
-
-    Args:
-        individual: Candidate that may lack a fitness attribute.
-
-    Returns:
-        True when fitness exists, is valid, and every weighted
-        objective is finite.
-    """
-    if not hasattr(individual, "fitness"):
-        return False
-    fitness = individual.fitness
-    if not fitness.is_valid():
-        return False
-    return all(math.isfinite(float(value)) for value in fitness.wvalues)
 
 
 def sort_non_dominated(individuals: list[Individual], sel_count: int) -> list[list[Individual]]:
@@ -61,7 +44,7 @@ def sort_non_dominated(individuals: list[Individual], sel_count: int) -> list[li
     """
     if sel_count <= 0:
         return []
-    ranked = [ind for ind in individuals if _rankable_fitness(ind)]
+    ranked = [ind for ind in individuals if has_comparable_fitness(ind)]
     if not ranked:
         return [[]]
 

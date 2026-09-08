@@ -13,6 +13,7 @@ from copy import deepcopy
 import numpy
 import pytest
 from deap_er import Fitness
+from deap_er.private.fitness import has_comparable_fitness
 
 
 class TestFitness:
@@ -175,3 +176,21 @@ class TestFitness:
 
         assert fitness.__eq__(1.0) is NotImplemented
         assert fitness.__ne__(1.0) is NotImplemented
+
+
+def test_has_comparable_fitness_rejects_missing_invalid_and_nan(monkeypatch):
+    class Bare:
+        pass
+
+    class Holder:
+        def __init__(self, fitness):
+            self.fitness = fitness
+
+    monkeypatch.setattr(Fitness, "weights", (1.0, 1.0))
+    valid = Fitness([1.0, 2.0])
+    empty = Fitness()
+    nan_fit = Fitness([1.0, float("nan")])
+    assert has_comparable_fitness(Holder(valid)) is True
+    assert has_comparable_fitness(Holder(empty)) is False
+    assert has_comparable_fitness(Holder(nan_fit)) is False
+    assert has_comparable_fitness(Bare()) is False

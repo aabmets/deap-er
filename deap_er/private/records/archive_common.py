@@ -18,6 +18,7 @@ from typing import TYPE_CHECKING, Any, Protocol
 
 import numpy
 
+from deap_er.private.fitness import has_comparable_fitness
 from deap_er.private.various.rng import rng
 
 if TYPE_CHECKING:
@@ -100,11 +101,11 @@ def check_archive_add(
         )
     if not all(math.isfinite(float(value)) for value in descriptor):
         return False
-    if not hasattr(individual, "fitness") or not individual.fitness.is_valid():
+    if not has_comparable_fitness(individual):
         return False
     if len(individual.fitness.weights) != 1:
         raise ValueError(f"{archive_name} requires single-objective fitness")
-    return math.isfinite(float(individual.fitness.wvalues[0]))
+    return True
 
 
 def make_archive_stats(elites: Iterable[Individual], num_cells: int) -> ArchiveStats:

@@ -10,12 +10,13 @@
 #
 from __future__ import annotations
 
-import math
 from bisect import bisect_right
 from collections.abc import Callable, Iterator, Sequence
 from copy import deepcopy
 from operator import eq
 from typing import TYPE_CHECKING, Any, override
+
+from deap_er.private.fitness import has_comparable_fitness
 
 from .hof_json import hall_of_fame_from_json, hall_of_fame_to_json
 
@@ -23,24 +24,6 @@ if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 
 __all__: list[str] = ["BaseRecordStorage", "HallOfFame", "ParetoFront"]
-
-
-def _has_comparable_fitness(individual: Any) -> bool:
-    """Return whether ``individual`` has a finite, valid fitness.
-
-    Args:
-        individual: Candidate that may lack a fitness attribute.
-
-    Returns:
-        True when fitness exists, is valid, and every weighted
-        objective is finite.
-    """
-    if not hasattr(individual, "fitness"):
-        return False
-    fitness = individual.fitness
-    if not fitness.is_valid():
-        return False
-    return all(math.isfinite(float(value)) for value in fitness.wvalues)
 
 
 class BaseRecordStorage:
@@ -58,7 +41,7 @@ class BaseRecordStorage:
             individual: Individual to insert. Ignored if fitness is
                 missing, invalid, or non-finite.
         """
-        if _has_comparable_fitness(individual):
+        if has_comparable_fitness(individual):
             individual = deepcopy(individual)
             i = bisect_right(self.keys, individual.fitness)
             self.items.insert(len(self) - i, individual)
@@ -148,7 +131,7 @@ class HallOfFame(BaseRecordStorage):
         Args:
             individual: Candidate with or without a fitness attribute.
         """
-        if not _has_comparable_fitness(individual):
+        if not has_comparable_fitness(individual):
             return
         if len(self) == 0:
             self.insert(individual)
@@ -243,7 +226,7 @@ class ParetoFront(BaseRecordStorage):
             population: Individuals that may have a fitness attribute.
         """
         for ind in population:
-            if not _has_comparable_fitness(ind):
+            if not has_comparable_fitness(ind):
                 continue
             is_dominated, has_twin, to_remove = self._front_verdict(ind)
             for i in reversed(to_remove):
