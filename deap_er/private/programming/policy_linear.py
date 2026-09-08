@@ -26,6 +26,7 @@ RuleField = Literal[
     "unsolved_count",
     "train_score",
     "held_out_score",
+    "held_out_present",
     "archive_coverage",
     "qd_score",
     "nevals",
@@ -42,7 +43,8 @@ class PolicyDecisionRule:
 
     Attributes:
         field: Observation scalar to read. Use ``solve_bit`` with
-            :attr:`solve_bit_index` for per-case bits.
+            :attr:`solve_bit_index` for per-case bits. Use
+            ``held_out_present`` for a boolean held-out marker.
         op: Comparison operator.
         value: Right-hand side for numeric comparisons.
         action: Discrete action token to emit when the rule matches.
@@ -56,6 +58,11 @@ class PolicyDecisionRule:
     action: str = ""
     solve_bit_index: int = 0
 
+    def __post_init__(self) -> None:
+        """Reject empty action tokens at construction."""
+        if not self.action:
+            raise ValueError("action must not be empty")
+
 
 @dataclass(frozen=True, slots=True)
 class LinearPolicyProgram:
@@ -68,6 +75,11 @@ class LinearPolicyProgram:
 
     rules: tuple[PolicyDecisionRule, ...]
     default_action: str
+
+    def __post_init__(self) -> None:
+        """Reject empty default actions at construction."""
+        if not self.default_action:
+            raise ValueError("default_action must not be empty")
 
 
 def linear_policy_decide(
@@ -96,6 +108,8 @@ def _rule_matches(rule: PolicyDecisionRule, observation: PolicyObservation) -> b
         return bool(left)
     if rule.op == "is_false":
         return not bool(left)
+    if left is None:
+        return False
     right = rule.value
     if rule.op == "eq":
         return left == right
@@ -112,7 +126,10 @@ def _rule_matches(rule: PolicyDecisionRule, observation: PolicyObservation) -> b
     raise ValueError(f"unknown policy rule operator: {rule.op}")
 
 
-def _read_field(rule: PolicyDecisionRule, observation: PolicyObservation) -> int | float | bool:
+def _read_field(
+    rule: PolicyDecisionRule,
+    observation: PolicyObservation,
+) -> int | float | bool | None:
     if rule.field == "solve_bit":
         bits = observation.solve_bits
         if rule.solve_bit_index < 0 or rule.solve_bit_index >= len(bits):
@@ -123,7 +140,9 @@ def _read_field(rule: PolicyDecisionRule, observation: PolicyObservation) -> int
     if rule.field == "train_score":
         return observation.train_score
     if rule.field == "held_out_score":
-        return observation.held_out_score if observation.held_out_score is not None else 0.0
+        return observation.held_out_score
+    if rule.field == "held_out_present":
+        return observation.held_out_score is not None
     if rule.field == "archive_coverage":
         return observation.archive_coverage
     if rule.field == "qd_score":
