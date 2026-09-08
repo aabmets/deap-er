@@ -27,7 +27,8 @@ Timed hot paths versus DEAP are on the
   and differential-evolution variation
 - Genetic programming: prefix trees (loosely typed, strongly typed,
   ADFs), SlimGP, columnar programs over named `float64` columns
-  with vectorized, causal-window, and tape / Numba backends, and a
+  with vectorized, causal-window, tape / Numba backends (population
+  tape CSE), and a
   private [Push GP](../tutorials/push_gp.md) policy loop that evolves
   the search around those tapes
 - Program-search helpers: growing language, semantic descriptors,
@@ -37,16 +38,20 @@ Timed hot paths versus DEAP are on the
 - Multi-objective search (SPEA-II, NSGA-II, NSGA-III, SMS-EMOA, MOEA/D,
   AGE-MOEA-II) with optional constraint-dominance on NSGA-II
 - Quality-diversity search (MAP-Elites: grid, CVT, and unstructured
-  archives)
-- Case-structured selection (lexicase, ε-lexicase, informed
-  down-sampling, program teams, co-evolving case exams)
+  archives; novelty selection and iso+line variation)
+- Case-structured selection (lexicase, ε-lexicase with dynamic filter
+  modes, batch ε-lexicase, case-subset tournament, informed
+  down-sampling and generation schedules, program teams, co-evolving
+  case exams)
 - Cooperative and competitive co-evolution, plus heterogeneous island
-  stepping
+  stepping (`step_islands`, ring / fully connected / random migration,
+  `island_eval_keys`)
 - Parallel evaluation with multiprocessing or with
   [Ray](https://github.com/ray-project/ray), plus spawned RNG streams
-- Statistics, hall of fame, evaluation cache and budget, and a
-  NetworkX-compatible genealogy
-- Checkpoints that persist a run to disk
+- Statistics, hall of fame (JSON round-trip), evaluation cache and
+  budget, and a NetworkX-compatible genealogy
+- Checkpoints that persist a run to disk (`hof` as JSON when
+  `hof_ind_cls=` is set)
 - Benchmarks against common test functions
 - Worked examples of symbolic regression, particle swarm, differential
   evolution, MAP-Elites, mixed encoding, lexicase, columnar GP, and

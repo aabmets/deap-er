@@ -140,7 +140,8 @@ The following is extra.
     batch and evaluates each unique sub-tape once against the
     packed matrix. Shared suffixes are stitched from one oracle
     result per node. The return shape, warmup ``nan`` contract,
-    and per-tape ``fill`` semantics are unchanged.
+    and per-tape ``fill`` semantics are unchanged. See the
+    [columnar GP tutorial](../../tutorials/columnar_gp.md).
 30. HARM `natural_histogram` does not wrap `hist[-1]` when a
     tree has size $0$. The left-neighbor bin is updated only
     for `ind_size >= 1`, matching the existing `ind_size - 2`

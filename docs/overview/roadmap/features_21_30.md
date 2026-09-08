@@ -442,7 +442,7 @@ semantic geometry gets a selector that lives in that space.
 
 **Scope.** One selector and one mutator. Dominated novelty, a
 Pareto-per-cell archive, and CMA-MAE thresholds stay in
-[Under consideration](under_consideration.md) until this pair exists.
+[Under consideration](under_consideration.md).
 
 Related: [item 8](features_1_10.md#8-quality-diversity-archive),
 [item 20](features_11_20.md#20-cvt-unstructured-map-elites),

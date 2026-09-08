@@ -165,9 +165,9 @@ human-in-the-loop.
 **What.** Rank by non-dominated novelty-plus-fitness (GECCO 2025)
 instead of novelty alone.
 
-**Today.** [Item 29](features_21_30.md#29-novelty-selection-and-isoline)
-is the planned novelty selector. `semantic_distance` and
-`UnstructuredArchive` already exist.
+**Today.** `sel_novelty` ships on
+[item 29](features_21_30.md#29-novelty-selection-and-isoline).
+`semantic_distance` and `UnstructuredArchive` already exist.
 
 **Why later.** Same family as item 29. More mechanism after
 `sel_novelty` exists.

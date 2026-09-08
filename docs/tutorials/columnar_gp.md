@@ -243,6 +243,10 @@ def evaluate_batch(individuals):
     return [score(predicted[i], target) for i in index]
 ```
 
+`interpret_tapes` hash-conses postfix subexpressions across the batch:
+shared suffixes are evaluated once and stitched back. The return shape,
+warmup `nan` contract, and per-tape `fill` semantics are unchanged.
+
 When new rows arrive, grow the packed table and **rescore the full
 matrix**. Do not score only the new rows: a causal window needs the
 preceding samples, and a suffix-only call treats the first new row as
@@ -275,6 +279,46 @@ def select(individuals, sel_count):
     return tools.sel_lexicase(individuals, sel_count, cases=cases, matrix=matrix)
 
 toolbox.register("select", select)
+```
+
+For batch ε-lexicase, group cases into batches and filter on the
+shorter matrix. For a down-sampled tournament, score each individual
+on a case subset and run ordinary tournament selection on those
+scalars:
+
+```python
+def select_batch(individuals, sel_count):
+    matrix = tools.fitness_case_matrix(individuals)
+    return tools.sel_batch_epsilon_lexicase(
+        individuals, sel_count, batch_size=4, matrix=matrix
+    )
+
+def select_tournament(individuals, sel_count):
+    matrix = tools.fitness_case_matrix(individuals)
+    cases = tools.sample_informed_cases(individuals, 12, matrix=matrix)
+    return tools.sel_tournament_cases(
+        individuals, rounds=sel_count, contestants=3, cases=cases, matrix=matrix
+    )
+```
+
+`next_downsample_cases` returns the next `cases=` list each generation
+(`random`, `informed`, `cohort`, or `held_out`). Pass
+``mode=`` on ``sel_epsilon_lexicase`` when the filter pool should
+drive ε (`epsilon_semi`, ``epsilon_dynamic``).
+
+```python
+def select_scheduled(individuals, sel_count, generation):
+    matrix = tools.fitness_case_matrix(individuals)
+    cases = tools.next_downsample_cases(
+        individuals, case_count=12, generation=generation, mode="informed"
+    )
+    return tools.sel_epsilon_lexicase(
+        individuals,
+        sel_count,
+        cases=cases,
+        matrix=matrix,
+        mode="epsilon_dynamic",
+    )
 ```
 
 `sel_team` turns the same packed matrix into a covering ensemble:

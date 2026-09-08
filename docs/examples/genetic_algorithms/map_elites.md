@@ -21,7 +21,9 @@ The same `ea_map_elites` loop fills those cells.
 
 `UnstructuredArchive` keeps elites by descriptor distance.
 `sel_novelty` ranks parents by distance to the archive; `mut_iso_line`
-interpolates toward a donor elite.
+interpolates toward a donor elite. See roadmap
+[item 29](../../overview/roadmap/features_21_30.md#29-novelty-selection-and-isoline)
+and the [logging tutorial](../../tutorials/logging_statistics.md).
 
 ```python
 --8<-- "examples/genetic_algorithms/map_elites_novelty.py"
