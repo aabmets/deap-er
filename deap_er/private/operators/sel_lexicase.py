@@ -30,6 +30,15 @@ from .sel_lexicase_matrix import (
 
 __all__: list[str] = ["lexicase_select", "sel_lexicase", "sel_epsilon_lexicase"]
 
+_EPSILON_MODES = frozenset(
+    {
+        "epsilon_auto",
+        "epsilon_static",
+        "epsilon_semi",
+        "epsilon_dynamic",
+    }
+)
+
 
 def lexicase_select(
     individuals: list[Individual],
@@ -195,6 +204,8 @@ def sel_epsilon_lexicase(
     elif mode is None:
         resolved = "epsilon_auto"
     else:
+        if mode not in _EPSILON_MODES:
+            raise ValueError(f"mode must be one of {sorted(_EPSILON_MODES)}")
         resolved = mode
     return lexicase_select_vectorized(
         individuals,

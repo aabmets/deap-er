@@ -52,9 +52,12 @@ def next_downsample_cases(
         generation: Generation index used to rotate cohorts or
             held-out windows.
         mode: ``random``, ``informed``, ``cohort``, or ``held_out``.
-        cohort: Fixed case indices for ``mode="cohort"``.
+        cohort: Fixed case indices for ``mode="cohort"``. Must supply at
+            least ``case_count`` distinct valid indices.
         cohorts: Rotating cohort lists for ``mode="cohort"``. When
             both ``cohort`` and ``cohorts`` are set, ``cohort`` wins.
+            Each cohort must supply at least ``case_count`` distinct
+            valid indices when selected.
         held_out: Caller-marked exam for ``mode="held_out"``.
         matrix: Optional ``(n_individuals, n_cases)`` pack for
             informed mode.
@@ -124,6 +127,10 @@ def _cohort_cases(
             chosen.append(value)
         if len(chosen) >= size:
             break
+    if len(chosen) < size:
+        raise ValueError(
+            f"cohort must supply at least {size} distinct case indices, got {len(chosen)}"
+        )
     return chosen
 
 

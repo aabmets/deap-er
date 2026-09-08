@@ -10,8 +10,13 @@
 #
 from typing import Any
 
+import numpy
 import pytest
 from deap_er import Fitness, creator, tools
+from deap_er.private.operators.epsilon_lexicase_slack import (
+    apply_epsilon_filter,
+    epsilon_mode_uses_pool_elite,
+)
 
 FIT = "ITEM28_FIT"
 IND = "ITEM28_IND"
@@ -167,3 +172,46 @@ def test_downsample_cohort_rejects_out_of_range(ind_cls):
 
     with pytest.raises(IndexError, match="case index 9"):
         tools.next_downsample_cases(population, 2, 0, mode="cohort", cohort=[0, 9])
+
+
+def test_epsilon_fixed_uses_pool_elite_after_shrink(multi_obj, make):
+    population = [
+        make(multi_obj, [0], (10.0, 1.0)),
+        make(multi_obj, [1], (9.0, 2.0)),
+        make(multi_obj, [2], (8.0, 3.0)),
+        make(multi_obj, [3], (1.0, 100.0)),
+    ]
+
+    tools.rng.seed(42)
+    fixed = tools.sel_epsilon_lexicase(population, 1, 0.0)
+    tools.rng.seed(42)
+    strict = tools.sel_lexicase(population, 1)
+
+    assert fixed == strict
+
+
+def test_apply_epsilon_filter_fixed_slack_anchors_to_pool_elite():
+    assert epsilon_mode_uses_pool_elite("epsilon_fixed")
+
+    col = numpy.array([10.0, 9.0, 8.0, 1.0])
+    active = numpy.array([True, True, False, False])
+
+    pool_kept = apply_epsilon_filter(active, col, False, 0.0, pool_elite=True)
+    pop_kept = apply_epsilon_filter(active, col, False, 0.0, pool_elite=False)
+
+    assert pool_kept.tolist() == [False, True, False, False]
+    assert pop_kept.tolist() == [False, False, False, False]
+
+
+def test_epsilon_lexicase_rejects_invalid_mode(multi_obj, make):
+    population = [make(multi_obj, [0], (1.0, 2.0))]
+
+    with pytest.raises(ValueError, match="mode"):
+        tools.sel_epsilon_lexicase(population, 1, mode="not_a_mode")
+
+
+def test_downsample_cohort_raises_when_smaller_than_case_count(ind_cls):
+    population = [_make(ind_cls, [0], (0.0,) * 8)]
+
+    with pytest.raises(ValueError, match="cohort"):
+        tools.next_downsample_cases(population, 5, 0, mode="cohort", cohort=[1, 3])

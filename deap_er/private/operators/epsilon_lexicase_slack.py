@@ -40,7 +40,7 @@ def epsilon_mode_uses_pool_mad(mode: LexicaseMode) -> bool:
 
 def epsilon_mode_uses_pool_elite(mode: LexicaseMode) -> bool:
     """Return whether the elite error is taken from the current filter pool."""
-    return mode in ("epsilon_semi", "epsilon_dynamic")
+    return mode in ("epsilon_semi", "epsilon_dynamic", "epsilon_fixed")
 
 
 def _mad(vals: numpy.ndarray) -> float:
