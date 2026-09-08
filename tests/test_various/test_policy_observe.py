@@ -82,6 +82,12 @@ def test_policy_observe_rejects_nested_raw_arrays():
         tools.policy_solve_bits_from_semantic_row(nested_tuple)  # ty: ignore[invalid-argument-type]
 
 
+def test_policy_observe_accepts_float_zero_one_solve_bits():
+    obs = tools.policy_observe(solve_bits=(1.0, 0.0), train_score=0.0)
+    assert obs.solve_bits == (1, 0)
+    assert obs.unsolved_count == 1
+
+
 def test_policy_observe_rejects_invalid_solve_bit_values():
     with pytest.raises(ValueError, match="solve_bits must contain only 0 and 1"):
         tools.policy_observe(solve_bits=(1, 2), train_score=0.0)

@@ -80,7 +80,7 @@ def _bit_is_solved(bit: int | float | bool) -> bool:
         return bit
     if isinstance(bit, int) and not isinstance(bit, bool):
         return bit == 1
-    return bool(numpy.isclose(float(bit), 1.0, atol=_SOLVE_ATOL) or float(bit) == 1.0)
+    return bool(numpy.isclose(float(bit), 1.0, atol=_SOLVE_ATOL))
 
 
 def policy_solve_bits_from_errors(errors: tuple[float, ...]) -> tuple[int, ...]:
