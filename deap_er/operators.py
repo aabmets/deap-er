@@ -47,6 +47,11 @@ from .private.operators.mut_various import (
     mut_shuffle_indexes,
     mut_uniform_int,
 )
+from .private.operators.policy_action_guard import (
+    PolicyActionGuard,
+    estimate_policy_action_evals,
+    guard_policy_action,
+)
 from .private.operators.policy_fitness import (
     guard_policy_fitness_exam,
     policy_held_out_fitness,
@@ -121,6 +126,9 @@ __all__: list[str] = [
     "policy_held_out_fitness",
     "resolve_policy_held_out",
     "guard_case_exams",
+    "guard_policy_action",
+    "PolicyActionGuard",
+    "estimate_policy_action_evals",
     "next_lexicase_cases",
     "mut_case_mask",
     "mut_case_ranges",

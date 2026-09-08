@@ -17,6 +17,11 @@ from typing import Any
 from deap_er.private.algorithms.loop import evaluate_invalid
 from deap_er.private.algorithms.step_islands import step_islands
 from deap_er.private.operators.case_exam_step import next_lexicase_cases
+from deap_er.private.operators.policy_action_guard import (
+    PolicyActionGuard,
+    estimate_policy_action_evals,
+    guard_policy_action,
+)
 from deap_er.private.programming.memetic import tune_ephemerals
 from deap_er.private.programming.promote import promote_subtree
 from deap_er.private.programming.tape_batch import interpret_tapes
@@ -49,8 +54,11 @@ __all__: list[str] = [
     "POLICY_ACTION_SKIP_TUNE",
     "SKIP_POLICY_ACTIONS",
     "SUPPORTED_POLICY_ACTIONS",
+    "PolicyActionGuard",
     "PolicyActionResult",
     "apply_policy_action",
+    "estimate_policy_action_evals",
+    "guard_policy_action",
 ]
 
 
@@ -60,8 +68,8 @@ class PolicyActionResult:
 
     Attributes:
         applied: True when an underlying callable ran.
-        rejected: True when the token is unknown or required
-            kwargs were missing.
+        rejected: True when the token is unknown, required kwargs were
+            missing, or a ``guard`` cap rejected the action.
         value: Return value from the underlying callable when
             ``applied`` is True; otherwise ``None``.
     """
@@ -76,33 +84,51 @@ def apply_policy_action(action: str, /, **kwargs: Any) -> PolicyActionResult:
 
     Push emits action names, not trees. This helper is schema plus
     thin dispatch only: fitness assignment and rescore ownership stay
-    on the caller. Skip tokens are intentional no-ops. Unknown tokens
-    and missing required kwargs are rejected without raising.
+    on the caller. Skip tokens are intentional no-ops. Unknown tokens,
+    missing required kwargs, and guard cap violations are rejected
+    without raising.
 
     Args:
         action: One of :data:`SUPPORTED_POLICY_ACTIONS`.
         **kwargs: Arguments forwarded to the underlying callable for
-            the chosen action. See that function's docstring.
+            the chosen action. See that function's docstring. Optional
+            ``guard`` (:class:`~deap_er.operators.PolicyActionGuard`)
+            enforces action caps from
+            :func:`~deap_er.operators.guard_policy_action`.
 
     Returns:
         A :class:`PolicyActionResult` describing whether the action
         ran, was skipped, or was rejected.
     """
+    guard = kwargs.pop("guard", None)
     if action in SKIP_POLICY_ACTIONS:
         return PolicyActionResult(applied=False, rejected=False)
+    if guard is not None and not guard_policy_action(action, guard, **kwargs):
+        return PolicyActionResult(applied=False, rejected=True)
     if action == "next_lexicase_cases":
-        return _dispatch_next_lexicase_cases(**kwargs)
-    if action == "tune_ephemerals":
-        return _dispatch_tune_ephemerals(**kwargs)
-    if action == "promote_subtree":
-        return _dispatch_promote_subtree(**kwargs)
-    if action == "evaluate_invalid":
-        return _dispatch_evaluate_invalid(**kwargs)
-    if action == "interpret_tapes":
-        return _dispatch_interpret_tapes(**kwargs)
-    if action == "step_islands":
-        return _dispatch_step_islands(**kwargs)
-    return PolicyActionResult(applied=False, rejected=True)
+        result = _dispatch_next_lexicase_cases(**kwargs)
+    elif action == "tune_ephemerals":
+        result = _dispatch_tune_ephemerals(**kwargs)
+    elif action == "promote_subtree":
+        result = _dispatch_promote_subtree(**kwargs)
+    elif action == "evaluate_invalid":
+        result = _dispatch_evaluate_invalid(**kwargs)
+    elif action == "interpret_tapes":
+        result = _dispatch_interpret_tapes(**kwargs)
+    elif action == "step_islands":
+        result = _dispatch_step_islands(**kwargs)
+    else:
+        return PolicyActionResult(applied=False, rejected=True)
+    if guard is not None and result.applied:
+        evals = _applied_eval_cost(action, result, **kwargs)
+        guard.note_applied(action, evals=evals)
+    return result
+
+
+def _applied_eval_cost(action: str, result: PolicyActionResult, **kwargs: Any) -> int:
+    if action == "evaluate_invalid" and isinstance(result.value, int):
+        return result.value
+    return estimate_policy_action_evals(action, **kwargs)
 
 
 def _reject() -> PolicyActionResult:

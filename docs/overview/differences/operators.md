@@ -141,6 +141,14 @@ from the original sources.
     `policy_exam_scores` / `policy_observe`; `record_policy_generalization_gap`
     logs train, held-out, and gap as a `generalization_gap` Logbook
     chapter ([Push GP P13](../roadmap/push_gp.md#p13-held-out-policy-fitness)).
+32. `PolicyActionGuard` and `guard_policy_action` enforce hard
+    caps on `apply_policy_action`: max promotes per generation,
+    promote cooldown, max inner `tune` generations, minimum exam
+    size, and rejection when an action would exceed remaining
+    `n_evals`. Rejected actions return
+    `PolicyActionResult(rejected=True)` without raising — the
+    observation surface for `last_action_rejected`. DEAP has no
+    policy action firewall ([Push GP P14](../roadmap/push_gp.md#p14-action-guards-and-cooldowns)).
 
 [deap-321]: https://github.com/DEAP/deap/issues/321
 [deap-472]: https://github.com/DEAP/deap/issues/472
