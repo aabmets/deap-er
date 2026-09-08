@@ -104,8 +104,11 @@ nav:
       - Using the Toolbox: tutorials/using_the_toolbox.md
       - Creating Individuals: tutorials/creating_individuals.md
       - Operators and Algorithms: tutorials/operators_and_algorithms.md
+      - Genetic Programming: tutorials/genetic_programming.md
       - Columnar Programs: tutorials/columnar_gp.md
       - Push GP: tutorials/push_gp.md
+      - Constraint Handling: tutorials/constraints.md
+      - Island Models: tutorials/islands.md
       - Logging Statistics: tutorials/logging_statistics.md
       - Multiprocessing: tutorials/multiprocessing.md
       - Using Checkpoints: tutorials/using_checkpoints.md
@@ -114,16 +117,29 @@ nav:
           - One Max: examples/genetic_algorithms/onemax.md
           - Knapsack: examples/genetic_algorithms/knapsack.md
           - N-Queens: examples/genetic_algorithms/nqueens.md
+          - Traveling Salesperson: examples/genetic_algorithms/tsp.md
           - Differential Evolution: examples/genetic_algorithms/diff_evo.md
           - Sorting Networks: examples/genetic_algorithms/sorting_net.md
           - Mixed Encoding: examples/genetic_algorithms/mixed_encoding.md
           - Multi-Objective ZDT1: examples/genetic_algorithms/zdt_mo.md
+          - NSGA-III: examples/genetic_algorithms/nsga3.md
+          - SPEA-II: examples/genetic_algorithms/spea2.md
+          - Constrained Search: examples/genetic_algorithms/constraints.md
+          - Island Models: examples/genetic_algorithms/islands.md
+          - Genealogy: examples/genetic_algorithms/history.md
+          - Evaluation Budget: examples/genetic_algorithms/eval_budget.md
+          - Checkpoint Resume: examples/genetic_algorithms/checkpoint_resume.md
           - MAP-Elites: examples/genetic_algorithms/map_elites.md
       - Genetic Programming:
           - Even-Parity: examples/genetic_programming/even_parity.md
+          - Multiplexer: examples/genetic_programming/multiplexer.md
           - Artificial Ant: examples/genetic_programming/art_ant.md
           - Symbolic Regression: examples/genetic_programming/symb_regr.md
+          - Strongly Typed Classification: examples/genetic_programming/typed_classify.md
           - Informed Lexicase: examples/genetic_programming/lexicase.md
+          - Semantic Variation: examples/genetic_programming/semantic_gp.md
+          - Program Teams: examples/genetic_programming/program_teams.md
+          - Case Exams: examples/genetic_programming/case_exams.md
           - Columnar Programs: examples/genetic_programming/columnar_gp.md
           - Push GP: examples/genetic_programming/push_gp.md
       - Evolution Strategies:
@@ -131,7 +147,10 @@ nav:
           - Boxed CMA: examples/evolution_strategies/cma_boxed.md
           - Separable CMA: examples/evolution_strategies/cma_separable.md
           - CMA restarts: examples/evolution_strategies/cma_restarts.md
+          - One-Plus-Lambda CMA: examples/evolution_strategies/cma_one_plus_lambda.md
           - Multi-Objective CMA: examples/evolution_strategies/mo_cma_strat.md
+          - One-Fifth Rule: examples/evolution_strategies/one_fifth.md
+          - Estimation of Distribution: examples/evolution_strategies/eda.md
           - Custom Strategy: examples/evolution_strategies/custom_strat.md
       - Particle Swarms:
           - Single-Swarm: examples/particle_swarm/single_pso.md

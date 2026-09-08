@@ -171,7 +171,26 @@ kind of individuals and operators as input. Besides `ea_simple`,
 `ea_map_elites` for quality-diversity, and `step_islands` for deme
 ecology. The generational loops accept an optional `n_evals=` budget.
 Wrap `evaluate` with `EvalCache` when the same expression should not be
-scored twice. See the [Algorithms](../reference/algorithms.md) reference.
+scored twice:
+
+```python
+def evaluate(individual):
+    return (sum(individual),)
+
+cache = tools.EvalCache(evaluate)
+toolbox.register("evaluate", cache.evaluate)
+
+pop, log = tools.ea_simple(
+    toolbox, pop, generations=200, cx_prob=0.5, mut_prob=0.2,
+    n_evals=2_000, hof=hof, stats=stats,
+)
+print(len(cache), log.select("gen")[-1])
+```
+
+`n_evals` still counts every fitness assignment, including cache
+hits. The wrapped callable runs only on a miss. A complete script is
+the [evaluation budget example](../examples/genetic_algorithms/eval_budget.md).
+See the [Algorithms](../reference/algorithms.md) reference.
 The following examples demonstrate the most basic ways of solving
 optimization problems:
 

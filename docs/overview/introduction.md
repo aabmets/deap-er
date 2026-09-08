@@ -14,6 +14,8 @@ The toolbox model is the same; it is not a drop-in rename. Function
 names, parameter order, and a few contracts changed. The
 [differences page](differences/index.md) is the migration note and the
 inventory of work that accumulated on top of the original toolbox.
+A first complete program is on
+[Getting started](getting_started.md#first-program).
 Timed hot paths versus DEAP are on the
 [performance page](performance.md). Planned library work is on the
 [roadmap](roadmap/index.md).

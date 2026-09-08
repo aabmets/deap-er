@@ -310,5 +310,18 @@ variants. `ea_map_elites` is the matching loop. See the
 
 `History` records a NetworkX-compatible genealogy. Call
 `history.update` on the seed population and after each variation,
-or wrap `mate` / `mutate` with `toolbox.decorate("mate",
-history.decorator)`. `update` records every member of a batch.
+or wrap `mate` / `mutate` with `toolbox.decorate`. `update` records
+every member of a batch:
+
+```python
+history = tools.History()
+history.update(pop)
+toolbox.decorate("mate", history.decorator)
+toolbox.decorate("mutate", history.decorator)
+# ... run ea_simple or a custom loop ...
+tree = history.get_genealogy(hof[0])
+print(len(history.genealogy_tree), len(tree))
+```
+
+A complete OneMax run is the
+[genealogy example](../examples/genetic_algorithms/history.md).
