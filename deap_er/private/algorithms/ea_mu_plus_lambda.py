@@ -21,8 +21,8 @@ from .variation import var_or
 __all__ = ["ea_mu_plus_lambda"]
 
 
-def ea_mu_plus_lambda(  # NOSONAR python:S107  n_evals matches sibling ea_* drivers
-    toolbox: Toolbox,
+def ea_mu_plus_lambda(
+    toolbox: Toolbox,  # NOSONAR python:S107  n_evals matches sibling ea_* drivers
     population: list[Individual],
     generations: int,
     offsprings: int,

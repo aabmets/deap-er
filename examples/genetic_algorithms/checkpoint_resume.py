@@ -9,6 +9,7 @@ N_BITS = 24
 POP = 60
 FIRST_GENS = 8
 RESUME_GENS = 40
+CHECKPOINT_FILE = "onemax.dcpf"
 
 
 def setup():
@@ -61,7 +62,7 @@ def main():
     with tempfile.TemporaryDirectory() as tmp:
         path = Path(tmp)
         first = Checkpoint(
-            "onemax.dcpf",
+            CHECKPOINT_FILE,
             dir_path=path,
             raise_errors=True,
             autoload=False,
@@ -74,7 +75,7 @@ def main():
         saved_fit = first.hof[0].fitness.values
 
         second = Checkpoint(
-            "onemax.dcpf",
+            CHECKPOINT_FILE,
             dir_path=path,
             raise_errors=True,
             hof_ind_cls=creator.Individual,
@@ -86,7 +87,7 @@ def main():
         restored_fit = second.hof[0].fitness.values
         run_phase(toolbox, second, RESUME_GENS)
         print_results(second.hof[0], restored_fit, saved_fit)
-        path.joinpath("onemax.dcpf").unlink(missing_ok=True)
+        path.joinpath(CHECKPOINT_FILE).unlink(missing_ok=True)
 
 
 if __name__ == "__main__":
