@@ -93,6 +93,45 @@ default on Windows and macOS, place the arrays in
 [shared memory](https://docs.python.org/3/library/multiprocessing.shared_memory.html)
 or a `numpy.memmap` and have each worker attach to them once at import.
 
+## Reproducible worker streams
+
+A process pool gives each worker a fresh interpreter. On fork the
+child inherits a copy of `tools.rng`; on spawn it starts an
+unseeded generator. Either way a golden run is lost: workers share
+one stream, or they draw unreproducible values, and completion
+order can change which item sees which draw.
+
+Derive one stream per mapped item from the same seed passed to
+`tools.rng.seed`. `spawn_rng(seed, worker_id)` does not advance
+the parent generator, so `Checkpoint` still restores the
+in-process run.
+
+```python
+from functools import partial
+
+tools.rng.seed(1234)
+
+def evaluate(individual):
+    noise = tools.rng.random()
+    return (score(individual) + noise,)
+
+toolbox.register("evaluate", evaluate)
+
+with multiprocessing.Pool() as pool:
+    toolbox.register(
+        "map",
+        partial(tools.map_spawned, seed=1234, map_func=pool.map),
+    )
+    # Execute the evolution
+```
+
+Item `i` always sees `spawn_rng(1234, i)`, including when the
+pool finishes tasks out of order. `map_spawned` reassembles
+results by that id. For a worker that should keep one stream for
+its whole lifetime, call
+`tools.bind_spawned_rng(seed, worker_id)` in the pool
+initializer instead.
+
 ## Numba workers
 
 On platforms that start workers by spawning, each child process pays
