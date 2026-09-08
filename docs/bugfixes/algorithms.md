@@ -56,6 +56,23 @@ on `choice`.
 
 ---
 
+## `var_or` accepted negative and NaN probabilities
+
+`var_and` rejects any `cx_prob` or `mut_prob` outside `[0, 1]`.
+`var_or` only checked `cx_prob + mut_prob > 1`. A negative
+component whose sum still sat in `[0, 1]`, or a NaN (comparisons
+against NaN are false), produced offspring instead of raising.
+
+**Fix.** Apply the same per-probability `[0, 1]` checks as
+`var_and` before the existing sum check. NaN and infinities fail
+the interval test the same way.
+
+**Validator.**
+`tests/test_algorithms/test_variation.py::test_var_or_rejects_negative_probabilities`
+`tests/test_algorithms/test_variation.py::test_var_or_rejects_nan_probabilities`
+
+---
+
 ## `ea_generate_update_restarts` discarded the last population on empty `generate`
 
 `RestartStrategy.generate` returns `[]` when the eval budget is spent,
