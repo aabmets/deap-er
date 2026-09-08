@@ -47,12 +47,16 @@ from .private.operators.mut_various import (
     mut_shuffle_indexes,
     mut_uniform_int,
 )
+from .private.operators.policy_fitness import (
+    guard_policy_fitness_exam,
+    policy_held_out_fitness,
+    resolve_policy_held_out,
+)
 from .private.operators.sample_informed_cases import sample_informed_cases
 from .private.operators.sel_age_moea_2 import SelAGE2WithMemory, sel_age_moea_2
 from .private.operators.sel_helpers import assign_crowding_dist, uniform_reference_points
 from .private.operators.sel_lexicase import sel_epsilon_lexicase, sel_lexicase
 from .private.operators.sel_lexicase_matrix import fitness_case_matrix
-from .private.operators.sel_team import sel_team
 from .private.operators.sel_moead import SelMOEADWithMemory, sel_moead
 from .private.operators.sel_moead_helpers import (
     moead_neighborhood,
@@ -63,6 +67,7 @@ from .private.operators.sel_nsga_2 import sel_nsga_2
 from .private.operators.sel_nsga_3 import SelNSGA3WithMemory, sel_nsga_3
 from .private.operators.sel_sms_emoa import sel_sms_emoa
 from .private.operators.sel_spea_2 import sel_spea_2
+from .private.operators.sel_team import sel_team
 from .private.operators.sel_tournament import sel_double_tournament, sel_tournament
 from .private.operators.sel_tournament_dcd import sel_tournament_dcd
 from .private.operators.sel_various import (
@@ -112,6 +117,9 @@ __all__: list[str] = [
     "SelAGE2WithMemory",
     "sample_informed_cases",
     "score_case_exams",
+    "guard_policy_fitness_exam",
+    "policy_held_out_fitness",
+    "resolve_policy_held_out",
     "guard_case_exams",
     "next_lexicase_cases",
     "mut_case_mask",

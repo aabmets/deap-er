@@ -17,6 +17,11 @@ from .private.records.grid_archive import GridArchive
 from .private.records.hall_of_fame import HallOfFame, ParetoFront
 from .private.records.history import History
 from .private.records.logbook import Logbook
+from .private.records.policy_generalization import (
+    POLICY_GENERALIZATION_GAP_CHAPTER,
+    policy_generalization_gap,
+    record_policy_generalization_gap,
+)
 from .private.records.policy_observation import PolicyObservation
 from .private.records.semantic_surrogate import SemanticSurrogate
 from .private.records.statistics import MultiStatistics, Statistics
@@ -24,6 +29,7 @@ from .private.records.unstructured_archive import UnstructuredArchive
 
 __all__ = [
     "ArchiveStats",
+    "POLICY_GENERALIZATION_GAP_CHAPTER",
     "PolicyObservation",
     "CaseExam",
     "CaseExamPool",
@@ -39,4 +45,6 @@ __all__ = [
     "Logbook",
     "Statistics",
     "MultiStatistics",
+    "policy_generalization_gap",
+    "record_policy_generalization_gap",
 ]
