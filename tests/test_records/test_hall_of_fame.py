@@ -166,8 +166,9 @@ def test_json_round_trip_empty_archive(ind_cls):
 def test_from_json_requires_ind_cls_for_members(ind_cls):
     hof = tools.HallOfFame(maxsize=1)
     hof.update(_population(ind_cls, count=1))
+    payload = hof.to_json()
     with pytest.raises(ValueError, match="ind_cls"):
-        tools.HallOfFame.from_json(hof.to_json())
+        tools.HallOfFame.from_json(payload)
 
 
 def test_json_round_trip_resets_similar_to_default_eq(ind_cls):
