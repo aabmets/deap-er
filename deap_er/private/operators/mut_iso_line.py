@@ -10,7 +10,7 @@
 #
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 import numpy
 
@@ -117,6 +117,30 @@ def iso_line_bit(parent: bool, donor: bool, iso: float, sigma: float) -> bool:
     return value
 
 
+def _mutate_iso_line_gene(
+    parent: Any,
+    elite: Any,
+    iso: float,
+    sigma: float,
+    *,
+    low: float | int | None,
+    up: float | int | None,
+) -> Any:
+    if _is_bool_gene(parent):
+        value = iso_line_bit(bool(parent), bool(elite), iso, sigma)
+        return type(parent)(value)
+    if isinstance(parent, int):
+        xl = int(low) if low is not None else int(parent)
+        xu = int(up) if up is not None else int(parent)
+        if low is None or up is None or xu < xl:
+            gene = parent + _sample_t(iso) * (elite - parent) + rng.gauss(0.0, sigma)
+            return int(round(gene))
+        return iso_line_int(parent, int(elite), iso, sigma, low=xl, up=xu)
+    float_low = float(low) if low is not None else None
+    float_up = float(up) if up is not None else None
+    return iso_line_float(parent, elite, iso, sigma, low=float_low, up=float_up)
+
+
 def mut_iso_line(
     individual: Individual,
     donor: Individual,
@@ -162,23 +186,15 @@ def mut_iso_line(
         ups = broadcast_param("up", up, size)
 
     for index in range(size):
-        parent = individual[index]
-        elite = donor[index]
-        if _is_bool_gene(parent):
-            value = iso_line_bit(bool(parent), bool(elite), iso, sigma)
-            individual[index] = type(parent)(value)
-            continue
-        if isinstance(parent, int):
-            xl = int(lows[index]) if lows is not None else int(parent)
-            xu = int(ups[index]) if ups is not None else int(parent)
-            if lows is None or ups is None or xu < xl:
-                gene = parent + _sample_t(iso) * (elite - parent) + rng.gauss(0.0, sigma)
-                individual[index] = int(round(gene))
-            else:
-                individual[index] = iso_line_int(parent, int(elite), iso, sigma, low=xl, up=xu)
-            continue
         xl = lows[index] if lows is not None else None
         xu = ups[index] if ups is not None else None
-        individual[index] = iso_line_float(parent, elite, iso, sigma, low=xl, up=xu)
+        individual[index] = _mutate_iso_line_gene(
+            individual[index],
+            donor[index],
+            iso,
+            sigma,
+            low=xl,
+            up=xu,
+        )
 
     return (individual,)
