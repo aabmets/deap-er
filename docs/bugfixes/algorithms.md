@@ -129,3 +129,20 @@ generations with offspring still compile as before.
 
 **Validator.**
 `tests/test_algorithms/test_ea_map_elites.py::test_ea_map_elites_prefilled_archive_empty_initial_with_stats`
+
+---
+
+## `PolicyActionGuard` undercharged `step_islands`
+
+`_applied_eval_cost` re-estimated after `step_islands`.
+That step already scores invalids, so the post-action
+estimate dropped (for example 4 planned vs 2 charged).
+With `n_evals=4`, a second island step could run while
+the guard thought the budget was already spent correctly.
+
+**Fix.** Estimate before dispatch. Charge that planned
+count after `step_islands`. `evaluate_invalid` still
+charges the actual `result.value`.
+
+**Validator.**
+`tests/test_algorithms/test_policy_island_eval_guard.py::test_step_islands_guard_charges_pre_action_estimate`

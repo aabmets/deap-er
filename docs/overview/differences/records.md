@@ -124,6 +124,11 @@
 31. `HallOfFame.insert` and `ParetoFront.insert` skip an individual
     whose fitness is missing, invalid, or non-finite, matching
     `update`. `from_json` no longer restores a NaN member.
+32. `apply_policy_action` charges `PolicyActionGuard` with the
+    pre-dispatch evaluation estimate for `step_islands`. The
+    post-step re-estimate no longer drops after invalids are
+    already scored, so a tight `n_evals` cap cannot admit a
+    second island step.
 
 [deap-25]: https://github.com/DEAP/deap/issues/25
 [deap-121]: https://github.com/DEAP/deap/issues/121

@@ -103,6 +103,7 @@ def apply_policy_action(action: str, /, **kwargs: Any) -> PolicyActionResult:
     guard = kwargs.pop("guard", None)
     if action in SKIP_POLICY_ACTIONS:
         return PolicyActionResult(applied=False, rejected=False)
+    planned = estimate_policy_action_evals(action, **kwargs) if guard is not None else 0
     if guard is not None and not guard_policy_action(action, guard, **kwargs):
         return PolicyActionResult(applied=False, rejected=True)
     if action == "next_lexicase_cases":
@@ -120,15 +121,15 @@ def apply_policy_action(action: str, /, **kwargs: Any) -> PolicyActionResult:
     else:
         return PolicyActionResult(applied=False, rejected=True)
     if guard is not None and result.applied:
-        evals = _applied_eval_cost(action, result, **kwargs)
+        evals = _applied_eval_cost(action, result, planned)
         guard.note_applied(action, evals=evals)
     return result
 
 
-def _applied_eval_cost(action: str, result: PolicyActionResult, **kwargs: Any) -> int:
+def _applied_eval_cost(action: str, result: PolicyActionResult, planned: int) -> int:
     if action == "evaluate_invalid" and isinstance(result.value, int):
         return result.value
-    return estimate_policy_action_evals(action, **kwargs)
+    return planned
 
 
 def _reject() -> PolicyActionResult:
