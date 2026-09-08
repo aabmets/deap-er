@@ -91,6 +91,21 @@ def test_sel_tournament_rejects_non_positive_contestants(single_obj, make):
         tools.sel_tournament(population, rounds=1, contestants=0)
 
 
+def test_double_tournament_empty_pool_returns_empty():
+    assert (
+        tools.sel_double_tournament(
+            [], rounds=5, fitness_size=2, parsimony_size=1.5, fitness_first=True
+        )
+        == []
+    )
+    assert (
+        tools.sel_double_tournament(
+            [], rounds=5, fitness_size=2, parsimony_size=1.5, fitness_first=False
+        )
+        == []
+    )
+
+
 def test_double_tournament_rejects_parsimony_outside_range(single_obj, make):
     population = [make(single_obj, [0], (1.0,))]
     with pytest.raises(ValueError, match="Parsimony"):

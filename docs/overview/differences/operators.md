@@ -193,6 +193,9 @@ from the original sources.
     non-integer value.
 38. `sel_random` returns `[]` when the pool is empty. A positive
     `sel_count` no longer `IndexError`s on `rng.choice([])`.
+39. `sel_double_tournament` returns `[]` when the pool is empty
+    or `rounds <= 0`. It no longer `ValueError`s on `max([])`
+    after `sel_random` started returning an empty draw.
 
 [deap-321]: https://github.com/DEAP/deap/issues/321
 [deap-472]: https://github.com/DEAP/deap/issues/472

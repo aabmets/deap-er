@@ -414,3 +414,19 @@ destination this generation.
 
 **Validator.**
 `tests/test_operators/test_mig_ring.py::test_mig_ring_duplicate_emigrants_do_not_alias_in_dest`
+
+---
+
+## `sel_double_tournament` crashed on an empty pool
+
+After `sel_random([])` started returning `[]`, the
+fitness half did `max([])` and raised `ValueError`.
+`sel_random`, roulette, and NSGA-II already return
+`[]` for an empty pool. `rounds <= 0` already
+produced an empty result via `range(0)`.
+
+**Fix.** Return `[]` when the pool is empty or
+`rounds <= 0`, after the parsimony-size check.
+
+**Validator.**
+`tests/test_operators/test_sel_tournament.py::test_double_tournament_empty_pool_returns_empty`

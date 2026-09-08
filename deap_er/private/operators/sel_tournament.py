@@ -119,13 +119,16 @@ def sel_double_tournament(
         fit_attr: Attribute used as the fitness selection criterion.
 
     Returns:
-        The selected individuals.
+        The selected individuals. An empty pool or ``rounds <= 0``
+        returns an empty list.
 
     Raises:
         ValueError: If ``parsimony_size`` is outside ``[1, 2]``.
     """
     if not (1 <= parsimony_size <= 2):
         raise ValueError("Parsimony tournament size has to be in the range of [1, 2].")
+    if rounds <= 0 or not individuals:
+        return []
 
     def _size_tourney(
         pool: list[Individual], sel_count: int, select: Callable[..., Any]
