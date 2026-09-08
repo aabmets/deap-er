@@ -386,10 +386,15 @@ Related: [item 5](features_1_10.md#5-down-sampled-and-informed-lexicase),
    rotate-through-held-out. Chronological meaning stays on the
    caller; this is index policy.
 
-**Today.** `sel_epsilon_lexicase` with `epsilon=None` uses static
-per-case MAD on the packed matrix. `sample_informed_cases` and
-`next_lexicase_cases` build one subset. There is no filter-pool
-ε and no generation-indexed schedule object.
+**Today.** ``sel_epsilon_lexicase`` accepts ``mode=`` on the vectorized
+filter: ``epsilon_auto`` / ``epsilon_static`` (population MAD and
+elite), ``epsilon_semi`` (population MAD, pool elite), and
+``epsilon_dynamic`` (pool MAD and elite). ``next_downsample_cases``
+returns the next ``cases=`` list each generation with ``mode=``
+``random``, ``informed``, ``cohort``, or ``held_out`` (rotate through a
+caller-marked held-out exam). Chronological meaning stays on the
+caller. ``sample_informed_cases`` and ``next_lexicase_cases`` are
+unchanged.
 
 **Benefit.** Static MAD is elite on easy cases and slack on hard
 ones in a way that does not track the remaining pool. A schedule

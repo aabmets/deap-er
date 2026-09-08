@@ -40,6 +40,7 @@ from .private.operators.cx_real import (
     cx_simulated_binary_bounded,
     cx_uniform,
 )
+from .private.operators.downsample_schedule import next_downsample_cases
 from .private.operators.island_eval_keys import island_eval_keys
 from .private.operators.mig_ring import mig_fully_connected, mig_random, mig_ring
 from .private.operators.mut_case_exam import mut_case_mask, mut_case_ranges
@@ -152,6 +153,7 @@ __all__: list[str] = [
     "PolicyActionGuard",
     "estimate_policy_action_evals",
     "next_lexicase_cases",
+    "next_downsample_cases",
     "mut_case_mask",
     "mut_case_ranges",
     "sel_batch_epsilon_lexicase",

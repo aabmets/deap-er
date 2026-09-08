@@ -179,6 +179,15 @@ from the original sources.
     Informed down-sampling stays on ``sample_informed_cases``;
     ``case_count=`` draws a random subset when ``cases`` is omitted.
     DEAP has no batch epsilon-lexicase or case-subset tournament.
+36. ``sel_epsilon_lexicase`` accepts ``mode=`` on the vectorized filter:
+    ``epsilon_auto`` / ``epsilon_static`` (population MAD and elite),
+    ``epsilon_semi`` (population MAD, pool elite), and
+    ``epsilon_dynamic`` (pool MAD and elite). ``next_downsample_cases``
+    returns the next ``cases=`` list each generation with ``mode=``
+    ``random``, ``informed``, ``cohort``, or ``held_out`` (rotate
+    through a caller-marked held-out exam). Chronological meaning stays
+    on the caller. DEAP has no filter-pool epsilon modes or generation
+    downsample schedule.
 
 [deap-321]: https://github.com/DEAP/deap/issues/321
 [deap-472]: https://github.com/DEAP/deap/issues/472
