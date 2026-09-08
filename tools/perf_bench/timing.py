@@ -22,8 +22,8 @@ REPEAT = 50
 WARMUP = 2
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 DEFAULT_OUT_DIR = REPO_ROOT / "reports"
-JSON_NAME = "hotpath-bench.json"
-CHART_NAME = "hotpath-speedups.png"
+JSON_NAME = "deaper_perf_bench.json"
+CHART_NAME = "deaper_perf_bench.png"
 DEFAULT_JSON = DEFAULT_OUT_DIR / JSON_NAME
 DEFAULT_CHART = DEFAULT_OUT_DIR / CHART_NAME
 

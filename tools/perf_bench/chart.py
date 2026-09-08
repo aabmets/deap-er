@@ -180,7 +180,7 @@ def plot_from_json(
     """Load a bench JSON and write the chart beside it.
 
     Args:
-        out_dir: Directory that holds ``hotpath-bench.json``. The chart
+        out_dir: Directory that holds ``deaper_perf_bench.json``. The chart
             is written to the same directory. Defaults to ``reports/``.
         log_scale: If True, use a log x-axis.
 
