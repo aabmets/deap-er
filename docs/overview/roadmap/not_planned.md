@@ -16,4 +16,4 @@ still join that table.
 | Learned quality-diversity / meta-BBO | A research paper, not a toolbox function. [Item 22](features_21_30.md#22-semantic-search-space) is a semantic descriptor and nearest-neighbor, not a trained QD model. |
 | Interactive / human-in-the-loop evolution | A notebook over `archive` + `tree_to_infix`. Machine-checkable pressure is items 22–23 and 26, not clicks. |
 | Switching persistence off dill, or replacing `creator` with dataclasses | Forbidden by the project contract. |
-| An in-tree C / Cython rewrite of operators, CMA, or selection | Not the bottleneck; those modules must stay readable. Revisit an *optional* tape backend only after items 3, 4, 9, and [36](features_31_40.md#36-population-tape-cse) are in and a profile still points at `interpret`. |
+| An in-tree C / Cython rewrite of operators, CMA, or selection | Not the bottleneck; those modules must stay readable. Revisit an *optional* tape backend only after items 3, 4, 9, and [32](features_31_40.md#32-population-tape-cse) are in and a profile still points at `interpret`. |

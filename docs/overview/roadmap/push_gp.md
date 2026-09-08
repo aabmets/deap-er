@@ -11,7 +11,7 @@ This page is a backlog, not a schedule. Status matches the
 library: shipped preconditions are **shipped**; the rest are
 **planned**. Shipped items are not re-specified here; the item
 column links the matching write-up on a [Features](index.md)
-page. Items 30, 31, 37, and 38 are shipped on both pages.
+page. Items 30, 31, 33, and 34 are shipped on both pages.
 
 | # | Item | Surface | Status |
 |:--|:-----|:--------|:-------|
@@ -29,10 +29,10 @@ page. Items 30, 31, 37, and 38 are shipped on both pages.
 | P12 | [Policy action applicator](#p12-policy-action-applicator) | `algorithms` | shipped |
 | P13 | [Held-out policy fitness](#p13-held-out-policy-fitness) | `records`, `operators` | shipped |
 | P14 | [Action guards and cooldowns](#p14-action-guards-and-cooldowns) | `operators` | shipped |
-| P15 | [Evaluation budget and eval cache](features_31_40.md#37-evaluation-budget-and-eval-cache) (item 37) | `algorithms`, `utilities` | shipped |
+| P15 | [Evaluation budget and eval cache](features_31_40.md#33-evaluation-budget-and-eval-cache) (item 33) | `algorithms`, `utilities` | shipped |
 | P16 | [Causal lookback and suffix rescore](features_21_30.md#30-causal-lookback-and-suffix-rescore) (item 30) | `gp` | shipped |
 | P17 | [Affine scaling and Lamarckian writeback](features_31_40.md#31-affine-scaling-and-lamarckian-writeback) (item 31) | `gp`, `utilities` | shipped |
-| P18 | [Parallel RNG streams](features_31_40.md#38-parallel-rng-streams) (item 38) | `rng` | shipped |
+| P18 | [Parallel RNG streams](features_31_40.md#34-parallel-rng-streams) (item 34) | `rng` | shipped |
 | P19 | [Push GP as the loop](#p19-push-gp-as-the-loop) | `gp` (private policy) | shipped |
 
 P1–P10 are shipped on the main table and still sit on this
@@ -302,7 +302,7 @@ only. Not a new selector.
 
 Related: [P5](#p5-growing-primitive-language),
 [P7](#p7-co-evolving-cases),
-[P15](features_31_40.md#37-evaluation-budget-and-eval-cache).
+[P15](features_31_40.md#33-evaluation-budget-and-eval-cache).
 
 ---
 
@@ -314,7 +314,7 @@ rescore, and promote-induced recompile spends that budget.
 Policy fitness is held-out quality *per eval*.
 
 **Today.** Shipped as
-[item 37](features_31_40.md#37-evaluation-budget-and-eval-cache).
+[item 33](features_31_40.md#33-evaluation-budget-and-eval-cache).
 `n_evals=` stops `ea_simple`, `ea_mu_plus_lambda`,
 `ea_mu_comma_lambda`, and `ea_map_elites` when the evaluation
 count is spent; generations remain the default.
@@ -366,7 +366,7 @@ before Push if `tune` is in the action set.
 reproduce.
 
 **Today.** Shipped as
-[item 38](features_31_40.md#38-parallel-rng-streams).
+[item 34](features_31_40.md#34-parallel-rng-streams).
 `spawn_rng(seed, worker_id)` and `map_spawned` derive
 independent worker streams. The process-wide generator stays
 the default and stays checkpointable.

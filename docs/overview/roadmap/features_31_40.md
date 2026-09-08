@@ -45,117 +45,7 @@ Related: [item 6](features_1_10.md#6-case-structured-evaluation-helper),
 
 ---
 
-## 32. Constraint-dominance on remaining selectors
-
-**What.** The same Deb rule already on `sel_nsga_2` — feasible
-beats infeasible; two feasibles use ordinary Pareto / crowding;
-two infeasibles prefer the smaller violation — on
-`sel_nsga_3`, `sel_sms_emoa`, `sel_spea_2`, and
-`sel_age_moea_2`. Optional `feasible=` / `violation=` kwargs.
-Omitted kwargs keep the unconstrained path. Fitness values are
-not rewritten.
-
-**Today.** `constraint_dominates` and `sel_nsga_2(..., feasible=,
-violation=)` exist. The other environmental selectors ignore
-feasibility.
-
-**Benefit.** Constrained many-objective users stop inventing a
-penalty scale for every selector. Penalties remain the other
-path. Closes the rest of the [constraint-handling][deap-30]
-request that item 18 started.
-
-**Scope.** One comparison rule on the selectors that already
-rank fronts. Not a constraint framework. Stochastic ranking and
-ε-level comparison stay in
-[Under consideration](under_consideration.md).
-
-Related: [item 18](features_11_20.md#18-constraint-dominance-selection).
-
----
-
-## 33. Archive-improving CMA
-
-**What.** A `generate` / `update` wrapper (for example
-`ArchiveStrategy`) around `Strategy` or `StrategySeparable`.
-Each sample's *search* fitness is archive improvement: new cell,
-or strictly better elite in that cell — not `ind.fitness` alone.
-`add` still ranks the cell by the individual's real fitness.
-`RestartStrategy` can wrap it. Box constraints from the inner
-strategy are preserved.
-
-**Today.** CMA strategies optimize a fitness vector. Archives
-`add` whatever the caller evaluated. The two meet only in the
-caller's loop.
-
-**Benefit.** CMA-ME is “CMA's objective is archive improvement.”
-Both halves shipped; this is the meeting point. Not a learned
-quality-diversity model — the emitter is still Hansen CMA.
-
-**Scope.** One strategy wrapper and an improvement score.
-CMA-MAE's decaying threshold, Pareto-per-cell archives, and
-hypervolume-per-cell updates stay in
-[Under consideration](under_consideration.md) until this object exists.
-
-Related: [item 8](features_1_10.md#8-quality-diversity-archive),
-[item 13](features_11_20.md#13-ipop-bipop-cma-restarts),
-[item 19](features_11_20.md#19-sep-cma),
-[item 29](features_21_30.md#29-novelty-selection-and-isoline).
-
----
-
-## 34. RVEA and R-NSGA-II
-
-**What.** Two selectors that reuse `uniform_reference_points`:
-
-- **RVEA** — angle-penalized distance (APD) scalarization plus
-  reference-vector adaptation. The many-objective path when
-  NSGA-III's simplex assumption is the wrong geometry.
-- **R-NSGA-II** — caller-supplied aspiration / reference
-  point(s); crowding becomes distance-to-preference. Not
-  interactive evolution — no clicks.
-
-**Today.** NSGA-III, MOEA/D (Tchebycheff / PBI), and AGE-MOEA-II
-cover the usual many-objective set. There is no APD selector and
-no preference-point crowding.
-
-**Benefit.** The two requests those three still miss: an irregular
-front that wants reference-vector adaptation, and an engineer
-who cares about one corner of the front.
-
-**Scope.** Two selectors. IBEA, HypE, GDE3, and AGE-MOEA-II+
-stay in [Under consideration](under_consideration.md) — they catalog
-more of pymoo rather than close a hole.
-
-Related: [item 12](features_11_20.md#12-moead-and-age-moea-ii),
-[item 18](features_11_20.md#18-constraint-dominance-selection).
-
----
-
-## 35. Adaptive DE strategy
-
-**What.** A `generate` / `update` object (for example
-`StrategyDE`) with a SHADE-style success memory for $F$ and
-`CR`. `generate` writes trials with `mut_de` (and, if cheap,
-current-to-pbest/1). `update` keeps the better of parent and
-trial and records successful parameters. Optional `low` / `up`
-match the existing clamp on `mut_de`.
-
-**Today.** `mut_de` is DE/rand/1/bin. Selection and adaptive
-$F$ / `CR` stay on the caller. There is no `ea_de` — item 17
-scoped that out on purpose.
-
-**Benefit.** Adaptive DE is the algorithm people actually run.
-A strategy keeps that promise without a new algorithm family.
-
-**Scope.** One generate/update object. Extra trial recipes are
-parameters of that strategy, not a catalog. No first-class
-`ea_de` or PSO algorithm.
-
-Related: [item 17](features_11_20.md#17-differential-evolution-operators).
-
----
-
-## 36. Population tape CSE
+## 32. Population tape CSE
 
 **What.** Hash-cons postfix suffixes across a generation, evaluate
 each unique sub-tape once against the packed matrix, and stitch
@@ -179,7 +69,7 @@ Related: [item 4](features_1_10.md#4-batch-tape-evaluation),
 
 ---
 
-## 37. Evaluation budget and eval cache
+## 33. Evaluation budget and eval cache
 
 **What.** Two plumbing pieces on the shared algorithm loop:
 
@@ -222,7 +112,7 @@ Related: [item 9](features_1_10.md#9-compile-and-clone-path),
 
 ---
 
-## 38. Parallel RNG streams
+## 34. Parallel RNG streams
 
 **What.** Independent, seedable streams for spawned workers that
 still reproduce a run. Process-wide `rng` stays the default and
@@ -251,5 +141,4 @@ Related: [item 4](features_1_10.md#4-batch-tape-evaluation),
 [Multiprocessing](../../tutorials/multiprocessing.md),
 [Push GP P18](push_gp.md#p18-parallel-rng-streams).
 
-[deap-30]: https://github.com/DEAP/deap/issues/30
 [deap-75]: https://github.com/DEAP/deap/issues/75

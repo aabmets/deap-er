@@ -6,30 +6,33 @@ item, or a recipe the caller can write today. Promotion onto the
 [overview](index.md) table needs a documented gap after the item
 they depend on — not a catalog of every named algorithm.
 
-The twelve items proposed as the next backlog are already
-numbered 27–38. This page is the rest.
+The next numbered backlog is 27–34. This page is the rest.
 
 | Idea | Why later |
 |:-----|:----------|
+| [Constraint-dominance on remaining selectors](#constraint-dominance-on-remaining-selectors) | Deb's rule already shipped on `sel_nsga_2`. Wiring the same kwargs onto the other selectors is catalog work. |
+| [RVEA and R-NSGA-II](#rvea-and-r-nsga-ii) | NSGA-III, MOEA/D, and AGE-MOEA-II already cover the usual many-objective set. |
+| [Adaptive DE strategy](#adaptive-de-strategy) | `mut_de` is shipped. SHADE memory is a generate/update wrapper, not the next program-search gap. |
+| [Archive-improving CMA](#archive-improving-cma) | Archives and CMA both shipped. The meeting point waits on a caller who needs CMA-ME. |
 | [Plexicase](#plexicase) | Item 10 deferred it until a profile shows selection dominating after matrix lexicase, [item 27](features_21_30.md#27-batch-epsilon-lexicase-and-down-sampled-tournament), and [item 28](features_21_30.md#28-dynamic-epsilon-and-downsample-schedule). |
 | [Structural meta-case regularization](#structural-meta-case-regularization) | Extra case columns. A recipe on `fitness_case_matrix` until the lexicase schedules exist. |
 | [Dominated novelty search](#dominated-novelty-search) | Same family as [item 29](features_21_30.md#29-novelty-selection-and-isoline). |
 | [Multi-objective MAP-Elites](#multi-objective-map-elites) | Sequel to items 29 and 33. `ParetoFront` already exists. |
-| [CMA-MAE and MO-CMA-MAE](#cma-mae-and-mo-cma-mae) | Sequel to [item 33](features_31_40.md#33-archive-improving-cma). |
+| [CMA-MAE and MO-CMA-MAE](#cma-mae-and-mo-cma-mae) | Sequel to [archive-improving CMA](#archive-improving-cma). |
 | [Phenotypic probe descriptors](#phenotypic-probe-descriptors) | `interpret_tapes` on a short probe plus `semantic_project`. |
 | [Incremental ts_rank](#incremental-ts_rank) | Last $O(\textit{window})$ Numba scan. Kernel polish. |
 | [Interval analysis on tapes](#interval-analysis-on-tapes) | Secondary to a legal suffix rescore ([item 30](features_21_30.md#30-causal-lookback-and-suffix-rescore)). |
 | [Homologous and semantic crossover](#homologous-and-semantic-crossover) | After affine scaling and tape CSE. |
 | [Index-only walk-forward builder](#index-only-walk-forward-builder) | Item 6 already refused to own splits. |
-| [Stochastic ranking and epsilon-level](#stochastic-ranking-and-epsilon-level) | Second and third constraint rules after [item 32](features_31_40.md#32-constraint-dominance-on-remaining-selectors). |
+| [Stochastic ranking and epsilon-level](#stochastic-ranking-and-epsilon-level) | Second and third constraint rules after [constraint-dominance on remaining selectors](#constraint-dominance-on-remaining-selectors). |
 | [IBEA and HypE](#ibea-and-hype) | Duplicates SMS-EMOA's indicator story. |
 | [GDE3 and NSDE](#gde3-and-nsde) | `mut_de` plus NSGA survival is a recipe. |
 | [AGE-MOEA-II+](#age-moea-ii) | Curvature tweak on a shipped selector. |
-| [Extra DE trial recipes](#extra-de-trial-recipes) | Parameters of [item 35](features_31_40.md#35-adaptive-de-strategy). |
+| [Extra DE trial recipes](#extra-de-trial-recipes) | Parameters of [adaptive DE strategy](#adaptive-de-strategy). |
 | [Active CMA and mirrored sampling](#active-cma-and-mirrored-sampling) | Flags on `Strategy`. |
 | [Mixed-integer CMA](#mixed-integer-cma) | Sibling of shipped boxed CMA, not program search. |
 | [SNES and CEM](#snes-and-cem) | Wait until a user hits a wall after sep-CMA. |
-| [Adaptive operator rates](#adaptive-operator-rates) | After [item 37](features_31_40.md#37-evaluation-budget-and-eval-cache). |
+| [Adaptive operator rates](#adaptive-operator-rates) | After [item 33](features_31_40.md#33-evaluation-budget-and-eval-cache). |
 | [Batched var_and uniforms](#batched-var_and-uniforms) | Housekeeping for the tiny `ea_simple` bar. |
 | [Island topologies](#island-topologies) | `step_islands` already accepts any `migrate`. |
 | [Noisy fitness resample](#noisy-fitness-resample) | After the eval cache so repeats are cheap. |
@@ -39,6 +42,91 @@ numbered 27–38. This page is the rest.
 
 Ideas that are off the library entirely live on
 [Not planned](not_planned.md).
+
+---
+
+## Constraint-dominance on remaining selectors
+
+**What.** The same Deb rule already on `sel_nsga_2` — feasible
+beats infeasible; two feasibles use ordinary Pareto / crowding;
+two infeasibles prefer the smaller violation — on
+`sel_nsga_3`, `sel_sms_emoa`, `sel_spea_2`, and
+`sel_age_moea_2`. Optional `feasible=` / `violation=` kwargs.
+Omitted kwargs keep the unconstrained path. Fitness values are
+not rewritten.
+
+**Today.** `constraint_dominates` and `sel_nsga_2(..., feasible=,
+violation=)` exist. The other environmental selectors ignore
+feasibility.
+
+**Why later.** Item 18 already put Deb's rule on NSGA-II.
+Wiring the same kwargs onto the other selectors is catalog
+work, not the next program-search gap. Stochastic ranking and
+ε-level comparison stay sequels to this idea.
+
+---
+
+## RVEA and R-NSGA-II
+
+**What.** Two selectors that reuse `uniform_reference_points`:
+
+- **RVEA** — angle-penalized distance (APD) scalarization plus
+  reference-vector adaptation. The many-objective path when
+  NSGA-III's simplex assumption is the wrong geometry.
+- **R-NSGA-II** — caller-supplied aspiration / reference
+  point(s); crowding becomes distance-to-preference. Not
+  interactive evolution — no clicks.
+
+**Today.** NSGA-III, MOEA/D (Tchebycheff / PBI), and AGE-MOEA-II
+cover the usual many-objective set. There is no APD selector and
+no preference-point crowding.
+
+**Why later.** The two requests those three still miss, but they
+catalog pymoo rather than close a hole in columnar or
+case-structured search. IBEA, HypE, GDE3, and AGE-MOEA-II+ stay
+on this page for the same reason.
+
+---
+
+## Adaptive DE strategy
+
+**What.** A `generate` / `update` object (for example
+`StrategyDE`) with a SHADE-style success memory for $F$ and
+`CR`. `generate` writes trials with `mut_de` (and, if cheap,
+current-to-pbest/1). `update` keeps the better of parent and
+trial and records successful parameters. Optional `low` / `up`
+match the existing clamp on `mut_de`.
+
+**Today.** `mut_de` is DE/rand/1/bin. Selection and adaptive
+$F$ / `CR` stay on the caller. There is no `ea_de` — item 17
+scoped that out on purpose.
+
+**Why later.** Adaptive DE is the algorithm people actually
+run, but it is a strategy wrapper around a shipped operator,
+not the next program-search gap. Extra trial recipes stay
+parameters of this idea.
+
+---
+
+## Archive-improving CMA
+
+**What.** A `generate` / `update` wrapper (for example
+`ArchiveStrategy`) around `Strategy` or `StrategySeparable`.
+Each sample's *search* fitness is archive improvement: new cell,
+or strictly better elite in that cell — not `ind.fitness` alone.
+`add` still ranks the cell by the individual's real fitness.
+`RestartStrategy` can wrap it. Box constraints from the inner
+strategy are preserved.
+
+**Today.** CMA strategies optimize a fitness vector. Archives
+`add` whatever the caller evaluated. The two meet only in the
+caller's loop.
+
+**Why later.** Both halves shipped; the meeting point waits on
+a caller who needs CMA-ME. Not a learned quality-diversity
+model — the emitter is still Hansen CMA. CMA-MAE's decaying
+threshold, Pareto-per-cell archives, and hypervolume-per-cell
+updates stay sequels to this idea.
 
 ---
 
@@ -97,8 +185,9 @@ samples from occupied cells.
 **Today.** Archives keep one individual per cell. `ParetoFront`
 is a separate record.
 
-**Why later.** Sequel to items 29 and 33. The archive has to
-search before it needs a front per bin.
+**Why later.** Sequel to [item 29](features_21_30.md#29-novelty-selection-and-isoline)
+and [archive-improving CMA](#archive-improving-cma). The archive
+has to search before it needs a front per bin.
 
 ---
 
@@ -108,7 +197,7 @@ search before it needs a front per bin.
 hypervolume improvement per cell as the CMA objective
 (MO-CMA-MAE).
 
-**Today.** [Item 33](features_31_40.md#33-archive-improving-cma)
+**Today.** [Archive-improving CMA](#archive-improving-cma)
 is improvement-or-new-cell. `hypervolume` / `least_contrib`
 already delegate to moocore.
 
@@ -198,8 +287,9 @@ arithmetic is easy for the caller.
 ε-constrained comparison. Both are comparison rules next to
 `constraint_dominates`.
 
-**Today.** Deb's rule is on `sel_nsga_2` and planned for the
-other selectors ([item 32](features_31_40.md#32-constraint-dominance-on-remaining-selectors)).
+**Today.** Deb's rule is on `sel_nsga_2` and considered for the
+other selectors
+([constraint-dominance on remaining selectors](#constraint-dominance-on-remaining-selectors)).
 `DeltaPenalty` remains the penalty path.
 
 **Why later.** Second and third rules after the one already
@@ -250,7 +340,7 @@ with Newton–Raphson.
 **What.** Current-to-pbest/1 and current-to-best/1 next to
 DE/rand/1/bin.
 
-**Today.** `mut_de` is rand/1/bin. [Item 35](features_31_40.md#35-adaptive-de-strategy)
+**Today.** `mut_de` is rand/1/bin. [Adaptive DE strategy](#adaptive-de-strategy)
 is a SHADE-style generate/update object.
 
 **Why later.** Parameters of that strategy, not a separate
@@ -306,7 +396,7 @@ generation's archive or lexicase wins. Success-based `cx_prob`
 **Today.** `var_and` / `var_or` take fixed probabilities.
 
 **Why later.** Policy, after
-[item 37](features_31_40.md#37-evaluation-budget-and-eval-cache)
+[item 33](features_31_40.md#33-evaluation-budget-and-eval-cache)
 makes evaluation budget first-class.
 
 ---
@@ -375,8 +465,8 @@ new record type.
 papers use WFG.
 
 **Why later.** Test problems for
-[item 32](features_31_40.md#32-constraint-dominance-on-remaining-selectors)
-and [item 34](features_31_40.md#34-rvea-and-r-nsga-ii).
+[constraint-dominance on remaining selectors](#constraint-dominance-on-remaining-selectors)
+and [RVEA and R-NSGA-II](#rvea-and-r-nsga-ii).
 Not library surface.
 
 ---

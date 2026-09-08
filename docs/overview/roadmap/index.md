@@ -48,13 +48,9 @@ surface.
 | 29 | [Novelty selection and iso+line](features_21_30.md#29-novelty-selection-and-isoline) | `operators`, `records` | planned |
 | 30 | [Causal lookback and suffix rescore](features_21_30.md#30-causal-lookback-and-suffix-rescore) | `gp` | shipped |
 | 31 | [Affine scaling and Lamarckian writeback](features_31_40.md#31-affine-scaling-and-lamarckian-writeback) | `gp`, `utilities` | shipped |
-| 32 | [Constraint-dominance on remaining selectors](features_31_40.md#32-constraint-dominance-on-remaining-selectors) | `operators` | planned |
-| 33 | [Archive-improving CMA](features_31_40.md#33-archive-improving-cma) | `strategies` | planned |
-| 34 | [RVEA and R-NSGA-II](features_31_40.md#34-rvea-and-r-nsga-ii) | `operators` | planned |
-| 35 | [Adaptive DE strategy](features_31_40.md#35-adaptive-de-strategy) | `strategies` | planned |
-| 36 | [Population tape CSE](features_31_40.md#36-population-tape-cse) | `gp` | planned |
-| 37 | [Evaluation budget and eval cache](features_31_40.md#37-evaluation-budget-and-eval-cache) | `algorithms`, `utilities` | shipped |
-| 38 | [Parallel RNG streams](features_31_40.md#38-parallel-rng-streams) | `rng` | shipped |
+| 32 | [Population tape CSE](features_31_40.md#32-population-tape-cse) | `gp` | planned |
+| 33 | [Evaluation budget and eval cache](features_31_40.md#33-evaluation-budget-and-eval-cache) | `algorithms`, `utilities` | shipped |
+| 34 | [Parallel RNG streams](features_31_40.md#34-parallel-rng-streams) | `rng` | shipped |
 
 Shipping an item updates the matching feature page and tutorial or
 reference stub. Items 15–20 are the toolbox-shaped holes after
@@ -63,10 +59,10 @@ that already shipped (tapes, SlimGP, lexicase, archives, CMA)
 into a longer program-search loop, and they are shipped.
 Item 30 is the legal dirty-suffix path item 25 deferred.
 Item 31 (Keijzer affine scaling next to `tune_ephemerals`) is
-shipped. Items 27–29 and 32–36 are the next backlog: case-selection
-schedules, archive search, memetic symbolic regression,
-and the remaining toolbox holes. Ideas that compose the same
-pieces but wait on a profile, a sequel, or a recipe stay in
+shipped. Items 27–29 and 32 are the next backlog: case-selection
+schedules and population tape CSE. Constraint-dominance on the
+remaining selectors, archive-improving CMA, RVEA / R-NSGA-II,
+and adaptive DE stay in
 [Under consideration](under_consideration.md). Write-ups for the
 numbered items are on [Features 1-10](features_1_10.md),
 [Features 11-20](features_11_20.md),
@@ -75,7 +71,7 @@ numbered items are on [Features 1-10](features_1_10.md),
 full decades even when the last decade is not full. Still not a second
 genome family. A separate [Push GP](push_gp.md) page lists the planned
 *policy* track — observation schema through a private Push individual.
-That table is not part of items 1–38.
+That table is not part of items 1–34.
 
 !!! note
     deap-er stays a pure-Python package. Native work remains an
