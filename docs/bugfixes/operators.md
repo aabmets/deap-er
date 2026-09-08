@@ -219,6 +219,23 @@ indices.
 
 ---
 
+## `cx_partially_matched` raised `ValueError` on empty permutations
+
+`rng.randint(0, size - 1)` is an empty interval when both parents
+have length 0. An empty permutation is a valid encoding — the
+empty allele set — but PMX then asked the RNG for a second cut
+on `[-1]`. `cx_ordered`, one-point, two-point, and shuffle already
+no-op when size is less than 2. Uniform PMX already skipped the
+loop.
+
+**Fix.** After the shared-allele check, return the individuals
+unchanged when `size < 2`.
+
+**Validator.**
+`tests/test_operators/test_cx_permutation.py::test_cx_partially_matched_empty_is_noop`
+
+---
+
 ## `cx_ordered` raised `ValueError` on length-1 permutations
 
 `rng.sample(range(size), 2)` needs two cut points. A one-gene
