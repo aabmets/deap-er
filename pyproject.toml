@@ -99,6 +99,9 @@ addopts = [
     "--dist=loadgroup"
 ]
 pythonpath = [".", "./deap_er"]
+markers = [
+    "examples: docs/examples scripts; collected only with -m examples",
+]
 
 [tool.coverage.run]
 branch = true
