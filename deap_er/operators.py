@@ -8,6 +8,12 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from .private.operators.case_batch_reduce import (
+    batch_case_matrix,
+    partition_case_batches,
+    reduce_case_mean,
+    reduce_case_mse,
+)
 from .private.operators.case_exam_guard import guard_case_exams
 from .private.operators.case_exam_step import next_lexicase_cases
 from .private.operators.case_exams import score_case_exams
@@ -61,6 +67,7 @@ from .private.operators.policy_fitness import (
 )
 from .private.operators.sample_informed_cases import sample_informed_cases
 from .private.operators.sel_age_moea_2 import SelAGE2WithMemory, sel_age_moea_2
+from .private.operators.sel_batch_epsilon_lexicase import sel_batch_epsilon_lexicase
 from .private.operators.sel_helpers import assign_crowding_dist, uniform_reference_points
 from .private.operators.sel_lexicase import sel_epsilon_lexicase, sel_lexicase
 from .private.operators.sel_lexicase_matrix import fitness_case_matrix
@@ -77,6 +84,7 @@ from .private.operators.sel_sms_emoa import sel_sms_emoa
 from .private.operators.sel_spea_2 import sel_spea_2
 from .private.operators.sel_team import sel_team
 from .private.operators.sel_tournament import sel_double_tournament, sel_tournament
+from .private.operators.sel_tournament_cases import sel_tournament_cases
 from .private.operators.sel_tournament_dcd import sel_tournament_dcd
 from .private.operators.sel_various import (
     sel_best,
@@ -122,6 +130,10 @@ __all__: list[str] = [
     "mut_uniform_int",
     "assign_crowding_dist",
     "uniform_reference_points",
+    "batch_case_matrix",
+    "partition_case_batches",
+    "reduce_case_mean",
+    "reduce_case_mse",
     "fitness_case_matrix",
     "scalarization_tchebycheff",
     "scalarization_pbi",
@@ -142,6 +154,7 @@ __all__: list[str] = [
     "next_lexicase_cases",
     "mut_case_mask",
     "mut_case_ranges",
+    "sel_batch_epsilon_lexicase",
     "sel_epsilon_lexicase",
     "sel_lexicase",
     "sel_team",
@@ -154,6 +167,7 @@ __all__: list[str] = [
     "sel_sms_emoa",
     "sel_double_tournament",
     "sel_tournament",
+    "sel_tournament_cases",
     "sel_tournament_dcd",
     "sel_best",
     "sel_random",

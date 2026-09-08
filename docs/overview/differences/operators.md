@@ -168,6 +168,17 @@ from the original sources.
     match — and optional matrix identity for
     `step_islands(..., eval_keys=)`. Custom graphs stay
     `mig_ring(..., mig_indices=)`. DEAP has no named topologies.
+35. `sel_batch_epsilon_lexicase` shuffles active cases into batches
+    of at most ``batch_size``, reduces each batch (mean squared error
+    by default), and runs epsilon-lexicase on the shorter matrix.
+    A fresh partition is drawn per selected individual. Optional
+    ``reduction=`` overrides the batch aggregate. ``matrix=`` /
+    ``trust_matrix=`` / ``cases=`` match lexicase.
+    ``sel_tournament_cases`` scores individuals on a case subset
+    (column mean by default), then tournaments on those scalars.
+    Informed down-sampling stays on ``sample_informed_cases``;
+    ``case_count=`` draws a random subset when ``cases`` is omitted.
+    DEAP has no batch epsilon-lexicase or case-subset tournament.
 
 [deap-321]: https://github.com/DEAP/deap/issues/321
 [deap-472]: https://github.com/DEAP/deap/issues/472
