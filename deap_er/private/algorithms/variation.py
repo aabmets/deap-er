@@ -67,11 +67,11 @@ def var_or(
 ) -> list[Individual]:
     """Build offspring by applying crossover *or* mutation *or* copy.
 
-    The sum of ``cx_prob`` and ``mut_prob`` must be in ``[0, 1]``. The
-    remaining probability copies an unmodified parent. The result is a
-    new list; fitnesses of varied individuals are cleared. A crossover
-    draw from a one-individual pool clones that parent twice and mates
-    the clones.
+    Each of ``cx_prob`` and ``mut_prob`` must be in ``[0, 1]``, and
+    their sum must also be in ``[0, 1]``. The remaining probability
+    copies an unmodified parent. The result is a new list; fitnesses
+    of varied individuals are cleared. A crossover draw from a
+    one-individual pool clones that parent twice and mates the clones.
 
     Requires ``clone``, ``mate``, and ``mutate`` on ``toolbox``.
 
@@ -86,8 +86,15 @@ def var_or(
         A new list of offspring.
 
     Raises:
-        ValueError: If ``cx_prob + mut_prob`` is greater than 1.
+        ValueError: If either probability is outside ``[0, 1]``, or if
+            ``cx_prob + mut_prob`` is greater than 1.
     """
+    err = "The {0} probability must be in the range of [0, 1]."
+    if not (0 <= cx_prob <= 1):
+        raise ValueError(err.format("crossover"))
+    if not (0 <= mut_prob <= 1):
+        raise ValueError(err.format("mutation"))
+
     evolve_prob = cx_prob + mut_prob
     if evolve_prob > 1.0:
         raise ValueError(
