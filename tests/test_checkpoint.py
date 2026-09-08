@@ -13,7 +13,19 @@ from pathlib import Path
 from typing import Any, override
 
 import pytest
-from deap_er import Checkpoint
+from deap_er import Checkpoint, Fitness, creator, tools
+
+HOF_CPT_FIT = "HOF_CPT_FIT"
+HOF_CPT_IND = "HOF_CPT_IND"
+
+
+@pytest.fixture
+def hof_ind_cls():
+    creator.create_type(HOF_CPT_FIT, Fitness, weights=(1.0,))
+    creator.create_type(HOF_CPT_IND, list, fitness=creator.__dict__[HOF_CPT_FIT])
+    yield creator.__dict__[HOF_CPT_IND]
+    del creator.__dict__[HOF_CPT_FIT]
+    del creator.__dict__[HOF_CPT_IND]
 
 
 class TestCheckpoint:
@@ -173,3 +185,36 @@ class TestCheckpoint:
         assert cpt.last_op == "none"
         with pytest.raises(ValueError, match="negative"):
             list(cpt.range(-1))
+
+    def test_hof_round_trips_as_json_not_dill(self, tmp_path, hof_ind_cls):
+        hof = tools.HallOfFame(maxsize=2)
+        for value in (3.0, 7.0, 1.0):
+            ind = hof_ind_cls([int(value)])
+            ind.fitness.values = (value,)
+            hof.update([ind])
+
+        writer = Checkpoint(
+            file_name="hof.dcpf",
+            dir_path=tmp_path,
+            autoload=False,
+            hof_ind_cls=hof_ind_cls,
+        )
+        writer.hof = hof
+        assert writer.save() is True
+
+        loaded = Checkpoint(
+            file_name="hof.dcpf",
+            dir_path=tmp_path,
+            autoload=False,
+            hof_ind_cls=hof_ind_cls,
+        )
+        assert loaded.load() is True
+        assert [list(ind) for ind in loaded.hof] == [[7], [3]]
+        assert [ind.fitness.values for ind in loaded.hof] == [(7.0,), (3.0,)]
+
+        import dill
+
+        with open(tmp_path / "hof.dcpf", "rb") as f:
+            payload = dill.load(f)
+        assert "hof" not in payload
+        assert '"maxsize": 2' in payload["_hof_json_"]

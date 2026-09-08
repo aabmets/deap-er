@@ -17,6 +17,7 @@ from typing import Any, override
 
 import dill
 
+from .records.hall_of_fame import HallOfFame
 from .various.rng import rng
 
 __all__: list[str] = ["Checkpoint"]
@@ -42,6 +43,9 @@ class Checkpoint:
         raise_errors: If True, propagate I/O and pickle errors.
             Otherwise ``load`` and ``save`` return False. Defaults
             to False.
+        hof_ind_cls: Creator individual type used to rebuild
+            ``hof`` from JSON on load. When set, ``hof`` is stored
+            as JSON instead of dill.
     """
 
     _dir_ = "deap-er"  # Checkpoint Directory
@@ -70,6 +74,7 @@ class Checkpoint:
         autoload: bool = True,
         make_dir: bool = True,
         raise_errors: bool = False,
+        hof_ind_cls: type[Any] | None = None,
     ) -> None:
         """See the class docstring for argument meanings."""
         if file_name is None:
@@ -80,6 +85,7 @@ class Checkpoint:
         self.file_path = dir_path.joinpath(file_name)
         self.raise_errors = raise_errors
         self.make_dir = make_dir
+        self._hof_ind_cls_ = hof_ind_cls
         if autoload is True:
             self.load()
 
@@ -96,6 +102,7 @@ class Checkpoint:
         file_path = self.file_path
         raise_errors = self.raise_errors
         make_dir = self.make_dir
+        hof_ind_cls = self._hof_ind_cls_
         try:
             with open(self.file_path, "rb") as f:
                 # nosemgrep: python.lang.security.deserialization.pickle.avoid-dill
@@ -103,8 +110,11 @@ class Checkpoint:
             self.file_path = file_path
             self.raise_errors = raise_errors
             self.make_dir = make_dir
+            if hof_ind_cls is not None:
+                self._hof_ind_cls_ = hof_ind_cls
             if self._rng_state_ is not None:
                 rng.set_state(self._rng_state_)
+            self._restore_hof()
         except (OSError, dill.PickleError, EOFError, TypeError) as ex:
             self.file_path = file_path
             self.raise_errors = raise_errors
@@ -115,6 +125,17 @@ class Checkpoint:
             return False
         self._last_op_ = "load_success"
         return True
+
+    def _restore_hof(self) -> None:
+        """Rebuild ``hof`` from JSON when a checkpoint stores ``_hof_json_``."""
+        raw = getattr(self, "_hof_json_", None)
+        if raw is None:
+            return
+        ind_cls = getattr(self, "_hof_ind_cls_", None)
+        if ind_cls is None:
+            return
+        self.hof = HallOfFame.from_json(raw, ind_cls)
+        del self._hof_json_
 
     def save(self) -> bool:
         """Write this instance's attributes to the checkpoint file.
@@ -136,6 +157,10 @@ class Checkpoint:
             _dict_ = vars(self).copy()
             for key in self._omit_:
                 _dict_.pop(key, None)
+            hof = _dict_.get("hof")
+            if isinstance(hof, HallOfFame):
+                _dict_["_hof_json_"] = hof.to_json()
+                del _dict_["hof"]
             tmp_path = self.file_path.with_name(self.file_path.name + ".tmp")
             with open(tmp_path, "wb") as f:
                 # nosemgrep: python.lang.security.deserialization.pickle.avoid-dill

@@ -175,9 +175,11 @@ Related: [item 25](features_21_30.md#25-streaming-and-island-ecology),
 `HallOfFame.to_json` matching `Logbook`
 ([persistency of the hall of fame][deap-25]).
 
-**Today.** `Checkpoint` dill-dumps arbitrary state, including
-a caller-assigned `cp.hof`. `Logbook` already round-trips
-JSON. `HallOfFame` has no text serialization.
+**Today.** `HallOfFame.to_json` / `from_json` round-trip
+`maxsize` and members as ``genes`` plus ``fitness`` values.
+`Checkpoint(..., hof_ind_cls=)` stores ``hof`` as JSON instead
+of dill and rebuilds it on load. `Logbook` already round-trips
+JSON the same way.
 
 **Benefit.** A resumed run should restore the archive without
 relying on dill for the one object papers want to inspect.

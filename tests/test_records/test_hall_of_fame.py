@@ -143,6 +143,31 @@ def test_remove_out_of_range_keeps_keys_aligned(ind_cls):
     assert len(hof.items) == len(hof.keys) == 3
 
 
+def test_json_round_trip_restores_members(ind_cls):
+    hof = tools.HallOfFame(maxsize=3)
+    hof.update(_population(ind_cls))
+
+    restored = tools.HallOfFame.from_json(hof.to_json(), ind_cls)
+
+    assert restored.maxsize == 3
+    assert [list(ind) for ind in restored] == [list(ind) for ind in hof]
+    assert [ind.fitness.values for ind in restored] == [ind.fitness.values for ind in hof]
+
+
+def test_json_round_trip_empty_archive(ind_cls):
+    hof = tools.HallOfFame(maxsize=2)
+    restored = tools.HallOfFame.from_json(hof.to_json(), ind_cls)
+    assert restored.maxsize == 2
+    assert len(restored) == 0
+
+
+def test_from_json_requires_ind_cls_for_members(ind_cls):
+    hof = tools.HallOfFame(maxsize=1)
+    hof.update(_population(ind_cls, count=1))
+    with pytest.raises(ValueError, match="ind_cls"):
+        tools.HallOfFame.from_json(hof.to_json())
+
+
 def test_pareto_front_keeps_non_dominated_and_drops_twins():
     creator.create_type("PF_FIT", Fitness, weights=(-1.0, -1.0))
     creator.create_type("PF_IND", list, fitness=creator.__dict__["PF_FIT"])
