@@ -173,3 +173,22 @@ valid CMA degeneracy — only the default $\mu$ is wrong.
 **Validator.**
 `tests/test_strategies/test_cma_standard.py::test_offsprings_one_defaults_to_one_survivor`
 `tests/test_strategies/test_restart_edges.py::test_last_batch_of_one_completes_restart_budget`
+
+---
+
+## Partial CMA restart shrank $\mu$ to $\lfloor\lambda/2\rfloor$
+
+`resize_offsprings` passed only `offsprings=lamb`.
+`apply_cma_hyperparams` then set $\mu=\max(1,\lfloor\lambda/2\rfloor)$.
+After $\lambda=8$, $\mu=4$ and a leftover budget of 3, the last
+batch became $\lambda=3$, $\mu=1$ instead of keeping
+$\mu=\min(4,3)=3$. MO-CMA already passed
+`survivors=min(mu, lamb)`.
+
+**Fix.** When the strategy has `mu`, pass
+`survivors=min(int(strategy.mu), lamb)`.
+
+**Validators.**
+
+- `tests/test_strategies/test_restart_edges.py::test_partial_batch_resizes_offspring_count`
+- `tests/test_strategies/test_restart_ops.py::test_resize_offsprings_keeps_survivors_on_standard_cma`

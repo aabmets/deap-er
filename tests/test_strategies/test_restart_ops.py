@@ -63,6 +63,14 @@ def test_set_sigma_and_resize_multi_objective():
         _teardown_mo()
 
 
+def test_resize_offsprings_keeps_survivors_on_standard_cma():
+    strategy = tools.Strategy([0.0] * 5, sigma=1.0, offsprings=8)
+    assert strategy.mu == 4
+    resize_offsprings(strategy, 3)
+    assert strategy.lamb == 3
+    assert strategy.mu == 3
+
+
 def test_apply_restart_one_plus_lambda():
     ind_cls = _so_types()
     try:

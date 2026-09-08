@@ -97,5 +97,6 @@ def test_partial_batch_resizes_offspring_count():
         population = restart.generate(ind_cls)
         assert len(population) == 3
         assert strategy.lamb == 3
+        assert strategy.mu == 3
     finally:
         _teardown()

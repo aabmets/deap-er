@@ -53,5 +53,10 @@
     first init or when `cm_init` is in `kwargs`. A later
     `compute_params(offsprings=…)` no longer wipes the learned
     covariance.
+13. A leftover-budget CMA batch keeps
+    $\mu=\min(\mu_{\mathrm{prev}},\lambda)$.
+    `resize_offsprings` no longer resets survivors to
+    $\lfloor\lambda/2\rfloor$, so a $\lambda=8$, $\mu=4$ run
+    with 3 evaluations left does not finish at $\mu=1$.
 
 [deap-500]: https://github.com/DEAP/deap/issues/500

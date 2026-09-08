@@ -45,10 +45,10 @@ def set_strategy_sigma(strategy: Any, sigma: float) -> None:
 
 
 def resize_offsprings(strategy: Any, lamb: int) -> None:
-    """Temporarily change offspring count (and MO survivors) on a strategy."""
+    """Temporarily change offspring count (and survivors) on a strategy."""
     kwargs: dict[str, int] = {"offsprings": lamb}
-    if isinstance(strategy, StrategyMultiObjective):
-        kwargs["survivors"] = min(strategy.mu, lamb)
+    if hasattr(strategy, "mu"):
+        kwargs["survivors"] = min(int(strategy.mu), lamb)
     strategy.compute_params(**kwargs)
 
 
