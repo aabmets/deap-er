@@ -118,6 +118,15 @@ def step_policy_loop(
     :func:`~deap_er.algorithms.apply_policy_action`. The follow-up
     observation surfaces guard rejection via ``last_action_rejected``.
 
+    Counter fields such as ``nevals`` and ``rows_seen`` are caller-owned.
+    This helper does not advance them after an action runs; the caller must
+    pass updated values on the next step when an evaluation budget or row
+    tally should change.
+
+    Unknown action tokens from ``decide`` are rejected by
+    :func:`~deap_er.algorithms.apply_policy_action` without raising. The
+    follow-up observation sets ``last_action_rejected`` when that happens.
+
     Args:
         decide: Callable that maps an observation to an action token.
         solve_bits: Per-case ``0/1`` flags for the observed individual.

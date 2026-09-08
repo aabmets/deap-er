@@ -16,85 +16,66 @@ from deap_er.private.programming.policy_loop import (
     POLICY_LOOP_ACTIONS,
     policy_action_from_index,
 )
+from deap_er.private.programming.policy_push_ops import (
+    ADD,
+    AND,
+    EMIT,
+    EQ,
+    GT,
+    LOAD_COVERAGE,
+    LOAD_HELD_OUT,
+    LOAD_HELD_OUT_SET,
+    LOAD_INVALID,
+    LOAD_NE_EVALS,
+    LOAD_PROMOTED,
+    LOAD_QD,
+    LOAD_REJECTED,
+    LOAD_ROWS,
+    LOAD_SOLVE_BIT,
+    LOAD_TRAIN_SCORE,
+    LOAD_UNSOLVED,
+    LT,
+    NOT,
+    OR,
+    PUSH_BOOL,
+    PUSH_INT,
+    PUSH_POLICY_OPS,
+    SUB,
+    PushPolicyOp,
+    StackValue,
+)
 from deap_er.private.records.policy_observation import PolicyObservation
 
 __all__: list[str] = [
+    "ADD",
+    "AND",
+    "EMIT",
+    "EQ",
+    "GT",
+    "LOAD_COVERAGE",
+    "LOAD_HELD_OUT",
+    "LOAD_HELD_OUT_SET",
+    "LOAD_INVALID",
+    "LOAD_NE_EVALS",
+    "LOAD_PROMOTED",
+    "LOAD_QD",
+    "LOAD_REJECTED",
+    "LOAD_ROWS",
+    "LOAD_SOLVE_BIT",
+    "LOAD_TRAIN_SCORE",
+    "LOAD_UNSOLVED",
+    "LT",
+    "NOT",
+    "OR",
+    "PUSH_BOOL",
+    "PUSH_INT",
     "PUSH_POLICY_OPS",
     "PushPolicyOp",
     "PushPolicyProgram",
+    "StackValue",
+    "SUB",
     "push_policy_decide",
 ]
-
-PUSH_INT = 1
-LOAD_UNSOLVED = 2
-LOAD_NE_EVALS = 3
-LOAD_ROWS = 4
-LOAD_PROMOTED = 5
-LOAD_INVALID = 6
-LOAD_REJECTED = 7
-LOAD_SOLVE_BIT = 8
-PUSH_BOOL = 9
-ADD = 10
-SUB = 11
-LT = 12
-GT = 13
-EQ = 14
-AND = 15
-OR = 16
-NOT = 17
-EMIT = 18
-
-PUSH_POLICY_OPS: frozenset[int] = frozenset(
-    {
-        PUSH_INT,
-        LOAD_UNSOLVED,
-        LOAD_NE_EVALS,
-        LOAD_ROWS,
-        LOAD_PROMOTED,
-        LOAD_INVALID,
-        LOAD_REJECTED,
-        LOAD_SOLVE_BIT,
-        PUSH_BOOL,
-        ADD,
-        SUB,
-        LT,
-        GT,
-        EQ,
-        AND,
-        OR,
-        NOT,
-        EMIT,
-    }
-)
-
-
-@dataclass(frozen=True, slots=True)
-class PushPolicyOp:
-    """Named constants for the private Push policy instruction set.
-
-    The interpreter only manipulates ``int`` and ``bool`` stack values
-    plus short solve-bit vectors read through :data:`LOAD_SOLVE_BIT`.
-    There is no column load, no ``Window`` type, and no tape opcode.
-    """
-
-    PUSH_INT: int = PUSH_INT
-    LOAD_UNSOLVED: int = LOAD_UNSOLVED
-    LOAD_NE_EVALS: int = LOAD_NE_EVALS
-    LOAD_ROWS: int = LOAD_ROWS
-    LOAD_PROMOTED: int = LOAD_PROMOTED
-    LOAD_INVALID: int = LOAD_INVALID
-    LOAD_REJECTED: int = LOAD_REJECTED
-    LOAD_SOLVE_BIT: int = LOAD_SOLVE_BIT
-    PUSH_BOOL: int = PUSH_BOOL
-    ADD: int = ADD
-    SUB: int = SUB
-    LT: int = LT
-    GT: int = GT
-    EQ: int = EQ
-    AND: int = AND
-    OR: int = OR
-    NOT: int = NOT
-    EMIT: int = EMIT
 
 
 @dataclass(frozen=True, slots=True)
@@ -106,6 +87,8 @@ class PushPolicyProgram:
             :data:`PUSH_INT`, :data:`PUSH_BOOL`, :data:`LOAD_SOLVE_BIT`,
             and :data:`EMIT`.
         default_action: Action index used when the program never emits.
+            When several :data:`EMIT` instructions run, the last
+            successful emit wins.
     """
 
     code: tuple[int, ...]
@@ -127,10 +110,10 @@ def push_policy_decide(
         A token from :data:`~deap_er.private.programming.policy_loop.POLICY_LOOP_ACTIONS`.
 
     Raises:
-        ValueError: If the program references an unknown opcode or an
-            invalid action index.
+        ValueError: If the program is truncated, references an unknown
+            opcode, or emits an invalid action index.
     """
-    stack: list[int | bool] = []
+    stack: list[StackValue] = []
     emitted: int | None = None
     code = program.code
     index = 0
@@ -140,12 +123,12 @@ def push_policy_decide(
         if opcode not in PUSH_POLICY_OPS:
             raise ValueError(f"unknown Push policy opcode: {opcode}")
         if opcode == PUSH_INT:
-            stack.append(code[index])
-            index += 1
+            value, index = _operand(code, index)
+            stack.append(value)
             continue
         if opcode == PUSH_BOOL:
-            stack.append(bool(code[index]))
-            index += 1
+            value, index = _operand(code, index)
+            stack.append(bool(value))
             continue
         if opcode == LOAD_UNSOLVED:
             stack.append(observation.unsolved_count)
@@ -165,9 +148,25 @@ def push_policy_decide(
         if opcode == LOAD_REJECTED:
             stack.append(observation.last_action_rejected)
             continue
+        if opcode == LOAD_TRAIN_SCORE:
+            stack.append(observation.train_score)
+            continue
+        if opcode == LOAD_HELD_OUT:
+            if observation.held_out_score is None:
+                raise ValueError("held_out_score is not available")
+            stack.append(observation.held_out_score)
+            continue
+        if opcode == LOAD_HELD_OUT_SET:
+            stack.append(observation.held_out_score is not None)
+            continue
+        if opcode == LOAD_COVERAGE:
+            stack.append(observation.archive_coverage)
+            continue
+        if opcode == LOAD_QD:
+            stack.append(observation.qd_score)
+            continue
         if opcode == LOAD_SOLVE_BIT:
-            bit_index = code[index]
-            index += 1
+            bit_index, index = _operand(code, index)
             bits = observation.solve_bits
             value = 0
             if 0 <= bit_index < len(bits):
@@ -185,13 +184,13 @@ def push_policy_decide(
             stack.append(left - right)
             continue
         if opcode == LT:
-            right = _pop_int(stack)
-            left = _pop_int(stack)
+            right = _pop_numeric(stack)
+            left = _pop_numeric(stack)
             stack.append(left < right)
             continue
         if opcode == GT:
-            right = _pop_int(stack)
-            left = _pop_int(stack)
+            right = _pop_numeric(stack)
+            left = _pop_numeric(stack)
             stack.append(left > right)
             continue
         if opcode == EQ:
@@ -213,8 +212,7 @@ def push_policy_decide(
             stack.append(not _pop_bool(stack))
             continue
         if opcode == EMIT:
-            action_index = code[index]
-            index += 1
+            action_index, index = _operand(code, index)
             if stack and isinstance(stack[-1], bool):
                 condition = stack.pop()
                 if condition:
@@ -229,14 +227,27 @@ def push_policy_decide(
     return policy_action_from_index(emitted)
 
 
-def _pop_int(stack: list[int | bool]) -> int:
+def _operand(code: tuple[int, ...], index: int) -> tuple[int, int]:
+    if index >= len(code):
+        raise ValueError("truncated Push policy program")
+    return code[index], index + 1
+
+
+def _pop_int(stack: list[StackValue]) -> int:
     value = stack.pop()
     if isinstance(value, bool):
         return int(value)
     return int(value)
 
 
-def _pop_bool(stack: list[int | bool]) -> bool:
+def _pop_numeric(stack: list[StackValue]) -> int | float:
+    value = stack.pop()
+    if isinstance(value, bool):
+        return int(value)
+    return value
+
+
+def _pop_bool(stack: list[StackValue]) -> bool:
     value = stack.pop()
     if isinstance(value, bool):
         return value
