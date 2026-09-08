@@ -48,13 +48,31 @@ def _reject_raw_arrays(value: object, *, label: str) -> None:
             _reject_raw_arrays(item, label=label)
 
 
+def _validate_solve_bit(bit: int | float | bool) -> None:
+    """Reject values that are not explicit ``0/1`` solve-bit encodings."""
+    if isinstance(bit, bool):
+        return
+    if isinstance(bit, int) and not isinstance(bit, bool):
+        if bit in (0, 1):
+            return
+        raise ValueError("solve_bits must contain only 0 and 1")
+    value = float(bit)
+    if numpy.isclose(value, 0.0, atol=_SOLVE_ATOL) or numpy.isclose(value, 1.0, atol=_SOLVE_ATOL):
+        return
+    raise ValueError("solve_bits must contain only 0 and 1")
+
+
 def _coerce_solve_bits(bits: Sequence[int | float | bool]) -> tuple[int, ...]:
     """Normalize solve bits to a fixed ``0/1`` tuple."""
     _reject_raw_arrays(bits, label="solve_bits")
-    out = tuple(1 if _bit_is_solved(bit) else 0 for bit in bits)
-    if any(bit not in (0, 1) for bit in out):
-        raise ValueError("solve_bits must contain only 0 and 1")
-    return out
+    for bit in bits:
+        _validate_solve_bit(bit)
+    return tuple(1 if _bit_is_solved(bit) else 0 for bit in bits)
+
+
+def _unsolved_count(bits: tuple[int, ...]) -> int:
+    """Count unsolved cases in an already coerced solve-bit tuple."""
+    return sum(1 for bit in bits if bit == 0)
 
 
 def _bit_is_solved(bit: int | float | bool) -> bool:
@@ -116,7 +134,7 @@ def policy_unsolved_count(solve_bits: Sequence[int]) -> int:
         Number of zeros in ``solve_bits``.
     """
     bits = _coerce_solve_bits(solve_bits)
-    return sum(1 for bit in bits if bit == 0)
+    return _unsolved_count(bits)
 
 
 def policy_exam_scores(
@@ -217,7 +235,7 @@ def policy_observe(
         qd_score = archive.qd_score
     return PolicyObservation(
         solve_bits=bits,
-        unsolved_count=policy_unsolved_count(bits),
+        unsolved_count=_unsolved_count(bits),
         train_score=float(train_score),
         held_out_score=None if held_out_score is None else float(held_out_score),
         archive_coverage=coverage,

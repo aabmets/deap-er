@@ -71,6 +71,43 @@ def test_policy_observe_rejects_raw_arrays():
         tools.policy_solve_bits_from_errors(numpy.array([0.0, 1.0]))  # ty: ignore[invalid-argument-type]
 
 
+def test_policy_observe_rejects_nested_raw_arrays():
+    nested_tuple = (1, numpy.array([0]))
+    nested_list = [1, numpy.array([0])]
+    with pytest.raises(TypeError, match="solve_bits must not be a raw array"):
+        tools.policy_observe(solve_bits=nested_tuple, train_score=0.0)  # ty: ignore[invalid-argument-type]
+    with pytest.raises(TypeError, match="solve_bits must not be a raw array"):
+        tools.policy_observe(solve_bits=nested_list, train_score=0.0)  # ty: ignore[invalid-argument-type]
+    with pytest.raises(TypeError, match="row must not be a raw array"):
+        tools.policy_solve_bits_from_semantic_row(nested_tuple)  # ty: ignore[invalid-argument-type]
+
+
+def test_policy_observe_rejects_invalid_solve_bit_values():
+    with pytest.raises(ValueError, match="solve_bits must contain only 0 and 1"):
+        tools.policy_observe(solve_bits=(1, 2), train_score=0.0)
+    with pytest.raises(ValueError, match="solve_bits must contain only 0 and 1"):
+        tools.policy_observe(solve_bits=(0.5, 1.0), train_score=0.0)
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "match"),
+    [
+        ({"nevals": -1}, "nevals"),
+        ({"rows_seen": -1}, "rows_seen"),
+        ({"promoted_library_size": -1}, "promoted_library_size"),
+    ],
+)
+def test_policy_observe_rejects_negative_counters(kwargs, match):
+    with pytest.raises(ValueError, match=match):
+        tools.policy_observe(solve_bits=(1, 0), train_score=0.0, **kwargs)
+
+
+def test_policy_observe_unsolved_count_from_coerced_bits():
+    obs = tools.policy_observe(solve_bits=(1, 0, 0, 1), train_score=0.0)
+    assert obs.unsolved_count == 2
+    assert obs.unsolved_count == tools.policy_unsolved_count(obs.solve_bits)
+
+
 def test_policy_solve_bits_from_case_errors():
     predicted = numpy.array([0.0, 0.0, 1.0, 2.0, 0.0, 0.0], dtype=numpy.float64)
     target = numpy.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0], dtype=numpy.float64)
