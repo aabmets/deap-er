@@ -11,7 +11,7 @@ authors:
 repository-code: https://github.com/aabmets/deap-er
 url: https://aabmets.github.io/deap-er/
 abstract: >-
-  Distributed Evolutionary Algorithms in Python - Entirely Reworked.
+  Distributed Evolutionary Algorithms in Python - Entirely Reinvented.
   A complete rewrite of the DEAP library for Python 3.12 and up.
 keywords:
   - deap
