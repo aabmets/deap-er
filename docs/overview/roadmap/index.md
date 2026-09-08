@@ -47,7 +47,7 @@ surface.
 | 28 | [Dynamic epsilon and downsample schedule](features_21_30.md#28-dynamic-epsilon-and-downsample-schedule) | `operators` | planned |
 | 29 | [Novelty selection and iso+line](features_21_30.md#29-novelty-selection-and-isoline) | `operators`, `records` | planned |
 | 30 | [Causal lookback and suffix rescore](features_21_30.md#30-causal-lookback-and-suffix-rescore) | `gp` | shipped |
-| 31 | [Affine scaling and Lamarckian writeback](features_31_40.md#31-affine-scaling-and-lamarckian-writeback) | `gp`, `utilities` | planned |
+| 31 | [Affine scaling and Lamarckian writeback](features_31_40.md#31-affine-scaling-and-lamarckian-writeback) | `gp`, `utilities` | shipped |
 | 32 | [Constraint-dominance on remaining selectors](features_31_40.md#32-constraint-dominance-on-remaining-selectors) | `operators` | planned |
 | 33 | [Archive-improving CMA](features_31_40.md#33-archive-improving-cma) | `strategies` | planned |
 | 34 | [RVEA and R-NSGA-II](features_31_40.md#34-rvea-and-r-nsga-ii) | `operators` | planned |
@@ -62,7 +62,8 @@ the first backlog; they are shipped. Items 21–26 compose pieces
 that already shipped (tapes, SlimGP, lexicase, archives, CMA)
 into a longer program-search loop, and they are shipped.
 Item 30 is the legal dirty-suffix path item 25 deferred.
-Items 27–29 and 31–37 are the next backlog: case-selection
+Item 31 (Keijzer affine scaling next to `tune_ephemerals`) is
+shipped. Items 27–29 and 32–37 are the next backlog: case-selection
 schedules, archive search, memetic symbolic regression,
 and the remaining toolbox holes. Ideas that compose the same
 pieces but wait on a profile, a sequel, or a recipe stay in
