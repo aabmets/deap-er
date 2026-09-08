@@ -26,7 +26,7 @@ page. Items 30, 31, 37, and 38 are shipped on both pages.
 | P9 | [Streaming and island ecology](features_21_30.md#25-streaming-and-island-ecology) (item 25) | `algorithms` | shipped |
 | P10 | [Program teams](features_21_30.md#26-program-teams) (item 26) | `operators` | shipped |
 | P11 | [Policy observation schema](#p11-policy-observation-schema) | `records`, `utilities` | planned |
-| P12 | [Policy action applicator](#p12-policy-action-applicator) | `algorithms` | planned |
+| P12 | [Policy action applicator](#p12-policy-action-applicator) | `algorithms` | shipped |
 | P13 | [Held-out policy fitness](#p13-held-out-policy-fitness) | `records`, `operators` | planned |
 | P14 | [Action guards and cooldowns](#p14-action-guards-and-cooldowns) | `operators` | planned |
 | P15 | [Evaluation budget and eval cache](features_31_40.md#37-evaluation-budget-and-eval-cache) (item 37) | `algorithms`, `utilities` | shipped |
@@ -224,8 +224,11 @@ action onto existing callables only:
 - invalidate and rescore (`evaluate_invalid` / `interpret_tapes`)
 - migrate / pick deme pressure (`step_islands`)
 
-**Today.** Those functions exist. Nothing accepts a policy
-token and refuses anything else.
+**Today.** Shipped as
+[item 29](../differences/records.md).
+`SUPPORTED_POLICY_ACTIONS` documents the token schema. Skip
+tokens are intentional no-ops; unknown tokens and missing
+required kwargs are rejected without raising.
 
 **Benefit.** Push emits actions, not trees. The applicator
 is the thin loop that must not become a second `ea_*`

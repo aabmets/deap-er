@@ -14,10 +14,24 @@ from .private.algorithms.ea_map_elites import ea_map_elites
 from .private.algorithms.ea_mu_comma_lambda import ea_mu_comma_lambda
 from .private.algorithms.ea_mu_plus_lambda import ea_mu_plus_lambda
 from .private.algorithms.ea_simple import ea_simple
+from .private.algorithms.policy_action import (
+    POLICY_ACTION_SKIP_PROMOTE,
+    POLICY_ACTION_SKIP_TUNE,
+    SKIP_POLICY_ACTIONS,
+    SUPPORTED_POLICY_ACTIONS,
+    PolicyActionResult,
+    apply_policy_action,
+)
 from .private.algorithms.step_islands import step_islands
 from .private.algorithms.variation import var_and, var_or
 
 __all__: list[str] = [
+    "POLICY_ACTION_SKIP_PROMOTE",
+    "POLICY_ACTION_SKIP_TUNE",
+    "SKIP_POLICY_ACTIONS",
+    "SUPPORTED_POLICY_ACTIONS",
+    "PolicyActionResult",
+    "apply_policy_action",
     "ea_generate_update",
     "ea_generate_update_restarts",
     "ea_map_elites",
