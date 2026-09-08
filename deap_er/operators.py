@@ -34,7 +34,8 @@ from .private.operators.cx_real import (
     cx_simulated_binary_bounded,
     cx_uniform,
 )
-from .private.operators.mig_ring import mig_ring
+from .private.operators.island_eval_keys import island_eval_keys
+from .private.operators.mig_ring import mig_fully_connected, mig_random, mig_ring
 from .private.operators.mut_case_exam import mut_case_mask, mut_case_ranges
 from .private.operators.mut_de import mut_de
 from .private.operators.mut_gaussian_bounded import mut_gaussian_bounded
@@ -102,6 +103,9 @@ __all__: list[str] = [
     "cx_simulated_binary_bounded",
     "cx_uniform",
     "cx_heterogeneous",
+    "island_eval_keys",
+    "mig_fully_connected",
+    "mig_random",
     "mig_ring",
     "mut_de",
     "mut_es_log_normal",

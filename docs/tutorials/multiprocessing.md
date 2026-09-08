@@ -205,7 +205,9 @@ pool is already running.
 A growing matrix and unlike demes stay on the caller loop. Append
 rows, invalidate fitness, and rescore with `interpret_tapes` on the
 full pack — see the [columnar tutorial](columnar_gp.md). Step unlike
-toolboxes with `step_islands`, then `mig_ring`. Persist with
+toolboxes with `step_islands`, then `mig_ring`, `mig_fully_connected`,
+or `mig_random`. Use `island_eval_keys` when demes evaluate on
+different exams or matrices. Persist with
 `Checkpoint.range`. Do not stand up a Ray or GPU evaluation daemon
 for that recipe; `evaluate_batch` already owns any process pool.
 

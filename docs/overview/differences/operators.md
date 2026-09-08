@@ -159,6 +159,12 @@ from the original sources.
     genomes. `ea_map_elites` registers both like any other
     `select` / `mutate`; `random_elites` stays the parent source.
     DEAP has no novelty selector or archive-aware iso+line mutator.
+34. `mig_fully_connected` and `mig_random` sit next to `mig_ring`.
+    Fully connected visits every directed deme pair; random picks
+    one destination per source. `island_eval_keys` hashes each
+    deme's `CaseExam` and optional matrix identity for
+    `step_islands(..., eval_keys=)`. Custom graphs stay
+    `mig_ring(..., mig_indices=)`. DEAP has no named topologies.
 
 [deap-321]: https://github.com/DEAP/deap/issues/321
 [deap-472]: https://github.com/DEAP/deap/issues/472

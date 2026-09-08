@@ -16,8 +16,9 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 from deap_er.private.various.clone import clone_individual
+from deap_er.private.various.rng import rng
 
-__all__: list[str] = ["mig_ring"]
+__all__: list[str] = ["mig_fully_connected", "mig_random", "mig_ring"]
 
 
 def _claim_vacancies(population: list[Individual], dest_slots: list[Individual]) -> list[int]:
@@ -71,6 +72,98 @@ def _place_emigrants(
             else:
                 mover = immigrant
             dest[indx] = mover
+
+
+def _mig_edge(
+    populations: list[list[Individual]],
+    from_deme: int,
+    to_deme: int,
+    mig_count: int,
+    selection: Callable[..., Any],
+    replacement: Callable[..., Any] | None,
+) -> None:
+    src = populations[from_deme]
+    dest = populations[to_deme]
+    selected = selection(src, mig_count)
+    if replacement is None:
+        emigrants = selected
+        dest_slots = selection(dest, mig_count)
+    else:
+        emigrants = [clone_individual(ind) for ind in selected]
+        dest_slots = replacement(dest, mig_count)
+    vacancies = _claim_vacancies(dest, dest_slots)
+    incoming_filled = min(len(emigrants), len(vacancies))
+    for offset, (indx, immigrant) in enumerate(zip(vacancies, emigrants, strict=False)):
+        already_in_dest = any(member is immigrant for member in dest)
+        if (replacement is None and offset >= incoming_filled) or already_in_dest:
+            mover = clone_individual(immigrant)
+        else:
+            mover = immigrant
+        dest[indx] = mover
+
+
+def mig_fully_connected(
+    populations: list[list[Individual]],
+    mig_count: int,
+    selection: Callable[..., Any],
+    replacement: Callable[..., Any] | None = None,
+) -> None:
+    """Move emigrants along every directed island edge.
+
+    For each ordered pair of distinct demes ``(src, dst)``, ``selection``
+    picks ``mig_count`` emigrants from ``src`` and writes them into
+    ``dst`` using the same vacancy and cloning rules as ``mig_ring``.
+    Deme lengths are unchanged. Populations are modified in place.
+
+    Args:
+        populations: Populations to migrate between.
+        mig_count: Number of individuals to migrate along each edge.
+        selection: Callable that selects emigrants from a population.
+        replacement: Callable that selects destination vacancies in the
+            receiving deme. If omitted, the receiver's own emigrant
+            slots are the vacancies.
+    """
+    nbr_demes = len(populations)
+    for to_deme in range(nbr_demes):
+        for from_deme in range(nbr_demes):
+            if from_deme != to_deme:
+                _mig_edge(
+                    populations,
+                    from_deme,
+                    to_deme,
+                    mig_count,
+                    selection,
+                    replacement,
+                )
+
+
+def mig_random(
+    populations: list[list[Individual]],
+    mig_count: int,
+    selection: Callable[..., Any],
+    replacement: Callable[..., Any] | None = None,
+) -> None:
+    """Move emigrants to a random destination deme per source.
+
+    Each source population sends ``mig_count`` emigrants to one
+    destination chosen uniformly among the other demes. When only one
+    deme exists, this is a no-op. Otherwise the placement rules match
+    ``mig_ring``. Populations are modified in place.
+
+    Args:
+        populations: Populations to migrate between.
+        mig_count: Number of individuals to migrate from each population.
+        selection: Callable that selects emigrants from a population.
+        replacement: Callable that selects which destination individuals
+            are replaced. If omitted, the destination's own emigrant
+            slots are the vacancies.
+    """
+    nbr_demes = len(populations)
+    if nbr_demes < 2:
+        return
+    choices = list(range(nbr_demes))
+    mig_indices = [int(rng.choice([j for j in choices if j != i])) for i in choices]
+    mig_ring(populations, mig_count, selection, replacement, mig_indices=mig_indices)
 
 
 def mig_ring(
