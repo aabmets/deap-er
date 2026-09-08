@@ -151,10 +151,13 @@ Related: [item 4](features_1_10.md#4-batch-tape-evaluation),
 `mig_ring`, plus a helper that computes `eval_keys` from the
 current exam.
 
-**Today.** `step_islands(..., migrate=)` already accepts any
-migrate callable. `mig_ring` is the shipped topology. Callers
-who want a complete graph or random destinations write the
-map themselves. `eval_keys` is a caller-supplied sequence.
+**Today.** `mig_fully_connected` visits every directed deme pair;
+`mig_random` picks one destination per source. Both reuse
+`mig_ring` placement rules. `island_eval_keys` hashes each
+deme's `CaseExam` and optional matrix identity for
+`step_islands(..., eval_keys=)`. Custom graphs stay
+`mig_ring(..., mig_indices=)`. Archives still do not
+auto-merge.
 
 **Benefit.** Heterogeneous islands shipped in item 25; the
 missing half is more than a ring. A named topology plus an

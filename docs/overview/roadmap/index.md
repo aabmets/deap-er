@@ -51,7 +51,7 @@ surface.
 | 32 | [Population tape CSE](features_31_40.md#32-population-tape-cse) | `gp` | shipped |
 | 33 | [Evaluation budget and eval cache](features_31_40.md#33-evaluation-budget-and-eval-cache) | `algorithms`, `utilities` | shipped |
 | 34 | [Parallel RNG streams](features_31_40.md#34-parallel-rng-streams) | `rng` | shipped |
-| 35 | [Island topologies](features_31_40.md#35-island-topologies) | `operators` | planned |
+| 35 | [Island topologies](features_31_40.md#35-island-topologies) | `operators` | shipped |
 | 36 | [Persistent hall of fame](features_31_40.md#36-persistent-hall-of-fame) | `records` | shipped |
 
 Shipping an item updates the matching feature page and tutorial or
@@ -61,9 +61,9 @@ that already shipped (tapes, SlimGP, lexicase, archives, CMA)
 into a longer program-search loop, and they are shipped.
 Item 30 is the legal dirty-suffix path item 25 deferred.
 Item 31 (Keijzer affine scaling next to `tune_ephemerals`) is
-shipped. Items 27–28, 32, and 35 are the next backlog:
-case-selection schedules, population tape CSE, and named island
-topologies. Items 29 and 36 are shipped. Constraint-dominance
+shipped. Items 27–28 are the next backlog:
+case-selection schedules. Items 29, 32, 35, and 36 are shipped.
+Constraint-dominance
 on the remaining selectors, archive-improving CMA, RVEA /
 R-NSGA-II, and adaptive DE stay in
 [Under consideration](under_consideration.md). Write-ups for the
