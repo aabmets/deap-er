@@ -28,7 +28,7 @@ page. Items 30, 31, 37, and 38 are shipped on both pages.
 | P11 | [Policy observation schema](#p11-policy-observation-schema) | `records`, `utilities` | shipped |
 | P12 | [Policy action applicator](#p12-policy-action-applicator) | `algorithms` | shipped |
 | P13 | [Held-out policy fitness](#p13-held-out-policy-fitness) | `records`, `operators` | shipped |
-| P14 | [Action guards and cooldowns](#p14-action-guards-and-cooldowns) | `operators` | planned |
+| P14 | [Action guards and cooldowns](#p14-action-guards-and-cooldowns) | `operators` | shipped |
 | P15 | [Evaluation budget and eval cache](features_31_40.md#37-evaluation-budget-and-eval-cache) (item 37) | `algorithms`, `utilities` | shipped |
 | P16 | [Causal lookback and suffix rescore](features_21_30.md#30-causal-lookback-and-suffix-rescore) (item 30) | `gp` | shipped |
 | P17 | [Affine scaling and Lamarckian writeback](features_31_40.md#31-affine-scaling-and-lamarckian-writeback) (item 31) | `gp`, `utilities` | shipped |
@@ -36,8 +36,8 @@ page. Items 30, 31, 37, and 38 are shipped on both pages.
 | P19 | [Push GP as the loop](#p19-push-gp-as-the-loop) | `gp` (private policy) | planned |
 
 P1–P10 are shipped on the main table and still sit on this
-path: the two-level loop *uses* them. P11–P13 are shipped
-firewall pieces; P14 remains planned. P15–P18 are shipped.
+path: the two-level loop *uses* them. P11–P14 are shipped
+firewall pieces. P15–P18 are shipped.
 P19 is last on purpose.
 
 !!! note
@@ -287,9 +287,12 @@ remaining `n_evals`. A rejected action is an observation,
 not a crash. A uniform random policy must run thousands of
 generations without melting the compile cache.
 
-**Today.** `guard_case_exams` blocks the empty exam and the
-all-solved collapse. Promote-every-generation is still a
-caller footgun ([item 21](features_21_30.md#21-growing-primitive-language)).
+**Today.** `PolicyActionGuard` and `guard_policy_action`
+enforce the caps on `apply_policy_action`. Rejected actions
+return `PolicyActionResult(rejected=True)` without raising.
+Call `begin_generation` each outer generation so per-generation
+promote limits reset. `estimate_policy_action_evals` supplies
+conservative budget checks for tune, rescore, and island steps.
 
 **Benefit.** If a random policy cannot survive, do not add
 Exec stacks.

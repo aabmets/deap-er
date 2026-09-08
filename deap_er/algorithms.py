@@ -19,8 +19,11 @@ from .private.algorithms.policy_action import (
     POLICY_ACTION_SKIP_TUNE,
     SKIP_POLICY_ACTIONS,
     SUPPORTED_POLICY_ACTIONS,
+    PolicyActionGuard,
     PolicyActionResult,
     apply_policy_action,
+    estimate_policy_action_evals,
+    guard_policy_action,
 )
 from .private.algorithms.step_islands import step_islands
 from .private.algorithms.variation import var_and, var_or
@@ -30,8 +33,11 @@ __all__: list[str] = [
     "POLICY_ACTION_SKIP_TUNE",
     "SKIP_POLICY_ACTIONS",
     "SUPPORTED_POLICY_ACTIONS",
+    "PolicyActionGuard",
     "PolicyActionResult",
     "apply_policy_action",
+    "estimate_policy_action_evals",
+    "guard_policy_action",
     "ea_generate_update",
     "ea_generate_update_restarts",
     "ea_map_elites",
