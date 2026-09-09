@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-09-09
+
+Follow-up to 3.0.0. The evolutionary algorithms DEAP already shipped
+are still the 3.0 loops; this cut wires tree-GP and columnar search,
+exposes `evaluate_invalid` and `ea_policy`, and ships the remaining
+case-structured helpers (interval tapes, homologous / semantic
+crossover, memetic leash, held-out lexicase / successive-halving,
+team-from-archive, structural meta-cases, and noisy fitness resample).
+Roadmap items 37–43 and the GP wiring landed as PRs
+[#107](https://github.com/aabmets/deap-er/pull/107)–[#116](https://github.com/aabmets/deap-er/pull/116).
+
 ### Added
 
 - `gp.register_gp`, `gp.columnar_pset`, and `gp.evaluate_columnar`
@@ -220,6 +231,7 @@ commits that landed on that tag.
 - Hypervolume and least-contributed indicator
 - CMA strategy keyword arguments
 
-[Unreleased]: https://github.com/aabmets/deap-er/compare/3.0.0...HEAD
+[Unreleased]: https://github.com/aabmets/deap-er/compare/3.1.0...HEAD
+[3.1.0]: https://github.com/aabmets/deap-er/compare/3.0.0...3.1.0
 [3.0.0]: https://github.com/aabmets/deap-er/compare/2.0...3.0.0
 [2.0.0]: https://github.com/aabmets/deap-er/releases/tag/2.0

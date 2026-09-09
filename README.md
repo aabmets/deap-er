@@ -31,6 +31,14 @@ Function names, parameter order, and a few contracts changed. The
 [differences page](https://aabmets.github.io/deap-er/overview/differences/)
 is the migration note.
 
+**3.1.0** is a follow-up to 3.0.0: it wires tree-GP and columnar
+search (`register_gp`, `columnar_pset`, `evaluate_columnar`),
+exposes `evaluate_invalid` and `ea_policy`, and ships the remaining
+case-structured helpers — interval tapes, homologous and semantic
+crossover, memetic and affine leashes, held-out lexicase /
+successive-halving, team-from-archive, structural meta-cases, and
+noisy fitness resample / F-Race stop.
+
 ```bash
 pip install deap-er
 ```
