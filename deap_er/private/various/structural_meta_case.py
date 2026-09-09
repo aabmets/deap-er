@@ -95,6 +95,63 @@ def _promote_hits(tree: PrimitiveTree, promoted: frozenset[str]) -> int:
     return sum(1 for node in tree if getattr(node, "name", None) in promoted)
 
 
+def _predicted_rows(
+    individuals: Sequence[Any],
+    predicted: numpy.ndarray | Sequence[Sequence[float]] | None,
+) -> list[numpy.ndarray] | None:
+    if predicted is None:
+        return None
+    packed = numpy.asarray(predicted, dtype=numpy.float64)
+    if packed.ndim == 1:
+        if len(individuals) != 1:
+            raise ValueError("predicted must have one row per individual")
+        packed = packed.reshape(1, -1)
+    if packed.ndim != 2 or packed.shape[0] != len(individuals):
+        raise ValueError("predicted must have shape (n_individuals, n_rows)")
+    return [packed[row] for row in range(packed.shape[0])]
+
+
+def _unique_opcode_scalar(
+    individual: Any,
+    tree: PrimitiveTree,
+    typed_set: PrimitiveSetTyped,
+    tape_cache: dict[str, Any],
+) -> float:
+    key = str(individual)
+    tape = tape_cache.get(key)
+    if tape is None:
+        tape = lower_tree(tree, typed_set)
+        tape_cache[key] = tape
+    return float(_unique_opcode_count(tape))
+
+
+def _column_scalar(
+    name: str,
+    *,
+    tree: PrimitiveTree,
+    individual: Any,
+    typed_set: PrimitiveSetTyped | None,
+    promoted: frozenset[str],
+    tape_cache: dict[str, Any],
+    predicted_rows: list[numpy.ndarray] | None,
+    row: int,
+) -> float:
+    if name == "size":
+        return float(len(tree))
+    if name == "depth":
+        return float(tree.height)
+    if name == "unique_opcodes":
+        assert typed_set is not None
+        return _unique_opcode_scalar(individual, tree, typed_set, tape_cache)
+    if name == "promote_hits":
+        return float(_promote_hits(tree, promoted))
+    if name == "non_finite_fraction":
+        if predicted_rows is None:
+            return float(numpy.nan)
+        return _non_finite_fraction(predicted_rows[row])
+    raise ValueError(f"unknown structural column: {name}")
+
+
 def structural_meta_case_columns(
     individuals: Sequence[Any],
     *,
@@ -132,47 +189,25 @@ def structural_meta_case_columns(
     names = _resolve_columns(columns)
     if _NEED_PRIM_SET.intersection(names) and prim_set is None:
         raise ValueError("prim_set is required for unique_opcodes and promote_hits")
-    typed_set = prim_set
 
-    predicted_rows: list[numpy.ndarray] | None = None
-    if "non_finite_fraction" in names:
-        if predicted is None:
-            predicted_rows = None
-        else:
-            packed = numpy.asarray(predicted, dtype=numpy.float64)
-            if packed.ndim == 1:
-                if len(individuals) != 1:
-                    raise ValueError("predicted must have one row per individual")
-                packed = packed.reshape(1, -1)
-            if packed.ndim != 2 or packed.shape[0] != len(individuals):
-                raise ValueError("predicted must have shape (n_individuals, n_rows)")
-            predicted_rows = [packed[row] for row in range(packed.shape[0])]
-
-    promoted = frozenset(promoted_names(typed_set)) if typed_set is not None else frozenset()
+    predicted_rows = (
+        _predicted_rows(individuals, predicted) if "non_finite_fraction" in names else None
+    )
+    promoted = frozenset(promoted_names(prim_set)) if prim_set is not None else frozenset()
     tape_cache: dict[str, Any] = {}
     matrix = numpy.empty((len(individuals), len(names)), dtype=numpy.float64)
 
     for row, individual in enumerate(individuals):
         tree = _as_tree(individual)
-        tape = None
         for col, name in enumerate(names):
-            if name == "size":
-                matrix[row, col] = float(len(tree))
-            elif name == "depth":
-                matrix[row, col] = float(tree.height)
-            elif name == "unique_opcodes":
-                key = str(individual)
-                tape = tape_cache.get(key)
-                if tape is None:
-                    assert typed_set is not None
-                    tape = lower_tree(tree, typed_set)
-                    tape_cache[key] = tape
-                matrix[row, col] = float(_unique_opcode_count(tape))
-            elif name == "promote_hits":
-                matrix[row, col] = float(_promote_hits(tree, promoted))
-            elif name == "non_finite_fraction":
-                if predicted_rows is None:
-                    matrix[row, col] = numpy.nan
-                else:
-                    matrix[row, col] = _non_finite_fraction(predicted_rows[row])
+            matrix[row, col] = _column_scalar(
+                name,
+                tree=tree,
+                individual=individual,
+                typed_set=prim_set,
+                promoted=promoted,
+                tape_cache=tape_cache,
+                predicted_rows=predicted_rows,
+                row=row,
+            )
     return matrix
