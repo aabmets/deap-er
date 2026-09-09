@@ -94,6 +94,7 @@ from .private.operators.sel_various import (
     sel_stochastic_universal_sampling,
     sel_worst,
 )
+from .private.programming.memetic_defaults import estimate_tune_ephemerals_evals
 
 __all__: list[str] = [
     "cx_ordered",
@@ -152,6 +153,7 @@ __all__: list[str] = [
     "guard_policy_action",
     "PolicyActionGuard",
     "estimate_policy_action_evals",
+    "estimate_tune_ephemerals_evals",
     "next_lexicase_cases",
     "next_downsample_cases",
     "mut_case_mask",

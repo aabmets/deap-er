@@ -50,5 +50,9 @@
 13. `nsga_convergence` and `inv_gen_dist` return $0$ when either
     point set is empty. `cdist` no longer raises `ValueError`
     on a 1-D empty array.
+14. `affine_case_errors` fits Keijzer $a + b\,f(x)$ on the same
+    `valid=` mask as `case_errors`, applies the scaled series, and
+    returns per-case MSE without changing the tree. Darwinian
+    scoring default; Lamarckian `write_affine_scale` stays opt-in.
 
 [deap-75]: https://github.com/DEAP/deap/issues/75

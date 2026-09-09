@@ -134,11 +134,18 @@ Evaluation stays on the caller: pass `evaluate`, or
 polish, not a second full ES run.
 
 `affine_scale(predicted, target, *, valid=)` fits Keijzer
-$a + b\,f(x)$ on the same mask `case_errors` uses. Use the scaled
-series only when writing fitness (Darwinian), or call
-`write_affine_scale` to write $a$ and $b$ back as ephemeral leaves
-or Slim deltas (Lamarckian). The tree shape stays the same either
-way.
+$a + b\,f(x)$ on the same mask `case_errors` uses. Prefer
+`affine_case_errors(predicted, target, cases, *, valid=)` when
+writing fitness or lexicase vectors — it applies the scaled series
+without touching the tree (Darwinian). Call `write_affine_scale`
+only when you explicitly want Lamarckian writeback. The tree shape
+stays the same either way.
+
+For memetic polish outside the policy loop, use
+`gp.tune_ephemerals_budget` instead of raw `tune_ephemerals`.
+It defaults to `MEMETIC_DEFAULT_N_GEN`, caps inner generations to
+remaining `n_evals`, and requires a held-out judge when a
+`CaseExamPool.held_out` exam is marked.
 
 `add_pair_window_primitives` is an optional second kit for two series
 and one `Window`: `rolling_corr`, `rolling_cov`, and `rolling_beta`.

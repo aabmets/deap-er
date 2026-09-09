@@ -156,6 +156,15 @@ The following is extra.
     trees are lowered once, scored with `interpret_tapes`, and
     warmup `nan` samples are dropped from the MSE. DEAP leaves
     that wiring on every caller.
+32. `MEMETIC_DEFAULT_N_GEN` and `MEMETIC_MAX_N_GEN` document
+    the recommended memetic polish. `tune_ephemerals_budget`
+    caps inner `n_gen` to remaining `n_evals`, defaults to the
+    small generation count, and judges trials on a
+    caller-marked held-out exam when one exists.
+    `cap_tune_n_gen` and `estimate_tune_ephemerals_evals` share
+    the tune cost model with `PolicyActionGuard`. Raw
+    `tune_ephemerals` is unchanged; policy caps stay on the
+    guard.
 
 The columnar contract is in the
 [columnar GP tutorial](../../tutorials/columnar_gp.md). The private
