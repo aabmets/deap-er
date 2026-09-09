@@ -11,16 +11,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `gp.register_gp`, `gp.columnar_pset`, and `gp.evaluate_columnar`
   for the standard tree-GP / columnar toolbox wiring
+  ([#108](https://github.com/aabmets/deap-er/pull/108))
+- `bounds_from_matrix`, `tape_interval`, and `tape_flags` propagate
+  column bounds through the opcode kit and certificate useless tapes
+  before `interpret_tapes`; `evaluate_columnar(..., static_filter=True)`
+  skips flagged programs
+  ([#111](https://github.com/aabmets/deap-er/pull/111))
+- `cx_homologous` and `cx_one_point_semantic` — homologous subtree swap
+  and semantic-nearest crossover on `interpret_tape` rows
+  ([#112](https://github.com/aabmets/deap-er/pull/112))
+- `MEMETIC_DEFAULT_N_GEN`, `MEMETIC_MAX_N_GEN`, `tune_ephemerals_budget`,
+  and `affine_case_errors` for memetic polish and Darwinian affine
+  scaling under evaluation budget
+  ([#110](https://github.com/aabmets/deap-er/pull/110))
+- `sel_team_archive` — greedy team assembly on occupied MAP-Elites cells
+  without rewriting member fitness
+  ([#113](https://github.com/aabmets/deap-er/pull/113))
+- `structural_meta_case_columns` and `structural_meta_case_weights`
+  for cheap lexicase bloat and always-on regularization via appended
+  meta-cases ([#116](https://github.com/aabmets/deap-er/pull/116))
+- `held_out_tail`, `train_head`, `case_generalization_pool`,
+  `case_generalization_recipe`, `make_lexicase_train_select`,
+  `case_halving_stages`, `evaluate_case_halving`, and `case_eval_charge`
+  for case-structured generalization and successive-halving budgets
+  ([#114](https://github.com/aabmets/deap-er/pull/114))
+- `resample`, `noisy_draw_key`, and `race_stop` for averaging noisy
+  fitness draws through `EvalCache` and F-Race-shaped elimination
+  ([#115](https://github.com/aabmets/deap-er/pull/115))
+- `evaluate_invalid` on the public algorithms / `tools` surface — score
+  individuals with invalid fitness via `evaluate_batch` when registered
+  ([#107](https://github.com/aabmets/deap-er/pull/107))
 - `tools.ea_policy` — `ea_simple` plus one policy observe / decide /
   apply step per generation. Policy-action evaluations count toward
   `n_evals` and the generation `nevals`; a policy step that meets
   the budget is recorded without variation
-- `structural_meta_case_columns` and `structural_meta_case_weights`
-  for cheap lexicase bloat and always-on regularization via appended
-  meta-cases ([#116](https://github.com/aabmets/deap-er/pull/116))
-- `resample`, `noisy_draw_key`, and `race_stop` for averaging noisy
-  fitness draws through `EvalCache` and F-Race-shaped elimination
-  ([#115](https://github.com/aabmets/deap-er/pull/115))
+  ([#108](https://github.com/aabmets/deap-er/pull/108))
 
 ## [3.0.0] - 2026-09-08
 
