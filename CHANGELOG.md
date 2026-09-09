@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.1] - 2026-09-09
+
+Fixed project logo URL in README.md
+
 ## [3.1.0] - 2026-09-09
 
 Follow-up to 3.0.0. The evolutionary algorithms DEAP already shipped
@@ -231,7 +235,8 @@ commits that landed on that tag.
 - Hypervolume and least-contributed indicator
 - CMA strategy keyword arguments
 
-[Unreleased]: https://github.com/aabmets/deap-er/compare/3.1.0...HEAD
+[Unreleased]: https://github.com/aabmets/deap-er/compare/3.1.1...HEAD
+[3.1.1]: https://github.com/aabmets/deap-er/compare/3.0.0...3.1.1
 [3.1.0]: https://github.com/aabmets/deap-er/compare/3.0.0...3.1.0
 [3.0.0]: https://github.com/aabmets/deap-er/compare/2.0...3.0.0
 [2.0.0]: https://github.com/aabmets/deap-er/releases/tag/2.0
