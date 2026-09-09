@@ -41,9 +41,10 @@ Timed hot paths versus DEAP are on the
 - Quality-diversity search (MAP-Elites: grid, CVT, and unstructured
   archives; novelty selection and iso+line variation)
 - Case-structured selection (lexicase, ε-lexicase with dynamic filter
-  modes, batch ε-lexicase, case-subset tournament, informed
-  down-sampling and generation schedules, program teams, co-evolving
-  case exams)
+  modes, batch ε-lexicase, case-subset tournament, structural
+  meta-case regularization, informed down-sampling and generation
+  schedules, program teams, co-evolving case exams, held-out
+  generalization, and noisy fitness resample / F-Race stop)
 - Cooperative and competitive co-evolution, plus heterogeneous island
   stepping (`step_islands`, ring / fully connected / random migration,
   `island_eval_keys`)
