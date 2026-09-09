@@ -53,6 +53,12 @@ def _population(ind_cls):
     return pset, compact_ind, bloated_ind, predicted
 
 
+def test_resolve_case_weights_empty_matrix_returns_empty_tuple(ind_cls):
+    ind = ind_cls([0])
+    matrix = numpy.empty((1, 0), dtype=numpy.float64)
+    assert resolve_case_weights([ind], matrix, None) == ()
+
+
 def test_resolve_case_weights_requires_extension(ind_cls):
     pset, compact, bloated, _ = _population(ind_cls)
     meta = tools.structural_meta_case_columns(
