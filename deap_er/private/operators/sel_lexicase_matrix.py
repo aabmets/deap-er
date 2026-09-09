@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from numbers import Integral
+from numbers import Integral, Real
 from typing import TYPE_CHECKING
 
 import numpy
@@ -35,6 +35,7 @@ __all__: list[str] = [
     "fitness_case_matrix",
     "lexicase_select_vectorized",
     "require_population",
+    "resolve_case_weights",
     "validate_case_matrix",
 ]
 
@@ -73,12 +74,19 @@ def case_index(idx: object, n_obj: int) -> int:
     return value
 
 
-def case_subset(individuals: list[Individual], cases: Sequence[int] | None) -> list[int]:
+def case_subset(
+    individuals: list[Individual],
+    cases: Sequence[int] | None,
+    *,
+    n_cases: int | None = None,
+) -> list[int]:
     """Resolve the case indices used for one lexicase draw.
 
     Args:
         individuals: Population supplying fitness length.
         cases: Explicit subset, or ``None`` for every case.
+        n_cases: Case count to validate against. Defaults to
+            ``len(fitness.values)``.
 
     Returns:
         Case indices in caller order.
@@ -87,10 +95,54 @@ def case_subset(individuals: list[Individual], cases: Sequence[int] | None) -> l
         IndexError: If the population is empty or a case index is invalid.
     """
     require_population(individuals)
-    n_obj = len(individuals[0].fitness.values)
+    bound = n_cases if n_cases is not None else len(individuals[0].fitness.values)
     if cases is None:
-        return list(range(n_obj))
-    return [case_index(idx, n_obj) for idx in cases]
+        return list(range(bound))
+    return [case_index(idx, bound) for idx in cases]
+
+
+def resolve_case_weights(
+    individuals: list[Individual],
+    matrix: numpy.ndarray,
+    fit_weights: Sequence[float] | None,
+) -> tuple[float, ...]:
+    """Resolve per-column lexicase signs for a packed case matrix.
+
+    Args:
+        individuals: Population the matrix describes.
+        matrix: ``(n_individuals, n_cases)`` case matrix.
+        fit_weights: Optional signs with one entry per matrix column.
+
+    Returns:
+        Maximize/minimize signs aligned with ``matrix`` columns.
+
+    Raises:
+        ValueError: If ``fit_weights`` is missing while the matrix is
+            wider than ``fitness.values``, or if the length does not
+            match ``matrix.shape[1]``.
+    """
+    require_population(individuals)
+    n_fitness = len(individuals[0].fitness.values)
+    n_matrix = int(matrix.shape[1])
+    if n_matrix == 0:
+        if fit_weights is not None and len(fit_weights) != 0:
+            raise ValueError("fit_weights must be empty when matrix has no columns")
+        return ()
+    if fit_weights is None:
+        if n_matrix > n_fitness:
+            raise ValueError(
+                f"matrix has {n_matrix} columns but fitness has {n_fitness}; "
+                "pass fit_weights= with one sign per matrix column"
+            )
+        resolved = tuple(float(weight) for weight in individuals[0].fitness.weights)
+    else:
+        resolved = tuple(float(weight) for weight in fit_weights)
+    if len(resolved) != n_matrix:
+        raise ValueError(f"fit_weights must have length {n_matrix}, got {len(resolved)}")
+    for weight in resolved:
+        if not isinstance(weight, Real) or isinstance(weight, bool):
+            raise ValueError("fit_weights must be numeric")
+    return resolved
 
 
 def fitness_case_matrix(individuals: list[Individual]) -> numpy.ndarray:

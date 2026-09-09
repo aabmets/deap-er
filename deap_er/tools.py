@@ -34,5 +34,6 @@ from .private.various.semantic_neighbors import *
 from .private.various.semantic_project import *
 from .private.various.sort_non_dominated import *
 from .private.various.sorting_network import *
+from .private.various.structural_meta_case import *
 from .records import *
 from .strategies import *

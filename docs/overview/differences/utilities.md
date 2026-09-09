@@ -65,5 +65,13 @@
     meaning stays on the caller. DEAP has no held-out lexicase recipe
     or case-budget halving schedule. See the
     [columnar GP tutorial](../../tutorials/columnar_gp.md).
+16. `structural_meta_case_columns` and `structural_meta_case_weights`
+    build cheap structural meta-cases (size, depth, unique opcodes,
+    promote hits, non-finite fraction) to append to a packed case
+    matrix for lexicase bloat and “always on” regularization without
+    a second fitness weight. Lexicase selectors accept optional
+    `fit_weights=` when the matrix is wider than ``fitness.values``.
+    DEAP has no equivalent. See the
+    [columnar GP tutorial](../../tutorials/columnar_gp.md).
 
 [deap-75]: https://github.com/DEAP/deap/issues/75

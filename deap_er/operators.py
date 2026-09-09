@@ -95,6 +95,11 @@ from .private.operators.sel_various import (
     sel_worst,
 )
 from .private.programming.memetic_defaults import estimate_tune_ephemerals_evals
+from .private.various.structural_meta_case import (
+    STRUCTURAL_META_CASES,
+    structural_meta_case_columns,
+    structural_meta_case_weights,
+)
 
 __all__: list[str] = [
     "cx_ordered",
@@ -137,6 +142,9 @@ __all__: list[str] = [
     "reduce_case_mean",
     "reduce_case_mse",
     "fitness_case_matrix",
+    "STRUCTURAL_META_CASES",
+    "structural_meta_case_columns",
+    "structural_meta_case_weights",
     "scalarization_tchebycheff",
     "scalarization_pbi",
     "moead_neighborhood",

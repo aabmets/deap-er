@@ -238,10 +238,14 @@ promote-library hits, time-in-output / non-finite fraction —
 appended to the case matrix so lexicase regularizes bloat and
 “always on” programs without a second fitness weight.
 
-**Today.** `fitness_case_matrix` packs `fitness.values`. Callers
-can concatenate columns. Items 27 and 28 shipped the lexicase
-schedules this idea was waiting on. There is no helper that
-builds those structural columns.
+**Today.** `structural_meta_case_columns` returns size, depth,
+unique opcodes, promote-library hits, and non-finite fraction for
+a packed population. `structural_meta_case_weights` supplies
+default lexicase signs. Append with `numpy.hstack` to
+`fitness_case_matrix`, pass `trust_matrix=True`, and extend
+`fit_weights` when the matrix is wider than `fitness.values`.
+The caller still owns `evaluate` and may omit columns via
+`columns=`.
 
 **Benefit.** Machine-checkable pressure on the same path as
 case exams. A constant or giant tree fails an extra case
