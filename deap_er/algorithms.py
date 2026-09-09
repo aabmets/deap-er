@@ -14,6 +14,7 @@ from .private.algorithms.ea_map_elites import ea_map_elites
 from .private.algorithms.ea_mu_comma_lambda import ea_mu_comma_lambda
 from .private.algorithms.ea_mu_plus_lambda import ea_mu_plus_lambda
 from .private.algorithms.ea_simple import ea_simple
+from .private.algorithms.loop import evaluate_invalid
 from .private.algorithms.policy_action import (
     POLICY_ACTION_SKIP_PROMOTE,
     POLICY_ACTION_SKIP_TUNE,
@@ -44,6 +45,7 @@ __all__: list[str] = [
     "ea_mu_comma_lambda",
     "ea_mu_plus_lambda",
     "ea_simple",
+    "evaluate_invalid",
     "step_islands",
     "var_and",
     "var_or",

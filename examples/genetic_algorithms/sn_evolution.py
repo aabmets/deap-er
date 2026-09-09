@@ -99,13 +99,6 @@ def _mutate_offspring(toolbox, offspring):
             del ind.fitness.values
 
 
-def _evaluate_invalid(toolbox, offspring):
-    invalid_ind = [ind for ind in offspring if not ind.fitness.is_valid()]
-    fitness = toolbox.map(toolbox.evaluate, invalid_ind)
-    for ind, fit in zip(invalid_ind, fitness, strict=False):
-        ind.fitness.values = fit
-
-
 def main():
     toolbox, stats, logbook = setup()
     population = toolbox.population(size=300)
@@ -117,9 +110,7 @@ def main():
         logbook.record(gen=ngen, evals=len(population), **record)
         print(logbook.stream)
 
-    fitness = toolbox.map(toolbox.evaluate, population)
-    for ind, fit in zip(population, fitness, strict=False):
-        ind.fitness.values = fit
+    tools.evaluate_invalid(toolbox, population)
 
     log_stats()
 
@@ -127,7 +118,7 @@ def main():
         offspring = [toolbox.clone(ind) for ind in population]
         _mate_offspring(toolbox, offspring)
         _mutate_offspring(toolbox, offspring)
-        _evaluate_invalid(toolbox, offspring)
+        tools.evaluate_invalid(toolbox, offspring)
         population = toolbox.select(population + offspring, len(offspring))
         log_stats(generation)
 

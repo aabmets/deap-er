@@ -91,13 +91,6 @@ def setup():
     return toolbox, pool, make_policy(), train.as_cases(N_CASES)
 
 
-def evaluate_invalid(toolbox, population):
-    invalids = [ind for ind in population if not ind.fitness.is_valid()]
-    for ind, fit in zip(invalids, toolbox.map(toolbox.evaluate, invalids), strict=True):
-        ind.fitness.values = fit
-    return len(invalids)
-
-
 def step_policy(program, pool, elites, nevals, rejected, guard):
     solve_bits = tools.policy_solve_bits_from_fitness(elites[0].fitness.values)
     train_score, held_out_score = tools.policy_exam_scores(pool, elites)
@@ -136,7 +129,7 @@ def main():
     logbook = tools.Logbook()
     logbook.header = ["gen", "nevals", "action", "held_out", "min"]
     guard = tools.PolicyActionGuard(max_promotes_per_gen=1, max_tune_gen=5)
-    used = evaluate_invalid(toolbox, pop)
+    used = tools.evaluate_invalid(toolbox, pop)
     hof.update(pop)
     rejected = False
     action = tools.POLICY_ACTION_SKIP_PROMOTE
@@ -155,7 +148,7 @@ def main():
             pop, len(pop), cases=cases, matrix=tools.fitness_case_matrix(pop)
         )
         pop[:] = tools.var_and(toolbox, selected, 0.5, 0.2)
-        used += evaluate_invalid(toolbox, pop)
+        used += tools.evaluate_invalid(toolbox, pop)
         hof.update(pop)
         min_fit = float(numpy.mean(hof[0].fitness.values))
         logbook.record(

@@ -95,10 +95,11 @@ def consume_evals(
 def evaluate_invalid(toolbox: Toolbox, individuals: Sequence[Any]) -> int:
     """Evaluate the individuals whose fitness is invalid.
 
-    When the toolbox has an ``evaluate_batch`` operator, the whole
-    batch of invalid individuals is handed to it in one call and
-    ``map`` is not used. Otherwise each individual goes through
-    ``map`` and ``evaluate`` as usual.
+    This is the helper ``ea_*`` drivers and ``apply_policy_action``
+    already use. When the toolbox has an ``evaluate_batch`` operator,
+    the whole batch of invalid individuals is handed to it in one
+    call and ``map`` is not used. Otherwise each individual goes
+    through ``map`` and ``evaluate`` as usual.
 
     Args:
         toolbox: Toolbox with the evaluate and map operators.

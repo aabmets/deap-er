@@ -226,12 +226,7 @@ for gen in range(GENS):
     selection = toolbox.select(pop, len(pop))
     # var_and clones the pool; do not map toolbox.clone first
     offspring = tools.var_and(toolbox, selection, CX_PROB, MUT_PROB)
-
-    invalids = [ind for ind in offspring if not ind.fitness.is_valid()]
-    fitness = toolbox.map(toolbox.evaluate, invalids)
-    for ind, fit in zip(invalids, fitness):
-        ind.fitness.values = fit
-
+    tools.evaluate_invalid(toolbox, offspring)
     pop[:] = offspring
 ```
 
@@ -253,10 +248,6 @@ for gen in range(GENS):
             toolbox.mutate(mutant)
             del mutant.fitness.values
 
-    invalids = [ind for ind in offspring if not ind.fitness.is_valid()]
-    fitness = toolbox.map(toolbox.evaluate, invalids)
-    for ind, fit in zip(invalids, fitness):
-        ind.fitness.values = fit
-
+    tools.evaluate_invalid(toolbox, offspring)
     pop[:] = offspring
 ```

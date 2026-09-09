@@ -54,10 +54,7 @@ def main():
                 toolbox.mutate(mutant)
                 del mutant.fitness.values
 
-        invalid_ind = [ind for ind in offspring if not ind.fitness.is_valid()]
-        fitness = map(toolbox.evaluate, invalid_ind)
-        for ind, fit in zip(invalid_ind, fitness, strict=False):
-            ind.fitness.values = fit
+        tools.evaluate_invalid(toolbox, offspring)
         population[:] = offspring
         fits = [ind.fitness.values[0] for ind in population]
         generation += 1

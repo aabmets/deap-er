@@ -130,6 +130,12 @@
     post-step re-estimate no longer drops after invalids are
     already scored, so a tight `n_evals` cap cannot admit a
     second island step.
+33. `evaluate_invalid` is public on `algorithms` / `tools`. It is
+    the helper `ea_*` and `apply_policy_action` already use:
+    score individuals whose fitness is invalid, prefer
+    `evaluate_batch` when registered, otherwise `map` plus
+    `evaluate`. DEAP inlines that scan in each `ea*` and does
+    not export it.
 
 [deap-25]: https://github.com/DEAP/deap/issues/25
 [deap-121]: https://github.com/DEAP/deap/issues/121

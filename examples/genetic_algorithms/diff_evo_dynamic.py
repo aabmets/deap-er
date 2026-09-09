@@ -164,11 +164,7 @@ def main():
         exclude_best_inds(toolbox, bests, populations)
 
         # Evaluate the individuals with an invalid fitness.
-        chain = itertools.chain(*populations)
-        invalid_ind = [ind for ind in chain if not ind.fitness.is_valid()]
-        fitness = toolbox.map(toolbox.evaluate, invalid_ind)
-        for ind, fit in zip(invalid_ind, fitness, strict=False):
-            ind.fitness.values = fit
+        tools.evaluate_invalid(toolbox, list(itertools.chain(*populations)))
 
         logger.log(generation, populations)
 

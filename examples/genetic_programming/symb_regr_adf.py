@@ -123,12 +123,6 @@ def _mutate_trees(toolbox, offspring, psets):
                 del ind.fitness.values
 
 
-def _evaluate_invalid(toolbox, offspring):
-    invalids = [ind for ind in offspring if not ind.fitness.is_valid()]
-    for ind in invalids:
-        ind.fitness.values = toolbox.evaluate(ind)
-
-
 def main():
     toolbox, stats, logbook, psets = setup()
     hof = tools.HallOfFame(1)
@@ -140,8 +134,7 @@ def main():
         print(logbook.stream)
 
     pop = toolbox.population(size=100)
-    for ind in pop:
-        ind.fitness.values = toolbox.evaluate(ind)
+    tools.evaluate_invalid(toolbox, pop)
 
     log_stats()
 
@@ -150,7 +143,7 @@ def main():
         offspring = [toolbox.clone(ind) for ind in offspring]
         _mate_trees(toolbox, offspring)
         _mutate_trees(toolbox, offspring, psets)
-        _evaluate_invalid(toolbox, offspring)
+        tools.evaluate_invalid(toolbox, offspring)
         pop = offspring
         log_stats(generations)
 
