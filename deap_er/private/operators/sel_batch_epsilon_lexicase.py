@@ -29,6 +29,7 @@ from .sel_lexicase_matrix import (
     fitness_case_matrix,
     lexicase_select_vectorized,
     require_population,
+    resolve_case_weights,
     validate_case_matrix,
 )
 
@@ -56,6 +57,7 @@ def sel_batch_epsilon_lexicase(
     cases: Sequence[int] | None = None,
     matrix: numpy.ndarray | None = None,
     trust_matrix: bool = False,
+    fit_weights: Sequence[float] | None = None,
     reduction: CaseReduction | None = None,
 ) -> list[Individual]:
     """Select individuals by epsilon-lexicase on batched case reductions.
@@ -79,6 +81,9 @@ def sel_batch_epsilon_lexicase(
             When omitted, values are read from ``fitness.values``.
         trust_matrix: When ``True``, ``matrix`` is accepted on shape
             alone. Defaults to ``False``.
+        fit_weights: Optional per-column maximize/minimize signs.
+            Required when ``matrix`` has more columns than
+            ``fitness.values``.
         reduction: Maps a ``(n_individuals, batch_width)`` block to
             one score per individual. Defaults to mean squared error.
 
@@ -96,13 +101,14 @@ def sel_batch_epsilon_lexicase(
     require_population(individuals)
     partition_case_batches([], batch_size)
     packed = _resolve_matrix(individuals, matrix, trust_matrix=trust_matrix)
-    subset = case_subset(individuals, cases)
-    fit_weights = individuals[0].fitness.weights
+    n_cases = int(packed.shape[1])
+    subset = case_subset(individuals, cases, n_cases=n_cases)
+    weights = resolve_case_weights(individuals, packed, fit_weights)
     reduce = reduction if reduction is not None else reduce_case_mse
     mode = "epsilon_auto" if epsilon is None else "epsilon_fixed"
     selected: list[Individual] = []
     for _ in range(sel_count):
-        batched, batch_weights = batch_case_matrix(packed, subset, fit_weights, batch_size, reduce)
+        batched, batch_weights = batch_case_matrix(packed, subset, weights, batch_size, reduce)
         selected.extend(
             lexicase_select_vectorized(
                 individuals,

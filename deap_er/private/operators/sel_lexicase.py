@@ -25,6 +25,7 @@ from .sel_lexicase_matrix import (
     fitness_case_matrix,
     lexicase_select_vectorized,
     require_population,
+    resolve_case_weights,
     validate_case_matrix,
 )
 
@@ -107,6 +108,7 @@ def sel_lexicase(
     cases: Sequence[int] | None = None,
     matrix: numpy.ndarray | None = None,
     trust_matrix: bool = False,
+    fit_weights: Sequence[float] | None = None,
 ) -> list[Individual]:
     """Select individuals by lexicase filtering of fitness cases.
 
@@ -125,6 +127,9 @@ def sel_lexicase(
             When omitted, values are read from ``fitness.values``.
         trust_matrix: When ``True``, ``matrix`` is accepted on shape
             alone. Defaults to ``False``.
+        fit_weights: Optional per-column maximize/minimize signs.
+            Required when ``matrix`` has more columns than
+            ``fitness.values``.
 
     Returns:
         The selected individuals.
@@ -138,13 +143,15 @@ def sel_lexicase(
         return []
     require_population(individuals)
     packed = _resolve_matrix(individuals, matrix, trust_matrix=trust_matrix)
-    subset = case_subset(individuals, cases)
+    n_cases = int(packed.shape[1])
+    subset = case_subset(individuals, cases, n_cases=n_cases)
+    weights = resolve_case_weights(individuals, packed, fit_weights)
     return lexicase_select_vectorized(
         individuals,
         sel_count,
         packed,
         subset,
-        individuals[0].fitness.weights,
+        weights,
         mode="strict",
     )
 
@@ -158,6 +165,7 @@ def sel_epsilon_lexicase(
     cases: Sequence[int] | None = None,
     matrix: numpy.ndarray | None = None,
     trust_matrix: bool = False,
+    fit_weights: Sequence[float] | None = None,
 ) -> list[Individual]:
     """Select individuals by epsilon-lexicase filtering of fitness cases.
 
@@ -185,6 +193,9 @@ def sel_epsilon_lexicase(
             When omitted, values are read from ``fitness.values``.
         trust_matrix: When ``True``, ``matrix`` is accepted on shape
             alone. Defaults to ``False``.
+        fit_weights: Optional per-column maximize/minimize signs.
+            Required when ``matrix`` has more columns than
+            ``fitness.values``.
 
     Returns:
         The selected individuals.
@@ -198,7 +209,9 @@ def sel_epsilon_lexicase(
         return []
     require_population(individuals)
     packed = _resolve_matrix(individuals, matrix, trust_matrix=trust_matrix)
-    subset = case_subset(individuals, cases)
+    n_cases = int(packed.shape[1])
+    subset = case_subset(individuals, cases, n_cases=n_cases)
+    weights = resolve_case_weights(individuals, packed, fit_weights)
     if epsilon is not None:
         resolved = "epsilon_fixed"
     elif mode is None:
@@ -212,7 +225,7 @@ def sel_epsilon_lexicase(
         sel_count,
         packed,
         subset,
-        individuals[0].fitness.weights,
+        weights,
         mode=resolved,
         epsilon=epsilon,
     )
