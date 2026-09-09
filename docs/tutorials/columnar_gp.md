@@ -606,6 +606,24 @@ func = gp.compile_tree(
 )
 ```
 
+## Structural meta-case regularization
+
+Append cheap structural columns (size, depth, unique opcodes, promote
+hits, non-finite fraction) to the trusted case matrix so lexicase can
+penalize bloat without a second fitness weight. `fit_weights=` on
+lexicase selectors accepts a wider matrix than `fitness.values`.
+
+```python
+structural = tools.structural_meta_case_columns(
+    individuals, prim_set=pset, columns=("size", "depth", "non_finite_fraction")
+)
+weights = tools.structural_meta_case_weights(("size", "depth", "non_finite_fraction"))
+trusted = np.hstack([case_matrix, structural])
+return tools.sel_lexicase(
+    individuals, sel_count, matrix=trusted, fit_weights=weights, trust_matrix=True
+)
+```
+
 ## Limitations
 
 - `PrimitiveTree.from_string` cannot round-trip an ephemeral of a custom

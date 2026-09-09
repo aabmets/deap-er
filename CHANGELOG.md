@@ -15,6 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   apply step per generation. Policy-action evaluations count toward
   `n_evals` and the generation `nevals`; a policy step that meets
   the budget is recorded without variation
+- `structural_meta_case_columns` and `structural_meta_case_weights`
+  for cheap lexicase bloat and always-on regularization via appended
+  meta-cases ([#116](https://github.com/aabmets/deap-er/pull/116))
+- `resample`, `noisy_draw_key`, and `race_stop` for averaging noisy
+  fitness draws through `EvalCache` and F-Race-shaped elimination
+  ([#115](https://github.com/aabmets/deap-er/pull/115))
 
 ## [3.0.0] - 2026-09-08
 

@@ -58,9 +58,10 @@ uv add deap-er
 - Quality-diversity search (MAP-Elites: grid, CVT, and unstructured
   archives; novelty selection and iso+line variation)
 - Case-structured selection (lexicase, ε-lexicase with dynamic filter
-  modes, batch ε-lexicase, case-subset tournament, informed
-  down-sampling and generation schedules, program teams, co-evolving
-  case exams)
+  modes, batch ε-lexicase, case-subset tournament, structural
+  meta-case regularization, informed down-sampling and generation
+  schedules, program teams, co-evolving case exams, held-out
+  generalization, and noisy fitness resample / F-Race stop)
 - Cooperative and competitive co-evolution, plus heterogeneous island
   stepping (`step_islands`, ring / fully connected / random migration,
   `island_eval_keys`)
@@ -92,7 +93,7 @@ inventory:
   [creator](https://aabmets.github.io/deap-er/bugfixes/creator/),
   [utilities](https://aabmets.github.io/deap-er/bugfixes/utilities/),
   and [algorithms](https://aabmets.github.io/deap-er/bugfixes/algorithms/)
-- **60** capabilities DEAP does not have, including boxed CMA,
+- **66** capabilities DEAP does not have, including boxed CMA,
   mixed-gene mutation, logbook JSON,
   [columnar GP](https://aabmets.github.io/deap-er/tutorials/columnar_gp/),
   and [Push GP](https://aabmets.github.io/deap-er/tutorials/push_gp/)
