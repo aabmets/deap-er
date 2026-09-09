@@ -18,7 +18,8 @@ from .private.programming.compilers import (
     compile_tree,
     static_limit,
 )
-from .private.programming.crossover import cx_one_point, cx_one_point_leaf_biased
+from .private.programming.crossover import cx_homologous, cx_one_point, cx_one_point_leaf_biased
+from .private.programming.cx_semantic_one_point import cx_one_point_semantic
 from .private.programming.generators import gen_full, gen_grow, gen_half_and_half, generate
 from .private.programming.harm.harm import harm
 from .private.programming.infix import tree_to_infix
@@ -147,8 +148,10 @@ __all__ = [
     "columnar_pset",
     "evaluate_columnar",
     "register_gp",
+    "cx_homologous",
     "cx_one_point",
     "cx_one_point_leaf_biased",
+    "cx_one_point_semantic",
     "generate",
     "gen_full",
     "gen_grow",

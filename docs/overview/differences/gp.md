@@ -172,6 +172,13 @@ The following is extra.
     `evaluate_columnar(..., static_filter=True)` skips them with
     the existing ``empty`` sentinel. Not a substitute for the
     runtime warmup contract or ``case_errors(..., valid=)``.
+34. `cx_homologous` swaps subtrees at the same root-to-node
+    path when return types match, otherwise falling back to
+    type-matched one-point. `cx_one_point_semantic` picks the
+    type-matched partner whose ``interpret_tape`` row is nearest
+    to the anchor subtree via ``semantic_nearest`` on batched
+    ``interpret_tapes`` rows. ``cx_one_point`` remains the
+    default mate.
 
 The columnar contract is in the
 [columnar GP tutorial](../../tutorials/columnar_gp.md). The private

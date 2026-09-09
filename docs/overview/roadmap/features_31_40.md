@@ -266,10 +266,14 @@ Related: [item 5](features_1_10.md#5-down-sampled-and-informed-lexicase),
 whose `interpret_tape` vectors are close (`semantic_nearest`
 on subtrees). Type-matched one-point stays the default.
 
-**Today.** `gp.cx_one_point` groups by return type. SlimGP
-already moves in output space. Affine scaling and population
-tape CSE are shipped, so subtree semantics are cheap to look
-up. Syntactic GP still swaps random typed nodes.
+**Today.** `gp.cx_homologous` swaps subtrees at the same
+root-to-node path when return types match, otherwise falling
+back to type-matched one-point. `gp.cx_one_point_semantic`
+picks the type-matched partner whose ``interpret_tape`` row is
+nearest to the anchor subtree via ``semantic_nearest`` on
+batched ``interpret_tapes`` rows. ``gp.cx_one_point`` remains
+the default mate. SlimGP still moves in output space through
+``cx_semantic`` / ``cx_slim_donor``.
 
 **Benefit.** Long, expensive tapes survive variation more
 often. Random typed swaps on unrelated subtrees are the usual
