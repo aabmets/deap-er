@@ -101,7 +101,9 @@ from the original sources.
     coverage of cases solved at 0. Optional `cases=`, `matrix=`, and
     `trust_matrix=` match lexicase. The team is a sequence of pool
     members; member fitness is not rewritten. Team scoring stays on
-    the caller. DEAP has no team selector.
+    the caller. `sel_team_archive` pools occupied MAP-Elites cells
+    via `list(archive)` and delegates to `sel_team`. DEAP has no team
+    selector.
 24. `CaseExam` and `CaseExamPool` store case subsets as ranges or a
     1-D bool mask — the same shapes `case_errors` and
     `sel_lexicase(..., cases=)` consume — not as a new genome.

@@ -453,6 +453,29 @@ bits fit `CvtArchive` or `UnstructuredArchive` better than a grid.
 `SemanticSurrogate.predict` is last-generation nearest or linear
 lookup, not a learned quality-diversity model.
 
+### Team from archive
+
+Keep a *book* of programs, not one hero per cell: project semantics,
+`add` to the archive, then assemble a covering team from occupied
+cells. `GridArchive.add` ranks on **single-objective** `fitness`; when
+`fitness.values` is per-case, pass the case-solve matrix explicitly
+to `sel_team` or `sel_team_archive`. Team scoring (vote, router,
+held-out exam) stays on the caller — not `step_program_search`.
+
+```python
+predicted = gp.interpret_tapes(tapes, matrix, backend="numba")
+descriptors = tools.semantic_project(pack, basis, valid=warmup, center=center)
+for individual, descriptor in zip(individuals, descriptors, strict=True):
+    archive.add(individual, descriptor)
+
+case_matrix = tools.fitness_case_matrix(list(archive))  # or caller-built matrix=
+team = tools.sel_team_archive(archive, sel_count, matrix=case_matrix)
+```
+
+`sel_team_archive` pools `list(archive)` (live elites, not
+`random_elites` copies) and delegates to `sel_team`. Member
+`fitness` is not rewritten.
+
 `parallel=True` evaluates those tapes on several Numba threads. Each
 thread keeps a workspace of shape `(depth + 1, n_rows)`, so a long
 book costs `n_threads` full-length stacks. A consumer `dispatch`

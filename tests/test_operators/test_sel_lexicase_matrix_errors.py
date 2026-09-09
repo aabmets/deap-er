@@ -33,6 +33,17 @@ def test_fitness_case_matrix_empty_and_mismatched(multi_obj, make):
         fitness_case_matrix([first, second])
 
 
+def test_validate_case_matrix_trust_checks_row_count_only(single_obj, make):
+    first = make(single_obj, [0], (0.5,))
+    second = make(single_obj, [1], (0.2,))
+    matrix = numpy.array([[0.0, 1.0], [1.0, 0.0]], dtype=numpy.float64)
+
+    validate_case_matrix(matrix, [first, second], trust=True)
+
+    with pytest.raises(ValueError, match="shape"):
+        validate_case_matrix(matrix, [first], trust=True)
+
+
 def test_validate_case_matrix_empty_and_length_mismatch(multi_obj, make):
     with pytest.raises(ValueError, match="non-empty"):
         validate_case_matrix(numpy.zeros((0, 0)), [])

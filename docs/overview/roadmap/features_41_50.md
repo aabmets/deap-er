@@ -89,10 +89,13 @@ not one elite: `semantic_project` → archive `add` →
 Optional thin helper that returns a team from archive elites
 without rewriting member `fitness`.
 
-**Today.** Semantic descriptors, grid / CVT / unstructured
-archives, and `sel_team` are shipped. Examples and
-`ea_map_elites` still optimize one hero per cell or one hof
-member. Wiring the three together is left on the caller.
+**Today.** `semantic_project`, grid / CVT / unstructured
+archives, and `sel_team` compose a documented caller loop in
+the [columnar programs tutorial](../../tutorials/columnar_gp.md)
+and the [team and archive example](../../examples/genetic_programming/team_archive.md).
+`sel_team_archive` returns a team from occupied archive cells
+without rewriting member `fitness`. Team scoring stays on the
+caller. Not `step_program_search`.
 
 **Benefit.** One elite on one window is how a train score dies
 on the next slice. A team that covers different cases is what

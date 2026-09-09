@@ -126,8 +126,9 @@ best/worst helpers, that module also ships the multi-objective selectors
 (SPEA-II, NSGA-II, NSGA-III, SMS-EMOA, MOEA/D, AGE-MOEA-II),
 case-structured lexicase variants (including batch ε-lexicase,
 `sel_tournament_cases`, and dynamic ε via `mode=` on
-`sel_epsilon_lexicase`), program-team selection (`sel_team`),
-novelty selection for MAP-Elites archives (`sel_novelty`), iso+line
+`sel_epsilon_lexicase`), program-team selection (`sel_team`,
+`sel_team_archive` on occupied MAP-Elites cells), novelty selection
+for MAP-Elites archives (`sel_novelty`), iso+line
 mutation (`mut_iso_line`), and Deb
 constraint-dominance (`constraint_dominates`, optional on
 NSGA-II). Each selection operator has its own characteristics
