@@ -139,7 +139,8 @@ def ea_policy(
         stats,
         verbose,
         logger,
-        time.perf_counter() - t0 if log_time else None,
+        t0,
+        log_time,
         fronts,
         extra,
     )
@@ -180,7 +181,8 @@ def ea_policy(
                 stats,
                 verbose,
                 logger,
-                time.perf_counter() - t0 if log_time else None,
+                t0,
+                log_time,
                 fronts,
                 extra,
             )
@@ -200,7 +202,8 @@ def ea_policy(
             stats,
             verbose,
             logger,
-            time.perf_counter() - t0 if log_time else None,
+            t0,
+            log_time,
             fronts,
             extra,
         )
@@ -225,10 +228,12 @@ def _record(
     stats: EvoStats | None,
     verbose: bool,
     logger: Logger | None,
-    duration: float | None,
+    t0: float,
+    log_time: bool,
     fronts: list[Any] | None,
     extra: dict[str, Any],
 ) -> None:
+    duration = time.perf_counter() - t0 if log_time else None
     record_generation(
         logbook,
         gen,
