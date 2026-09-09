@@ -30,18 +30,14 @@ def setup():
 
 def step_generation(toolbox, population):
     offspring = tools.var_and(toolbox, population, 0.5, 0.2)
-    invalids = [ind for ind in offspring if not ind.fitness.is_valid()]
-    for ind, fit in zip(invalids, toolbox.map(toolbox.evaluate, invalids), strict=True):
-        ind.fitness.values = fit
+    tools.evaluate_invalid(toolbox, offspring)
     return toolbox.select(offspring, len(offspring))
 
 
 def run_phase(toolbox, cp, generations):
     if not cp.is_loaded():
         cp.pop = toolbox.population(size=POP)
-        invalids = [ind for ind in cp.pop if not ind.fitness.is_valid()]
-        for ind, fit in zip(invalids, toolbox.map(toolbox.evaluate, invalids), strict=True):
-            ind.fitness.values = fit
+        tools.evaluate_invalid(toolbox, cp.pop)
         cp.hof = tools.HallOfFame(1)
         cp.hof.update(cp.pop)
     for _gen in cp.range(generations):

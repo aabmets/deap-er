@@ -64,15 +64,12 @@ def main(file=None):
             mut_prob=0.2
         )
         # update fitness values of individuals
-        invalids = [ind for ind in offspring if not ind.fitness.is_valid()]
-        fitness = toolbox.map(toolbox.evaluate, invalids)
-        for ind, fit in zip(invalids, fitness):
-            ind.fitness.values = fit
+        nevals = tools.evaluate_invalid(toolbox, offspring)
 
         # persist the hof, log and offspring
         cp.hof.update(offspring)
         record = stats.compile(offspring)
-        cp.log.record(gen=gen, nevals=len(invalids), **record)
+        cp.log.record(gen=gen, nevals=nevals, **record)
         cp.pop = toolbox.select(offspring, len(offspring))
 
         # the range() generator persists the cp to disk

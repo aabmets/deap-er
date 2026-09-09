@@ -18,7 +18,7 @@ Counted from the pages in this section:
   [creator](../../bugfixes/creator.md),
   [utilities](../../bugfixes/utilities.md),
   and [algorithms](../../bugfixes/algorithms.md)
-- **57** capabilities DEAP does not have, including boxed CMA,
+- **58** capabilities DEAP does not have, including boxed CMA,
   mixed-gene mutation, logbook JSON,
   [columnar GP](../../tutorials/columnar_gp.md), and
   [Push GP](../../tutorials/push_gp.md)

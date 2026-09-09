@@ -10,7 +10,6 @@
 #
 import numpy
 from deap_er import Fitness, Toolbox, creator, gp, tools
-from deap_er.private.algorithms.loop import evaluate_invalid
 
 STREAM_FIT = "STREAM_FIT"
 STREAM_IND = "STREAM_IND"
@@ -98,13 +97,13 @@ def test_append_requires_invalidating_stale_fitness():
         toolbox = Toolbox()
         toolbox.register("evaluate_batch", evaluate_batch)
         matrix = prefix
-        evaluate_invalid(toolbox, [individual])
+        tools.evaluate_invalid(toolbox, [individual])
         stale = individual.fitness.values
         matrix = numpy.vstack([prefix, suffix])
         assert individual.fitness.is_valid()
         assert individual.fitness.values == stale
         del individual.fitness.values
-        evaluate_invalid(toolbox, [individual])
+        tools.evaluate_invalid(toolbox, [individual])
         assert individual.fitness.values != stale
     finally:
         del creator.__dict__[STREAM_FIT]

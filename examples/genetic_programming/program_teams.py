@@ -40,10 +40,8 @@ def setup():
     return toolbox
 
 
-def print_results(population, team):
-    for ind in population:
-        if not ind.fitness.is_valid():
-            ind.fitness.values = evaluate(ind)
+def print_results(toolbox, population, team):
+    tools.evaluate_invalid(toolbox, population)
     matrix = tools.fitness_case_matrix(population)
     best_single = max(solved_count(ind.fitness.values) for ind in population)
     team_union = 0
@@ -76,7 +74,7 @@ def main():
         pop.append(ind)
     matrix = tools.fitness_case_matrix(pop)
     team = tools.sel_team(pop, 2, matrix=matrix)
-    print_results(pop, team)
+    print_results(toolbox, pop, team)
 
 
 if __name__ == "__main__":
