@@ -1,5 +1,7 @@
 # DEAP-ER
 
+<img src="docs/images/deaper_logo.png" alt="Logo" width="500">
+
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/deap-er)](https://pypi.org/project/deap-er/)
 [![GitHub License](https://img.shields.io/github/license/aabmets/deap-er)](https://github.com/aabmets/deap-er/blob/main/LICENSE)
 [![codecov](https://codecov.io/gh/aabmets/deap-er/branch/main/graph/badge.svg?token=hEELibzJvq)](https://codecov.io/gh/aabmets/deap-er)

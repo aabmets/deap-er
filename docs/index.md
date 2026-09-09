@@ -1,5 +1,9 @@
 # DEAP-ER documentation
 
+<p align="center">
+  <img src="images/deaper_logo.png" alt="deap-er logo" width="360">
+</p>
+
 **DEAP-ER** is a typed evolutionary-algorithm toolbox for Python 3.12
 and newer. Register operators, run an algorithm. The published surface
 covers genetic algorithms and mixed encodings, tree and columnar GP

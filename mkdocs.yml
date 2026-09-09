@@ -7,6 +7,8 @@ copyright: Copyright 2022 Mattias Aabmets
 
 theme:
   name: material
+  logo: images/deaper_favicon.png
+  favicon: images/deaper_favicon.png
   palette:
     - media: "(prefers-color-scheme)"
       toggle:
