@@ -46,22 +46,26 @@ uv add deap-er
 - Genetic programming: prefix trees (loosely typed, strongly typed,
   ADFs), SlimGP, columnar programs over named `float64` columns
   with vectorized, causal-window, tape / Numba backends (population
-  tape CSE), and a
+  tape CSE), homologous and semantic crossover, interval
+  certificates that skip dead tapes, and a
   private [Push GP](https://aabmets.github.io/deap-er/tutorials/push_gp/)
   policy loop that evolves the search around those tapes
 - Program-search helpers: growing language, semantic descriptors,
-  memetic ephemeral tuning, and Keijzer affine scaling
+  budget-capped memetic polish, Darwinian Keijzer affine scoring,
+  and a policy step on `ea_simple`
 - Evolution strategies: CMA, boxed CMA, separable CMA, IPOP/BIPOP
   restarts, and MO-CMA
 - Multi-objective search (SPEA-II, NSGA-II, NSGA-III, SMS-EMOA, MOEA/D,
   AGE-MOEA-II) with optional constraint-dominance on NSGA-II
 - Quality-diversity search (MAP-Elites: grid, CVT, and unstructured
-  archives; novelty selection and iso+line variation)
+  archives; novelty selection and iso+line variation; teams from
+  occupied archive cells)
 - Case-structured selection (lexicase, ε-lexicase with dynamic filter
   modes, batch ε-lexicase, case-subset tournament, structural
   meta-case regularization, informed down-sampling and generation
   schedules, program teams, co-evolving case exams, held-out
-  generalization, and noisy fitness resample / F-Race stop)
+  generalization and successive-halving, and noisy fitness
+  resample / F-Race stop)
 - Cooperative and competitive co-evolution, plus heterogeneous island
   stepping (`step_islands`, ring / fully connected / random migration,
   `island_eval_keys`)
@@ -73,8 +77,9 @@ uv add deap-er
   `hof_ind_cls=` is set)
 - Benchmarks against common test functions
 - Worked examples of symbolic regression, particle swarm, differential
-  evolution, MAP-Elites, mixed encoding, lexicase, columnar GP, and
-  CMA (boxed, separable, restarting)
+  evolution, MAP-Elites, mixed encoding, lexicase, columnar GP,
+  homologous / semantic variation, and CMA (boxed, separable,
+  restarting)
 
 ## Relative to DEAP
 
