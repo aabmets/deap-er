@@ -8,6 +8,8 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from unittest import mock
+
 import numpy
 import pytest
 from deap_er import Fitness, Toolbox, creator, gp, tools
@@ -82,6 +84,35 @@ def test_evaluate_columnar_uses_case_errors_and_rejects_bad_target():
     assert gp.evaluate_columnar([tree], pset, matrix, target, cases=[], reduce=False) == [()]
     with pytest.raises(ValueError, match="one-dimensional"):
         gp.evaluate_columnar([tree], pset, matrix, numpy.ones((8, 1)))
+
+
+def test_evaluate_columnar_static_filter_skips_constant_programs():
+    pset = gp.columnar_pset(["level"], window=None)
+    level = numpy.full(8, 2.0)
+    target = level.copy()
+    tree = gp.PrimitiveTree.from_string("level", pset)
+    matrix = numpy.column_stack([level])
+    with mock.patch("deap_er.private.programming.columnar_setup.interpret_tapes") as run:
+        scores = gp.evaluate_columnar([tree], pset, matrix, target, min_valid=1, empty=9.0)
+    assert scores == [(9.0,)]
+    run.assert_not_called()
+
+
+def test_evaluate_columnar_static_filter_can_be_disabled():
+    pset = gp.columnar_pset(["level"], window=None)
+    level = numpy.full(8, 2.0)
+    target = level.copy()
+    tree = gp.PrimitiveTree.from_string("level", pset)
+    matrix = numpy.column_stack([level])
+    scores = gp.evaluate_columnar(
+        [tree],
+        pset,
+        matrix,
+        target,
+        min_valid=1,
+        static_filter=False,
+    )
+    assert scores == [(0.0,)]
 
 
 def test_register_gp_plus_evaluate_columnar_runs_ea_simple():

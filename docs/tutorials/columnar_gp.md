@@ -193,7 +193,13 @@ instead of `deepcopy`, `compile_tree`, half-and-half init, one-point
 crossover, uniform mutation, and a height `static_limit`. Fitness
 stays on you. `evaluate_columnar` is the `evaluate_batch` helper:
 unique trees are lowered once, scored with `interpret_tapes`, and
-warmup `nan` samples are dropped from the MSE.
+warmup `nan` samples are dropped from the MSE. With the default
+`static_filter=True`, `tape_flags` may skip identically-`nan`,
+constant, or warmup-hiding `vwhere` programs before
+`interpret_tapes` and write the `empty` sentinel instead.
+Pass `static_filter=False` to score every tree. The runtime warmup
+contract is unchanged — use `case_errors(..., valid=)` when a
+comparison can still hide warmup that the static pass misses.
 
 ```python
 from deap_er import Fitness, Toolbox, creator, gp, tools

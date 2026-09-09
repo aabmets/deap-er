@@ -53,7 +53,7 @@ surface.
 | 34 | [Parallel RNG streams](features_31_40.md#34-parallel-rng-streams) | `rng` | shipped |
 | 35 | [Island topologies](features_31_40.md#35-island-topologies) | `operators` | shipped |
 | 36 | [Persistent hall of fame](features_31_40.md#36-persistent-hall-of-fame) | `records` | shipped |
-| 37 | [Interval analysis on tapes](features_31_40.md#37-interval-analysis-on-tapes) | `gp` | planned |
+| 37 | [Interval analysis on tapes](features_31_40.md#37-interval-analysis-on-tapes) | `gp` | shipped |
 | 38 | [Structural meta-case regularization](features_31_40.md#38-structural-meta-case-regularization) | `operators`, `utilities` | planned |
 | 39 | [Homologous and semantic crossover](features_31_40.md#39-homologous-and-semantic-crossover) | `gp` | planned |
 | 40 | [Noisy fitness resample](features_31_40.md#40-noisy-fitness-resample) | `utilities` | planned |
