@@ -66,6 +66,17 @@ def test_evaluate_columnar_uses_case_errors_and_rejects_bad_target():
     full = gp.evaluate_columnar([tree], pset, matrix, target, cases=[(0, 4), (4, 8)], reduce=False)
     assert reduced == [(0.0,)]
     assert full == [(0.0, 0.0)]
+    target_with_nan = level.copy()
+    target_with_nan[:4] = numpy.nan
+    mixed = gp.evaluate_columnar(
+        [tree],
+        pset,
+        matrix,
+        target_with_nan,
+        cases=[(0, 4), (4, 8)],
+        empty=float("inf"),
+    )
+    assert mixed[0][0] == float("inf")
     assert gp.evaluate_columnar([], pset, matrix, target) == []
     with pytest.raises(ValueError, match="one-dimensional"):
         gp.evaluate_columnar([tree], pset, matrix, numpy.ones((8, 1)))

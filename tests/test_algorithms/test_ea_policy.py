@@ -8,8 +8,11 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+import operator
+
+import numpy
 import pytest
-from deap_er import Fitness, Toolbox, creator, tools
+from deap_er import Fitness, Toolbox, creator, gp, tools
 
 POL_FIT = "EA_POLICY_FIT"
 POL_IND = "EA_POLICY_IND"
@@ -44,6 +47,16 @@ def _pool():
     train = tools.CaseExam.from_cases([0, 1], N_CASES)
     held = tools.CaseExam.from_cases([2, 3], N_CASES)
     return tools.CaseExamPool([train], held_out=held)
+
+
+def _promote_pset():
+    pset = gp.PrimitiveSetTyped("policy_main", [float, float], float)
+    pset.add_primitive(operator.add, [float, float], float)
+    return pset
+
+
+def _promote_tree(pset):
+    return gp.PrimitiveTree.from_string("add(ARG0, ARG1)", pset)
 
 
 def test_ea_policy_records_action_and_matches_ea_simple_generations(toolbox):
@@ -117,3 +130,65 @@ def test_ea_policy_honors_n_evals(toolbox):
     assert logbook.select("gen") == [0]
     with pytest.raises(ValueError, match="n_evals"):
         tools.ea_policy(toolbox, population, decide, 1, 0.5, 0.2, n_evals=-1)
+
+
+def test_ea_policy_observe_kwargs_cannot_hide_a_rejected_action(toolbox):
+    seen: list[bool] = []
+
+    def decide(obs):
+        seen.append(obs.last_action_rejected)
+        return "promote_subtree"
+
+    tools.ea_policy(
+        toolbox,
+        _population(),
+        decide,
+        generations=2,
+        cx_prob=0.0,
+        mut_prob=0.0,
+        observe_kwargs={"last_action_rejected": False},
+    )
+    assert seen == [False, True]
+
+
+def test_ea_policy_ignores_column_matrix_for_lexicase_actions(toolbox):
+    def decide(_obs):
+        return "next_lexicase_cases"
+
+    pool = _pool()
+    _, logbook = tools.ea_policy(
+        toolbox,
+        _population(),
+        decide,
+        generations=1,
+        cx_prob=0.0,
+        mut_prob=0.0,
+        exams=pool,
+        n_cases=N_CASES,
+        action_kwargs={"matrix": numpy.ones((8, 2)), "mut_prob": 0.0},
+    )
+    assert logbook.select("action")[1] == "next_lexicase_cases"
+
+
+def test_ea_policy_advances_guard_generation_for_cooldown(toolbox):
+    pset = _promote_pset()
+    tree = _promote_tree(pset)
+    seen: list[bool] = []
+
+    def decide(obs):
+        seen.append(obs.last_action_rejected)
+        return "promote_subtree"
+
+    guard = tools.PolicyActionGuard(max_promotes_per_gen=1, promote_cooldown=2)
+    tools.ea_policy(
+        toolbox,
+        _population(),
+        decide,
+        generations=3,
+        cx_prob=0.0,
+        mut_prob=0.0,
+        guard=guard,
+        action_kwargs={"prim_set": pset, "expr": tree},
+    )
+    assert seen == [False, False, True]
+    assert guard.last_promote_gen == 3

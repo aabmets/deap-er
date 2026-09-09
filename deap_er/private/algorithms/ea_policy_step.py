@@ -13,7 +13,10 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Any
 
-from deap_er.private.operators.policy_action_guard import PolicyActionGuard
+from deap_er.private.operators.policy_action_guard import (
+    PolicyActionGuard,
+    estimate_policy_action_evals,
+)
 from deap_er.private.operators.sel_lexicase import sel_lexicase
 from deap_er.private.operators.sel_lexicase_matrix import fitness_case_matrix
 from deap_er.private.operators.sel_various import sel_best
@@ -28,7 +31,7 @@ from deap_er.private.various.policy_observe import (
     policy_solve_bits_from_fitness,
 )
 
-from .policy_action import POLICY_ACTION_SKIP_PROMOTE, apply_policy_action
+from .policy_action import POLICY_ACTION_SKIP_PROMOTE, PolicyActionResult, apply_policy_action
 
 __all__: list[str] = [
     "initial_policy_cases",
@@ -37,6 +40,17 @@ __all__: list[str] = [
     "select_policy_offspring",
     "step_policy_generation",
 ]
+
+_OWNED_OBSERVE = frozenset(
+    {
+        "solve_bits",
+        "train_score",
+        "held_out_score",
+        "nevals",
+        "fitness_invalid",
+        "last_action_rejected",
+    }
+)
 
 
 def policy_row_extra(
@@ -96,14 +110,15 @@ def select_policy_offspring(
     """Select the next generation, using lexicase when cases exist.
 
     Args:
-        toolbox: Toolbox with ``select`` when ``cases`` is ``None``.
+        toolbox: Toolbox with ``select`` when ``cases`` is empty.
         population: Current individuals.
-        cases: Lexicase case indices, or ``None`` for ``toolbox.select``.
+        cases: Lexicase case indices. Empty or ``None`` uses
+            ``toolbox.select``.
 
     Returns:
         Selected individuals, same length as ``population``.
     """
-    if cases is None:
+    if not cases:
         return toolbox.select(population, len(population))
     if not population:
         return []
@@ -127,7 +142,7 @@ def step_policy_generation(
     extras: dict[str, Any],
     observe: dict[str, Any],
     toolbox: Toolbox,
-) -> tuple[str, bool, float, float | None, list[int] | None]:
+) -> tuple[str, bool, float, float | None, list[int] | None, int]:
     """Observe, decide, and apply one policy action.
 
     Args:
@@ -144,14 +159,14 @@ def step_policy_generation(
 
     Returns:
         Action token, rejection flag, train score, held-out score,
-        and new lexicase cases when that action applied.
+        and new lexicase cases when that action applied, plus the
+        evaluations the action spent.
     """
     elites = policy_elites(population, elite_count)
     if not elites:
-        return POLICY_ACTION_SKIP_PROMOTE, rejected, 0.0, None, None
+        return POLICY_ACTION_SKIP_PROMOTE, rejected, 0.0, None, None, 0
     first = elites[0]
-    valid = first.fitness.is_valid()
-    solve_bits = policy_solve_bits_from_fitness(first.fitness.values) if valid else (0,)
+    solve_bits = policy_solve_bits_from_fitness(first.fitness.values)
     train_score = 0.0
     held_out_score: float | None = None
     if exams is not None:
@@ -161,19 +176,20 @@ def step_policy_generation(
         train_score=train_score,
         held_out_score=held_out_score,
         nevals=used,
-        fitness_invalid=not valid,
+        fitness_invalid=False,
         last_action_rejected=rejected,
-        **observe,
+        **{key: value for key, value in observe.items() if key not in _OWNED_OBSERVE},
     )
     action = decide(observation)
     kwargs: dict[str, Any] = {
+        **extras,
         "elites": elites,
         "guard": guard,
         "toolbox": toolbox,
         "individuals": population,
-        "matrix": fitness_case_matrix(elites) if valid else None,
-        **extras,
     }
+    if action != "interpret_tapes":
+        kwargs.pop("matrix", None)
     if exams is not None:
         kwargs["exams"] = exams
         if exams.held_out is not None:
@@ -182,7 +198,23 @@ def step_policy_generation(
     applied_cases: list[int] | None = None
     if result.applied and action == "next_lexicase_cases":
         applied_cases = list(result.value)
-    return action, result.rejected, train_score, held_out_score, applied_cases
+    return (
+        action,
+        result.rejected,
+        train_score,
+        held_out_score,
+        applied_cases,
+        _action_evals(action, result, kwargs),
+    )
+
+
+def _action_evals(action: str, result: PolicyActionResult, kwargs: dict[str, Any]) -> int:
+    if not result.applied:
+        return 0
+    if action == "evaluate_invalid" and isinstance(result.value, int):
+        return result.value
+    estimate_kwargs = {key: value for key, value in kwargs.items() if key != "guard"}
+    return estimate_policy_action_evals(action, **estimate_kwargs)
 
 
 def policy_elites(population: list[Individual], elite_count: int) -> list[Individual]:
