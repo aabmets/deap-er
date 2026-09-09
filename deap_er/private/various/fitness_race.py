@@ -82,10 +82,8 @@ def score_draw(
 ) -> tuple[float, ...]:
     """Score one draw for ``individual`` through cache or ``evaluate``."""
     if cache is not None:
-        caller_key = None
-        if key_fn is not None:
-            caller_key = noisy_draw_key(key_fn(individual), draw)
-        cached = cache.evaluate(individual, key=caller_key)
+        base = key_fn(individual) if key_fn is not None else id(individual)
+        cached = cache.evaluate(individual, key=noisy_draw_key(base, draw))
         return tuple(float(value) for value in cached)
     return tuple(float(value) for value in evaluate(individual))
 
@@ -113,9 +111,9 @@ def sample_mean_std(samples: Sequence[Sequence[float]], objective: int) -> tuple
 def maximize_first_objective(individuals: Sequence[Individual]) -> bool:
     """Return whether the first fitness objective is maximized."""
     for individual in individuals:
-        fitness = individual.fitness
-        if fitness.is_valid() and fitness.weights:
-            return float(fitness.weights[0]) > 0.0
+        weights = individual.fitness.weights
+        if weights:
+            return float(weights[0]) > 0.0
     return False
 
 
