@@ -1,6 +1,6 @@
 # DEAP-ER
 
-<img src="docs/images/deaper_logo.png" alt="Logo" width="500">
+<img src="https://aabmets.github.io/deap-er/images/deaper_logo.png" alt="Logo" width="500">
 
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/deap-er)](https://pypi.org/project/deap-er/)
 [![GitHub License](https://img.shields.io/github/license/aabmets/deap-er)](https://github.com/aabmets/deap-er/blob/main/LICENSE)
@@ -122,7 +122,7 @@ mutation drains leftover uniforms with `rng.take_floats`, but `var_and`
 still draws one scalar `rng.random()` per mate-or-skip and per
 mutate-or-skip.
 
-![Hot-path time of aabmets/deap-er versus DEAP/deap when shared](docs/images/deaper_perf_bench.png)
+![Hot-path time of aabmets/deap-er versus DEAP/deap when shared](https://aabmets.github.io/deap-er/images/deaper_perf_bench.png)
 
 Each bar is the mean time of one deap-er run. Shared cases append
 the percent change versus DEAP
