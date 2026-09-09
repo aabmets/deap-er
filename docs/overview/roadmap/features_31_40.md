@@ -198,5 +198,111 @@ logs.
 Related: [Using checkpoints](../../tutorials/using_checkpoints.md),
 [Logging statistics](../../tutorials/logging_statistics.md).
 
+---
+
+## 37. Interval analysis on tapes
+
+**What.** Given column bounds (or empirical min/max), propagate
+intervals through the opcode kit. Flag programs that are
+identically `nan`, constant, or that use `vwhere` to hide
+warmup — before a full `interpret_tapes` / `evaluate` pass.
+
+**Today.** Causality is a runtime `nan` contract.
+`tape_lookback` and `suffix_rescore` are shipped. There is no
+static range check. Dead or constant tapes still pay a full
+score.
+
+**Benefit.** Columnar populations waste evaluations on programs
+that cannot be a law. A cheap certificate lets
+`evaluate_invalid` and `evaluate_columnar` skip them, or write
+a sentinel the caller already uses for empty overlap.
+
+**Scope.** Interval propagation over the builtin opcode kit and
+a flag / helper next to `tape_lookback`. Not a domain fitness.
+Not a substitute for the runtime `nan` contract.
+
+Related: [item 30](features_21_30.md#30-causal-lookback-and-suffix-rescore),
+[item 32](#32-population-tape-cse),
+[Columnar programs](../../tutorials/columnar_gp.md).
+
+---
+
+## 38. Structural meta-case regularization
+
+**What.** Extra cheap cases — size, depth, unique opcodes,
+promote-library hits, time-in-output / non-finite fraction —
+appended to the case matrix so lexicase regularizes bloat and
+“always on” programs without a second fitness weight.
+
+**Today.** `fitness_case_matrix` packs `fitness.values`. Callers
+can concatenate columns. Items 27 and 28 shipped the lexicase
+schedules this idea was waiting on. There is no helper that
+builds those structural columns.
+
+**Benefit.** Machine-checkable pressure on the same path as
+case exams. A constant or giant tree fails an extra case
+instead of requiring a magic penalty in `evaluate`.
+
+**Scope.** A helper that returns extra columns for a packed
+population. The caller still owns `evaluate` and may omit
+any column. Not human-in-the-loop. Not a second objective
+on `Fitness.weights` unless the caller concatenates them
+there.
+
+Related: [item 5](features_1_10.md#5-down-sampled-and-informed-lexicase),
+[item 27](features_21_30.md#27-batch-epsilon-lexicase-and-down-sampled-tournament),
+[item 28](features_21_30.md#28-dynamic-epsilon-and-downsample-schedule),
+[item 41](features_41_50.md#41-case-structured-generalization-path).
+
+---
+
+## 39. Homologous and semantic crossover
+
+**What.** Align similar subtrees (homologous) or prefer nodes
+whose `interpret_tape` vectors are close (`semantic_nearest`
+on subtrees). Type-matched one-point stays the default.
+
+**Today.** `gp.cx_one_point` groups by return type. SlimGP
+already moves in output space. Affine scaling and population
+tape CSE are shipped, so subtree semantics are cheap to look
+up. Syntactic GP still swaps random typed nodes.
+
+**Benefit.** Long, expensive tapes survive variation more
+often. Random typed swaps on unrelated subtrees are the usual
+way a good law dies in one generation.
+
+**Scope.** Optional crossover(s) next to `cx_one_point`.
+Default stays type-matched one-point. Not a second genome.
+
+Related: [item 7](features_1_10.md#7-non-bloating-semantic-variation),
+[item 22](features_21_30.md#22-semantic-search-space),
+[item 31](#31-affine-scaling-and-lamarckian-writeback),
+[item 32](#32-population-tape-cse).
+
+---
+
+## 40. Noisy fitness resample
+
+**What.** `resample(ind, evaluate, n)` and a racing stop
+(F-Race-shaped) for noisy cases. Repeats go through
+`EvalCache` when the key is unchanged; a noisy `evaluate`
+must use a key that includes the draw.
+
+**Today.** Lexicase and exams treat one draw as truth.
+`evaluate_invalid` scores each invalid once. `EvalCache` and
+`n_evals=` are shipped, so repeats are cheap enough to meter.
+
+**Benefit.** Time-series and case-structured search treat a
+single history pass as an estimate. Racing spends the budget
+on individuals whose rank is still unstable.
+
+**Scope.** A resample helper and an optional race stop.
+`evaluate` stays on the caller. Not a domain metric. Not a
+new algorithm loop.
+
+Related: [item 33](#33-evaluation-budget-and-eval-cache),
+[item 6](features_1_10.md#6-case-structured-evaluation-helper),
+[item 41](features_41_50.md#41-case-structured-generalization-path).
+
 [deap-25]: https://github.com/DEAP/deap/issues/25
 [deap-75]: https://github.com/DEAP/deap/issues/75
