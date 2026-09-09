@@ -134,7 +134,7 @@ def test_evaluate_case_halving_rejects_short_final_fitness():
         def evaluate_cases(_ind, cases):
             return tuple(0.0 for _ in cases)
 
-        with pytest.raises(ValueError, match="final fitness must have length n_cases"):
+        def run_halving_with_short_fitness():
             tools.evaluate_case_halving(
                 [ind_cls([0])],
                 evaluate_cases,
@@ -142,6 +142,9 @@ def test_evaluate_case_halving_rejects_short_final_fitness():
                 n_cases=6,
                 evaluate_full=lambda _ind: (1.0, 2.0, 3.0),
             )
+
+        with pytest.raises(ValueError, match="final fitness must have length n_cases"):
+            run_halving_with_short_fitness()
     finally:
         _drop_types()
 

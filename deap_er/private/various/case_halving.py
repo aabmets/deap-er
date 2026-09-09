@@ -126,7 +126,7 @@ def _mean_score(
     for value, weight in zip(scores, weights, strict=False):
         total += float(value) * float(weight)
         weight_sum += float(weight)
-    if weight_sum == 0.0:
+    if weight_sum <= 0.0:
         return float("inf")
     return total / weight_sum
 
