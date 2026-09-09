@@ -55,7 +55,7 @@ surface.
 | 36 | [Persistent hall of fame](features_31_40.md#36-persistent-hall-of-fame) | `records` | shipped |
 | 37 | [Interval analysis on tapes](features_31_40.md#37-interval-analysis-on-tapes) | `gp` | shipped |
 | 38 | [Structural meta-case regularization](features_31_40.md#38-structural-meta-case-regularization) | `operators`, `utilities` | planned |
-| 39 | [Homologous and semantic crossover](features_31_40.md#39-homologous-and-semantic-crossover) | `gp` | planned |
+| 39 | [Homologous and semantic crossover](features_31_40.md#39-homologous-and-semantic-crossover) | `gp` | shipped |
 | 40 | [Noisy fitness resample](features_31_40.md#40-noisy-fitness-resample) | `utilities` | planned |
 | 41 | [Case-structured generalization path](features_41_50.md#41-case-structured-generalization-path) | `utilities` + docs | planned |
 | 42 | [Memetic and affine leash](features_41_50.md#42-memetic-and-affine-leash) | `gp`, `utilities` | shipped |
@@ -68,9 +68,9 @@ that already shipped (tapes, SlimGP, lexicase, archives, CMA)
 into a longer program-search loop, and they are shipped.
 Item 30 is the legal dirty-suffix path item 25 deferred.
 Item 31 (Keijzer affine scaling next to `tune_ephemerals`) is
-shipped. Items 27–36 are shipped. Items 37–40 promote
-interval analysis, structural meta-cases, semantic crossover,
-and noisy resample off
+shipped. Items 27–36 and item 39 are shipped. Items 37–38
+and 40 promote interval analysis, structural meta-cases, and
+noisy resample off
 [Under consideration](under_consideration.md). Items 41–43 are
 the thin generalization, memetic-leash, and team-archive
 recipes that page left on the caller. Constraint-dominance
