@@ -216,6 +216,7 @@ def evaluate_case_halving(
         return evaluate_cases(individual, list(range(n_cases)))
 
     assign = evaluate_full if evaluate_full is not None else assign_full
+    final_cases = n_cases
 
     for stage_n in stages[:-1]:
         subset = catalog[:stage_n]
@@ -223,9 +224,13 @@ def evaluate_case_halving(
         charged += case_eval_charge(len(ranked), stage_n)
         survivors = _keep_top(ranked, eta)
 
-    final_subset = catalog[: stages[-1]]
-    charged += case_eval_charge(len(survivors), len(final_subset))
+    charged += case_eval_charge(len(survivors), final_cases)
     for individual in survivors:
-        individual.fitness.values = tuple(assign(individual))
+        values = tuple(assign(individual))
+        if len(values) != n_cases:
+            raise ValueError(
+                f"final fitness must have length n_cases ({n_cases}), got {len(values)}"
+            )
+        individual.fitness.values = values
 
     return CaseHalvingResult(survivors, charged, len(stages))

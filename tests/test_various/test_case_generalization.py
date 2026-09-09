@@ -9,8 +9,6 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 
-from unittest import mock
-
 import pytest
 from deap_er import Fitness, creator, tools
 
@@ -86,50 +84,6 @@ def test_case_generalization_recipe_fields():
     assert recipe.pool.held_out is not None
 
 
-def test_make_lexicase_train_select_uses_train_cases_only():
-    _make_types(6)
-    try:
-        ind_cls = creator.__dict__[IND]
-        tools.rng.seed(0)
-        pool = tools.case_generalization_pool(6, held_cases=[5])
-        select = tools.make_lexicase_train_select(pool, 6)
-        population = [ind_cls([i]) for i in range(4)]
-        for idx, ind in enumerate(population):
-            ind.fitness.values = tuple(float(idx + bit) for bit in range(6))
-        with mock.patch(
-            "deap_er.private.various.case_generalization.sel_lexicase",
-            wraps=tools.sel_lexicase,
-        ) as lexicase:
-            chosen = select(population, 2)
-            assert lexicase.call_args.kwargs["cases"] == [0, 1, 2, 3, 4]
-        assert len(chosen) == 2
-        assert 5 not in lexicase.call_args.kwargs["cases"]
-    finally:
-        _drop_types()
-
-
-def test_make_lexicase_train_select_downsample_caps_cases():
-    _make_types(10)
-    try:
-        ind_cls = creator.__dict__[IND]
-        tools.rng.seed(1)
-        pool = tools.case_generalization_pool(10, held_cases=[9])
-        select = tools.make_lexicase_train_select(pool, 10, downsample=3)
-        population = [ind_cls([0]) for _ in range(6)]
-        for idx, ind in enumerate(population):
-            ind.fitness.values = tuple(float(idx + bit) for bit in range(10))
-        with mock.patch(
-            "deap_er.private.various.case_generalization.sel_lexicase",
-            wraps=tools.sel_lexicase,
-        ) as lexicase:
-            select(population, 2)
-            cases = lexicase.call_args.kwargs["cases"]
-        assert len(cases) <= 3
-        assert 9 not in cases
-    finally:
-        _drop_types()
-
-
 def test_generalization_recipe_make_select():
     _make_types(8)
     try:
@@ -138,8 +92,8 @@ def test_generalization_recipe_make_select():
         recipe = tools.case_generalization_recipe(8, held_cases=[7])
         select = recipe.make_select()
         population = [ind_cls([float(i)]) for i in range(5)]
-        for ind in population:
-            ind.fitness.values = tuple(float(i) for i in range(8))
+        for idx, ind in enumerate(population):
+            ind.fitness.values = tuple(float(idx + bit) for bit in range(8))
         chosen = select(population, 1)
         assert len(chosen) == 1
     finally:

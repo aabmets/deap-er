@@ -453,11 +453,14 @@ used += halving.nevals
 
 `held_out_tail` and `case_generalization_pool` build the held-out
 marker. `make_lexicase_train_select` never passes held-out indices
-to lexicase. `evaluate_case_halving` ranks on prefixes of
-`train_cases`, assigns full-catalog `fitness.values` on the final
-rung, and returns `nevals` in case-eval units for a tight `n_evals=`
-budget. For partial scoring without re-running the full tape batch,
-pass an `evaluate_cases` that calls `evaluate_columnar(..., cases=)`.
+to lexicase. `evaluate_case_halving` ranks on prefixes of `train_cases` in caller
+order (sort indices chronologically before calling when that matters),
+assigns full-catalog `fitness.values` of length `N_CASES` on the final
+rung, and returns `nevals` in case-eval units — including
+`n_survivors * N_CASES` on the final assignment — for a tight
+`n_evals=` budget. For partial scoring without re-running the full
+tape batch, pass an `evaluate_cases` that calls
+`evaluate_columnar(..., cases=)`.
 
 The same `interpret_tapes` pack is also search geometry. Project it
 into a behavior vector and `add` the result to a MAP-Elites archive

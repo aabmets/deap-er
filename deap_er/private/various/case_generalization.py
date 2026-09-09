@@ -79,7 +79,7 @@ def train_head(n_cases: int, fraction: float = 0.2) -> list[int]:
     Raises:
         ValueError: If ``n_cases`` or ``fraction`` is invalid.
     """
-    held = held_out_tail(n_cases, fraction)
+    held = set(held_out_tail(n_cases, fraction))
     return [idx for idx in range(n_cases) if idx not in held]
 
 
@@ -143,6 +143,7 @@ def make_lexicase_train_select(
     if not pool.exams:
         raise ValueError("pool must contain at least one train exam")
     train_cases = pool.exams[0].as_cases(n_cases)
+    train_set = set(train_cases)
     held_set = set(pool.held_out.as_cases(n_cases)) if pool.held_out is not None else set()
     generation = 0
 
@@ -152,17 +153,18 @@ def make_lexicase_train_select(
         if downsample is None:
             cases = train_cases
         else:
-            cases = next_downsample_cases(
+            sampled = next_downsample_cases(
                 individuals,
                 downsample,
                 generation,
                 mode=downsample_mode,
+                held_out=pool.held_out,
             )
-            cases = [case for case in cases if case in train_cases]
+            cases = [case for case in sampled if case in train_set]
             if not cases:
                 cases = train_cases
         if held_set.intersection(cases):
-            raise RuntimeError("held-out cases must not reach lexicase selection")
+            raise ValueError("held-out cases must not reach lexicase selection")
         chosen = sel_lexicase(individuals, sel_count, cases=cases, matrix=matrix)
         generation += 1
         return chosen
