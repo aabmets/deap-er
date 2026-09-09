@@ -100,7 +100,8 @@
     stop signal and does not call `update([])`.
 28. `n_evals=` is an optional evaluation-budget stop on
     `ea_simple`, `ea_mu_plus_lambda`, `ea_mu_comma_lambda`,
-    `ea_map_elites`, and `ea_policy`. Generations stay the default. `EvalCache`
+    `ea_map_elites`, and `ea_policy`. Generations stay the
+    default. `EvalCache`
     wraps `evaluate` / `evaluate_batch` by expression text (or
     a caller key) plus matrix identity and row count. A hit
     does not call `evaluate` again; `n_evals` / `nevals` still
