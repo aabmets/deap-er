@@ -132,6 +132,47 @@ def challenger_is_not_worse(
     return challenger_mean - z_score * challenger_se <= leader_mean + z_score * leader_se
 
 
+def keep_challenger_after_race(
+    challenger_samples: Sequence[Sequence[float]],
+    leader_mean: float,
+    leader_se: float,
+    *,
+    z_score: float,
+    maximize: bool,
+) -> bool:
+    """Return whether a challenger survives comparison with the leader."""
+    if len(challenger_samples) < 2:
+        return True
+    challenger_mean, challenger_se = sample_mean_std(challenger_samples, 0)
+    if not math.isfinite(challenger_mean):
+        return False
+    return challenger_is_not_worse(
+        challenger_mean,
+        challenger_se,
+        leader_mean,
+        leader_se,
+        z_score=z_score,
+        maximize=maximize,
+    )
+
+
+def restore_min_survivors(
+    kept: list[Individual],
+    ranked: Sequence[Individual],
+    min_survivors: int,
+) -> list[Individual]:
+    """Add back ranked challengers until ``min_survivors`` is met."""
+    if len(kept) >= min_survivors:
+        return kept
+    restored = list(kept)
+    for challenger in ranked[1:]:
+        if challenger not in restored:
+            restored.append(challenger)
+        if len(restored) >= min_survivors:
+            break
+    return restored
+
+
 def eliminate_losers(
     survivors: list[Individual],
     samples: dict[int, list[tuple[float, ...]]],
@@ -159,29 +200,15 @@ def eliminate_losers(
     z_score = race_z_score(alpha)
     kept = [leader]
     for challenger in ranked[1:]:
-        challenger_samples = samples[id(challenger)]
-        if len(challenger_samples) < 2:
-            kept.append(challenger)
-            continue
-        challenger_mean, challenger_se = sample_mean_std(challenger_samples, 0)
-        if not math.isfinite(challenger_mean):
-            continue
-        if challenger_is_not_worse(
-            challenger_mean,
-            challenger_se,
+        if keep_challenger_after_race(
+            samples[id(challenger)],
             leader_mean,
             leader_se,
             z_score=z_score,
             maximize=maximize,
         ):
             kept.append(challenger)
-    if len(kept) < min_survivors:
-        for challenger in ranked[1:]:
-            if challenger not in kept:
-                kept.append(challenger)
-            if len(kept) >= min_survivors:
-                break
-    return kept
+    return restore_min_survivors(kept, ranked, min_survivors)
 
 
 def race_stop(
