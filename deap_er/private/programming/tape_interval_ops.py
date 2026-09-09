@@ -122,10 +122,18 @@ def hides_warmup(condition: Summary, on_true: Summary, on_false: Summary) -> boo
     """Return whether ``vwhere`` can mask causal warmup ``nan``."""
     if condition.compared_lookback <= 0:
         return False
-    alternate = on_true if on_true.lookback == 0 else on_false if on_false.lookback == 0 else None
+    alternate = _warmup_alternate_branch(on_true, on_false)
     if alternate is None:
         return False
     return alternate.can_finite and alternate.first_finite <= 0
+
+
+def _warmup_alternate_branch(on_true: Summary, on_false: Summary) -> Summary | None:
+    if on_true.lookback == 0:
+        return on_true
+    if on_false.lookback == 0:
+        return on_false
+    return None
 
 
 def merge_arrays(left: Summary, right: Summary) -> Summary:
@@ -233,17 +241,30 @@ def apply_binary(opcode: int, left: Summary, right: Summary, fill: float) -> Sum
             "array",
         )
     if opcode == int(Opcode.DIV):
-        if right.lo <= 0.0 <= right.hi:
-            low_quote = left.lo / right.hi if right.hi else fill
-            high_quote = left.hi / right.lo if right.lo else fill
-            lo = min(low_quote, high_quote, fill)
-            hi = max(low_quote, high_quote, fill)
-            lo = min(lo, fill, left.lo, left.hi, right.lo, right.hi)
-            hi = max(hi, fill, left.lo, left.hi, right.lo, right.hi)
-            return Summary(lo, hi, lookback, first_finite, False, can_finite, "array")
-        if right.hi < 0.0:
-            lo, hi = left.hi / right.lo, left.lo / right.hi
-        else:
-            lo, hi = left.lo / right.hi, left.hi / right.lo
-        return Summary(min(lo, hi), max(lo, hi), lookback, first_finite, const, can_finite, "array")
+        return summary_div(left, right, fill, lookback, first_finite, can_finite, const)
     raise ValueError(f"Opcode {opcode} has no interval certificate.")
+
+
+def summary_div(
+    left: Summary,
+    right: Summary,
+    fill: float,
+    lookback: int,
+    first_finite: int,
+    can_finite: bool,
+    const: bool,
+) -> Summary:
+    """Propagate protected division intervals."""
+    if right.lo <= 0.0 <= right.hi:
+        low_quote = left.lo / right.hi if right.hi else fill
+        high_quote = left.hi / right.lo if right.lo else fill
+        lo = min(low_quote, high_quote, fill)
+        hi = max(low_quote, high_quote, fill)
+        lo = min(lo, fill, left.lo, left.hi, right.lo, right.hi)
+        hi = max(hi, fill, left.lo, left.hi, right.lo, right.hi)
+        return Summary(lo, hi, lookback, first_finite, False, can_finite, "array")
+    if right.hi < 0.0:
+        lo, hi = left.hi / right.lo, left.lo / right.hi
+    else:
+        lo, hi = left.lo / right.hi, left.hi / right.lo
+    return Summary(min(lo, hi), max(lo, hi), lookback, first_finite, const, can_finite, "array")

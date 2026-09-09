@@ -125,8 +125,10 @@ def test_tape_interval_envelope_covers_the_oracle_on_finite_samples():
 
 
 def test_tape_flags_rejects_a_consumer_opcode():
+    tape = _consumer_tape()
+    bounds = numpy.zeros((2, 2))
     with pytest.raises(ValueError, match="no interval certificate"):
-        gp.tape_flags(_consumer_tape(), numpy.zeros((2, 2)), n_rows=4)
+        gp.tape_flags(tape, bounds, n_rows=4)
 
 
 def test_tape_interval_rejects_an_underflowing_tape():
@@ -138,5 +140,6 @@ def test_tape_interval_rejects_an_underflowing_tape():
         depth=1,
         fill=1.0,
     )
+    bounds = numpy.zeros((2, 2))
     with pytest.raises(ValueError, match="underflows"):
-        gp.tape_interval(underflow, numpy.zeros((2, 2)))
+        gp.tape_interval(underflow, bounds)
