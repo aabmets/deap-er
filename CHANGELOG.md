@@ -12,7 +12,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `gp.register_gp`, `gp.columnar_pset`, and `gp.evaluate_columnar`
   for the standard tree-GP / columnar toolbox wiring
 - `tools.ea_policy` — `ea_simple` plus one policy observe / decide /
-  apply step per generation
+  apply step per generation. Policy-action evaluations count toward
+  `n_evals` and the generation `nevals`; a policy step that meets
+  the budget is recorded without variation
 
 ## [3.0.0] - 2026-09-08
 
