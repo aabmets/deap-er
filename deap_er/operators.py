@@ -83,7 +83,7 @@ from .private.operators.sel_nsga_2 import sel_nsga_2
 from .private.operators.sel_nsga_3 import SelNSGA3WithMemory, sel_nsga_3
 from .private.operators.sel_sms_emoa import sel_sms_emoa
 from .private.operators.sel_spea_2 import sel_spea_2
-from .private.operators.sel_team import sel_team
+from .private.operators.sel_team import sel_team, sel_team_archive
 from .private.operators.sel_tournament import sel_double_tournament, sel_tournament
 from .private.operators.sel_tournament_cases import sel_tournament_cases
 from .private.operators.sel_tournament_dcd import sel_tournament_dcd
@@ -162,6 +162,7 @@ __all__: list[str] = [
     "sel_epsilon_lexicase",
     "sel_lexicase",
     "sel_team",
+    "sel_team_archive",
     "sel_novelty",
     "constraint_dominates",
     "sel_nsga_2",

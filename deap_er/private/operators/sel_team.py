@@ -10,12 +10,13 @@
 #
 from __future__ import annotations
 
-from collections.abc import Sequence
-from typing import TYPE_CHECKING
+from collections.abc import Iterable, Sequence
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy
 
 if TYPE_CHECKING:
+    from deap_er.private.records.archive_common import MapElitesArchive
     from deap_er.private.typedefs import Individual
 from deap_er.private.various.rng import rng
 
@@ -26,7 +27,7 @@ from .sel_lexicase_matrix import (
     validate_case_matrix,
 )
 
-__all__: list[str] = ["sel_team"]
+__all__: list[str] = ["sel_team", "sel_team_archive"]
 
 _SOLVE_ATOL = 1e-12
 
@@ -110,3 +111,46 @@ def sel_team(
         if uncovered.size:
             uncovered &= ~solve[idx]
     return team
+
+
+def sel_team_archive(
+    archive: MapElitesArchive,
+    sel_count: int,
+    *,
+    cases: Sequence[int] | None = None,
+    matrix: numpy.ndarray | None = None,
+    trust_matrix: bool = False,
+) -> list[Individual]:
+    """Select a team from occupied MAP-Elites archive cells.
+
+    The pool is ``list(archive)`` — live elites from filled cells, not
+    ``random_elites`` copies. Delegates to :func:`sel_team`. Member
+    ``fitness`` is not rewritten; score the team on the caller.
+
+    Args:
+        archive: MAP-Elites archive with ``add`` and iteration support.
+        sel_count: Team size. Same semantics as :func:`sel_team`.
+        cases: Fitness-case indices to cover. Passed through to
+            :func:`sel_team`.
+        matrix: Optional ``(n_elites, n_cases)`` case matrix. When
+            omitted, values are read from elite ``fitness.values``.
+            Row order must match ``list(archive)`` when
+            ``trust_matrix=True``.
+        trust_matrix: When ``True``, ``matrix`` is accepted on shape
+            alone. Defaults to ``False``.
+
+    Returns:
+        Distinct archive elites in greedy-add order.
+
+    Raises:
+        IndexError: If the archive is empty or a case index is outside
+            the fitness length.
+        ValueError: If ``matrix`` shape or values do not match fitness.
+    """
+    return sel_team(
+        list(cast(Iterable[Any], archive)),
+        sel_count,
+        cases=cases,
+        matrix=matrix,
+        trust_matrix=trust_matrix,
+    )

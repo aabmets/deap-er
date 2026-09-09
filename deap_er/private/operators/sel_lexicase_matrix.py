@@ -130,19 +130,23 @@ def validate_case_matrix(
     Args:
         matrix: Pre-packed case matrix.
         individuals: Population the matrix describes.
-        trust: When ``True``, only the shape is checked.
+        trust: When ``True``, only the row count is checked.
 
     Raises:
         ValueError: If the shape or values do not match ``fitness.values``.
     """
     if not individuals:
         raise ValueError("individuals must be non-empty")
+    if trust:
+        if matrix.ndim != 2 or matrix.shape[0] != len(individuals):
+            raise ValueError(
+                f"matrix must have shape ({len(individuals)}, n_cases), got {matrix.shape}"
+            )
+        return
     n_cases = len(individuals[0].fitness.values)
     expected_shape = (len(individuals), n_cases)
     if matrix.shape != expected_shape:
         raise ValueError(f"matrix must have shape {expected_shape}, got {matrix.shape}")
-    if trust:
-        return
     for row, individual in enumerate(individuals):
         values = individual.fitness.values
         if len(values) != n_cases:

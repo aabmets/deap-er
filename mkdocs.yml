@@ -142,6 +142,7 @@ nav:
           - Informed Lexicase: examples/genetic_programming/lexicase.md
           - Semantic Variation: examples/genetic_programming/semantic_gp.md
           - Program Teams: examples/genetic_programming/program_teams.md
+          - Team and Archive: examples/genetic_programming/team_archive.md
           - Case Exams: examples/genetic_programming/case_exams.md
           - Columnar Programs: examples/genetic_programming/columnar_gp.md
           - Push GP: examples/genetic_programming/push_gp.md

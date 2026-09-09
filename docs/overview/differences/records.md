@@ -46,6 +46,9 @@
     `qd_score`. `ea_map_elites` drives evaluate → archive → `var_or`
     and logs archive metrics each generation. Fitness stays on
     `ind.fitness`; behavior measurement stays on the caller.
+    Semantic projection → `add` → `sel_team_archive` on occupied
+    cells is a documented caller recipe; team scoring stays on the
+    caller.
 16. `var_or` mates two clones of the only parent when the pool has a
     single individual, so $(1,\lambda)$ / $(1+\lambda)$ with
     `cx_prob > 0` no longer raises `ValueError` on `sample(..., 2)`.
