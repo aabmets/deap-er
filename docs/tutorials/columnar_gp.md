@@ -425,6 +425,40 @@ Segment boundaries and prediction–target alignment stay on the caller.
 This helper does not choose a chronological split and does not ship
 application-specific metrics beyond per-case MSE.
 
+## Generalization path
+
+The default case-structured recipe keeps a caller-marked held-out
+exam, runs lexicase on train cases only, and optionally spends a
+case budget with successive halving before full scoring. Chronological
+meaning, embargo, and expanding windows stay on the caller — only
+catalog indices are split here.
+
+```python
+N_CASES = matrix.shape[0]
+recipe = tools.case_generalization_recipe(N_CASES, fraction=0.2)
+toolbox.register("select", recipe.make_select(downsample=32))
+
+def evaluate_cases(individual, cases):
+    return gp.evaluate_columnar([individual], pset, matrix, target, cases=cases, reduce=False)[0]
+
+halving = tools.evaluate_case_halving(
+    offspring,
+    evaluate_cases,
+    recipe.train_cases,
+    n_cases=N_CASES,
+    evaluate_full=lambda ind: toolbox.evaluate(ind),
+)
+used += halving.nevals
+```
+
+`held_out_tail` and `case_generalization_pool` build the held-out
+marker. `make_lexicase_train_select` never passes held-out indices
+to lexicase. `evaluate_case_halving` ranks on prefixes of
+`train_cases`, assigns full-catalog `fitness.values` on the final
+rung, and returns `nevals` in case-eval units for a tight `n_evals=`
+budget. For partial scoring without re-running the full tape batch,
+pass an `evaluate_cases` that calls `evaluate_columnar(..., cases=)`.
+
 The same `interpret_tapes` pack is also search geometry. Project it
 into a behavior vector and `add` the result to a MAP-Elites archive
 so the archive keeps different *functions*, not different strings.

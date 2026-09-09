@@ -15,6 +15,8 @@ from .private.various.affine_case_errors import *
 from .private.various.affine_scale import *
 from .private.various.bin2float import *
 from .private.various.case_errors import *
+from .private.various.case_generalization import *
+from .private.various.case_halving import *
 from .private.various.clone import *
 from .private.various.constraints import *
 from .private.various.decorators import *

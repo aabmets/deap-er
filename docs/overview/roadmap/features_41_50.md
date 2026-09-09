@@ -16,14 +16,16 @@ holdout (`held_out_tail(n, fraction=)` or equivalent).
 Chronological meaning, embargo, and expanding windows stay
 on the caller.
 
-**Today.** `CaseExam` / `CaseExamPool`, `next_lexicase_cases`,
-informed down-sampling, `evaluate_columnar(..., reduce=False)`,
-and `ea_policy` exist. Every example still builds the split
-and the select callable by hand. There is no halving schedule
-that charges partial exams to `n_evals`. Item 6 already
-refused to own walk-forward; the
+**Today.** `held_out_tail` / `train_head` and
+`case_generalization_pool` build a caller-marked held-out exam.
+`make_lexicase_train_select` and `case_generalization_recipe` wire
+lexicase on train cases only. `case_halving_stages`,
+`evaluate_case_halving`, and `case_eval_charge` run successive
+halving on train-catalog prefixes and return case-eval units for
+`n_evals=` budgeting. Chronological splits beyond a last-fraction
+holdout stay on the caller; the
 [index-only walk-forward builder](under_consideration.md#index-only-walk-forward-builder)
-stays under consideration.
+remains under consideration.
 
 **Benefit.** One held-out slice plus lexicase on the train
 cases is the usual difference between a curve-fit and a law

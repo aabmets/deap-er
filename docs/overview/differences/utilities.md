@@ -54,5 +54,16 @@
     `valid=` mask as `case_errors`, applies the scaled series, and
     returns per-case MSE without changing the tree. Darwinian
     scoring default; Lamarckian `write_affine_scale` stays opt-in.
+15. `held_out_tail` and `train_head` return last-fraction holdout
+    and train catalog indices. `case_generalization_pool` and
+    `case_generalization_recipe` build a `CaseExamPool` with a
+    caller-marked `held_out` exam. `make_lexicase_train_select`
+    registers lexicase on train cases only. `case_halving_stages`,
+    `evaluate_case_halving`, and `case_eval_charge` implement
+    successive halving on train-catalog prefixes and charge partial
+    exams in case-eval units for `n_evals=` budgeting. Chronological
+    meaning stays on the caller. DEAP has no held-out lexicase recipe
+    or case-budget halving schedule. See the
+    [columnar GP tutorial](../../tutorials/columnar_gp.md).
 
 [deap-75]: https://github.com/DEAP/deap/issues/75
