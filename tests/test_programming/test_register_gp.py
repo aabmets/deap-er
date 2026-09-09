@@ -36,14 +36,15 @@ def _pset():
 
 def test_register_gp_wires_clone_compile_and_variation(ind_cls):
     toolbox = Toolbox()
-    gp.register_gp(toolbox, _pset(), individual=ind_cls, height_limit=6, max_depth=2)
+    pset = _pset()
+    gp.register_gp(toolbox, pset, individual=ind_cls, height_limit=6, max_depth=2)
 
     assert toolbox.clone.func is tools.clone_individual
     population = toolbox.population(size=4)
     assert len(population) == 4
     assert all(isinstance(ind, gp.PrimitiveTree) for ind in population)
-    compiled = toolbox.compile(expr=population[0])
-    assert compiled(3.0) == compiled(3.0)
+    compiled = toolbox.compile(expr=gp.PrimitiveTree.from_string("add(1.0, ARG0)", pset))
+    assert compiled(3.0) == 4.0
     mates = toolbox.mate(toolbox.clone(population[0]), toolbox.clone(population[1]))
     (mutant,) = toolbox.mutate(toolbox.clone(population[0]))
     assert len(mates) == 2

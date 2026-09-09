@@ -35,7 +35,7 @@ __all__: list[str] = ["ea_policy"]
 
 
 def ea_policy(
-    toolbox: Toolbox,
+    toolbox: Toolbox,  # NOSONAR python:S107  n_evals matches sibling ea_* drivers
     population: list[Individual],
     decide: Callable[[PolicyObservation], str],
     generations: int,
