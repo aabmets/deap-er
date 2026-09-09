@@ -131,6 +131,7 @@ nav:
           - Island Models: examples/genetic_algorithms/islands.md
           - Genealogy: examples/genetic_algorithms/history.md
           - Evaluation Budget: examples/genetic_algorithms/eval_budget.md
+          - Noisy Fitness: examples/genetic_algorithms/noisy_fitness.md
           - Checkpoint Resume: examples/genetic_algorithms/checkpoint_resume.md
           - MAP-Elites: examples/genetic_algorithms/map_elites.md
       - Genetic Programming:
@@ -140,11 +141,17 @@ nav:
           - Symbolic Regression: examples/genetic_programming/symb_regr.md
           - Strongly Typed Classification: examples/genetic_programming/typed_classify.md
           - Informed Lexicase: examples/genetic_programming/lexicase.md
+          - Batch and Dynamic Lexicase: examples/genetic_programming/lexicase_batch.md
           - Semantic Variation: examples/genetic_programming/semantic_gp.md
+          - Homologous Crossover: examples/genetic_programming/homologous_gp.md
           - Program Teams: examples/genetic_programming/program_teams.md
           - Team and Archive: examples/genetic_programming/team_archive.md
           - Case Exams: examples/genetic_programming/case_exams.md
+          - Generalization Path: examples/genetic_programming/generalization_path.md
           - Columnar Programs: examples/genetic_programming/columnar_gp.md
+          - Interval Analysis: examples/genetic_programming/tape_interval.md
+          - Structural Meta-Case: examples/genetic_programming/structural_meta_case.md
+          - Memetic and Affine: examples/genetic_programming/memetic_affine.md
           - Push GP: examples/genetic_programming/push_gp.md
       - Evolution Strategies:
           - Standard CMA: examples/evolution_strategies/cma_strat.md

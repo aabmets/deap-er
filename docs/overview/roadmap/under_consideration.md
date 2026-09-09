@@ -1,13 +1,16 @@
 # Under consideration
 
 Ideas that compose the same pieces as the numbered backlog, but
-are not on it yet. They wait on a profile, a sequel to a planned
+are not on it yet. They wait on a profile, a sequel to a shipped
 item, or a recipe the caller can write today. Promotion onto the
 [overview](index.md) table needs a documented gap after the item
 they depend on — not a catalog of every named algorithm.
 
-The numbered backlog is [37–43](index.md) on the
-overview table. This page is the rest.
+The numbered backlog on the [overview](index.md) table is **items
+1–43**, and that decade is **shipped**. This page is what remains:
+catalog work, many-objective extensions, and thin wrappers the
+library deliberately does not own. Ideas that are off the library
+entirely live on [Not planned](not_planned.md).
 
 | Idea | Why later |
 |:-----|:----------|
@@ -15,8 +18,8 @@ overview table. This page is the rest.
 | [RVEA and R-NSGA-II](#rvea-and-r-nsga-ii) | NSGA-III, MOEA/D, and AGE-MOEA-II already cover the usual many-objective set. |
 | [Adaptive DE strategy](#adaptive-de-strategy) | `mut_de` is shipped. SHADE memory is a generate/update wrapper, not the next program-search gap. |
 | [Archive-improving CMA](#archive-improving-cma) | Archives and CMA both shipped. The meeting point waits on a caller who needs CMA-ME. |
-| [Plexicase](#plexicase) | Item 10 deferred it until a profile shows selection dominating after matrix lexicase, [item 27](features_21_30.md#27-batch-epsilon-lexicase-and-down-sampled-tournament), and [item 28](features_21_30.md#28-dynamic-epsilon-and-downsample-schedule). |
-| [Dominated novelty search](#dominated-novelty-search) | Same family as [item 29](features_21_30.md#29-novelty-selection-and-isoline). |
+| [Plexicase](#plexicase) | Item 10 deferred it until a profile shows selection dominating after shipped batch ε-lexicase ([item 27](features_21_30.md#27-batch-epsilon-lexicase-and-down-sampled-tournament)) and dynamic ε / downsample ([item 28](features_21_30.md#28-dynamic-epsilon-and-downsample-schedule)). |
+| [Dominated novelty search](#dominated-novelty-search) | Same family as shipped [item 29](features_21_30.md#29-novelty-selection-and-isoline). |
 | [Multi-objective MAP-Elites](#multi-objective-map-elites) | Sequel to items 29 and 33. `ParetoFront` already exists. |
 | [CMA-MAE and MO-CMA-MAE](#cma-mae-and-mo-cma-mae) | Sequel to [archive-improving CMA](#archive-improving-cma). |
 | [Phenotypic probe descriptors](#phenotypic-probe-descriptors) | `interpret_tapes` on a short probe plus `semantic_project`. |
@@ -30,13 +33,10 @@ overview table. This page is the rest.
 | [Active CMA and mirrored sampling](#active-cma-and-mirrored-sampling) | Flags on `Strategy`. |
 | [Mixed-integer CMA](#mixed-integer-cma) | Sibling of shipped boxed CMA, not program search. |
 | [SNES and CEM](#snes-and-cem) | Wait until a user hits a wall after sep-CMA. |
-| [Adaptive operator rates](#adaptive-operator-rates) | After [item 33](features_31_40.md#33-evaluation-budget-and-eval-cache). |
+| [Adaptive operator rates](#adaptive-operator-rates) | After shipped [item 33](features_31_40.md#33-evaluation-budget-and-eval-cache); needs a profile where fixed `cx_prob` / `mut_prob` is the bottleneck. |
 | [Batched var_and uniforms](#batched-var_and-uniforms) | Housekeeping for the tiny `ea_simple` bar. |
 | [WFG and constrained DTLZ](#wfg-and-constrained-dtlz) | Benchmarks, not library surface. |
-| [`step_program_search`](#step_program_search) | A wrapper that wants to become a framework. Items 41–43 are the thin recipes. |
-
-Ideas that are off the library entirely live on
-[Not planned](not_planned.md).
+| [`step_program_search`](#step_program_search) | A wrapper that wants to become a framework. Shipped items 41–43 are the thin recipes. |
 
 ---
 
@@ -133,12 +133,13 @@ probability that can be annealed or mixed.
 
 **Today.** `sel_lexicase` and `sel_epsilon_lexicase` filter a
 packed case matrix. Item 10 already said plexicase waits until
-down-sampling and that path are not enough.
+down-sampling and that path are not enough. Items 27–28 now
+ship batch ε-lexicase, tournament cases, and dynamic ε /
+downsample schedules.
 
-**Why later.** Ship [item 27](features_21_30.md#27-batch-epsilon-lexicase-and-down-sampled-tournament)
-and [item 28](features_21_30.md#28-dynamic-epsilon-and-downsample-schedule)
-first. If a columnar run with many cases still spends its time
-in `lexicase_select_vectorized`, then plexicase.
+**Why later.** Try the shipped selectors and schedules first.
+If a columnar run with many cases still spends its time in
+`lexicase_select_vectorized`, then plexicase.
 
 ---
 
@@ -224,7 +225,8 @@ timestamps.
 **Today.** `case_errors` accepts ranges or a mask.
 `CaseExam` stores those shapes. Chronological splits stay on
 the caller. [Item 41](features_41_50.md#41-case-structured-generalization-path)
-is a last-fraction holdout only.
+ships a last-fraction holdout, train-only lexicase, and case
+halving — not expanding windows or embargo.
 
 **Why later.** Item 6 already refused to own splits. Expanding
 windows, embargo, and purge are still easy for the caller.
@@ -344,10 +346,11 @@ generation's archive or lexicase wins. Success-based `cx_prob`
 / `mut_prob` is the older version.
 
 **Today.** `var_and` / `var_or` take fixed probabilities.
-
-**Why later.** Policy, after
 [item 33](features_31_40.md#33-evaluation-budget-and-eval-cache)
-makes evaluation budget first-class.
+already ships `n_evals=` and `EvalCache`.
+
+**Why later.** Policy, after a profile shows fixed operator
+rates — not evaluation budget — are the bottleneck.
 
 ---
 
@@ -391,11 +394,11 @@ fitness.
 `ea_simple` / `ea_policy` / `step_islands` / `ea_map_elites`
 are the thin loops. `ea_policy` is observe → decide → apply
 plus `var_and`; it does not compose Slim, tune, archives, or
-teams.
+teams. Shipped [items 41–43](index.md) document the
+generalization path, memetic leash, and team-archive recipes
+callers wire today.
 
 **Why later.** A wrapper that wants to become a framework.
-[Items 41–43](index.md) are the thin recipes (held-out
-lexicase / halving, a memetic leash, team plus archive).
 Mention this wrapper; do not ship it until someone hits a
 documented composition bug that a helper would have
 prevented.
