@@ -109,7 +109,8 @@ def evaluate_columnar(
         parallel: If True, run the Numba path with one workspace
             per thread.
         empty: Fitness used when a prediction has too few finite
-            samples, or when every case is empty.
+            samples, when ``cases`` is empty, or when every case
+            is empty.
         min_valid: Minimum finite overlap required when ``cases``
             is omitted. Defaults to half the target length.
         reduce: When ``cases`` is set, return the mean of the case
@@ -166,6 +167,8 @@ def _score_prediction(
 ) -> tuple[float, ...]:
     if cases is not None:
         errors = case_errors(predicted, target, cases, empty=empty)
+        if not errors:
+            return (empty,) if reduce else errors
         if not reduce:
             return errors
         return (float(numpy.mean(errors)),)

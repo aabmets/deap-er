@@ -67,7 +67,11 @@ def ea_policy(
 
     Requires ``mate``, ``mutate``, and ``evaluate`` (or
     ``evaluate_batch``) on ``toolbox``. ``select`` is required only
-    when no case subset is in play.
+    when no case subset is in play. Policy-action evaluations count
+    toward ``n_evals`` and the generation ``nevals``. When a policy
+    step meets or exceeds that budget, the generation is recorded
+    without variation so the population is not replaced with
+    unevaluated offspring.
 
     Args:
         toolbox: Toolbox with the evolution operators.
@@ -97,8 +101,11 @@ def ea_policy(
         log_time: If True, record per-generation ``duration``.
         fronts: Optional list that receives a ParetoFront snapshot
             of each generation's population.
-        n_evals: Optional evaluation budget. ``None`` keeps the
-            generation limit only.
+        n_evals: Optional evaluation budget. Policy-action
+            evaluations count toward the total. When a policy
+            step meets or exceeds this count, that generation is
+            recorded without variation and the loop stops.
+            ``None`` keeps the generation limit only.
 
     Returns:
         The final population and the logbook.
@@ -108,8 +115,8 @@ def ea_policy(
     """
     check_n_evals(n_evals)
     logbook = new_logbook(stats, log_time=log_time, extra_fields=("action",))
-    extras = action_kwargs or {}
-    observe = observe_kwargs or {}
+    extras = dict(action_kwargs) if action_kwargs else {}
+    observe = dict(observe_kwargs) if observe_kwargs else {}
     active_cases = list(cases) if cases is not None else None
     rejected = False
     action = POLICY_ACTION_SKIP_PROMOTE
@@ -161,6 +168,23 @@ def ea_policy(
         _sync_guard_evals(guard, used)
         if applied_cases is not None:
             active_cases = applied_cases
+        extra = policy_row_extra(action, exams, train_score, held_out_score)
+        if budget_spent(n_evals, used):
+            _record(
+                logbook,
+                gen,
+                action_evals,
+                population,
+                population,
+                hof,
+                stats,
+                verbose,
+                logger,
+                time.perf_counter() - t0 if log_time else None,
+                fronts,
+                extra,
+            )
+            break
         offspring = select_policy_offspring(toolbox, population, active_cases)
         offspring = var_and(toolbox, offspring, cx_prob, mut_prob)
         nevals, used = consume_evals(toolbox, offspring, n_evals, used)
@@ -169,7 +193,7 @@ def ea_policy(
         _record(
             logbook,
             gen,
-            nevals,
+            nevals + action_evals,
             population,
             offspring,
             hof,
@@ -178,7 +202,7 @@ def ea_policy(
             logger,
             time.perf_counter() - t0 if log_time else None,
             fronts,
-            policy_row_extra(action, exams, train_score, held_out_score),
+            extra,
         )
         if budget_spent(n_evals, used):
             break
