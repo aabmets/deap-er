@@ -118,6 +118,7 @@ def ea_policy(
 
     t0 = time.perf_counter()
     nevals, used = consume_evals(toolbox, population, n_evals, 0)
+    _sync_guard_evals(guard, used)
     if active_cases is None:
         active_cases = initial_policy_cases(population, exams, n_cases)
     extra = policy_row_extra(action, exams, train_score, held_out_score)
@@ -141,24 +142,29 @@ def ea_policy(
     for gen in range(1, generations + 1):
         t0 = time.perf_counter()
         if guard is not None:
-            guard.begin_generation()
-        action, rejected, train_score, held_out_score, applied_cases = step_policy_generation(
-            decide,
-            population,
-            used=used,
-            rejected=rejected,
-            exams=exams,
-            guard=guard,
-            elite_count=elite_count,
-            extras=extras,
-            observe=observe,
-            toolbox=toolbox,
+            guard.begin_generation(gen)
+        action, rejected, train_score, held_out_score, applied_cases, action_evals = (
+            step_policy_generation(
+                decide,
+                population,
+                used=used,
+                rejected=rejected,
+                exams=exams,
+                guard=guard,
+                elite_count=elite_count,
+                extras=extras,
+                observe=observe,
+                toolbox=toolbox,
+            )
         )
+        used += action_evals
+        _sync_guard_evals(guard, used)
         if applied_cases is not None:
             active_cases = applied_cases
         offspring = select_policy_offspring(toolbox, population, active_cases)
         offspring = var_and(toolbox, offspring, cx_prob, mut_prob)
         nevals, used = consume_evals(toolbox, offspring, n_evals, used)
+        _sync_guard_evals(guard, used)
         population[:] = offspring
         _record(
             logbook,
@@ -178,6 +184,11 @@ def ea_policy(
             break
 
     return population, logbook
+
+
+def _sync_guard_evals(guard: PolicyActionGuard | None, used: int) -> None:
+    if guard is not None and used > guard.nevals_used:
+        guard.nevals_used = used
 
 
 def _record(

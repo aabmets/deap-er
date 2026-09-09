@@ -113,8 +113,9 @@ def evaluate_columnar(
         min_valid: Minimum finite overlap required when ``cases``
             is omitted. Defaults to half the target length.
         reduce: When ``cases`` is set, return the mean of the case
-            errors as a one-objective tuple. ``False`` returns the
-            per-case tuple for lexicase.
+            errors as a one-objective tuple, including a non-finite
+            empty-case value. ``False`` returns the per-case tuple
+            for lexicase.
 
     Returns:
         One fitness tuple per individual, in input order.
@@ -167,10 +168,7 @@ def _score_prediction(
         errors = case_errors(predicted, target, cases, empty=empty)
         if not reduce:
             return errors
-        finite = [error for error in errors if numpy.isfinite(error)]
-        if not finite:
-            return (empty,)
-        return (float(numpy.mean(finite)),)
+        return (float(numpy.mean(errors)),)
     valid = numpy.isfinite(predicted) & numpy.isfinite(target)
     if int(valid.sum()) < min_valid:
         return (empty,)
