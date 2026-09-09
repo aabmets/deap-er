@@ -21,6 +21,8 @@ from .private.various.clone import *
 from .private.various.constraints import *
 from .private.various.decorators import *
 from .private.various.eval_cache import *
+from .private.various.fitness_race import *
+from .private.various.fitness_resample import *
 from .private.various.hypervolume import *
 from .private.various.initializers import *
 from .private.various.least_contrib import *

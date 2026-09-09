@@ -300,9 +300,15 @@ Related: [item 7](features_1_10.md#7-non-bloating-semantic-variation),
 `EvalCache` when the key is unchanged; a noisy `evaluate`
 must use a key that includes the draw.
 
-**Today.** Lexicase and exams treat one draw as truth.
-`evaluate_invalid` scores each invalid once. `EvalCache` and
-`n_evals=` are shipped, so repeats are cheap enough to meter.
+**Today.** `resample(ind, evaluate, n)` averages ``n`` independent
+draws and optionally writes ``fitness.values``. Repeats route
+through ``EvalCache`` when ``cache=`` is set; ``noisy_draw_key``
+pairs a caller key with the draw index so identical draws hit
+the cache. ``race_stop`` adds one resample per survivor per
+round and drops challengers whose first objective is
+significantly worse than the leader (F-Race-shaped elimination).
+``race_eval_charge`` counts evaluate units for ``n_evals=``
+budgeting. ``evaluate`` stays on the caller.
 
 **Benefit.** Time-series and case-structured search treat a
 single history pass as an estimate. Racing spends the budget

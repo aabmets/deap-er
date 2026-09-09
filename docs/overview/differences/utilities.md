@@ -73,5 +73,15 @@
     `fit_weights=` when the matrix is wider than ``fitness.values``.
     DEAP has no equivalent. See the
     [columnar GP tutorial](../../tutorials/columnar_gp.md).
+17. `resample(ind, evaluate, n)` averages independent noisy draws
+    and optionally writes ``fitness.values``. Repeats go through
+    ``EvalCache`` when ``cache=`` is set; ``noisy_draw_key`` pairs
+    a caller key with the draw index so identical draws hit the
+    cache and a noisy ``evaluate`` must vary the key per draw.
+    ``race_stop`` runs F-Race-shaped elimination across survivors
+    (one resample per round, drop challengers significantly worse
+    on the first objective). ``race_eval_charge`` counts evaluate
+    units for ``n_evals=`` budgeting. Not a domain metric and not
+    a new algorithm loop. DEAP has no noisy resample helper.
 
 [deap-75]: https://github.com/DEAP/deap/issues/75
