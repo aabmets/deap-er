@@ -118,11 +118,12 @@ def test_tune_ephemerals_budget_requires_held_out_judge(ind_cls):
     train = tools.CaseExam.from_cases([1, 3], 4)
     held = tools.CaseExam.from_cases([2], 4)
     pool = tools.CaseExamPool([train], held_out=held)
+    evaluate = _target_evaluate(pset, 3.0)
     with pytest.raises(ValueError, match="held_out_evaluate"):
         gp.tune_ephemerals_budget(
             tree,
             strategy,
-            _target_evaluate(pset, 3.0),
+            evaluate,
             exams=pool,
         )
 
@@ -174,11 +175,12 @@ def test_tune_ephemerals_budget_requires_judge_for_explicit_held_out(ind_cls):
     tree = _two_leaf_tree(ind_cls, pset)
     strategy = tools.Strategy([0.0], 0.8, offsprings=2, survivors=1)
     held = tools.CaseExam.from_cases([2], 4)
+    evaluate = _target_evaluate(pset, 3.0)
     with pytest.raises(ValueError, match="held_out_evaluate"):
         gp.tune_ephemerals_budget(
             tree,
             strategy,
-            _target_evaluate(pset, 3.0),
+            evaluate,
             held_out=held,
         )
 
