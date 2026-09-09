@@ -26,14 +26,13 @@ from .tape_interval_ops import (
     WINDOWED,
     Summary,
     apply_binary,
-    apply_pair_window,
     apply_unary,
-    apply_window,
     hides_warmup,
     merge_arrays,
     pop_array,
     pop_mask,
 )
+from .tape_interval_window import apply_pair_window, apply_window
 
 __all__: list[str] = [
     "TapeFlags",

@@ -20,9 +20,7 @@ from .tape_lookback import opcode_lookback
 __all__: list[str] = [
     "Summary",
     "apply_binary",
-    "apply_pair_window",
     "apply_unary",
-    "apply_window",
     "hides_warmup",
     "merge_arrays",
     "pop_array",
@@ -81,7 +79,6 @@ WINDOWED = frozenset(
     }
 )
 PAIR_WINDOWED = frozenset({int(Opcode.ROLL_CORR), int(Opcode.ROLL_COV), int(Opcode.ROLL_BETA)})
-TS_OUTPUT = frozenset({int(Opcode.TS_RANK), int(Opcode.TS_ARGMAX), int(Opcode.TS_ARGMIN)})
 
 
 @dataclass(frozen=True)
@@ -222,41 +219,6 @@ def apply_binary(opcode: int, left: Summary, right: Summary, fill: float) -> Sum
             lo, hi = left.lo / right.hi, left.hi / right.lo
         return Summary(min(lo, hi), max(lo, hi), lookback, first_finite, const, can_finite, "array")
     raise ValueError(f"Opcode {opcode} has no interval certificate.")
-
-
-def apply_window(opcode: int, child: Summary, operand: int) -> Summary:
-    """Propagate one causal window opcode."""
-    extra = opcode_lookback(opcode, operand)
-    lookback = child.lookback + extra
-    warmup = extra if opcode in {int(Opcode.DELAY), int(Opcode.DIFF)} else max(extra - 1, 0)
-    first_finite = child.first_finite + warmup
-    if opcode in TS_OUTPUT:
-        if opcode == int(Opcode.TS_RANK):
-            lo, hi = 0.0, 1.0
-        else:
-            lo, hi = 0.0, float(max(operand - 1, 0))
-        return Summary(lo, hi, lookback, first_finite, False, child.can_finite, "array")
-    return Summary(
-        child.lo,
-        child.hi,
-        lookback,
-        first_finite,
-        child.const,
-        child.can_finite,
-        "array",
-    )
-
-
-def apply_pair_window(opcode: int, left: Summary, right: Summary, operand: int) -> Summary:
-    """Propagate one pair-window opcode."""
-    extra = opcode_lookback(opcode, operand)
-    lookback = max(left.lookback, right.lookback) + extra
-    first_finite = max(left.first_finite, right.first_finite) + max(extra - 1, 0)
-    lo = min(left.lo, right.lo)
-    hi = max(left.hi, right.hi)
-    const = left.const and right.const and left.lo == left.hi and right.lo == right.hi
-    can_finite = left.can_finite or right.can_finite
-    return Summary(lo, hi, lookback, first_finite, const, can_finite, "array")
 
 
 def pop_array(stack: list[Summary]) -> Summary:
