@@ -9,7 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [3.1.1] - 2026-09-09
 
-Fixed project logo URL in README.md
+### Changed
+
+- Updated performance section in README.md 
+- Updated performance page in library docs
+
+### Fixed
+
+- Replaced relative logo URL in README.md with absolute
+- Minor cosmetic fixes in README.md
 
 ## [3.1.0] - 2026-09-09
 
