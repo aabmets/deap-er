@@ -50,6 +50,16 @@ def test_affine_case_errors_identity_when_no_scorable_samples():
     )
 
 
+def test_affine_case_errors_does_not_mutate_inputs():
+    predicted = numpy.array([0.0, 1.0, 2.0, 3.0], copy=True)
+    target = numpy.array([1.0, 3.0, 5.0, 7.0], copy=True)
+    before_predicted = predicted.copy()
+    before_target = target.copy()
+    tools.affine_case_errors(predicted, target, [(0, 4)])
+    numpy.testing.assert_array_equal(predicted, before_predicted)
+    numpy.testing.assert_array_equal(target, before_target)
+
+
 def test_affine_case_errors_rejects_misaligned_inputs():
     with pytest.raises(ValueError, match="one-dimensional"):
         tools.affine_case_errors(numpy.array([[1.0, 2.0]]), numpy.array([1.0, 2.0]), [(0, 2)])

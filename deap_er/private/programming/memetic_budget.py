@@ -16,7 +16,7 @@ from typing import Any
 from deap_er.private.records.case_exam import CaseExam
 from deap_er.private.records.case_exam_pool import CaseExamPool
 
-from .memetic import tune_ephemerals
+from .memetic import numeric_leaves, tune_ephemerals
 from .memetic_defaults import (
     MEMETIC_DEFAULT_N_GEN,
     cap_tune_n_gen,
@@ -107,9 +107,7 @@ def tune_ephemerals_budget(
     judge_batch = evaluate_batch
     if resolved_held_out is not None:
         if held_out_evaluate is None and held_out_evaluate_batch is None:
-            raise ValueError(
-                "held_out exam requires held_out_evaluate or held_out_evaluate_batch"
-            )
+            raise ValueError("held_out exam requires held_out_evaluate or held_out_evaluate_batch")
         judge_evaluate = held_out_evaluate
         judge_batch = held_out_evaluate_batch
     if judge_evaluate is None and judge_batch is None:
@@ -121,7 +119,7 @@ def tune_ephemerals_budget(
         n_evals=n_evals,
         nevals_used=nevals_used,
     )
-    if capped < 1:
+    if capped < 1 or not numeric_leaves(individual):
         return individual, 0
     tune_ephemerals(
         individual,
