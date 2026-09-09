@@ -98,7 +98,7 @@ def print_results(best_ind):
     if mse >= 1.0:
         raise RuntimeError("Lexicase batch selectors failed to improve the seed-fixed floor.")
     print(f"\nBest mean case MSE: {mse:.4g}")
-    print(f"Selectors used: batch ε-lexicase, tournament cases, dynamic ε")
+    print("Selectors used: batch ε-lexicase, tournament cases, dynamic ε")
 
 
 def main():
