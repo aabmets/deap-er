@@ -196,6 +196,19 @@ print(len(cache), log.select("gen")[-1])
 `n_evals` still counts every fitness assignment, including cache
 hits. The wrapped callable runs only on a miss. A complete script is
 the [evaluation budget example](../examples/genetic_algorithms/eval_budget.md).
+
+For noisy fitness, repeat draws with `resample` and pair each draw
+with `noisy_draw_key` when the scorer is cached:
+
+```python
+cache = tools.EvalCache(evaluate)
+tools.resample(ind, evaluate, n=5, cache=cache, key="expr")
+```
+
+`race_stop` adds one resample per survivor per round and drops
+challengers whose rank on the first objective is still unstable.
+`race_eval_charge` counts evaluate units toward `n_evals=`.
+
 See the [Algorithms](../reference/algorithms.md) reference.
 The following examples demonstrate the most basic ways of solving
 optimization problems:
