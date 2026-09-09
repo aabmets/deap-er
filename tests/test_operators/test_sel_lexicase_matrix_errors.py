@@ -44,6 +44,52 @@ def test_validate_case_matrix_trust_checks_row_count_only(single_obj, make):
         validate_case_matrix(matrix, [first], trust=True)
 
 
+def test_validate_case_matrix_trust_allows_scalar_fitness_extra_columns(single_obj, make):
+    first = make(single_obj, [0], (0.5,))
+    second = make(single_obj, [1], (0.2,))
+    matrix = numpy.array(
+        [
+            [0.0, 1.0, 1.0],
+            [1.0, 0.0, 1.0],
+        ],
+        dtype=numpy.float64,
+    )
+
+    validate_case_matrix(matrix, [first, second], trust=True)
+
+
+def test_validate_case_matrix_trust_ignores_fitness_value_mismatch(single_obj, make):
+    first = make(single_obj, [0], (0.5,))
+    second = make(single_obj, [1], (0.2,))
+    matrix = numpy.array([[9.0, 8.0], [7.0, 6.0]], dtype=numpy.float64)
+
+    validate_case_matrix(matrix, [first, second], trust=True)
+
+
+def test_validate_case_matrix_trust_requires_two_dimensions(single_obj, make):
+    first = make(single_obj, [0], (0.5,))
+
+    with pytest.raises(ValueError, match="shape"):
+        validate_case_matrix(numpy.array([0.0, 1.0]), [first], trust=True)
+
+
+def test_validate_case_matrix_without_trust_rejects_extra_columns(single_obj, make):
+    first = make(single_obj, [0], (0.5,))
+    matrix = numpy.array([[0.0, 1.0, 1.0]], dtype=numpy.float64)
+
+    with pytest.raises(ValueError, match="shape"):
+        validate_case_matrix(matrix, [first], trust=False)
+
+
+def test_validate_case_matrix_without_trust_rejects_value_mismatch(multi_obj, make):
+    first = make(multi_obj, [0], (1.0, 2.0))
+    second = make(multi_obj, [1], (3.0, 4.0))
+    matrix = numpy.array([[1.0, 2.0], [3.0, 5.0]], dtype=numpy.float64)
+
+    with pytest.raises(ValueError, match="does not match"):
+        validate_case_matrix(matrix, [first, second], trust=False)
+
+
 def test_validate_case_matrix_empty_and_length_mismatch(multi_obj, make):
     with pytest.raises(ValueError, match="non-empty"):
         validate_case_matrix(numpy.zeros((0, 0)), [])

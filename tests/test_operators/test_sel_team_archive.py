@@ -8,9 +8,12 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from typing import cast
+
 import numpy
 import pytest
 from deap_er import Fitness, creator, tools
+from deap_er.private.records.archive_common import MapElitesArchive
 
 ARCH_FIT = "TEAM_ARCH_FIT"
 ARCH_IND = "TEAM_ARCH_IND"
@@ -98,6 +101,13 @@ def test_sel_team_archive_empty_raises():
         tools.sel_team_archive(archive, 1)
 
 
+def test_sel_team_archive_non_positive_sel_count_returns_empty():
+    archive = tools.GridArchive(ranges=[(0.0, 1.0)], bins=2)
+
+    assert tools.sel_team_archive(archive, 0) == []
+    assert tools.sel_team_archive(archive, -1) == []
+
+
 def test_sel_team_archive_does_not_rewrite_fitness(make, archive_types):
     archive, matrix, _ = _grid_archive(make, archive_types)
     before = {id(ind): ind.fitness.values for ind in archive}
@@ -107,16 +117,72 @@ def test_sel_team_archive_does_not_rewrite_fitness(make, archive_types):
     assert {id(ind): ind.fitness.values for ind in archive} == before
 
 
-def test_sel_team_archive_matrix_kwarg(make, archive_types, monkeypatch):
+def test_sel_team_archive_preserves_returned_team_fitness(make, archive_types):
     archive, matrix, _ = _grid_archive(make, archive_types)
+    before = {id(ind): ind.fitness.values for ind in archive}
 
-    def _spy_team(*args, **kwargs):
-        assert kwargs["matrix"] is matrix
-        assert kwargs["trust_matrix"] is True
-        return tools.sel_team(*args, **kwargs)
+    team = tools.sel_team_archive(archive, 2, matrix=matrix, trust_matrix=True)
 
-    monkeypatch.setattr("deap_er.private.operators.sel_team.sel_team", _spy_team)
-    tools.sel_team_archive(archive, 1, matrix=matrix, trust_matrix=True)
+    for member in team:
+        assert member.fitness.values == before[id(member)]
+
+
+def test_sel_team_archive_scalar_fitness_uses_trusted_matrix(make, archive_types):
+    wider = make(archive_types, [0], (0.1,))
+    narrower = make(archive_types, [1], (0.2,))
+    matrix = numpy.array([[1.0, 1.0, 1.0], [0.0, 0.0, 0.0]], dtype=numpy.float64)
+    archive = tools.UnstructuredArchive(2, min_distance=0.05)
+    archive.add(wider, (0.0, 0.0))
+    archive.add(narrower, (1.0, 1.0))
+
+    chosen = tools.sel_team_archive(archive, 1, matrix=matrix, trust_matrix=True)
+    assert chosen == [narrower]
+
+    with pytest.raises(ValueError, match="shape"):
+        tools.sel_team_archive(archive, 1, matrix=matrix)
+
+
+class _OccupiedArchive:
+    """Iterable occupied-cell book for delegation tests without archive.add."""
+
+    def __init__(self, elites):
+        self._elites = elites
+
+    def __iter__(self):
+        return iter(self._elites)
+
+    def __len__(self):
+        return len(self._elites)
+
+
+THREE_FIT = "TEAM_ARCH_THREE_FIT"
+THREE_IND = "TEAM_ARCH_THREE_IND"
+
+
+@pytest.fixture
+def three_cases():
+    creator.create_type(THREE_FIT, Fitness, weights=(-1.0, -1.0, -1.0))
+    creator.create_type(THREE_IND, list, fitness=creator.__dict__[THREE_FIT])
+    yield creator.__dict__[THREE_IND]
+    del creator.__dict__[THREE_FIT]
+    del creator.__dict__[THREE_IND]
+
+
+def test_sel_team_archive_cases_restrict_coverage(make, three_cases):
+    first = make(three_cases, [0], (0.0, 1.0, 1.0))
+    second = make(three_cases, [1], (1.0, 0.0, 1.0))
+    third = make(three_cases, [2], (1.0, 1.0, 0.0))
+    matrix = tools.fitness_case_matrix([first, second, third])
+    archive = _OccupiedArchive([first, second, third])
+
+    chosen = tools.sel_team_archive(
+        cast(MapElitesArchive, archive),
+        1,
+        cases=[2],
+        matrix=matrix,
+    )
+
+    assert chosen == [third]
 
 
 def test_sel_team_archive_matches_manual_sel_team(make, archive_types):
