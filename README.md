@@ -1,5 +1,3 @@
-# DEAP-ER
-
 <img src="https://aabmets.github.io/deap-er/images/deaper_logo.png" alt="Logo" width="400">
 
 [![PyPI - Python Version](https://img.shields.io/pypi/pyversions/deap-er)](https://pypi.org/project/deap-er/)
@@ -15,6 +13,9 @@
 [![Bugs](https://sonarcloud.io/api/project_badges/measure?project=aabmets_deap-er&metric=bugs)](https://sonarcloud.io/summary/new_code?id=aabmets_deap-er)
 [![Code Smells](https://sonarcloud.io/api/project_badges/measure?project=aabmets_deap-er&metric=code_smells)](https://sonarcloud.io/summary/new_code?id=aabmets_deap-er)
 [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?project=aabmets_deap-er&metric=ncloc)](https://sonarcloud.io/summary/new_code?id=aabmets_deap-er)
+
+
+# Overview
 
 DEAP-ER is a typed evolutionary-algorithm toolbox for Python 3.12 and
 newer. Register operators, run an algorithm. The published surface
