@@ -113,21 +113,15 @@ complete guide.
 
 ## Performance
 
-On the same genomes and GP expressions, deap-er is faster where DEAP
-still walks Python loops: NSGA convergence (~50×), NSGA-II (~21×),
-cached `compile_tree` (~18×), SPEA-II (~5×), and `clone_individual`
-(~4×). Tournament selection is about 2× after a batched integer draw.
-A tiny `ea_simple` OneMax loop stays a bit behind (~0.87×). Flip-bit
-mutation drains leftover uniforms with `rng.take_floats`, but `var_and`
-still draws one scalar `rng.random()` per mate-or-skip and per
-mutate-or-skip.
+On the same genomes and GP expressions, deap-er is fastest where DEAP
+still walks Python loops. The largest shared-case gains versus DEAP
+1.4.4 are lexicase selection (~68×), NSGA convergence (~45×), NSGA-II
+(~14×), cached `compile_tree` (~13×), SPEA-II (~5×), and
+`clone_individual` (~4×). Tournament selection is about 1.8× after a
+batched integer draw. A tiny `ea_simple` OneMax loop stays a bit
+behind (~0.87×).
 
-![Hot-path time of aabmets/deap-er versus DEAP/deap when shared](https://aabmets.github.io/deap-er/images/deaper_perf_bench.png)
-
-Each bar is the mean time of one deap-er run. Shared cases append
-the percent change versus DEAP
-(`(deap_er − deap) / deap × 100`; negative is faster). Details and
-how to reproduce are on the
+Charts, the full case list, and how to reproduce are on the
 [performance page](https://aabmets.github.io/deap-er/overview/performance/).
 
 ## Acknowledgments
