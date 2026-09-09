@@ -19,9 +19,11 @@
 DEAP-ER is a typed evolutionary-algorithm toolbox for Python 3.12 and
 newer. Register operators, run an algorithm. The published surface
 covers genetic algorithms and mixed encodings, tree and columnar GP
-(including memetic and semantic search helpers), a private Push
-policy loop, CMA (boxed, separable, and restarting), multi-objective
-and quality-diversity search, and case-structured selection.
+(including memetic and semantic search helpers and a private Push
+policy loop), CMA (boxed, separable, restarting, and MO-CMA),
+multi-objective and quality-diversity search, case-structured
+selection, co-evolution and island stepping, parallel evaluation,
+records and checkpoints, and common benchmarks.
 
 The library started as a rewrite of [DEAP](https://github.com/DEAP/deap).
 The toolbox model is the same; the API is not a drop-in rename.
@@ -124,7 +126,7 @@ how to reproduce are on the
 
 ## Acknowledgments
 
-DEAP-ER is a rewrite of [DEAP](https://github.com/DEAP/deap),
+DEAP-ER started as a rewrite of [DEAP](https://github.com/DEAP/deap),
 originally developed at the Computer Vision and Systems Laboratory (CVSL)
 at Université Laval.
 
