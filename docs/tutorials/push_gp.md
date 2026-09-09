@@ -104,7 +104,10 @@ elif result.applied:
 
 Skip tokens return `applied=False` and `rejected=False`. Fitness
 assignment stays on the caller — this helper is schema plus
-dispatch, not a second `ea_*` loop. See
+dispatch. `ea_policy` is the thin `ea_simple` wrapper that calls
+`begin_generation`, observe → decide → apply, then select / vary /
+evaluate. It is not `step_program_search`: no Slim, tune, archive,
+or team composition is baked in. See
 [Operators and Algorithms](operators_and_algorithms.md) and the
 [algorithms](../reference/algorithms.md) reference.
 
@@ -241,8 +244,8 @@ target.
 Evaluation, data loading, and any domain metric stay on the
 caller, same as every other toolbox loop. The library owns the
 observation schema, the action tokens, the held-out scoring
-convention, and the caps. It does not own a
-`step_program_search` that writes fitness.
+convention, the caps, and the thin `ea_policy` driver. It does
+not own a `step_program_search` that writes fitness.
 
 Related reference: [utilities](../reference/utilities.md),
 [operators](../reference/operators.md),

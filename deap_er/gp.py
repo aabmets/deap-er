@@ -10,6 +10,7 @@
 #
 from .private.programming.affine_write import write_affine_scale
 from .private.programming.columnar import Array, Mask, Window, make_column_pset
+from .private.programming.columnar_setup import columnar_pset, evaluate_columnar
 from .private.programming.compilers import (
     build_tree_graph,
     clear_compile_cache,
@@ -79,6 +80,7 @@ from .private.programming.primitives.primitive_set import PrimitiveSet
 from .private.programming.primitives.primitive_set_typed import PrimitiveSetTyped
 from .private.programming.primitives.primitive_tree import PrimitiveTree
 from .private.programming.promote import promote_subtree, promoted_names
+from .private.programming.register_gp import register_gp
 from .private.programming.semantic import cx_semantic, mut_semantic
 from .private.programming.slim.slim_ops import (
     cx_slim_donor,
@@ -128,6 +130,9 @@ __all__ = [
     "Mask",
     "Window",
     "make_column_pset",
+    "columnar_pset",
+    "evaluate_columnar",
+    "register_gp",
     "cx_one_point",
     "cx_one_point_leaf_biased",
     "generate",

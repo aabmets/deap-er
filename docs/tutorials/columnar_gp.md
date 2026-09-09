@@ -177,9 +177,38 @@ gp.ts_argmax(flow, 8)
 
 ## Evolving
 
-Register `clone_individual` rather than leaving the default `deepcopy`.
-Tree nodes are immutable once created, so an offspring only needs a new
-list and a fresh fitness:
+`columnar_pset` is the one-call kit: `make_column_pset` plus the
+NumPy and window primitives, and a window ephemeral. Pass
+`pair_windows=True` / `ts=True` for those kits.
+
+`register_gp` wires the aliases people forget — `clone_individual`
+instead of `deepcopy`, `compile_tree`, half-and-half init, one-point
+crossover, uniform mutation, and a height `static_limit`. Fitness
+stays on you. `evaluate_columnar` is the `evaluate_batch` helper:
+unique trees are lowered once, scored with `interpret_tapes`, and
+warmup `nan` samples are dropped from the MSE.
+
+```python
+from deap_er import Fitness, Toolbox, creator, gp, tools
+
+pset = gp.columnar_pset(["level", "flow"], window=(2, 64))
+creator.create_type("FitnessMin", Fitness, weights=(-1.0,))
+creator.create_type("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
+
+toolbox = Toolbox()
+gp.register_gp(toolbox, pset, individual=creator.Individual, backend="opcode")
+toolbox.register(
+    "evaluate_batch",
+    gp.evaluate_columnar,
+    pset=pset,
+    matrix=matrix,
+    target=target,
+)
+```
+
+You can still register the pieces yourself. Tree nodes are immutable
+once created, so an offspring only needs a new list and a fresh
+fitness:
 
 ```python
 from deap_er import Toolbox, gp, tools

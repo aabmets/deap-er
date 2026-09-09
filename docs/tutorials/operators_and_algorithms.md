@@ -217,6 +217,25 @@ pop, log = tools.ea_simple(
 )
 ```
 
+`ea_policy` is the same loop plus one observe → decide →
+`apply_policy_action` step per generation. Pass a `decide`
+callable; fitness stays on the toolbox. When an exam pool is
+given, selection is lexicase on the current `cases=` subset.
+
+```python
+pop, log = tools.ea_policy(
+    toolbox,
+    pop,
+    decide,
+    generations=40,
+    cx_prob=0.5,
+    mut_prob=0.2,
+    exams=pool,
+    hof=hof,
+    stats=stats,
+)
+```
+
 **Using a variation function**
 
 ```python

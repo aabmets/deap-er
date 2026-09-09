@@ -21,62 +21,34 @@ def make_target(columns):
     return gp.rolling_beta(level, flow, 4) + gp.ts_rank(level, 6)
 
 
-def evaluate_batch(individuals, pset, matrix, target):
-    if not individuals:
-        return []
-    unique = {}
-    tapes = []
-    index = []
-    for individual in individuals:
-        key = str(individual)
-        slot = unique.get(key)
-        if slot is None:
-            unique[key] = slot = len(tapes)
-            tapes.append(gp.lower_tree(individual, pset))
-        index.append(slot)
-    predicted = gp.interpret_tapes(tapes, matrix, backend="opcode")
-    return [score_prediction(predicted[i], target) for i in index]
-
-
-def score_prediction(predicted, target):
-    errors = tools.case_errors(predicted, target, CASES)
-    return (float(numpy.mean(errors)),)
-
-
 def setup():
     columns = make_columns()
     target = make_target(columns)
     matrix = numpy.column_stack(columns)
 
-    pset = gp.make_column_pset(COLUMNS)
-    gp.add_numpy_primitives(pset)
-    gp.add_window_primitives(pset)
-    gp.add_pair_window_primitives(pset)
-    gp.add_ts_primitives(pset)
-    gp.add_window_ephemeral(pset, "window", 2, 8)
+    pset = gp.columnar_pset(COLUMNS, window=(2, 8), pair_windows=True, ts=True)
 
     creator.create_type("FitnessMin", Fitness, weights=(-1.0,))
     creator.create_type("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
 
     toolbox = Toolbox()
-    toolbox.register("expr", gp.gen_half_and_half, prim_set=pset, min_depth=1, max_depth=3)
-    toolbox.register("individual", tools.init_iterate, creator.Individual, toolbox.expr)
-    toolbox.register("population", tools.init_repeat, list, toolbox.individual)
-    toolbox.register("clone", tools.clone_individual)
-    toolbox.register("compile", gp.compile_tree, prim_set=pset, backend="opcode")
+    gp.register_gp(
+        toolbox,
+        pset,
+        individual=creator.Individual,
+        min_depth=1,
+        max_depth=3,
+        height_limit=8,
+        backend="opcode",
+    )
     toolbox.register(
         "evaluate_batch",
-        evaluate_batch,
+        gp.evaluate_columnar,
         pset=pset,
         matrix=matrix,
         target=target,
+        cases=CASES,
     )
-    toolbox.register("select", tools.sel_tournament, contestants=3)
-    toolbox.register("mate", gp.cx_one_point)
-    toolbox.register("expr_mut", gp.gen_full, min_depth=0, max_depth=2)
-    toolbox.register("mutate", gp.mut_uniform, expr=toolbox.expr_mut, prim_set=pset)
-    toolbox.decorate("mate", gp.static_limit(lambda ind: ind.height, 8))
-    toolbox.decorate("mutate", gp.static_limit(lambda ind: ind.height, 8))
 
     stats = tools.Statistics(lambda ind: ind.fitness.values)
     stats.register("avg", numpy.mean)
