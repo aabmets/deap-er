@@ -57,7 +57,7 @@ surface.
 | 38 | [Structural meta-case regularization](features_31_40.md#38-structural-meta-case-regularization) | `operators`, `utilities` | planned |
 | 39 | [Homologous and semantic crossover](features_31_40.md#39-homologous-and-semantic-crossover) | `gp` | shipped |
 | 40 | [Noisy fitness resample](features_31_40.md#40-noisy-fitness-resample) | `utilities` | planned |
-| 41 | [Case-structured generalization path](features_41_50.md#41-case-structured-generalization-path) | `utilities` + docs | planned |
+| 41 | [Case-structured generalization path](features_41_50.md#41-case-structured-generalization-path) | `utilities` + docs | shipped |
 | 42 | [Memetic and affine leash](features_41_50.md#42-memetic-and-affine-leash) | `gp`, `utilities` | shipped |
 | 43 | [Team and archive recipe](features_41_50.md#43-team-and-archive-recipe) | `operators`, `records` | shipped |
 
