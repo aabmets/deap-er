@@ -22,6 +22,7 @@ from .tape_interval_ops import (
     BINARY_PROTECTED,
     COMPARISONS,
     PAIR_WINDOWED,
+    STACK_UNDERFLOW,
     UNARY,
     WINDOWED,
     Summary,
@@ -29,8 +30,7 @@ from .tape_interval_ops import (
     apply_unary,
     hides_warmup,
     merge_arrays,
-    pop_array,
-    pop_mask,
+    normalize_bounds,
 )
 from .tape_interval_window import apply_pair_window, apply_window
 
@@ -65,7 +65,7 @@ class TapeFlags:
 @dataclass(frozen=True)
 class _WalkResult:
     summary: Summary
-    hides_warmup: bool
+    warmup_hidden: bool
 
 
 def bounds_from_matrix(matrix: numpy.ndarray | Sequence[Sequence[float]]) -> numpy.ndarray:
@@ -107,7 +107,7 @@ def tape_interval(
     Raises:
         ValueError: If the tape is malformed or holds a consumer opcode.
     """
-    walked = _walk_tape(tape, _normalize_bounds(column_bounds, tape.columns))
+    walked = _walk_tape(tape, normalize_bounds(column_bounds, tape.columns))
     return walked.summary.lo, walked.summary.hi
 
 
@@ -133,13 +133,13 @@ def tape_flags(
     """
     if n_rows < 0:
         raise ValueError("n_rows must be at least 0.")
-    walked = _walk_tape(tape, _normalize_bounds(column_bounds, tape.columns))
+    walked = _walk_tape(tape, normalize_bounds(column_bounds, tape.columns))
     summary = walked.summary
     scorable = summary.can_finite and summary.first_finite < n_rows
     return TapeFlags(
         all_nan=not scorable,
         constant=scorable and summary.const and summary.lo == summary.hi,
-        hides_warmup=walked.hides_warmup,
+        hides_warmup=walked.warmup_hidden,
     )
 
 
@@ -166,16 +166,6 @@ def tape_skip_score(
     return tape_flags(tape, column_bounds, n_rows=n_rows).skip_score
 
 
-def _normalize_bounds(
-    column_bounds: numpy.ndarray | Sequence[tuple[float, float]],
-    columns: int,
-) -> numpy.ndarray:
-    bounds = numpy.asarray(column_bounds, dtype=numpy.float64)
-    if bounds.shape != (columns, 2):
-        raise ValueError(f"The tape expects {columns} column bounds, got shape {bounds.shape}.")
-    return bounds
-
-
 def _walk_tape(tape: Tape, column_bounds: numpy.ndarray) -> _WalkResult:
     stack: list[Summary] = []
     hides = False
@@ -194,18 +184,18 @@ def _walk_tape(tape: Tape, column_bounds: numpy.ndarray) -> _WalkResult:
             stack.append(Summary(value, value, 0, 0, True, numpy.isfinite(value), "array"))
             continue
         if opcode in COMPARISONS:
-            right = pop_array(stack)
-            left = pop_array(stack)
+            right = _pop_array(stack)
+            left = _pop_array(stack)
             compared = max(left.lookback, right.lookback)
             stack.append(Summary(0.0, 1.0, 0, 0, False, True, "mask", compared))
             continue
         if opcode == int(Opcode.NOT):
-            mask = pop_mask(stack)
+            mask = _pop_mask(stack)
             stack.append(Summary(0.0, 1.0, 0, 0, False, True, "mask", mask.compared_lookback))
             continue
         if opcode in {int(Opcode.AND), int(Opcode.OR)}:
-            right = pop_mask(stack)
-            left = pop_mask(stack)
+            right = _pop_mask(stack)
+            left = _pop_mask(stack)
             stack.append(
                 Summary(
                     0.0,
@@ -220,28 +210,28 @@ def _walk_tape(tape: Tape, column_bounds: numpy.ndarray) -> _WalkResult:
             )
             continue
         if opcode == int(Opcode.WHERE):
-            on_false = pop_array(stack)
-            on_true = pop_array(stack)
-            condition = pop_mask(stack)
+            on_false = _pop_array(stack)
+            on_true = _pop_array(stack)
+            condition = _pop_mask(stack)
             hides |= hides_warmup(condition, on_true, on_false)
             stack.append(merge_arrays(on_true, on_false))
             continue
         if opcode in UNARY:
-            child = pop_array(stack)
+            child = _pop_array(stack)
             stack.append(apply_unary(opcode, child, tape.fill))
             continue
         if opcode in BINARY or opcode in BINARY_PROTECTED:
-            right = pop_array(stack)
-            left = pop_array(stack)
+            right = _pop_array(stack)
+            left = _pop_array(stack)
             stack.append(apply_binary(opcode, left, right, tape.fill))
             continue
         if opcode in WINDOWED:
-            child = pop_array(stack)
+            child = _pop_array(stack)
             stack.append(apply_window(opcode, child, operand))
             continue
         if opcode in PAIR_WINDOWED:
-            right = pop_array(stack)
-            left = pop_array(stack)
+            right = _pop_array(stack)
+            left = _pop_array(stack)
             stack.append(apply_pair_window(opcode, left, right, operand))
             continue
         if opcode not in OPCODES_ARITY:
@@ -252,3 +242,23 @@ def _walk_tape(tape: Tape, column_bounds: numpy.ndarray) -> _WalkResult:
     if root.kind != "array":
         raise ValueError("The tape is malformed and leaves no result.")
     return _WalkResult(root, hides)
+
+
+def _pop_array(stack: list[Summary]) -> Summary:
+    value = _pop(stack)
+    if value.kind != "array":
+        raise ValueError(STACK_UNDERFLOW)
+    return value
+
+
+def _pop_mask(stack: list[Summary]) -> Summary:
+    value = _pop(stack)
+    if value.kind != "mask":
+        raise ValueError(STACK_UNDERFLOW)
+    return value
+
+
+def _pop(stack: list[Summary]) -> Summary:
+    if not stack:
+        raise ValueError(STACK_UNDERFLOW)
+    return stack.pop()

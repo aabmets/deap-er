@@ -86,6 +86,35 @@ def test_evaluate_columnar_uses_case_errors_and_rejects_bad_target():
         gp.evaluate_columnar([tree], pset, matrix, numpy.ones((8, 1)))
 
 
+def test_evaluate_columnar_static_filter_skips_all_nan_programs():
+    pset = gp.columnar_pset(["level", "flow"], window=None)
+    level = numpy.linspace(0.0, 1.0, 6)
+    flow = numpy.linspace(0.0, 1.0, 6)
+    target = level.copy()
+    tree = gp.PrimitiveTree.from_string("rolling_mean(level, 8)", pset)
+    matrix = numpy.column_stack([level, flow])
+    with mock.patch("deap_er.private.programming.columnar_setup.interpret_tapes") as run:
+        scores = gp.evaluate_columnar([tree], pset, matrix, target, min_valid=1, empty=8.0)
+    assert scores == [(8.0,)]
+    run.assert_not_called()
+
+
+def test_evaluate_columnar_static_filter_skips_warmup_hiding_programs():
+    pset = gp.columnar_pset(["level", "flow"], window=None)
+    level = numpy.linspace(0.0, 1.0, 16)
+    flow = numpy.linspace(0.0, 1.0, 16)
+    target = level.copy()
+    tree = gp.PrimitiveTree.from_string(
+        "vwhere(vgt(rolling_mean(level, 5), flow), level, flow)",
+        pset,
+    )
+    matrix = numpy.column_stack([level, flow])
+    with mock.patch("deap_er.private.programming.columnar_setup.interpret_tapes") as run:
+        scores = gp.evaluate_columnar([tree], pset, matrix, target, min_valid=1, empty=7.0)
+    assert scores == [(7.0,)]
+    run.assert_not_called()
+
+
 def test_evaluate_columnar_static_filter_skips_constant_programs():
     pset = gp.columnar_pset(["level"], window=None)
     level = numpy.full(8, 2.0)

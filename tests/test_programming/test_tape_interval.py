@@ -88,6 +88,14 @@ def test_tape_flags_marks_a_constant_column_load():
     assert flags.skip_score
 
 
+def test_tape_flags_marks_nan_plus_finite_as_all_nan():
+    tape = _tape("vadd(first, second)")
+    bounds = numpy.array([[numpy.nan, numpy.nan], [0.0, 1.0]], dtype=numpy.float64)
+    flags = gp.tape_flags(tape, bounds, n_rows=8)
+    assert flags.all_nan
+    assert flags.skip_score
+
+
 def test_tape_flags_marks_vwhere_that_hides_warmup():
     tape = _tape("vwhere(vgt(rolling_mean(first, 5), second), first, second)")
     bounds = numpy.array([[0.0, 1.0], [0.0, 1.0]], dtype=numpy.float64)

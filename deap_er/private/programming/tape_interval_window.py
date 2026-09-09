@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 from .opcode_set import Opcode
-from .tape_interval_ops import Summary
+from .tape_interval_ops import Summary, both_can_be_finite
 from .tape_lookback import opcode_lookback
 
 __all__: list[str] = ["apply_pair_window", "apply_window"]
@@ -50,5 +50,5 @@ def apply_pair_window(opcode: int, left: Summary, right: Summary, operand: int) 
     lo = min(left.lo, right.lo)
     hi = max(left.hi, right.hi)
     const = left.const and right.const and left.lo == left.hi and right.lo == right.hi
-    can_finite = left.can_finite or right.can_finite
+    can_finite = both_can_be_finite(left, right)
     return Summary(lo, hi, lookback, first_finite, const, can_finite, "array")

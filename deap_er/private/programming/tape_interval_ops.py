@@ -10,6 +10,7 @@
 #
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 import numpy
@@ -21,10 +22,10 @@ __all__: list[str] = [
     "Summary",
     "apply_binary",
     "apply_unary",
+    "both_can_be_finite",
     "hides_warmup",
     "merge_arrays",
-    "pop_array",
-    "pop_mask",
+    "normalize_bounds",
 ]
 
 STACK_UNDERFLOW = "The tape is malformed and underflows the interval stack."
@@ -95,6 +96,28 @@ class Summary:
     compared_lookback: int = 0
 
 
+def normalize_bounds(
+    column_bounds: numpy.ndarray | Sequence[tuple[float, float]],
+    columns: int,
+) -> numpy.ndarray:
+    """Validate and coerce per-column ``(low, high)`` bounds.
+
+    Args:
+        column_bounds: Caller-supplied bounds for each column.
+        columns: Number of columns the tape expects.
+
+    Returns:
+        A ``(columns, 2)`` ``float64`` bounds array.
+
+    Raises:
+        ValueError: If the bounds shape does not match ``columns``.
+    """
+    bounds = numpy.asarray(column_bounds, dtype=numpy.float64)
+    if bounds.shape != (columns, 2):
+        raise ValueError(f"The tape expects {columns} column bounds, got shape {bounds.shape}.")
+    return bounds
+
+
 def hides_warmup(condition: Summary, on_true: Summary, on_false: Summary) -> bool:
     """Return whether ``vwhere`` can mask causal warmup ``nan``."""
     if condition.compared_lookback <= 0:
@@ -116,6 +139,11 @@ def merge_arrays(left: Summary, right: Summary) -> Summary:
         left.can_finite or right.can_finite,
         "array",
     )
+
+
+def both_can_be_finite(left: Summary, right: Summary) -> bool:
+    """Return whether both operands may be finite on the same row."""
+    return left.can_finite and right.can_finite
 
 
 def apply_unary(opcode: int, child: Summary, fill: float) -> Summary:
@@ -166,7 +194,7 @@ def apply_binary(opcode: int, left: Summary, right: Summary, fill: float) -> Sum
     """Propagate one binary opcode."""
     lookback = max(left.lookback, right.lookback)
     first_finite = max(left.first_finite, right.first_finite)
-    can_finite = left.can_finite or right.can_finite
+    can_finite = both_can_be_finite(left, right)
     const = left.const and right.const and left.lo == left.hi and right.lo == right.hi
     if opcode == int(Opcode.ADD):
         return Summary(
@@ -219,26 +247,3 @@ def apply_binary(opcode: int, left: Summary, right: Summary, fill: float) -> Sum
             lo, hi = left.lo / right.hi, left.hi / right.lo
         return Summary(min(lo, hi), max(lo, hi), lookback, first_finite, const, can_finite, "array")
     raise ValueError(f"Opcode {opcode} has no interval certificate.")
-
-
-def pop_array(stack: list[Summary]) -> Summary:
-    """Pop an array summary or raise on underflow."""
-    value = pop(stack)
-    if value.kind != "array":
-        raise ValueError(STACK_UNDERFLOW)
-    return value
-
-
-def pop_mask(stack: list[Summary]) -> Summary:
-    """Pop a mask summary or raise on underflow."""
-    value = pop(stack)
-    if value.kind != "mask":
-        raise ValueError(STACK_UNDERFLOW)
-    return value
-
-
-def pop(stack: list[Summary]) -> Summary:
-    """Pop the top summary or raise on underflow."""
-    if not stack:
-        raise ValueError(STACK_UNDERFLOW)
-    return stack.pop()
