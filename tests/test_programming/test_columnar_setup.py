@@ -22,7 +22,7 @@ def test_columnar_pset_registers_the_standard_kits():
     assert pset.arguments == ["level", "flow"]
     assert "vadd" in pset.mapping
     assert "delay" in pset.mapping
-    assert "kit_window" in pset.mapping
+    assert pset.terminals[gp.Window]
     assert "rolling_corr" not in pset.mapping
     assert "ts_rank" not in pset.mapping
 
@@ -37,7 +37,7 @@ def test_columnar_pset_opts_into_pair_and_ts_kits():
 
     assert "rolling_beta" in pset.mapping
     assert "ts_rank" in pset.mapping
-    assert "window" not in pset.mapping
+    assert not pset.terminals.get(gp.Window)
 
 
 def test_evaluate_columnar_scores_unique_trees_once():
@@ -63,9 +63,7 @@ def test_evaluate_columnar_uses_case_errors_and_rejects_bad_target():
     matrix = numpy.column_stack([level])
 
     reduced = gp.evaluate_columnar([tree], pset, matrix, target, cases=[(0, 4), (4, 8)])
-    full = gp.evaluate_columnar(
-        [tree], pset, matrix, target, cases=[(0, 4), (4, 8)], reduce=False
-    )
+    full = gp.evaluate_columnar([tree], pset, matrix, target, cases=[(0, 4), (4, 8)], reduce=False)
     assert reduced == [(0.0,)]
     assert full == [(0.0, 0.0)]
     assert gp.evaluate_columnar([], pset, matrix, target) == []

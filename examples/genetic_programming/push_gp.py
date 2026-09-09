@@ -127,8 +127,9 @@ def main():
         verbose=True,
     )
     last = logbook[-1]
-    gap = last.get("generalization_gap") or {}
-    print_results(hof[0], last["action"], gap.get("held_out"))
+    gap = logbook.chapters.get("generalization_gap")
+    held_out = gap[-1]["held_out"] if gap else None
+    print_results(hof[0], last["action"], held_out)
 
 
 if __name__ == "__main__":

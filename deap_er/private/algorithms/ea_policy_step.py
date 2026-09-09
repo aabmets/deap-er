@@ -179,7 +179,9 @@ def step_policy_generation(
         if exams.held_out is not None:
             kwargs.setdefault("held_out", exams.held_out)
     result = apply_policy_action(action, **kwargs)
-    applied_cases = result.value if result.applied and action == "next_lexicase_cases" else None
+    applied_cases: list[int] | None = None
+    if result.applied and action == "next_lexicase_cases":
+        applied_cases = list(result.value)
     return action, result.rejected, train_score, held_out_score, applied_cases
 
 

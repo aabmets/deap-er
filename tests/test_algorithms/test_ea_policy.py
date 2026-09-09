@@ -93,7 +93,9 @@ def test_ea_policy_uses_exams_and_lexicase_cases(toolbox):
         action_kwargs={"mut_prob": 0.0},
     )
     assert logbook.select("action")[1:] == ["next_lexicase_cases", "next_lexicase_cases"]
-    assert "generalization_gap" in logbook[1]
+    chapter = logbook.chapters["generalization_gap"]
+    assert len(chapter) == 3
+    assert "held_out" in chapter[1]
     assert seen
     assert all(ind.fitness.is_valid() for ind in population)
 

@@ -139,7 +139,9 @@ def evaluate_columnar(
     ]
 
 
-def _lower_unique(individuals: Sequence[Any], pset: PrimitiveSetTyped) -> tuple[list[Tape], list[int]]:
+def _lower_unique(
+    individuals: Sequence[Any], pset: PrimitiveSetTyped
+) -> tuple[list[Tape], list[int]]:
     unique: dict[str, int] = {}
     tapes: list[Tape] = []
     index: list[int] = []
