@@ -28,6 +28,13 @@ from .private.programming.memetic import (
     numeric_leaves,
     tune_ephemerals,
 )
+from .private.programming.memetic_budget import tune_ephemerals_budget
+from .private.programming.memetic_defaults import (
+    MEMETIC_DEFAULT_N_GEN,
+    MEMETIC_MAX_N_GEN,
+    cap_tune_n_gen,
+    estimate_tune_ephemerals_evals,
+)
 from .private.programming.mutation import (
     mut_ephemeral,
     mut_insert,
@@ -145,6 +152,11 @@ __all__ = [
     "extract_ephemerals",
     "assign_ephemerals",
     "tune_ephemerals",
+    "tune_ephemerals_budget",
+    "MEMETIC_DEFAULT_N_GEN",
+    "MEMETIC_MAX_N_GEN",
+    "cap_tune_n_gen",
+    "estimate_tune_ephemerals_evals",
     "affine_scale",
     "write_affine_scale",
     "mut_uniform",

@@ -51,7 +51,8 @@ def write_affine_scale(
     compile-cache entries for the previous expression are invalidated.
     This is the Lamarckian path next to
     :func:`~deap_er.gp.tune_ephemerals`; Darwinian callers use
-    :func:`~deap_er.tools.affine_scale` only.
+    :func:`~deap_er.tools.affine_scale` or
+    :func:`~deap_er.tools.affine_case_errors` for scoring only.
 
     Args:
         individual: ``PrimitiveTree`` or ``SlimTree`` to wrap in place.

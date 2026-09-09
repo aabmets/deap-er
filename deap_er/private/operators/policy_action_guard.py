@@ -16,6 +16,8 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 
+from deap_er.private.programming.memetic_defaults import estimate_tune_ephemerals_evals
+
 from .case_exams import ExamLike, bound_case_exams, elite_solve_matrix
 
 __all__: list[str] = [
@@ -174,10 +176,7 @@ def estimate_policy_action_evals(action: str, /, **kwargs: Any) -> int:
 def _tune_eval_cost(kwargs: dict[str, Any]) -> int:
     strategy = kwargs.get("strategy")
     n_gen = int(kwargs.get("n_gen", 5))
-    offsprings = getattr(strategy, "offsprings", None)
-    if offsprings is None:
-        offsprings = getattr(strategy, "lamb", 1)
-    return n_gen * int(offsprings)
+    return estimate_tune_ephemerals_evals(strategy, n_gen)
 
 
 def _evaluate_invalid_cost(kwargs: dict[str, Any]) -> int:

@@ -52,11 +52,18 @@ small `n_gen`, charges the inner loop to remaining `n_evals`,
 and is judged on a caller-marked held-out exam when one
 exists.
 
-**Today.** `tune_ephemerals`, `affine_scale`, and
-`write_affine_scale` are shipped. `PolicyActionGuard` already
-caps `max_tune_gen` on the policy path. `ea_simple` /
-`register_gp` have no such leash. Nothing stops a caller from
-Lamarckian-writing every generation on the train window.
+**Today.** `MEMETIC_DEFAULT_N_GEN` and `MEMETIC_MAX_N_GEN`
+document the recommended inner polish. `affine_case_errors`
+fits Keijzer $a + b\,f(x)$ and writes Darwinian case errors
+only. Lamarckian `write_affine_scale` stays opt-in.
+`tune_ephemerals_budget` caps inner `n_gen` to remaining
+`n_evals`, defaults to the small generation count, and judges
+trials on a caller-marked held-out exam when one exists.
+`cap_tune_n_gen` and `estimate_tune_ephemerals_evals` share
+the same cost model as `PolicyActionGuard`. Raw
+`tune_ephemerals` is unchanged. Policy caps stay on
+`PolicyActionGuard`; `ea_simple` / `register_gp` callers use
+the budget wrapper instead.
 
 **Benefit.** Structure plus a short numeric polish is useful.
 Unmetered tune and writeback on the train exam overfit
