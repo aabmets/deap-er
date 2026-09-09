@@ -34,28 +34,21 @@ def setup():
     columns = make_columns()
     target = make_target(columns)
 
-    pset = gp.make_column_pset(COLUMNS)
-    gp.add_numpy_primitives(pset)
-    gp.add_window_primitives(pset)
-    gp.add_window_ephemeral(pset, "window", 2, 8)
+    pset = gp.columnar_pset(COLUMNS, window=(2, 8))
 
     creator.create_type("FitnessMin", Fitness, weights=(-1.0,))
     creator.create_type("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
 
     toolbox = Toolbox()
-    toolbox.register("expr", gp.gen_half_and_half, prim_set=pset, min_depth=1, max_depth=3)
-    toolbox.register("individual", tools.init_iterate, creator.Individual, toolbox.expr)
-    toolbox.register("population", tools.init_repeat, list, toolbox.individual)
-    toolbox.register("clone", tools.clone_individual)  # GP nodes are immutable
-    toolbox.register("compile", gp.compile_tree, prim_set=pset)
+    gp.register_gp(
+        toolbox,
+        pset,
+        individual=creator.Individual,
+        min_depth=1,
+        max_depth=3,
+        height_limit=8,
+    )
     toolbox.register("evaluate", evaluate, toolbox=toolbox, columns=columns, target=target)
-    toolbox.register("select", tools.sel_tournament, contestants=3)
-    toolbox.register("mate", gp.cx_one_point)
-    toolbox.register("expr_mut", gp.gen_full, min_depth=0, max_depth=2)
-    toolbox.register("mutate", gp.mut_uniform, expr=toolbox.expr_mut, prim_set=pset)
-
-    toolbox.decorate("mate", gp.static_limit(lambda ind: ind.height, 8))
-    toolbox.decorate("mutate", gp.static_limit(lambda ind: ind.height, 8))
 
     stats = tools.Statistics(lambda ind: ind.fitness.values)
     stats.register("avg", numpy.mean)

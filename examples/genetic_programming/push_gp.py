@@ -73,44 +73,21 @@ def setup():
     creator.create_type("Individual", gp.PrimitiveTree, fitness=creator.FitnessMin)
 
     toolbox = Toolbox()
-    toolbox.register("expr", gp.gen_half_and_half, prim_set=pset, min_depth=1, max_depth=3)
-    toolbox.register("individual", tools.init_iterate, creator.Individual, toolbox.expr)
-    toolbox.register("population", tools.init_repeat, list, toolbox.individual)
-    toolbox.register("clone", tools.clone_individual)
-    toolbox.register("compile", gp.compile_tree, prim_set=pset)
-    toolbox.register("mate", gp.cx_one_point)
-    toolbox.register("expr_mut", gp.gen_full, min_depth=0, max_depth=2)
-    toolbox.register("mutate", gp.mut_uniform, expr=toolbox.expr_mut, prim_set=pset)
+    gp.register_gp(
+        toolbox,
+        pset,
+        individual=creator.Individual,
+        min_depth=1,
+        max_depth=3,
+        height_limit=8,
+        select=False,
+    )
     toolbox.register("evaluate", evaluate, toolbox=toolbox)
-    toolbox.decorate("mate", gp.static_limit(limiter=operator.attrgetter("height"), max_value=8))
-    toolbox.decorate("mutate", gp.static_limit(limiter=operator.attrgetter("height"), max_value=8))
 
     train = tools.CaseExam.from_cases(TRAIN_CASES, N_CASES)
     held = tools.CaseExam.from_cases(HELD_CASES, N_CASES)
     pool = tools.CaseExamPool([train], held_out=held)
     return toolbox, pool, make_policy(), train.as_cases(N_CASES)
-
-
-def step_policy(program, pool, elites, nevals, rejected, guard):
-    solve_bits = tools.policy_solve_bits_from_fitness(elites[0].fitness.values)
-    train_score, held_out_score = tools.policy_exam_scores(pool, elites)
-    observation = tools.policy_observe(
-        solve_bits=solve_bits,
-        train_score=train_score,
-        held_out_score=held_out_score,
-        nevals=nevals,
-        last_action_rejected=rejected,
-    )
-    action = push_policy_decide(program, observation)
-    result = tools.apply_policy_action(
-        action,
-        exams=pool,
-        elites=elites,
-        matrix=tools.fitness_case_matrix(elites),
-        mut_prob=0.2,
-        guard=guard,
-    )
-    return action, result, train_score, held_out_score
 
 
 def print_results(best_ind, action, held_out_score):
@@ -126,42 +103,32 @@ def main():
     toolbox, pool, program, cases = setup()
     pop = toolbox.population(size=POP_SIZE)
     hof = tools.HallOfFame(1)
-    logbook = tools.Logbook()
-    logbook.header = ["gen", "nevals", "action", "held_out", "min"]
+    stats = tools.Statistics(lambda ind: numpy.mean(ind.fitness.values))
+    stats.register("min", numpy.min)
     guard = tools.PolicyActionGuard(max_promotes_per_gen=1, max_tune_gen=5)
-    used = tools.evaluate_invalid(toolbox, pop)
-    hof.update(pop)
-    rejected = False
-    action = tools.POLICY_ACTION_SKIP_PROMOTE
-    held_out_score = None
 
-    for gen in range(GENERATIONS):
-        guard.begin_generation()
-        elites = tools.sel_best(pop, sel_count=8)
-        action, result, train_score, held_out_score = step_policy(
-            program, pool, elites, used, rejected, guard
-        )
-        rejected = result.rejected
-        if result.applied and action == "next_lexicase_cases":
-            cases = result.value
-        selected = tools.sel_lexicase(
-            pop, len(pop), cases=cases, matrix=tools.fitness_case_matrix(pop)
-        )
-        pop[:] = tools.var_and(toolbox, selected, 0.5, 0.2)
-        used += tools.evaluate_invalid(toolbox, pop)
-        hof.update(pop)
-        min_fit = float(numpy.mean(hof[0].fitness.values))
-        logbook.record(
-            gen=gen,
-            nevals=used,
-            action=action,
-            held_out=held_out_score,
-            min=min_fit,
-            generalization_gap=tools.policy_generalization_gap(train_score, held_out_score),
-        )
-        print(logbook.stream)
+    def decide(observation):
+        return push_policy_decide(program, observation)
 
-    print_results(hof[0], action, held_out_score)
+    _pop, logbook = tools.ea_policy(
+        toolbox,
+        pop,
+        decide,
+        generations=GENERATIONS,
+        cx_prob=0.5,
+        mut_prob=0.2,
+        exams=pool,
+        cases=cases,
+        n_cases=N_CASES,
+        guard=guard,
+        action_kwargs={"mut_prob": 0.2},
+        hof=hof,
+        stats=stats,
+        verbose=True,
+    )
+    last = logbook[-1]
+    gap = last.get("generalization_gap") or {}
+    print_results(hof[0], last["action"], gap.get("held_out"))
 
 
 if __name__ == "__main__":

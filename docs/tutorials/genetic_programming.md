@@ -104,7 +104,14 @@ toolbox = Toolbox()
 toolbox.register("expr", gp.gen_half_and_half, prim_set=pset, min_depth=1, max_depth=3)
 toolbox.register("individual", tools.init_iterate, creator.Individual, toolbox.expr)
 toolbox.register("compile", gp.compile_tree, prim_set=pset)
+```
 
+`gp.register_gp(toolbox, pset, individual=creator.Individual)`
+registers that block plus `clone_individual`, one-point crossover,
+uniform mutation, a height `static_limit`, and tournament selection.
+It does not register `evaluate`.
+
+```python
 ind = toolbox.individual()
 print(ind)                 # prefix expression as text
 func = toolbox.compile(expr=ind)
@@ -139,6 +146,7 @@ toolbox.decorate("mate", gp.static_limit(limiter=operator.attrgetter("height"), 
 toolbox.decorate("mutate", gp.static_limit(limiter=operator.attrgetter("height"), max_value=17))
 ```
 
+`register_gp` applies that decoration by default (`height_limit=17`).
 `HARM-GP` (`gp.harm`) and SlimGP are other size-control paths — see
 the symbolic regression example variants.
 

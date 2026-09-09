@@ -146,6 +146,16 @@ The following is extra.
     tree has size $0$. The left-neighbor bin is updated only
     for `ind_size >= 1`, matching the existing `ind_size - 2`
     guard.
+31. `register_gp` wires the standard tree-GP toolbox:
+    `clone_individual`, `compile_tree`, half-and-half init,
+    one-point crossover, uniform mutation, and a height
+    `static_limit`. `columnar_pset` builds the typed column set
+    and registers the NumPy / window kits (optional pair-window,
+    time-series, and window ephemeral) in one call.
+    `evaluate_columnar` is the `evaluate_batch` helper: unique
+    trees are lowered once, scored with `interpret_tapes`, and
+    warmup `nan` samples are dropped from the MSE. DEAP leaves
+    that wiring on every caller.
 
 The columnar contract is in the
 [columnar GP tutorial](../../tutorials/columnar_gp.md). The private

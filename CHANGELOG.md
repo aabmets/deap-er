@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `gp.register_gp`, `gp.columnar_pset`, and `gp.evaluate_columnar`
+  for the standard tree-GP / columnar toolbox wiring
+- `tools.ea_policy` — `ea_simple` plus one policy observe / decide /
+  apply step per generation
+
 ## [3.0.0] - 2026-09-08
 
 Major release since GitHub tag `2.0`. This is not a drop-in from DEAP

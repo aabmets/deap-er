@@ -449,8 +449,10 @@ lexicase → Slim → `tune_ephemerals` → semantic archive →
 fitness.
 
 **Today.** Every piece exists as a toolbox function.
-`ea_simple` / `step_islands` / `ea_map_elites` are the thin
-loops.
+`ea_simple` / `ea_policy` / `step_islands` / `ea_map_elites`
+are the thin loops. `ea_policy` is observe → decide → apply
+plus `var_and`; it does not compose Slim, tune, archives, or
+teams.
 
 **Why later.** A wrapper that wants to become a framework.
 Mention it; do not ship it until someone hits a documented

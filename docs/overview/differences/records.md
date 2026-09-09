@@ -136,6 +136,14 @@
     `evaluate_batch` when registered, otherwise `map` plus
     `evaluate`. DEAP inlines that scan in each `ea*` and does
     not export it.
+34. `ea_policy` is the thin `ea_simple` loop plus one observe →
+    decide → `apply_policy_action` step per generation. It calls
+    `PolicyActionGuard.begin_generation`, rebuilds lexicase
+    `cases=` when the policy asks, and records the action (and a
+    `generalization_gap` chapter when exams are present). Fitness
+    stays on the toolbox. Not `step_program_search`: Slim, tune,
+    archive, and team composition stay on the caller. DEAP has
+    no policy driver.
 
 [deap-25]: https://github.com/DEAP/deap/issues/25
 [deap-121]: https://github.com/DEAP/deap/issues/121

@@ -26,20 +26,29 @@ __all__: list[str] = [
 ]
 
 
-def new_logbook(stats: EvoStats | None, log_time: bool = False) -> Logbook:
+def new_logbook(
+    stats: EvoStats | None,
+    log_time: bool = False,
+    extra_fields: Sequence[str] = (),
+) -> Logbook:
     """Create a logbook with the standard algorithm header.
 
     Args:
         stats: Optional Statistics or MultiStatistics whose fields
             become the trailing header columns.
         log_time: If True, include a ``duration`` column.
+        extra_fields: Optional columns inserted after ``nevals``
+            (and ``duration`` when ``log_time`` is set) and before
+            the statistics fields.
 
     Returns:
         A logbook ready to record generations.
     """
     logbook = Logbook()
     extra = ["duration"] if log_time else []
-    logbook.header = ["gen", "nevals"] + extra + (stats.fields if stats else [])
+    logbook.header = (
+        ["gen", "nevals"] + extra + list(extra_fields) + (stats.fields if stats else [])
+    )
     return logbook
 
 
@@ -132,6 +141,7 @@ def record_generation(
     logger: Logger | None = None,
     duration: float | None = None,
     fronts: list[Any] | None = None,
+    extra: dict[str, Any] | None = None,
 ) -> None:
     """Update the hall of fame and append one generation to the logbook.
 
@@ -154,6 +164,8 @@ def record_generation(
         duration: Optional wall time of this generation in seconds.
         fronts: Optional list that receives a ParetoFront snapshot
             of ``population`` for this generation.
+        extra: Optional fields merged into the logbook row
+            (for example a policy ``action``).
     """
     if hof is not None:
         hof.update(offspring)
@@ -164,7 +176,8 @@ def record_generation(
     record = stats.compile(population) if stats and population else {}
     if duration is not None:
         record["duration"] = duration
-    logbook.record(gen=gen, nevals=nevals, **record)
+    payload = extra or {}
+    logbook.record(gen=gen, nevals=nevals, **payload, **record)
     if verbose:
         text = logbook.stream
         if logger is not None:

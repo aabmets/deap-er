@@ -13,6 +13,7 @@ from .private.algorithms.ea_generate_update_restarts import ea_generate_update_r
 from .private.algorithms.ea_map_elites import ea_map_elites
 from .private.algorithms.ea_mu_comma_lambda import ea_mu_comma_lambda
 from .private.algorithms.ea_mu_plus_lambda import ea_mu_plus_lambda
+from .private.algorithms.ea_policy import ea_policy
 from .private.algorithms.ea_simple import ea_simple
 from .private.algorithms.loop import evaluate_invalid
 from .private.algorithms.policy_action import (
@@ -44,6 +45,7 @@ __all__: list[str] = [
     "ea_map_elites",
     "ea_mu_comma_lambda",
     "ea_mu_plus_lambda",
+    "ea_policy",
     "ea_simple",
     "evaluate_invalid",
     "step_islands",
