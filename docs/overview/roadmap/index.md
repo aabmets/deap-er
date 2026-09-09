@@ -53,6 +53,13 @@ surface.
 | 34 | [Parallel RNG streams](features_31_40.md#34-parallel-rng-streams) | `rng` | shipped |
 | 35 | [Island topologies](features_31_40.md#35-island-topologies) | `operators` | shipped |
 | 36 | [Persistent hall of fame](features_31_40.md#36-persistent-hall-of-fame) | `records` | shipped |
+| 37 | [Interval analysis on tapes](features_31_40.md#37-interval-analysis-on-tapes) | `gp` | planned |
+| 38 | [Structural meta-case regularization](features_31_40.md#38-structural-meta-case-regularization) | `operators`, `utilities` | planned |
+| 39 | [Homologous and semantic crossover](features_31_40.md#39-homologous-and-semantic-crossover) | `gp` | planned |
+| 40 | [Noisy fitness resample](features_31_40.md#40-noisy-fitness-resample) | `utilities` | planned |
+| 41 | [Case-structured generalization path](features_41_50.md#41-case-structured-generalization-path) | `utilities` + docs | planned |
+| 42 | [Memetic and affine leash](features_41_50.md#42-memetic-and-affine-leash) | `gp`, `utilities` | planned |
+| 43 | [Team and archive recipe](features_41_50.md#43-team-and-archive-recipe) | `operators`, `records` | planned |
 
 Shipping an item updates the matching feature page and tutorial or
 reference stub. Items 15–20 are the toolbox-shaped holes after
@@ -61,18 +68,24 @@ that already shipped (tapes, SlimGP, lexicase, archives, CMA)
 into a longer program-search loop, and they are shipped.
 Item 30 is the legal dirty-suffix path item 25 deferred.
 Item 31 (Keijzer affine scaling next to `tune_ephemerals`) is
-shipped. Items 27–36 are shipped. Constraint-dominance
+shipped. Items 27–36 are shipped. Items 37–40 promote
+interval analysis, structural meta-cases, semantic crossover,
+and noisy resample off
+[Under consideration](under_consideration.md). Items 41–43 are
+the thin generalization, memetic-leash, and team-archive
+recipes that page left on the caller. Constraint-dominance
 on the remaining selectors, archive-improving CMA, RVEA /
-R-NSGA-II, and adaptive DE stay in
-[Under consideration](under_consideration.md). Write-ups for the
-numbered items are on [Features 1-10](features_1_10.md),
+R-NSGA-II, and adaptive DE stay under consideration.
+Write-ups for the numbered items are on
+[Features 1-10](features_1_10.md),
 [Features 11-20](features_11_20.md),
-[Features 21-30](features_21_30.md), and
-[Features 31-40](features_31_40.md). Feature pages are
+[Features 21-30](features_21_30.md),
+[Features 31-40](features_31_40.md), and
+[Features 41-50](features_41_50.md). Feature pages are
 full decades even when the last decade is not full. Still not a second
 genome family. A separate [Push GP](push_gp.md) page lists the planned
 *policy* track — observation schema through a private Push individual.
-That table is not part of items 1–36.
+That table is not part of items 1–43.
 
 !!! note
     deap-er stays a pure-Python package. Native work remains an

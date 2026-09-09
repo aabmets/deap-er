@@ -6,7 +6,8 @@ item, or a recipe the caller can write today. Promotion onto the
 [overview](index.md) table needs a documented gap after the item
 they depend on — not a catalog of every named algorithm.
 
-The next numbered backlog is 27–36. This page is the rest.
+The numbered backlog is [37–43](index.md) on the
+overview table. This page is the rest.
 
 | Idea | Why later |
 |:-----|:----------|
@@ -15,15 +16,12 @@ The next numbered backlog is 27–36. This page is the rest.
 | [Adaptive DE strategy](#adaptive-de-strategy) | `mut_de` is shipped. SHADE memory is a generate/update wrapper, not the next program-search gap. |
 | [Archive-improving CMA](#archive-improving-cma) | Archives and CMA both shipped. The meeting point waits on a caller who needs CMA-ME. |
 | [Plexicase](#plexicase) | Item 10 deferred it until a profile shows selection dominating after matrix lexicase, [item 27](features_21_30.md#27-batch-epsilon-lexicase-and-down-sampled-tournament), and [item 28](features_21_30.md#28-dynamic-epsilon-and-downsample-schedule). |
-| [Structural meta-case regularization](#structural-meta-case-regularization) | Extra case columns. A recipe on `fitness_case_matrix` until the lexicase schedules exist. |
 | [Dominated novelty search](#dominated-novelty-search) | Same family as [item 29](features_21_30.md#29-novelty-selection-and-isoline). |
 | [Multi-objective MAP-Elites](#multi-objective-map-elites) | Sequel to items 29 and 33. `ParetoFront` already exists. |
 | [CMA-MAE and MO-CMA-MAE](#cma-mae-and-mo-cma-mae) | Sequel to [archive-improving CMA](#archive-improving-cma). |
 | [Phenotypic probe descriptors](#phenotypic-probe-descriptors) | `interpret_tapes` on a short probe plus `semantic_project`. |
 | [Incremental ts_rank](#incremental-ts_rank) | Last $O(\textit{window})$ Numba scan. Kernel polish. |
-| [Interval analysis on tapes](#interval-analysis-on-tapes) | Secondary to a legal suffix rescore ([item 30](features_21_30.md#30-causal-lookback-and-suffix-rescore)). |
-| [Homologous and semantic crossover](#homologous-and-semantic-crossover) | After affine scaling and tape CSE. |
-| [Index-only walk-forward builder](#index-only-walk-forward-builder) | Item 6 already refused to own splits. |
+| [Index-only walk-forward builder](#index-only-walk-forward-builder) | Item 6 already refused to own splits. [Item 41](features_41_50.md#41-case-structured-generalization-path) is the last-fraction holdout only. |
 | [Stochastic ranking and epsilon-level](#stochastic-ranking-and-epsilon-level) | Second and third constraint rules after [constraint-dominance on remaining selectors](#constraint-dominance-on-remaining-selectors). |
 | [IBEA and HypE](#ibea-and-hype) | Duplicates SMS-EMOA's indicator story. |
 | [GDE3 and NSDE](#gde3-and-nsde) | `mut_de` plus NSGA survival is a recipe. |
@@ -34,9 +32,8 @@ The next numbered backlog is 27–36. This page is the rest.
 | [SNES and CEM](#snes-and-cem) | Wait until a user hits a wall after sep-CMA. |
 | [Adaptive operator rates](#adaptive-operator-rates) | After [item 33](features_31_40.md#33-evaluation-budget-and-eval-cache). |
 | [Batched var_and uniforms](#batched-var_and-uniforms) | Housekeeping for the tiny `ea_simple` bar. |
-| [Noisy fitness resample](#noisy-fitness-resample) | After the eval cache so repeats are cheap. |
 | [WFG and constrained DTLZ](#wfg-and-constrained-dtlz) | Benchmarks, not library surface. |
-| [`step_program_search`](#step_program_search) | A wrapper that wants to become a framework. |
+| [`step_program_search`](#step_program_search) | A wrapper that wants to become a framework. Items 41–43 are the thin recipes. |
 
 Ideas that are off the library entirely live on
 [Not planned](not_planned.md).
@@ -145,21 +142,6 @@ in `lexicase_select_vectorized`, then plexicase.
 
 ---
 
-## Structural meta-case regularization
-
-**What.** Extra cheap cases — size, depth, unique opcodes,
-promote-library hits — appended to the case matrix so lexicase
-regularizes bloat without a second fitness weight.
-
-**Today.** `fitness_case_matrix` packs `fitness.values`. Callers
-can already concatenate columns.
-
-**Why later.** A recipe on the matrix until the lexicase
-schedules exist. Machine-checkable pressure, not
-human-in-the-loop.
-
----
-
 ## Dominated novelty search
 
 **What.** Rank by non-dominated novelty-plus-fitness (GECCO 2025)
@@ -233,37 +215,6 @@ against the existing oracle.
 
 ---
 
-## Interval analysis on tapes
-
-**What.** Given column bounds (or empirical min/max), propagate
-intervals through the opcode kit. Flag programs that are
-identically `nan`, constant, or that use `vwhere` to hide
-warmup.
-
-**Today.** Causality is a runtime `nan` contract. There is no
-static range check.
-
-**Why later.** Secondary to a legal suffix rescore
-([item 30](features_21_30.md#30-causal-lookback-and-suffix-rescore)).
-Not a domain fitness.
-
----
-
-## Homologous and semantic crossover
-
-**What.** Align similar subtrees (homologous) or prefer nodes
-whose `interpret_tape` vectors are close (`semantic_nearest` on
-subtrees). Type-matched one-point stays the default.
-
-**Today.** `gp.cx_one_point` groups by return type. SlimGP
-already moves in output space. Syntactic GP still swaps random
-typed nodes.
-
-**Why later.** After affine scaling and population tape CSE, when
-subtree semantics are cheap to look up.
-
----
-
 ## Index-only walk-forward builder
 
 **What.** `ranges_from_folds(n, k, embargo=0, purge=0)` — expanding
@@ -272,10 +223,11 @@ timestamps.
 
 **Today.** `case_errors` accepts ranges or a mask.
 `CaseExam` stores those shapes. Chronological splits stay on
-the caller.
+the caller. [Item 41](features_41_50.md#41-case-structured-generalization-path)
+is a last-fraction holdout only.
 
-**Why later.** Item 6 already refused to own splits. Pure index
-arithmetic is easy for the caller.
+**Why later.** Item 6 already refused to own splits. Expanding
+windows, embargo, and purge are still easy for the caller.
 
 ---
 
@@ -413,19 +365,6 @@ can be preserved or is deliberately versioned.
 
 ---
 
-## Noisy fitness resample
-
-**What.** `resample(ind, evaluate, n)` and a racing stop
-(F-Race-shaped) for noisy cases.
-
-**Today.** Lexicase and exams treat one draw as truth.
-`evaluate_invalid` scores each invalid once.
-
-**Why later.** After the eval cache so repeats are cheap.
-Time-series GP is the usual noisy caller.
-
----
-
 ## WFG and constrained DTLZ
 
 **What.** WFG (irregular fronts) and constrained DTLZ as
@@ -455,5 +394,8 @@ plus `var_and`; it does not compose Slim, tune, archives, or
 teams.
 
 **Why later.** A wrapper that wants to become a framework.
-Mention it; do not ship it until someone hits a documented
-composition bug that a helper would have prevented.
+[Items 41–43](index.md) are the thin recipes (held-out
+lexicase / halving, a memetic leash, team plus archive).
+Mention this wrapper; do not ship it until someone hits a
+documented composition bug that a helper would have
+prevented.
