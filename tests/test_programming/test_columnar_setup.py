@@ -78,6 +78,8 @@ def test_evaluate_columnar_uses_case_errors_and_rejects_bad_target():
     )
     assert mixed[0][0] == float("inf")
     assert gp.evaluate_columnar([], pset, matrix, target) == []
+    assert gp.evaluate_columnar([tree], pset, matrix, target, cases=[], empty=1.5e6) == [(1.5e6,)]
+    assert gp.evaluate_columnar([tree], pset, matrix, target, cases=[], reduce=False) == [()]
     with pytest.raises(ValueError, match="one-dimensional"):
         gp.evaluate_columnar([tree], pset, matrix, numpy.ones((8, 1)))
 

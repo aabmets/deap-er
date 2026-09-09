@@ -192,3 +192,51 @@ def test_ea_policy_advances_guard_generation_for_cooldown(toolbox):
     )
     assert seen == [False, False, True]
     assert guard.last_promote_gen == 3
+
+
+def test_ea_policy_skips_variation_when_policy_spends_budget(toolbox):
+    population = _population()
+    identities = []
+
+    def decide(_obs):
+        identities.append([id(ind) for ind in population])
+        for individual in population:
+            if individual.fitness.is_valid():
+                del individual.fitness.values
+        return "evaluate_invalid"
+
+    _, logbook = tools.ea_policy(
+        toolbox,
+        population,
+        decide,
+        generations=5,
+        cx_prob=1.0,
+        mut_prob=1.0,
+        n_evals=9,
+    )
+    assert logbook.select("gen") == [0, 1]
+    assert logbook.select("nevals")[1] == 8
+    assert all(ind.fitness.is_valid() for ind in population)
+    assert [id(ind) for ind in population] == identities[0]
+    assert len(identities) == 1
+
+
+def test_ea_policy_nevals_includes_policy_action(toolbox):
+    population = _population()
+
+    def decide(_obs):
+        for individual in population:
+            if individual.fitness.is_valid():
+                del individual.fitness.values
+        return "evaluate_invalid"
+
+    _, logbook = tools.ea_policy(
+        toolbox,
+        population,
+        decide,
+        generations=1,
+        cx_prob=0.0,
+        mut_prob=0.0,
+    )
+    assert logbook.select("nevals") == [8, 8]
+    assert all(ind.fitness.is_valid() for ind in population)

@@ -192,8 +192,8 @@ def step_policy_generation(
         kwargs.pop("matrix", None)
     if exams is not None:
         kwargs["exams"] = exams
-        if exams.held_out is not None:
-            kwargs.setdefault("held_out", exams.held_out)
+        if kwargs.get("held_out") is None and exams.held_out is not None:
+            kwargs["held_out"] = exams.held_out
     result = apply_policy_action(action, **kwargs)
     applied_cases: list[int] | None = None
     if result.applied and action == "next_lexicase_cases":
