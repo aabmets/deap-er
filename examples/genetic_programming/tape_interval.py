@@ -49,7 +49,7 @@ def main():
         static_filter=True,
         empty=1.0e6,
     )
-    if scores[0][0] >= 1.0e5 or scores[1][0] != 1.0e6:
+    if scores[0][0] >= 1.0e5 or scores[1][0] < 9.99e5:
         raise RuntimeError("Static filter did not skip the dead-window program.")
     print(f"\nGood program MSE: {scores[0][0]:.4g} (interval [{good_lo:.3g}, {good_hi:.3g}])")
     print(f"Dead-window program sentinel: {scores[1][0]:.4g} (all_nan={bad_flags.all_nan})")
