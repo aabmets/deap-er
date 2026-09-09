@@ -98,6 +98,13 @@ from .private.programming.slim.slim_ops import (
 from .private.programming.slim.slim_tree import SlimTree, compile_slim_tree
 from .private.programming.suffix_rescore import suffix_rescore
 from .private.programming.tape_batch import interpret_tapes
+from .private.programming.tape_interval import (
+    TapeFlags,
+    bounds_from_matrix,
+    tape_flags,
+    tape_interval,
+    tape_skip_score,
+)
 from .private.programming.tape_lookback import tape_lookback
 from .private.programming.window_ops import (
     add_window_ephemeral,
@@ -197,6 +204,11 @@ __all__ = [
     "lower_tree",
     "interpret_tape",
     "interpret_tapes",
+    "TapeFlags",
+    "bounds_from_matrix",
+    "tape_interval",
+    "tape_flags",
+    "tape_skip_score",
     "tape_lookback",
     "suffix_rescore",
     "semantic_descriptors",

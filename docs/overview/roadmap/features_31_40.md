@@ -207,10 +207,14 @@ intervals through the opcode kit. Flag programs that are
 identically `nan`, constant, or that use `vwhere` to hide
 warmup — before a full `interpret_tapes` / `evaluate` pass.
 
-**Today.** Causality is a runtime `nan` contract.
-`tape_lookback` and `suffix_rescore` are shipped. There is no
-static range check. Dead or constant tapes still pay a full
-score.
+**Today.** `bounds_from_matrix` derives per-column bounds from a
+packed matrix. `tape_interval` and `tape_flags` walk the builtin
+opcode kit and certificate identically-``nan``, constant, or
+warmup-hiding ``vwhere`` programs before ``interpret_tapes``.
+``evaluate_columnar(..., static_filter=True)`` skips those tapes
+and writes the existing ``empty`` sentinel instead. The runtime
+warmup ``nan`` contract is unchanged; ``tape_lookback`` and
+``suffix_rescore`` stay the oracle path for legal suffixes.
 
 **Benefit.** Columnar populations waste evaluations on programs
 that cannot be a law. A cheap certificate lets

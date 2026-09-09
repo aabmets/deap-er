@@ -165,6 +165,13 @@ The following is extra.
     the tune cost model with `PolicyActionGuard`. Raw
     `tune_ephemerals` is unchanged; policy caps stay on the
     guard.
+33. `bounds_from_matrix`, `tape_interval`, and `tape_flags`
+    propagate column bounds through the builtin opcode kit and
+    certificate identically-``nan``, constant, or warmup-hiding
+    ``vwhere`` programs before ``interpret_tapes``.
+    `evaluate_columnar(..., static_filter=True)` skips them with
+    the existing ``empty`` sentinel. Not a substitute for the
+    runtime warmup contract or ``case_errors(..., valid=)``.
 
 The columnar contract is in the
 [columnar GP tutorial](../../tutorials/columnar_gp.md). The private

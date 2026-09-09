@@ -22,6 +22,7 @@ from .numpy.numpy_ops import add_numpy_primitives
 from .primitives.primitive_set_typed import PrimitiveSetTyped
 from .tape import Tape
 from .tape_batch import interpret_tapes
+from .tape_interval import bounds_from_matrix, tape_skip_score
 from .tape_lower import lower_tree
 from .window_ops import add_window_ephemeral, add_window_primitives
 from .window_pair import add_pair_window_primitives
@@ -90,13 +91,19 @@ def evaluate_columnar(
     empty: float = _DEFAULT_EMPTY,
     min_valid: int | None = None,
     reduce: bool = True,
+    static_filter: bool = True,
 ) -> list[tuple[float, ...]]:
     """Score trees against one packed column matrix.
 
     Unique programs are lowered once by ``str(tree)``. The batch is
     run through ``interpret_tapes``. Warmup ``nan`` samples are
     dropped from the MSE, matching the columnar fitness contract.
-    Register the result as ``toolbox.evaluate_batch``.
+    Register the result as ``toolbox.evaluate_batch``. When
+    ``static_filter`` is true, ``tape_flags`` may skip
+    ``interpret_tapes`` for identically ``nan``, constant, or
+    warmup-hiding programs and write ``empty`` instead. That path is
+    what ``evaluate_invalid`` uses when ``evaluate_batch`` is this
+    helper; ``nevals`` still counts the assignment.
 
     Args:
         individuals: Trees to score. An empty sequence returns ``[]``.
@@ -117,6 +124,9 @@ def evaluate_columnar(
             errors as a one-objective tuple, including a non-finite
             empty-case value. ``False`` returns the per-case tuple
             for lexicase.
+        static_filter: When true, skip ``interpret_tapes`` for
+            tapes that fail the static certificates from
+            ``tape_flags``.
 
     Returns:
         One fitness tuple per individual, in input order.
@@ -134,11 +144,44 @@ def evaluate_columnar(
     if not individuals:
         return []
     tapes, index = _lower_unique(individuals, pset)
-    predicted = interpret_tapes(tapes, packed, backend=backend, parallel=parallel)
     floor = expected.size // 2 if min_valid is None else min_valid
+    n_rows = int(packed.shape[0])
+    if static_filter:
+        bounds = bounds_from_matrix(packed)
+        skip = [tape_skip_score(tape, bounds, n_rows=n_rows) for tape in tapes]
+        score_tapes = [tape for tape, bad in zip(tapes, skip, strict=True) if not bad]
+        predicted = (
+            interpret_tapes(score_tapes, packed, backend=backend, parallel=parallel)
+            if score_tapes
+            else numpy.empty((0, n_rows), dtype=numpy.float64)
+        )
+        remap = _score_slot_map(skip)
+        nan_row = numpy.full(n_rows, numpy.nan, dtype=numpy.float64)
+        return [
+            _score_prediction(
+                nan_row if skip[slot] else predicted[remap[slot]],
+                expected,
+                cases,
+                empty,
+                floor,
+                reduce,
+            )
+            for slot in index
+        ]
+    predicted = interpret_tapes(tapes, packed, backend=backend, parallel=parallel)
     return [
         _score_prediction(predicted[slot], expected, cases, empty, floor, reduce) for slot in index
     ]
+
+
+def _score_slot_map(skip: list[bool]) -> list[int]:
+    remap = [-1] * len(skip)
+    score_index = 0
+    for slot, bad in enumerate(skip):
+        if not bad:
+            remap[slot] = score_index
+            score_index += 1
+    return remap
 
 
 def _lower_unique(
