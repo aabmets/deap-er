@@ -221,6 +221,9 @@ pop, log = tools.ea_simple(
 `apply_policy_action` step per generation. Pass a `decide`
 callable; fitness stays on the toolbox. When an exam pool is
 given, selection is lexicase on the current `cases=` subset.
+Policy-action evaluations count toward `n_evals` and the
+generation `nevals`. When a policy step meets or exceeds that
+budget, the generation is recorded without variation.
 
 ```python
 pop, log = tools.ea_policy(

@@ -163,10 +163,12 @@ result = tools.apply_policy_action(
 
 `estimate_policy_action_evals` is the conservative cost used when
 the guard still has budget. Pair that with `EvalCache` and the
-`n_evals=` stop on `ea_simple` / `ea_map_elites` so a policy that
-tunes every generation cannot win by spending. Worker streams for
-two populations (tapes and policies) are in
-[Multiprocessing](multiprocessing.md).
+`n_evals=` stop on `ea_policy` (or `ea_simple` / `ea_map_elites`)
+so a policy that tunes every generation cannot win by spending.
+`ea_policy` charges those action evaluations to `n_evals` and
+`nevals`, and skips variation when the policy step exhausts the
+budget. Worker streams for two populations (tapes and policies)
+are in [Multiprocessing](multiprocessing.md).
 
 ## A public decide callable
 

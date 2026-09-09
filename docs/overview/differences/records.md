@@ -99,8 +99,8 @@
     when `generate` returns empty. The empty batch is still a
     stop signal and does not call `update([])`.
 28. `n_evals=` is an optional evaluation-budget stop on
-    `ea_simple`, `ea_mu_plus_lambda`, `ea_mu_comma_lambda`, and
-    `ea_map_elites`. Generations stay the default. `EvalCache`
+    `ea_simple`, `ea_mu_plus_lambda`, `ea_mu_comma_lambda`,
+    `ea_map_elites`, and `ea_policy`. Generations stay the default. `EvalCache`
     wraps `evaluate` / `evaluate_batch` by expression text (or
     a caller key) plus matrix identity and row count. A hit
     does not call `evaluate` again; `n_evals` / `nevals` still
@@ -141,7 +141,11 @@
     `PolicyActionGuard.begin_generation`, rebuilds lexicase
     `cases=` when the policy asks, and records the action (and a
     `generalization_gap` chapter when exams are present). Fitness
-    stays on the toolbox. Not `step_program_search`: Slim, tune,
+    stays on the toolbox. Policy-action evaluations count toward
+    `n_evals` and the generation `nevals`. When a policy step
+    meets or exceeds that budget, the generation is recorded
+    without variation so unevaluated offspring cannot replace
+    the population. Not `step_program_search`: Slim, tune,
     archive, and team composition stay on the caller. DEAP has
     no policy driver.
 
