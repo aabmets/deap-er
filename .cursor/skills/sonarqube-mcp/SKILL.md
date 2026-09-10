@@ -9,7 +9,7 @@ description: >-
 
 # SonarCloud MCP
 
-Hosted server in `.cursor/mcp.json`: `https://api.sonarcloud.io/mcp` (no Docker, no local process). Cloud Agents also need that URL on `.cursor/environment.json` `mcpServerAllowlist`, plus `SONARQUBE_TOKEN` / `SONARQUBE_ORG` as environment secrets. Enable the same server in the Cloud Agents MCP dropdown at cursor.com/agents.
+Hosted server in `.cursor/mcp.json`: `https://api.sonarcloud.io/mcp` (no Docker, no local process). Cloud Agents also need that URL on `.cursor/environment.json` `mcpServerAllowlist`, plus `SONARQUBE_TOKEN` / `SONARQUBE_ORG` as environment secrets. There is no MCP dropdown: on [cursor.com/agents](https://cursor.com/agents), click **+** (left of the prompt, next to the model picker) → **MCP Servers** → **Add MCP**, then add the HTTP URL. Team admins can instead add it under Dashboard → Integrations & MCP.
 
 If repo-root `.env` is missing or lacks `SONARQUBE_TOKEN` / `SONARQUBE_ORG`, create or update `.env` with those keys (empty values) and **stop**. Ask the user to fill them in (user token from https://sonarcloud.io/account/security, org key from SonarCloud), then re-run `source tools/dev` or `loadenv` before `agent`. Do not invent tokens. If `.env` already has other keys, only append the missing `SONARQUBE_*` lines.
 
