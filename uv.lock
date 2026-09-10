@@ -499,7 +499,7 @@ wheels = [
 
 [[package]]
 name = "deap-er"
-version = "3.1.1"
+version = "3.1.2"
 source = { editable = "." }
 dependencies = [
     { name = "dill" },

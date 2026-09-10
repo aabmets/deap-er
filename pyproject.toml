@@ -1,6 +1,6 @@
 [project]
 name = "deap-er"
-version = "3.1.1"
+version = "3.1.2"
 description = "Distributed Evolutionary Algorithms in Python - Entirely Reinvented"
 authors = [{ name = "Mattias Aabmets", email = "mattias.aabmets@gmail.com" }]
 requires-python = ">=3.12,<4"
