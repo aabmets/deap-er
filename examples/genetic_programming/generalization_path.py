@@ -1,7 +1,6 @@
 import math
 import operator
 
-import numpy
 from deap_er import Fitness, Toolbox, creator, gp, tools
 
 tools.rng.seed(1234)  # disables randomization

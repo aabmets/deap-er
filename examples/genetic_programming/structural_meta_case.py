@@ -21,9 +21,7 @@ def select(individuals, sel_count, pset):
         columns=("size", "depth"),
     )
     trusted = numpy.hstack([matrix, structural])
-    weights = (-1.0,) * matrix.shape[1] + tools.structural_meta_case_weights(
-        ("size", "depth")
-    )
+    weights = (-1.0,) * matrix.shape[1] + tools.structural_meta_case_weights(("size", "depth"))
     return tools.sel_lexicase(
         individuals,
         sel_count,
