@@ -181,9 +181,11 @@ def _pop_array(stack: list[Summary]) -> Summary:
 
 def _pop_mask(stack: list[Summary]) -> Summary:
     value = _pop(stack)
-    if value.kind != "mask":
+    if value.kind == "mask":
+        return value
+    if value.kind != "array":
         raise ValueError(STACK_UNDERFLOW)
-    return value
+    return Summary(0.0, 1.0, 0, 0, False, True, "mask", value.lookback)
 
 
 def _pop(stack: list[Summary]) -> Summary:

@@ -111,11 +111,17 @@ def test_tape_flags_leaves_pointwise_vwhere_alone():
     assert not flags.hides_warmup
 
 
+def test_tape_flags_accepts_boolean_terminals_as_masks():
+    bounds = numpy.array([[0.0, 1.0], [0.0, 1.0]], dtype=numpy.float64)
+    where_false = _tape("vwhere(False, first, second)")
+    where_not = _tape("vwhere(vnot(True), first, second)")
+    assert not gp.tape_flags(where_false, bounds, n_rows=16).hides_warmup
+    assert not gp.tape_flags(where_not, bounds, n_rows=16).hides_warmup
+
+
 def test_tape_interval_envelope_covers_the_oracle_on_finite_samples():
     tape = _tape("vadd(rolling_mean(first, 3), delay(second, 2))")
-    matrix = numpy.column_stack(
-        [numpy.linspace(0.0, 1.0, 12), numpy.linspace(2.0, 3.0, 12)]
-    )
+    matrix = numpy.column_stack([numpy.linspace(0.0, 1.0, 12), numpy.linspace(2.0, 3.0, 12)])
     bounds = gp.bounds_from_matrix(matrix)
     lo, hi = gp.tape_interval(tape, bounds)
     predicted = gp.interpret_tape(tape, matrix)
