@@ -67,7 +67,7 @@ Follow the typing already used in the file you are editing (`deap_er.base.typede
 ### Tool Usage
 
 - **Hooks:** project `preToolUse` rewrites supported Shell commands via RTK (`.cursor/hooks.json` → `.cursor/hooks/rtk-pretooluse.sh`). Fails open until `.bin/rtk` exists. Never run `rtk init -g`. If the binary is missing, `source tools/dev`.
-- **MCP:** `.cursor/mcp.json` registers **this** repo’s `.bin/codebase-memory-mcp` and the SonarCloud-hosted MCP (`https://api.sonarcloud.io/mcp`). Do not use another project’s codebase-memory server. Graph tools need `source tools/dev` if the binary is missing. SonarCloud tools need `SONARQUBE_TOKEN` and `SONARQUBE_ORG` in the shell that runs `agent` (`source tools/dev` calls `loadenv`; skill `sonarqube-mcp` creates `.env` keys for the user to fill in).
+- **MCP:** `.cursor/mcp.json` registers **this** repo’s `.bin/codebase-memory-mcp` and the SonarCloud-hosted MCP (`https://api.sonarcloud.io/mcp`). `.cursor/environment.json` `mcpServerAllowlist` must keep those identities so Cloud Agents can load them. Do not use another project’s codebase-memory server. Graph tools need `source tools/dev` if the binary is missing. SonarCloud tools need `SONARQUBE_TOKEN` and `SONARQUBE_ORG` as Cloud Agent environment secrets and in the shell that runs `agent` (`source tools/dev` calls `loadenv`; skill `sonarqube-mcp` creates `.env` keys for the user to fill in).
 - **Structured tools first:** Use Read, Grep, Write, and StrReplace when they fit; Shell is for commands that need a real terminal environment.
 
 ## 3. Task Skills (Read Before Doing)
