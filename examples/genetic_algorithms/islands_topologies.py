@@ -1,4 +1,4 @@
-from deap_er import Fitness, Toolbox, creator, gp, tools
+from deap_er import Fitness, Toolbox, creator, tools
 
 tools.rng.seed(1234)  # disables randomization
 

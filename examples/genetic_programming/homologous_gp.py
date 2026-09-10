@@ -1,5 +1,3 @@
-import operator
-
 import numpy
 from deap_er import Fitness, Toolbox, creator, gp, tools
 

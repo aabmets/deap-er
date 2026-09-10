@@ -234,8 +234,8 @@ def test_homologous_and_semantic_never_swap_at_root():
         assert left[0] == first_root
         assert right[0] == second_root
         tools.rng.seed(seed)
-        left = gp.PrimitiveTree.from_string(str(first), pset)
-        right = gp.PrimitiveTree.from_string(str(second), pset)
+        left: Any = gp.PrimitiveTree.from_string(str(first), pset)
+        right: Any = gp.PrimitiveTree.from_string(str(second), pset)
         gp.cx_one_point_semantic(left, right, pset, matrix)
         assert left[0] == first_root
         assert right[0] == second_root
