@@ -2,7 +2,7 @@
 # https://github.com/astral-sh/ty
 
 [environment]
-python-version = "3.13"
+python-version = "3.12"
 python-platform = "linux"
 
 [src]
