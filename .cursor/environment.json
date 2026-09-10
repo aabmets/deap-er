@@ -1,0 +1,14 @@
+{
+  "name": "deap-er",
+  "install": "bash -lc 'source tools/dev'",
+  "mcpServerAllowlist": [
+    {
+      "name": "sonarqube",
+      "serverUrl": "https://api.sonarcloud.io/mcp"
+    },
+    {
+      "name": "codebase-memory",
+      "command": ".bin/codebase-memory-mcp"
+    }
+  ]
+}
