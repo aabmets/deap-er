@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: New package version (must be greater than the current pyproject version)
+        description: New package version (greater than pyproject.toml, with Unreleased changelog notes)
         required: true
         type: string
 
@@ -36,6 +36,11 @@ jobs:
           uv sync --frozen --only-group release --no-install-project
           .venv/bin/python tools/ci/check_release_version.py
 
+      - name: Require Unreleased changelog notes
+        env:
+          NEW_VERSION: ${{ inputs.version }}
+        run: python3 tools/ci/changelog_release.py check
+
   pytest-codecov:
     needs: gate
     uses: ./.github/workflows/pytest-codecov.yml
@@ -60,6 +65,11 @@ jobs:
           python-version: "3.13"
           version: "latest"
 
+      - name: Promote Unreleased changelog notes
+        env:
+          NEW_VERSION: ${{ inputs.version }}
+        run: python3 tools/ci/changelog_release.py promote
+
       - name: Bump pyproject version
         env:
           NEW_VERSION: ${{ inputs.version }}
@@ -73,7 +83,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add pyproject.toml uv.lock
+          git add pyproject.toml uv.lock CHANGELOG.md
           git commit -m "chore: bump version to $NEW_VERSION"
           git push origin "HEAD:$RELEASE_BRANCH"
           echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
@@ -110,16 +120,7 @@ jobs:
       - name: Require changelog notes for this version
         env:
           NEW_VERSION: ${{ inputs.version }}
-        run: |
-          first="$(grep -E '^## \[[vV]?[0-9]' CHANGELOG.md | head -n 1 || true)"
-          echo "First versioned heading: ${first:-<none>}"
-          case "$first" in
-            "## [${NEW_VERSION}]"*|"## [v${NEW_VERSION}]"*|"## [V${NEW_VERSION}]"*) ;;
-            *)
-              echo "extract-release-notes takes the first versioned H2, which must be ${NEW_VERSION}"
-              exit 1
-              ;;
-          esac
+        run: python3 tools/ci/changelog_release.py verify
 
       - name: Extract release notes
         id: extract-release-notes
