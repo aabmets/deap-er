@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.2] - 2026-09-10
+
+### Changed
+
+- Ruff and ty target Python 3.12; pytest CI runs 3.12 and
+  `pytest -m examples`
+  ([#121](https://github.com/aabmets/deap-er/pull/121))
+- Cloud Agent environment allowlists the hosted SonarCloud MCP
+  ([#121](https://github.com/aabmets/deap-er/pull/121))
+
+### Fixed
+
+- Pytest collection on Python 3.12 (`typing.Generator` still needs
+  three type arguments)
+  ([#121](https://github.com/aabmets/deap-er/pull/121))
+- Interval analysis treated Mask terminals `True` / `False` as a
+  stack underflow and crashed `evaluate_columnar`
+  ([#121](https://github.com/aabmets/deap-er/pull/121))
+
 ## [3.1.1] - 2026-09-09
 
 ### Changed
@@ -243,7 +262,8 @@ commits that landed on that tag.
 - Hypervolume and least-contributed indicator
 - CMA strategy keyword arguments
 
-[Unreleased]: https://github.com/aabmets/deap-er/compare/3.1.1...HEAD
+[Unreleased]: https://github.com/aabmets/deap-er/compare/3.1.2...HEAD
+[3.1.2]: https://github.com/aabmets/deap-er/compare/3.1.1...3.1.2
 [3.1.1]: https://github.com/aabmets/deap-er/compare/3.0.0...3.1.1
 [3.1.0]: https://github.com/aabmets/deap-er/compare/3.0.0...3.1.0
 [3.0.0]: https://github.com/aabmets/deap-er/compare/2.0...3.0.0
