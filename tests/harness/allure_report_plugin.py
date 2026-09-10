@@ -188,7 +188,7 @@ def pytest_terminal_summary(
     terminalreporter: pytest.TerminalReporter,
     exitstatus: pytest.ExitCode,
     config: pytest.Config,
-) -> t.Generator[None]:
+) -> t.Generator[None, t.Any, None]:
     yield
 
     if hasattr(config, "workerinput"):
