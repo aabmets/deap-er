@@ -57,3 +57,12 @@ def test_get_genealogy_requires_history_index():
     missing: Any = _Ind([0])
     with pytest.raises(AttributeError, match="history_index"):
         history.get_genealogy(missing)
+
+
+def test_get_genealogy_depth_limit_keeps_shared_ancestor_at_shallowest_depth():
+    history = tools.History()
+    history.genealogy_tree = {1: (), 2: (1,), 3: (2, 1)}
+    child: Any = _Ind([0])
+    child.history_index = 3
+    assert history.get_genealogy(child, max_depth=2) == {3: (2, 1), 2: (1,), 1: ()}
+    assert history.get_genealogy(child, max_depth=1) == {3: (2, 1)}
