@@ -24,7 +24,7 @@ from .case_exams import (
     DifficultyMode,
     ExamLike,
     elite_solve_matrix,
-    score_case_exams,
+    exam_difficulty,
 )
 from .island_eval_keys import case_exam_key
 
@@ -146,7 +146,7 @@ def policy_held_out_fitness(
             the requested fitness exam.
     """
     resolved = resolve_policy_held_out(exams, held_out=held_out)
-    n_cases, _ = elite_solve_matrix(elites, matrix, trust_matrix, solved)
+    n_cases, solve = elite_solve_matrix(elites, matrix, trust_matrix, solved)
     pool_train: list[CaseExam] | None = train_exams
     if pool_train is None and isinstance(exams, CaseExamPool):
         pool_train = exams.exams
@@ -158,13 +158,4 @@ def policy_held_out_fitness(
         train_exams=pool_train,
         mutated_exam=mutated_exam,
     )
-    return float(
-        score_case_exams(
-            [resolved],
-            elites,
-            matrix=matrix,
-            trust_matrix=trust_matrix,
-            solved=solved,
-            mode=mode,
-        )[0]
-    )
+    return float(exam_difficulty(solve, resolved.as_cases(n_cases), mode))
