@@ -21,7 +21,7 @@ from . import numba_kernels
 from .numba_compile import build
 from .numba_ops import reserve
 
-__all__: list[str] = ["compiled_batch_kernels", "launch_kernels", "run_tapes"]
+__all__: list[str] = ["compiled_batch_kernels", "launch_kernels", "run_tapes", "serial_kernels"]
 
 _NO_COLUMNS = (
     "The numba backend evaluates a tape over columns and cannot size a "
@@ -86,7 +86,7 @@ def interpret_many_parallel(  # pragma: no cover
             out[index, row] = stacks[slot, 0, row]
 
 
-def _serial_kernel() -> tuple[Any, Any, Any]:
+def serial_kernels() -> tuple[Any, Any, Any]:
     """Compile the serial batch interpreter once per process.
 
     Returns:
@@ -170,6 +170,10 @@ def run_tapes(
 ) -> numpy.ndarray:
     """Evaluate tapes on the compiled interpreter.
 
+    A serial batch of builtin-only tapes runs the shared NumPy CSE
+    plan and compiles nothing. Consumer opcodes and ``parallel=True``
+    run the compiled batch kernels.
+
     Args:
         tapes: Tapes produced by ``lower_tree``.
         matrix: C-contiguous ``(n_rows, n_columns)`` ``float64`` table.
@@ -196,12 +200,9 @@ def run_tapes(
                 f"The tape holds consumer opcode {int(unknown[0])} but no dispatch "
                 "kernel was given. Pass dispatch= to interpret_tapes."
             )
-    _serial_kernel()
     use_parallel = parallel and numba.get_num_threads() > 1
     has_consumer = any(numpy.any(tape.opcodes >= USER_BASE) for tape in tapes)
     if not use_parallel and not has_consumer:
-        max_depth = max(tape.depth for tape in tapes)
-        reserve(max_depth, rows)
         return run_opcode_cse(tapes, matrix)
     return launch_kernels(tapes, matrix, dispatch, use_parallel)
 
@@ -225,7 +226,7 @@ def launch_kernels(
     """
     rows = matrix.shape[0]
     out = numpy.empty((len(tapes), rows), dtype=numpy.float64)
-    run, idle, many = _serial_kernel()
+    run, idle, many = serial_kernels()
     if dispatch is None:
         dispatch = idle
     packed = _pack(tapes)
