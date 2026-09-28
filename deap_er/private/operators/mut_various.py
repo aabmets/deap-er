@@ -207,6 +207,8 @@ def mut_es_log_normal(individual: Individual, learn_rate: float, mut_prob: float
         A one-element tuple containing the mutated individual.
     """
     size = len(individual)
+    if size == 0:
+        return (individual,)
     t = learn_rate / math.sqrt(2.0 * math.sqrt(size))
     t0 = learn_rate / math.sqrt(2.0 * size)
     n = rng.gauss(0, 1)

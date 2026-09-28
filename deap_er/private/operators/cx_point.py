@@ -10,6 +10,7 @@
 #
 from __future__ import annotations
 
+import copy as copy_module
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -35,8 +36,10 @@ def _segment(individual: Individual, slc: slice, copy: bool = False) -> Individu
     native slice (or its ``copy``) instead of coercing to ``list``.
     """
     piece = individual[slc]
-    if copy or hasattr(piece, "copy"):
+    if hasattr(piece, "copy"):
         return piece.copy()
+    if copy:
+        return copy_module.copy(piece)
     return piece
 
 

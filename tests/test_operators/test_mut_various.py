@@ -231,3 +231,10 @@ def test_mut_gaussian_bounded_accepts_numpy_integer_bounds():
     tools.rng.seed(1)
     (mutant,) = tools.mut_gaussian_bounded(individual, 0.0, 1.0, low, up, 1.0)
     assert all(0.0 <= gene <= 1.0 for gene in mutant)
+
+
+def test_es_log_normal_empty_individual_is_noop():
+    individual: Any = _ESList([], [])
+    (mutant,) = tools.mut_es_log_normal(individual, 1.0, 1.0)
+    assert mutant is individual
+    assert mutant == []

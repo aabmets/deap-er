@@ -87,19 +87,12 @@ def _mig_edge_emigrants(
     forbidden: set[int] | None = None,
 ) -> set[int]:
     dest = populations[to_deme]
-    emigrants = [clone_individual(ind) for ind in selected]
     count = len(selected)
     dest_slots = selection(dest, count) if replacement is None else replacement(dest, count)
     vacancies = _claim_vacancies(dest, dest_slots, forbidden)
-    incoming_filled = min(len(emigrants), len(vacancies))
     used: set[int] = set()
-    for offset, (indx, immigrant) in enumerate(zip(vacancies, emigrants, strict=False)):
-        already_in_dest = any(member is immigrant for member in dest)
-        if (replacement is None and offset >= incoming_filled) or already_in_dest:
-            mover = clone_individual(immigrant)
-        else:
-            mover = immigrant
-        dest[indx] = mover
+    for indx, emigrant in zip(vacancies, selected, strict=False):
+        dest[indx] = clone_individual(emigrant)
         used.add(indx)
     return used
 
@@ -213,7 +206,7 @@ def mig_ring(
     """
     nbr_demes = len(populations)
     if mig_indices is None:
-        mig_indices = list(range(1, nbr_demes)) + [0]
+        mig_indices = [(i + 1) % nbr_demes for i in range(nbr_demes)]
 
     emigrants: list[list[Individual]] = [[] for _ in range(nbr_demes)]
     vacancies: list[list[int]] = [[] for _ in range(nbr_demes)]
