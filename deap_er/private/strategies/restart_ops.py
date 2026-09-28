@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
-from typing import Any, Literal
+from typing import Any
 
 import numpy
 
@@ -19,21 +19,14 @@ from deap_er.private.strategies.cma_multi_objective import StrategyMultiObjectiv
 from deap_er.private.strategies.cma_one_plus_lambda import StrategyOnePlusLambda
 from deap_er.private.strategies.cma_separable import StrategySeparable
 from deap_er.private.strategies.cma_standard import Strategy
-from deap_er.private.strategies.restart_common import (
-    sample_centroid,
-    sample_small_lambda,
-    sample_small_sigma,
-)
+from deap_er.private.strategies.restart_common import sample_centroid
 from deap_er.private.typedefs import Individual
 
 __all__: list[str] = [
     "apply_strategy_restart",
-    "next_bipop_params",
-    "next_ipop_params",
     "resize_offsprings",
     "set_strategy_sigma",
     "target_met",
-    "validate_lambda_factor",
 ]
 
 
@@ -123,66 +116,3 @@ def apply_strategy_restart(
         del ind.fitness.values
         parents.append(ind)
     strategy.reset_state(parents, sigma, offsprings=lamb, survivors=survivors)
-
-
-def validate_lambda_factor(
-    lambda_default: int, lambda_factor: float, max_large_restarts: int
-) -> None:
-    """Reject a ``lambda_factor`` whose large-regime λ can drop below 1.
-
-    Large restarts use ``int(lambda_default * lambda_factor**i)`` for
-    ``i`` up to ``max_large_restarts``.
-
-    Args:
-        lambda_default: First-run offspring count.
-        lambda_factor: Population growth factor per large restart.
-        max_large_restarts: Largest exponent ``i``.
-
-    Raises:
-        ValueError: If any reachable large-regime λ is less than 1.
-    """
-    exponents = range(max_large_restarts + 1)
-    smallest = min((int(lambda_default * lambda_factor**i) for i in exponents), default=1)
-    if smallest < 1:
-        raise ValueError(
-            f"lambda_factor={lambda_factor} with offsprings={lambda_default} and "
-            f"max_large_restarts={max_large_restarts} gives a restart λ of {smallest}; "
-            "every restart needs at least 1 offspring."
-        )
-
-
-def next_ipop_params(
-    lambda_default: int,
-    lambda_factor: float,
-    irestart_large: int,
-    max_large_restarts: int,
-    sigma_large: float,
-) -> tuple[int, float, int]:
-    """Return the next IPOP offspring count, sigma, and large-restart index."""
-    irestart_large = min(irestart_large + 1, max_large_restarts)
-    lamb = int(lambda_default * lambda_factor**irestart_large)
-    return lamb, sigma_large, irestart_large
-
-
-def next_bipop_params(
-    *,
-    lambda_default: int,
-    lambda_factor: float,
-    lambda_large: int,
-    irestart_large: int,
-    max_large_restarts: int,
-    sigma_large: float,
-    restart_count: int,
-    evals_used: int,
-    budget: int,
-    budget_large: int,
-    budget_small: int,
-) -> tuple[int, float, Literal["large", "small"], int, int]:
-    """Return the next BIPOP offspring count, sigma, regime, and large-λ state."""
-    force_large = restart_count == 1 or evals_used >= budget * 0.95
-    if force_large or budget_small >= budget_large:
-        irestart_large = min(irestart_large + 1, max_large_restarts)
-        lambda_large = int(lambda_default * lambda_factor**irestart_large)
-        return lambda_large, sigma_large, "large", irestart_large, lambda_large
-    lamb = sample_small_lambda(lambda_default, lambda_large)
-    return lamb, sample_small_sigma(sigma_large), "small", irestart_large, lambda_large

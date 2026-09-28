@@ -30,13 +30,11 @@ from deap_er.private.strategies.restart_common import (
 )
 from deap_er.private.strategies.restart_ops import (
     apply_strategy_restart,
-    next_bipop_params,
-    next_ipop_params,
     resize_offsprings,
     set_strategy_sigma,
     target_met,
-    validate_lambda_factor,
 )
+from deap_er.private.strategies.restart_schedule import RestartSchedule
 from deap_er.private.strategies.restart_tracker import RunTracker
 from deap_er.private.typedefs import Individual
 
@@ -75,45 +73,38 @@ class RestartStrategy:
     ) -> None:
         """See the class docstring."""
         self.strategy = strategy
-        self.mode = mode
         self.budget = budget
         self.target_f = target_f
-        self.sigma_large = sigma_large
-        self.lambda_factor = lambda_factor
-        self.max_large_restarts = max_large_restarts
         self.max_restarts = max_restarts
         self.restart_centroid = restart_centroid
         self.stagnation_key = stagnation_key
 
         self.dim = strategy_dim(strategy)
-        self._lambda_default = int(getattr(strategy, "lamb", default_lambda(self.dim)))
-        validate_lambda_factor(self._lambda_default, lambda_factor, max_large_restarts)
-        self._lambda_large = self._lambda_default
+        lambda_default = int(getattr(strategy, "lamb", default_lambda(self.dim)))
+        self._schedule = RestartSchedule(
+            mode, lambda_default, lambda_factor, max_large_restarts, sigma_large
+        )
         self._mu_default = int(getattr(strategy, "mu", 1))
-        self._irestart_large = 0
-        self._budget_large = 0
-        self._budget_small = 0
         self._restart_count = 0
-        self._regime: Literal["large", "small"] | None = None
         self._run_evals = 0
-        self._last_large_run_evals = 0
         self._small_run_cap: int | None = None
         self._evals_used = 0
         self._done = False
         self._ind_init: Callable[..., Individual] | None = None
         self._initial_center = strategy_center(strategy)
         self._best: Individual | None = None
+        self._best_w: float = float("-inf")
         self._fitness_weights: tuple[float, ...] | None = None
         self._tracker = RunTracker(
             self.dim,
-            self._lambda_default,
+            lambda_default,
             sigma_large,
             stagnation_window=stagnation_window,
             tol_fun=tol_fun,
             condition_limit=condition_limit,
         )
         set_strategy_sigma(self.strategy, sigma_large)
-        self._begin_run(self._lambda_default, sigma_large)
+        self._begin_run(lambda_default, sigma_large)
 
     @property
     def evals_used(self) -> int:
@@ -128,20 +119,19 @@ class RestartStrategy:
     @property
     def regime(self) -> Literal["large", "small"] | None:
         """Active restart regime, or None before the first restart."""
-        return self._regime
+        return self._schedule.regime
 
     @property
     def best_fitness(self) -> float:
-        """Best raw objective seen across all runs for single-objective runs."""
-        if self._evals_used == 0:
+        """Best raw objective seen across all runs for single-objective runs.
+
+        Independent of ``stagnation_key``, which only drives stagnation.
+        """
+        weights = self._fitness_weights
+        if self._evals_used == 0 or weights is None or len(weights) != 1:
             return float("nan")
-        if self._fitness_weights and len(self._fitness_weights) > 1:
-            return float("nan")
-        if self._fitness_weights and len(self._fitness_weights) == 1:
-            weight = self._fitness_weights[0]
-            if weight != 0:
-                return float(self._tracker.best_ever / weight)
-        return float(self._tracker.best_ever)
+        weight = float(weights[0])
+        return self._best_w / weight if weight != 0 else self._best_w
 
     def remaining_budget(self) -> int:
         """Function evaluations left before the hard budget is reached."""
@@ -170,6 +160,8 @@ class RestartStrategy:
         self.strategy.update(population)
         self._run_evals += len(population)
         self._evals_used += len(population)
+        if len(self._fitness_weights) == 1:
+            self._best_w = max(self._best_w, *(float(ind.fitness.wvalues[0]) for ind in population))
         for ind in population:
             if self._best is None or scalar_fitness(ind, self.stagnation_key) > scalar_fitness(
                 self._best, self.stagnation_key
@@ -183,7 +175,7 @@ class RestartStrategy:
             sigma=sigma,
             largest_eig=largest,
         )
-        if target_met(self.target_f, self._fitness_weights, self._tracker.best_ever):
+        if target_met(self.target_f, self._fitness_weights, self._best_w):
             self._done = True
         if self._small_run_cap is not None and self._run_evals >= self._small_run_cap:
             self._tracker.terminate = True
@@ -205,33 +197,11 @@ class RestartStrategy:
 
     def restart(self) -> None:
         """Finish the current run and launch the next restart."""
-        self._account_run_budget()
+        self._schedule.account_run(self._run_evals)
         self._restart_count += 1
-        if self.mode == "ipop":
-            lamb, sigma, self._irestart_large = next_ipop_params(
-                self._lambda_default,
-                self.lambda_factor,
-                self._irestart_large,
-                self.max_large_restarts,
-                self.sigma_large,
-            )
-            self._regime = "large"
-        else:
-            lamb, sigma, self._regime, self._irestart_large, self._lambda_large = next_bipop_params(
-                lambda_default=self._lambda_default,
-                lambda_factor=self.lambda_factor,
-                lambda_large=self._lambda_large,
-                irestart_large=self._irestart_large,
-                max_large_restarts=self.max_large_restarts,
-                sigma_large=self.sigma_large,
-                restart_count=self._restart_count,
-                evals_used=self._evals_used,
-                budget=self.budget,
-                budget_large=self._budget_large,
-                budget_small=self._budget_small,
-            )
-        small = self._regime == "small"
-        self._small_run_cap = max(1, self._last_large_run_evals // 2) if small else None
+        lamb, sigma, self._small_run_cap = self._schedule.next_run(
+            self._restart_count, self._evals_used, self.budget
+        )
         self._apply_restart(lamb, sigma)
         self._run_evals = 0
         self._begin_run(lamb, sigma)
@@ -243,16 +213,6 @@ class RestartStrategy:
     def _begin_run(self, lamb: int, sigma: float) -> None:
         cap = max_iter_limit(self.dim, lamb)
         self._tracker.begin_run(lamb, sigma, max_iter=cap)
-
-    def _account_run_budget(self) -> None:
-        if self._run_evals == 0:
-            return
-        regime = self._regime if self._regime is not None else "large"
-        if regime == "small":
-            self._budget_small += self._run_evals
-        else:
-            self._budget_large += self._run_evals
-            self._last_large_run_evals = self._run_evals
 
     def _apply_restart(self, lamb: int, sigma: float) -> None:
         if self._ind_init is None:

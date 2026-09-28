@@ -130,9 +130,9 @@ def test_bipop_small_regime_samples_lambda():
     strategy, _ = _setup_min(offsprings=8)
     try:
         restart = tools.RestartStrategy(strategy, mode="bipop", budget=1_000_000)
-        restart._lambda_large = 32
-        restart._budget_large = 100
-        restart._budget_small = 0
+        restart._schedule.lambda_large = 32
+        restart._schedule.budget_large = 100
+        restart._schedule.budget_small = 0
         restart._restart_count = 2
         restart._ind_init = creator.__dict__[IND]
         restart._tracker.terminate = True

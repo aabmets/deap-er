@@ -14,10 +14,10 @@ from deap_er import Fitness, creator, tools
 from deap_er.private.strategies.restart_common import sample_small_lambda
 from deap_er.private.strategies.restart_ops import (
     apply_strategy_restart,
-    next_bipop_params,
     resize_offsprings,
     set_strategy_sigma,
 )
+from deap_er.private.strategies.restart_schedule import next_bipop_params
 
 FIT = "ROP_FIT"
 IND = "ROP_IND"
