@@ -45,9 +45,16 @@ def set_strategy_sigma(strategy: Any, sigma: float) -> None:
 
 
 def resize_offsprings(strategy: Any, lamb: int) -> None:
-    """Temporarily change offspring count (and survivors) on a strategy."""
+    """Change the offspring count for a leftover-budget batch.
+
+    ``Strategy`` / ``StrategySeparable`` recombine the best ``mu`` of
+    ``lamb`` offspring, so ``mu`` is capped at ``lamb``. MO-CMA selects
+    ``mu`` parents from parents plus offspring and keeps its ``mu``.
+    """
     kwargs: dict[str, int] = {"offsprings": lamb}
-    if hasattr(strategy, "mu"):
+    if isinstance(strategy, StrategyMultiObjective):
+        kwargs["survivors"] = int(strategy.mu)
+    elif hasattr(strategy, "mu"):
         kwargs["survivors"] = min(int(strategy.mu), lamb)
     strategy.compute_params(**kwargs)
 
@@ -73,11 +80,14 @@ def apply_strategy_restart(
     restart_centroid: str | Callable[[int], numpy.ndarray],
     initial_center: numpy.ndarray,
     best: Individual | None,
+    max_survivors: int | None = None,
 ) -> None:
     """Reset a wrapped CMA strategy for the next restart.
 
-    For multi-objective strategies, ``survivors`` is capped at ``min(mu, lamb)``
-    so a large-λ restart may retain fewer parents than offspring count.
+    For multi-objective strategies, ``survivors`` is
+    ``min(max_survivors, lamb)``. Pass the first run's ``mu`` as
+    ``max_survivors`` so a small-λ restart does not shrink every later
+    run. It defaults to the strategy's current ``mu``.
     """
     center = sample_centroid(
         dim,
@@ -95,7 +105,8 @@ def apply_strategy_restart(
         del parent.fitness.values
         strategy.reset_state(parent, sigma, offsprings=lamb)
         return
-    survivors = min(strategy.mu, lamb)
+    cap = strategy.mu if max_survivors is None else max_survivors
+    survivors = min(cap, lamb)
     parents = []
     for _ in range(survivors):
         ind = ind_init(

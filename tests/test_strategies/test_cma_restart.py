@@ -10,7 +10,8 @@
 #
 import numpy
 from deap_er import Fitness, Toolbox, creator, tools
-from deap_er.private.strategies.restart_common import RunTracker
+from deap_er.private.strategies.restart_common import sample_centroid
+from deap_er.private.strategies.restart_tracker import RunTracker
 
 FIT = "RST_FIT"
 IND = "RST_IND"
@@ -185,8 +186,6 @@ def test_restart_centroid_one_sided_bounds_stay_finite():
 
 
 def test_sample_centroid_expands_when_default_box_misses_the_bound():
-    from deap_er.private.strategies.restart_common import sample_centroid
-
     tools.rng.seed(0)
     high_low = sample_centroid(4, 10.0, None, "random", numpy.zeros(4), None)
     assert numpy.isfinite(high_low).all()

@@ -12,7 +12,8 @@ import math
 
 import pytest
 from deap_er import Fitness, Toolbox, creator, tools
-from deap_er.private.strategies.restart_common import RunTracker, scalar_fitness
+from deap_er.private.strategies.restart_common import scalar_fitness
+from deap_er.private.strategies.restart_tracker import RunTracker
 
 FIT = "RST_BF_FIT"
 IND = "RST_BF_IND"

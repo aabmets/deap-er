@@ -20,7 +20,6 @@ from deap_er.private.strategies.cma_one_plus_lambda import StrategyOnePlusLambda
 from deap_er.private.strategies.cma_separable import StrategySeparable
 from deap_er.private.strategies.cma_standard import Strategy
 from deap_er.private.strategies.restart_common import (
-    RunTracker,
     default_lambda,
     max_iter_limit,
     require_stagnation_key,
@@ -37,6 +36,7 @@ from deap_er.private.strategies.restart_ops import (
     set_strategy_sigma,
     target_met,
 )
+from deap_er.private.strategies.restart_tracker import RunTracker
 from deap_er.private.typedefs import Individual
 
 __all__ = ["RestartStrategy"]
@@ -87,10 +87,10 @@ class RestartStrategy:
         self.dim = strategy_dim(strategy)
         self._lambda_default = int(getattr(strategy, "lamb", default_lambda(self.dim)))
         self._lambda_large = self._lambda_default
+        self._mu_default = int(getattr(strategy, "mu", 1))
         self._irestart_large = 0
         self._budget_large = 0
         self._budget_small = 0
-        self._run_count = 0
         self._restart_count = 0
         self._regime: Literal["large", "small"] | None = None
         self._run_evals = 0
@@ -204,7 +204,6 @@ class RestartStrategy:
     def restart(self) -> None:
         """Finish the current run and launch the next restart."""
         self._account_run_budget()
-        self._run_count += 1
         self._restart_count += 1
         if self.mode == "ipop":
             lamb, sigma, self._irestart_large = next_ipop_params(
@@ -266,4 +265,5 @@ class RestartStrategy:
             restart_centroid=self.restart_centroid,
             initial_center=self._initial_center,
             best=self._best,
+            max_survivors=self._mu_default,
         )
