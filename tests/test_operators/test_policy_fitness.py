@@ -153,3 +153,19 @@ def test_policy_exam_scores_train_is_observation_only(ind_cls):
     )
     assert obs.train_score == train_score
     assert obs.held_out_score == held_out_score
+
+
+def test_guard_distinguishes_series_exams_with_equal_segment_counts():
+    held = tools.CaseExam(ranges=[(100, 200)], length=1000)
+    train = tools.CaseExam(ranges=[(0, 50)], length=1000)
+    tools.guard_policy_fitness_exam(held, held_out=held, n_cases=10, train_exams=[train])
+
+    other = tools.CaseExam(ranges=[(300, 400)], length=1000)
+    with pytest.raises(ValueError, match="caller-marked held_out exam only"):
+        tools.guard_policy_fitness_exam(other, held_out=held, n_cases=10)
+
+
+def test_guard_accepts_held_out_ranges_in_any_order():
+    held = tools.CaseExam.from_cases([0, 2], 4)
+    reordered = tools.CaseExam(ranges=[(2, 3), (0, 1)])
+    tools.guard_policy_fitness_exam(reordered, held_out=held, n_cases=4)

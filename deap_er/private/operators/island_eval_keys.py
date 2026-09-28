@@ -15,7 +15,7 @@ from typing import Any, cast
 
 from deap_er.private.records.case_exam import CaseExam
 
-__all__: list[str] = ["island_eval_keys"]
+__all__: list[str] = ["case_exam_key", "island_eval_keys"]
 
 
 def island_eval_keys(
@@ -60,14 +60,32 @@ def island_eval_keys(
         matrix_parts = [_matrix_part(item) for item in matrices]
     else:
         matrix_parts = [None] * len(exams)
-    return tuple((_exam_part(exam, n_cases), matrix_parts[idx]) for idx, exam in enumerate(exams))
+    return tuple(
+        (case_exam_key(exam, n_cases), matrix_parts[idx]) for idx, exam in enumerate(exams)
+    )
 
 
-def _exam_part(exam: CaseExam, n_cases: int) -> tuple[Any, ...]:
+def case_exam_key(exam: CaseExam, n_cases: int) -> tuple[Any, ...]:
+    """Return a hashable key that is equal for equivalent case subsets.
+
+    Catalog exams are painted to a boolean mask of ``n_cases``, so
+    masks and ranges (in any order) selecting the same cases share a
+    key. Series exams keep their normalized ranges and series span.
+
+    Args:
+        exam: Exam to identify.
+        n_cases: Fitness-case count from the current pack.
+
+    Returns:
+        A hashable key for ``exam``.
+
+    Raises:
+        ValueError: If the stored ranges or mask are invalid.
+    """
     if _is_catalog_exam(exam, n_cases):
-        mask = exam.as_mask(n_cases)
-        return ("mask", mask.tobytes(), exam.length)
-    ranges = tuple(exam.as_ranges(n_cases))
+        return ("mask", exam.as_mask(n_cases).tobytes())
+    span = n_cases if exam.mask is not None else exam.mutation_bound(n_cases)
+    ranges = tuple(exam.as_ranges(span))
     return ("ranges", ranges, exam.length)
 
 

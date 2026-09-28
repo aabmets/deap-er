@@ -26,6 +26,7 @@ from .case_exams import (
     elite_solve_matrix,
     score_case_exams,
 )
+from .island_eval_keys import case_exam_key
 
 __all__: list[str] = [
     "guard_policy_fitness_exam",
@@ -88,21 +89,18 @@ def guard_policy_fitness_exam(
         ValueError: If ``fitness_exam`` is not the held-out exam or
             matches a train or freshly mutated exam.
     """
-    held_cases = held_out.as_cases(n_cases)
-    fitness_cases = fitness_exam.as_cases(n_cases)
+    fitness_key = case_exam_key(fitness_exam, n_cases)
     if train_exams is not None:
         for train in train_exams:
-            if train is fitness_exam:
+            if train is fitness_exam or case_exam_key(train, n_cases) == fitness_key:
                 raise ValueError("train-exam quality is an observation, not the policy objective")
-            if train.as_cases(n_cases) == fitness_cases:
-                raise ValueError("train-exam quality is an observation, not the policy objective")
-    if fitness_cases != held_cases:
+    if fitness_key != case_exam_key(held_out, n_cases):
         raise ValueError("policy fitness must use the caller-marked held_out exam only")
     if mutated_exam is None:
         return
     if mutated_exam is fitness_exam or mutated_exam is held_out:
         raise ValueError("policy fitness must not reward the exam the policy just mutated")
-    if mutated_exam.as_cases(n_cases) == fitness_cases:
+    if case_exam_key(mutated_exam, n_cases) == fitness_key:
         raise ValueError("policy fitness must not reward the exam the policy just mutated")
 
 
