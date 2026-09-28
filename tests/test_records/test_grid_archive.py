@@ -94,8 +94,8 @@ def test_two_dimensional_cells_are_distinct(ind_cls):
     archive.add(_individual(ind_cls, [1], 2.0), (0.9, 0.9))
 
     assert len(archive) == 2
-    assert archive.get((0, 0)) is not None
-    assert archive.get((1, 1)) is not None
+    assert archive.get((0, 0)) == [0]
+    assert archive.get((1, 1)) == [1]
 
 
 def test_random_elites_with_replacement(ind_cls):
@@ -137,9 +137,9 @@ def test_elite_at_and_get_round_trip(ind_cls):
     archive.add(individual, (0.5,))
 
     index = archive.descriptor_to_index((0.5,))
-    assert archive.get(index) is not None
-    assert archive.elite_at((0.5,)) is not None
-    assert (index,) == (archive.descriptor_to_index((0.5,)),)
+    assert index == (2,)
+    assert archive.get(index) == [4]
+    assert archive.elite_at((0.5,)) is archive.get(index)
 
 
 def test_add_rejects_non_finite_fitness(ind_cls):
