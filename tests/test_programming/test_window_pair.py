@@ -220,3 +220,10 @@ def test_the_numba_backend_matches_the_default_backend_on_pair_windows():
         expected = _as_column(gp.compile_tree(tree, pset)(*columns), 24)
         actual = gp.compile_tree(tree, pset, backend="numba")(*columns)
         numpy.testing.assert_allclose(actual, expected, equal_nan=True, rtol=1e-9, atol=1e-12)
+
+
+@pytest.mark.parametrize("op", PAIR_OPS)
+def test_pair_windows_read_a_scalar_operand_as_a_constant_series(op):
+    expected = op(RAMP, numpy.full(RAMP.shape, 2.0), 3)
+    numpy.testing.assert_array_equal(op(RAMP, 2.0, 3), expected)
+    numpy.testing.assert_array_equal(op(2.0, RAMP, 3), op(numpy.full(RAMP.shape, 2.0), RAMP, 3))

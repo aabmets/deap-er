@@ -12,7 +12,7 @@ import numpy
 import pytest
 from deap_er import gp, tools
 from deap_er.private.programming import tape_cse
-from deap_er.private.programming.opcodes import _apply_opcode
+from deap_er.private.programming.opcodes import apply_opcode
 
 COLUMNS = ["first", "second", "third"]
 
@@ -131,14 +131,14 @@ def test_shared_postfix_suffix_applies_mul_once(monkeypatch):
     matrix = _matrix(_samples())
     tapes = [_tape_add_shared_mul(column) for column in COLUMNS]
     calls = {"count": 0}
-    original = _apply_opcode
+    original = apply_opcode
 
     def counted(stack, columns, tape, opcode, operand):
         if opcode == int(gp.Opcode.MUL):
             calls["count"] += 1
         return original(stack, columns, tape, opcode, operand)
 
-    monkeypatch.setattr(tape_cse, "_apply_opcode", counted)
+    monkeypatch.setattr(tape_cse, "apply_opcode", counted)
     tape_cse.run_opcode_cse(tapes, matrix)
     assert calls["count"] == 1
 
@@ -150,44 +150,64 @@ def test_identical_full_tapes_share_one_root_node():
     assert plan.roots == (2, 2, 2)
 
 
-def test_evaluate_nodes_opcode_returns_one_slot_per_node_id():
+def testevaluate_cse_nodes_returns_one_slot_per_node_id():
     matrix = _matrix(_samples())
     plan = tape_cse.build_cse_plan([_tape_add_shared_mul(column) for column in COLUMNS])
-    values = tape_cse._evaluate_nodes_opcode(plan.nodes, matrix)
+    values = tape_cse.evaluate_cse_nodes(plan.nodes, matrix)
     assert len(values) == len(plan.nodes)
     for node_id in range(len(plan.nodes)):
         assert isinstance(values[node_id], numpy.ndarray)
         assert values[node_id].shape == (matrix.shape[0],)
 
 
-def test_compacting_evaluated_values_breaks_root_indexing():
-    matrix = _matrix(_samples())
-    plan = tape_cse.build_cse_plan([_tape("vadd(first, second)")])
-    root = plan.roots[0]
-    assert root == len(plan.nodes) - 1
-    slots: list[numpy.ndarray | None] = [None] * len(plan.nodes)
-    for node_id in range(len(plan.nodes)):
-        slots[node_id] = numpy.full(matrix.shape[0], float(node_id))
-    compacted = [value for value in slots if value is not None]
-    assert len(compacted) == len(slots)
-    slots[0] = None
-    compacted = [value for value in slots if value is not None]
-    assert len(compacted) < len(slots)
-    with pytest.raises(IndexError):
-        compacted[root]
-
-
 def test_run_opcode_cse_requires_uncompacted_node_values(monkeypatch):
     matrix = _matrix(_samples())
     tapes = [_tape_add_shared_mul("third")]
     plan = tape_cse.build_cse_plan(tapes)
-    original = tape_cse._evaluate_nodes_opcode
+    original = tape_cse.evaluate_cse_nodes
 
     def legacy_compacting(nodes, matrix):
         values = original(nodes, matrix)
         return values[1:]
 
-    monkeypatch.setattr(tape_cse, "_evaluate_nodes_opcode", legacy_compacting)
+    monkeypatch.setattr(tape_cse, "evaluate_cse_nodes", legacy_compacting)
     with pytest.raises(IndexError):
         tape_cse.run_opcode_cse(tapes, matrix)
     assert plan.roots[0] == len(plan.nodes) - 1
+
+
+def _constant_kit():
+    pset = gp.make_column_pset(COLUMNS)
+    gp.add_numpy_primitives(pset)
+    gp.add_window_primitives(pset)
+    pset.add_terminal(2.0, gp.Array, "two")
+    pset.add_terminal(5.0, gp.Array, "five")
+    return pset
+
+
+def test_combined_node_tapes_keep_each_child_constant_pool():
+    pset = _constant_kit()
+    shared = gp.lower_tree("vmul(first, two)", pset)
+    reordered = gp.lower_tree("vadd(five, vmul(first, two))", pset)
+    plan = tape_cse.build_cse_plan([shared, reordered])
+    matrix = _matrix(_samples())
+    root = plan.nodes[plan.roots[1]]
+    numpy.testing.assert_allclose(
+        gp.interpret_tape(root.tape, matrix), gp.interpret_tape(reordered, matrix)
+    )
+
+
+@pytest.mark.parametrize(
+    "expr",
+    ["rolling_mean(two, 3)", "diff(five, 2)", "ts_rank(two, 3)", "vadd(first, ema(two, 4))"],
+)
+def test_a_window_over_a_constant_reads_it_as_a_constant_column(expr):
+    pset = _constant_kit()
+    gp.add_ts_primitives(pset)
+    matrix = _matrix(_samples())
+    tape = gp.lower_tree(expr, pset)
+    column = numpy.full(matrix.shape[0], 2.0 if "two" in expr else 5.0)
+    as_column = gp.lower_tree(expr.replace("two", "second").replace("five", "second"), pset)
+    expected = gp.interpret_tape(as_column, numpy.column_stack([matrix[:, 0], column, column]))
+    numpy.testing.assert_allclose(gp.interpret_tape(tape, matrix), expected, equal_nan=True)
+    numpy.testing.assert_allclose(gp.interpret_tapes([tape], matrix)[0], expected, equal_nan=True)

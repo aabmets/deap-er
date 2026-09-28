@@ -28,6 +28,7 @@ __all__: list[str] = [
     "numba_opcodes",
     "lower_tree",
     "interpret_tape",
+    "apply_opcode",
 ]
 
 _STACK_UNDERFLOW = "The tape is malformed and underflows the evaluation stack."
@@ -77,14 +78,7 @@ _PAIR_WINDOWED: dict[int, Callable[..., Any]] = {
 
 
 def _column_count(columns: Sequence[Any] | numpy.ndarray) -> int:
-    """Return how many columns a tape input carries.
-
-    Args:
-        columns: Packed matrix or column sequence.
-
-    Returns:
-        Column count.
-    """
+    """Return how many columns a packed matrix or column sequence carries."""
     if isinstance(columns, numpy.ndarray) and columns.ndim == 2:
         return int(columns.shape[1])
     return len(columns)
@@ -118,7 +112,7 @@ def interpret_tape(tape: Tape, columns: Sequence[Any] | numpy.ndarray) -> Any:
     for step in range(tape.opcodes.size):
         opcode = int(tape.opcodes[step])
         operand = int(tape.operands[step])
-        _apply_opcode(stack, columns, tape, opcode, operand)
+        apply_opcode(stack, columns, tape, opcode, operand)
     if not stack:
         raise ValueError("The tape is malformed and leaves no result.")
     return stack[-1]
@@ -137,6 +131,14 @@ def _column(columns: Sequence[Any] | numpy.ndarray, index: int) -> Any:
     if isinstance(columns, numpy.ndarray) and columns.ndim == 2:
         return columns[:, index]
     return columns[index]
+
+
+def _as_series(value: Any, columns: Sequence[Any] | numpy.ndarray) -> Any:
+    """Read a scalar window operand as a constant column, as Numba does."""
+    if numpy.ndim(value) != 0 or _column_count(columns) == 0:
+        return value
+    rows = numpy.shape(_column(columns, 0))[0]
+    return numpy.full(rows, value, dtype=numpy.float64)
 
 
 def _peek(stack: list[Any]) -> Any:
@@ -188,7 +190,7 @@ def _pop(stack: list[Any]) -> Any:
     return stack.pop()
 
 
-def _apply_opcode(
+def apply_opcode(
     stack: list[Any], columns: Sequence[Any] | numpy.ndarray, tape: Tape, opcode: int, operand: int
 ) -> None:
     """Apply one tape instruction to the evaluation stack.
@@ -217,11 +219,12 @@ def _apply_opcode(
         _replace(stack, _UNARY_PROTECTED[opcode](_peek(stack), fill=tape.fill))
         return
     if opcode in _WINDOWED:
-        _replace(stack, _WINDOWED[opcode](_peek(stack), operand))
+        _replace(stack, _WINDOWED[opcode](_as_series(_peek(stack), columns), operand))
         return
     if opcode in _PAIR_WINDOWED:
-        right = _pop(stack)
-        _replace(stack, _PAIR_WINDOWED[opcode](_peek(stack), right, operand))
+        right = _as_series(_pop(stack), columns)
+        left = _as_series(_peek(stack), columns)
+        _replace(stack, _PAIR_WINDOWED[opcode](left, right, operand))
         return
     if opcode in _BINARY:
         right = _pop(stack)
