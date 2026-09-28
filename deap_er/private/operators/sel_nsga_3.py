@@ -112,7 +112,10 @@ def sel_nsga_3(
 
     extreme_points = find_extreme_points(fitness, best_point, extreme_points)
     front_worst = numpy.max(fitness[: len(pareto_fronts[0]), :], axis=0)
-    intercepts = find_intercepts(extreme_points, best_point, worst_point, front_worst)
+    population_worst = -numpy.min([ind.fitness.wvalues for ind in individuals], axis=0)
+    intercepts = find_intercepts(
+        extreme_points, best_point, worst_point, front_worst, population_worst
+    )
     niches, dist = associate_to_niche(fitness, ref_points, best_point, intercepts)
 
     niche_counts = numpy.zeros(len(ref_points), dtype=numpy.int64)

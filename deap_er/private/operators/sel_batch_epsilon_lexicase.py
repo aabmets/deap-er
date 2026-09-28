@@ -69,7 +69,7 @@ def sel_batch_epsilon_lexicase(
         trust_matrix: When ``True``, ``matrix`` is accepted on shape
             alone. Defaults to ``False``.
         fit_weights: Optional per-column maximize/minimize signs.
-            Required when ``matrix`` has more columns than
+            Required when ``matrix`` width differs from
             ``fitness.values``.
         reduction: Maps a ``(n_individuals, batch_width)`` block to
             one score per individual. Defaults to mean squared error.

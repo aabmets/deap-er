@@ -83,7 +83,7 @@ def test_nsga3_constant_objective_uses_absolute_intercepts():
         best = numpy.min(fitness, axis=0)
         worst = numpy.max(fitness, axis=0)
         ext = find_extreme_points(fitness, best, None)
-        intercepts = find_intercepts(ext, best, worst, worst)
+        intercepts = find_intercepts(ext, best, worst, worst, worst)
         refs = tools.uniform_reference_points(2, 4)
         niches, _ = associate_to_niche(fitness, refs, best, intercepts)
 
@@ -93,7 +93,7 @@ def test_nsga3_constant_objective_uses_absolute_intercepts():
         best_shift = numpy.array([-10.0, 0.0])
         extreme = numpy.array([[-9.0, 0.0], [-10.0, 10.0]])
         far_worst = numpy.array([100.0, 100.0])
-        got = find_intercepts(extreme, best_shift, far_worst, far_worst)
+        got = find_intercepts(extreme, best_shift, far_worst, far_worst, far_worst)
         plane = numpy.linalg.solve(extreme - best_shift, numpy.ones(2))
         assert numpy.allclose(got, 1.0 / plane + best_shift)
     finally:
@@ -198,9 +198,24 @@ def test_find_intercepts_singular_plane_falls_back_to_front_worst():
     current_worst = numpy.array([9.0, 9.0, 9.0])
     front_worst = numpy.array([3.0, 2.0, 2.0])
 
-    intercepts = find_intercepts(extreme, best, current_worst, front_worst)
+    intercepts = find_intercepts(extreme, best, current_worst, front_worst, current_worst)
 
     assert numpy.array_equal(intercepts, front_worst)
+
+
+def test_find_intercepts_flat_front_axis_uses_population_worst():
+    # The non-dominated front is flat on objective 2 (front worst equals
+    # the ideal there); that axis must scale by the population worst,
+    # not collapse to a zero range.
+    extreme = numpy.array([[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0]])
+    best = numpy.zeros(3)
+    front_worst = numpy.array([3.0, 2.0, 0.0])
+    population_worst = numpy.array([4.0, 4.0, 5.0])
+
+    nadir = find_intercepts(extreme, best, population_worst, front_worst, population_worst)
+
+    assert nadir.tolist() == [3.0, 2.0, 5.0]
+    assert front_worst.tolist() == [3.0, 2.0, 0.0]
 
 
 def test_nsga3_fallback_normalizes_by_first_front_worst():

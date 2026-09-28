@@ -115,7 +115,7 @@ def sel_lexicase(
         trust_matrix: When ``True``, ``matrix`` is accepted on shape
             alone. Defaults to ``False``.
         fit_weights: Optional per-column maximize/minimize signs.
-            Required when ``matrix`` has more columns than
+            Required when ``matrix`` width differs from
             ``fitness.values``.
 
     Returns:
@@ -181,7 +181,7 @@ def sel_epsilon_lexicase(
         trust_matrix: When ``True``, ``matrix`` is accepted on shape
             alone. Defaults to ``False``.
         fit_weights: Optional per-column maximize/minimize signs.
-            Required when ``matrix`` has more columns than
+            Required when ``matrix`` width differs from
             ``fitness.values``.
 
     Returns:

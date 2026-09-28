@@ -107,9 +107,9 @@ def resolve_case_weights(
         Maximize/minimize signs aligned with ``matrix`` columns.
 
     Raises:
-        ValueError: If ``fit_weights`` is missing while the matrix is
-            wider than ``fitness.values``, or if the length does not
-            match ``matrix.shape[1]``.
+        ValueError: If ``fit_weights`` is missing while the matrix
+            width differs from ``fitness.values``, or if its length
+            does not match ``matrix.shape[1]``.
     """
     require_population(individuals)
     n_fitness = len(individuals[0].fitness.values)
@@ -119,7 +119,7 @@ def resolve_case_weights(
             raise ValueError("fit_weights must be empty when matrix has no columns")
         return ()
     if fit_weights is None:
-        if n_matrix > n_fitness:
+        if n_matrix != n_fitness:
             raise ValueError(
                 f"matrix has {n_matrix} columns but fitness has {n_fitness}; "
                 "pass fit_weights= with one sign per matrix column"

@@ -207,3 +207,16 @@ def test_tournament_cases_trust_matrix_skips_value_check(case_types, make, monke
     tools.sel_tournament_cases(population, 1, 2, cases=[0, 1], matrix=matrix, trust_matrix=True)
 
     assert calls == []
+
+
+def test_tournament_cases_trusted_matrix_width_errors_are_clear(case_types, make):
+    population = [make(case_types, [i], (1.0, 2.0, 3.0, 4.0)) for i in range(2)]
+    wide = numpy.ones((2, 6))
+    narrow = numpy.ones((2, 2))
+
+    with pytest.raises(IndexError, match="case index 5 has no fitness weight"):
+        tools.sel_tournament_cases(population, 1, 2, cases=[5], matrix=wide, trust_matrix=True)
+    with pytest.raises(IndexError, match="case index 3 is out of range for 2"):
+        tools.sel_tournament_cases(population, 1, 2, cases=[3], matrix=narrow, trust_matrix=True)
+    chosen = tools.sel_tournament_cases(population, 3, 2, matrix=narrow, trust_matrix=True)
+    assert len(chosen) == 3
