@@ -165,3 +165,22 @@ def test_next_pool_honors_case_count_as_repair_floor(ind_cls):
     )
     assert listed == pooled
     assert len(pooled) >= 3
+
+
+def test_next_evaluates_solve_predicate_once_per_elite_case(ind_cls):
+    elites = [
+        _make(ind_cls, [0], (0.0, 0.0, 1.0, 1.0)),
+        _make(ind_cls, [1], (0.0, 1.0, 0.0, 1.0)),
+    ]
+    calls: list[tuple[int, int]] = []
+
+    def solved(individual, case):
+        calls.append((individual[0], case))
+        return individual.fitness.values[case] == 0.0
+
+    tools.rng.seed(2)
+    tools.next_lexicase_cases(
+        [tools.CaseExam.from_cases([2, 3], 4)], elites, solved=solved, informed=False
+    )
+
+    assert sorted(calls) == [(i, c) for i in range(2) for c in range(4)]
