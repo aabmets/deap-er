@@ -58,12 +58,13 @@ def test_sel_novelty_picks_farthest_from_archive(ind_cls):
     assert chosen == [far]
 
 
-def test_sel_novelty_empty_archive_falls_back_to_random(ind_cls, monkeypatch):
+def test_sel_novelty_empty_archive_falls_back_to_random(ind_cls):
     population = [_individual(ind_cls, [0.0, 0.0], 1.0), _individual(ind_cls, [1.0, 1.0], 1.0)]
     archive = tools.UnstructuredArchive(2, min_distance=0.5)
-    monkeypatch.setattr(tools, "sel_random", lambda pool, count: [pool[1]])
-    chosen = tools.sel_novelty(population, 1, archive, _descriptor)
-    assert chosen == [population[1]]
+    tools.rng.seed(0)
+    chosen = tools.sel_novelty(population, 40, archive, _descriptor)
+    assert len(chosen) == 40
+    assert {id(ind) for ind in chosen} == {id(ind) for ind in population}
 
 
 def test_sel_novelty_non_positive_count_returns_empty(ind_cls):

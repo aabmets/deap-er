@@ -10,26 +10,24 @@
 #
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 import numpy
 
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
-from deap_er.private.various.rng import rng
 
+from .epsilon_lexicase_slack import LexicaseMode
+from .lexicase_vectorized import lexicase_select_vectorized
 from .sel_lexicase_matrix import (
-    LexicaseMode,
     case_subset,
-    fitness_case_matrix,
-    lexicase_select_vectorized,
     require_population,
+    resolve_case_matrix,
     resolve_case_weights,
-    validate_case_matrix,
 )
 
-__all__: list[str] = ["lexicase_select", "sel_lexicase", "sel_epsilon_lexicase"]
+__all__: list[str] = ["sel_lexicase", "sel_epsilon_lexicase"]
 
 _EPSILON_MODES = frozenset(
     {
@@ -39,66 +37,6 @@ _EPSILON_MODES = frozenset(
         "epsilon_dynamic",
     }
 )
-
-
-def lexicase_select(
-    individuals: list[Individual],
-    sel_count: int,
-    keep: Callable[[list[Individual], int, bool], list[Individual]],
-    *,
-    cases: Sequence[int] | None = None,
-) -> list[Individual]:
-    """Select individuals by filtering fitness cases one at a time.
-
-    Cases are considered in a fresh random order for each selection.
-    The last remaining candidate wins; ties are broken at random.
-    When ``cases`` is given, every draw uses that subset; only the
-    filter order is rerolled.
-
-    Args:
-        individuals: Individuals to select from.
-        sel_count: Number of individuals to select.
-        keep: Callable that receives the current candidates, the index
-            of the active fitness case, and whether that case is
-            maximized, and returns the surviving candidates.
-        cases: Fitness-case indices to filter on. All cases are used
-            when omitted. The caller's sequence is not mutated.
-
-    Returns:
-        The selected individuals.
-
-    Raises:
-        IndexError: If the population is empty or a case index is
-            outside the fitness length.
-    """
-    if sel_count <= 0:
-        return []
-    subset = case_subset(individuals, cases)
-    fit_weights = individuals[0].fitness.weights
-    selected = []
-    for _i in range(sel_count):
-        order = list(subset)
-        rng.shuffle(order)
-        candidates = individuals
-        while len(order) > 0 and len(candidates) > 1:
-            case = order[0]
-            candidates = keep(candidates, case, fit_weights[case] > 0)
-            order.pop(0)
-        pool = candidates if candidates else individuals
-        selected.append(rng.choice(pool))
-    return selected
-
-
-def _resolve_matrix(
-    individuals: list[Individual],
-    matrix: numpy.ndarray | None,
-    *,
-    trust_matrix: bool,
-) -> numpy.ndarray:
-    if matrix is None:
-        return fitness_case_matrix(individuals)
-    validate_case_matrix(matrix, individuals, trust=trust_matrix)
-    return matrix
 
 
 def sel_lexicase(
@@ -128,7 +66,7 @@ def sel_lexicase(
         trust_matrix: When ``True``, ``matrix`` is accepted on shape
             alone. Defaults to ``False``.
         fit_weights: Optional per-column maximize/minimize signs.
-            Required when ``matrix`` has more columns than
+            Required when ``matrix`` width differs from
             ``fitness.values``.
 
     Returns:
@@ -142,7 +80,7 @@ def sel_lexicase(
     if sel_count <= 0:
         return []
     require_population(individuals)
-    packed = _resolve_matrix(individuals, matrix, trust_matrix=trust_matrix)
+    packed = resolve_case_matrix(individuals, matrix, trust_matrix=trust_matrix)
     n_cases = int(packed.shape[1])
     subset = case_subset(individuals, cases, n_cases=n_cases)
     weights = resolve_case_weights(individuals, packed, fit_weights)
@@ -194,7 +132,7 @@ def sel_epsilon_lexicase(
         trust_matrix: When ``True``, ``matrix`` is accepted on shape
             alone. Defaults to ``False``.
         fit_weights: Optional per-column maximize/minimize signs.
-            Required when ``matrix`` has more columns than
+            Required when ``matrix`` width differs from
             ``fitness.values``.
 
     Returns:
@@ -203,12 +141,13 @@ def sel_epsilon_lexicase(
     Raises:
         IndexError: If the population is empty or a case index is
             outside the fitness length.
-        ValueError: If ``matrix`` shape or values do not match fitness.
+        ValueError: If ``matrix`` shape or values do not match fitness,
+            or ``epsilon`` is negative or not finite.
     """
     if sel_count <= 0:
         return []
     require_population(individuals)
-    packed = _resolve_matrix(individuals, matrix, trust_matrix=trust_matrix)
+    packed = resolve_case_matrix(individuals, matrix, trust_matrix=trust_matrix)
     n_cases = int(packed.shape[1])
     subset = case_subset(individuals, cases, n_cases=n_cases)
     weights = resolve_case_weights(individuals, packed, fit_weights)

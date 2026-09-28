@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from numbers import Integral
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, get_args
 
 import numpy
 
@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 from deap_er.private.various.rng import rng
 
 from .sample_informed_cases import sample_informed_cases
+from .sel_lexicase_matrix import case_index
 
 __all__: list[str] = ["next_downsample_cases"]
 
@@ -69,7 +70,9 @@ def next_downsample_cases(
 
     Raises:
         ValueError: If ``individuals`` is empty, ``case_count`` is not
-            an integer, or a mode-specific argument is missing.
+            an integer, ``mode`` is unknown, or a mode-specific argument
+            is missing.
+        IndexError: If a cohort index is not a valid case index.
     """
     if isinstance(case_count, bool) or not isinstance(case_count, Integral):
         raise ValueError("case_count must be an int")
@@ -93,7 +96,11 @@ def next_downsample_cases(
         return _cohort_cases(cohort, cohorts, generation, size, n_cases)
     if mode == "held_out":
         return _held_out_cases(held_out, generation, size, n_cases)
-    return _random_cases(size, n_cases)
+    if mode == "random":
+        return _random_cases(size, n_cases)
+    raise ValueError(
+        f"mode must be one of {sorted(get_args(DownsampleMode.__value__))}, got {mode!r}"
+    )
 
 
 def _random_cases(size: int, n_cases: int) -> list[int]:
@@ -119,9 +126,7 @@ def _cohort_cases(
     seen: set[int] = set()
     chosen: list[int] = []
     for idx in source:
-        value = int(idx)
-        if value < 0 or value >= n_cases:
-            raise IndexError(f"case index {value} is out of range for {n_cases} fitness cases")
+        value = case_index(idx, n_cases)
         if value not in seen:
             seen.add(value)
             chosen.append(value)
@@ -148,13 +153,4 @@ def _held_out_cases(
     if size >= len(catalog):
         return catalog[:size]
     start = (int(generation) * size) % len(catalog)
-    chosen: list[int] = []
-    offset = 0
-    while len(chosen) < size:
-        idx = catalog[(start + offset) % len(catalog)]
-        if idx not in chosen:
-            chosen.append(idx)
-        offset += 1
-        if offset > len(catalog):
-            break
-    return chosen
+    return [catalog[(start + offset) % len(catalog)] for offset in range(size)]

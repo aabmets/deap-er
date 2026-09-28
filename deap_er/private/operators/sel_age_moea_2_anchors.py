@@ -38,6 +38,7 @@ def normalize_front(
     extreme_points: ndarray | None,
     *,
     front_worst: ndarray | None = None,
+    population_worst: ndarray | None = None,
 ) -> tuple[ndarray, ndarray, ndarray, ndarray]:
     """Normalize ``fitness`` using NSGA-III-style intercept estimation.
 
@@ -47,6 +48,9 @@ def normalize_front(
         worst_point: Memory nadir with shape ``(m,)``.
         extreme_points: Extreme points from a previous generation.
         front_worst: Front-local nadir for intercept fallback.
+        population_worst: Population worst point used for objectives
+            whose nadir collapses onto the ideal. Defaults to the
+            worst point of ``fitness``.
 
     Returns:
         Normalized objectives, ideal, nadir, and intercepts.
@@ -55,7 +59,8 @@ def normalize_front(
     worst = worst_point
     local_worst = front_worst if front_worst is not None else numpy.max(fitness, axis=0)
     extreme = find_extreme_points(fitness, best, extreme_points)
-    intercepts = find_intercepts(extreme, best, worst, local_worst)
+    pop_worst = population_worst if population_worst is not None else numpy.max(fitness, axis=0)
+    intercepts = find_intercepts(extreme, best, worst, local_worst, pop_worst)
     denom = intercepts - best
     denom = numpy.where(numpy.abs(denom) < 1e-12, 1.0, denom)
     normalized = (fitness - best) / denom
@@ -122,10 +127,16 @@ def estimate_geometry(
     nr_tol: float,
     nr_max_iter: int,
     front_worst: ndarray,
+    population_worst: ndarray | None = None,
 ) -> tuple[float, ndarray]:
     """Estimate AGE-MOEA-II curvature and intercepts from the first front."""
     normalized, _, _, intercepts = normalize_front(
-        first_front, best, worst, extreme_points, front_worst=front_worst
+        first_front,
+        best,
+        worst,
+        extreme_points,
+        front_worst=front_worst,
+        population_worst=population_worst,
     )
     if first_front.shape[0] < first_front.shape[1]:
         return 1.0, intercepts

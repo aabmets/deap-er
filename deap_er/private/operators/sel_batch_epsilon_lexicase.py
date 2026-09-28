@@ -21,31 +21,18 @@ if TYPE_CHECKING:
 from .case_batch_reduce import (
     CaseReduction,
     batch_case_matrix,
-    partition_case_batches,
     reduce_case_mse,
+    validate_batch_size,
 )
+from .lexicase_vectorized import lexicase_select_vectorized
 from .sel_lexicase_matrix import (
     case_subset,
-    fitness_case_matrix,
-    lexicase_select_vectorized,
     require_population,
+    resolve_case_matrix,
     resolve_case_weights,
-    validate_case_matrix,
 )
 
 __all__: list[str] = ["sel_batch_epsilon_lexicase"]
-
-
-def _resolve_matrix(
-    individuals: list[Individual],
-    matrix: numpy.ndarray | None,
-    *,
-    trust_matrix: bool,
-) -> numpy.ndarray:
-    if matrix is None:
-        return fitness_case_matrix(individuals)
-    validate_case_matrix(matrix, individuals, trust=trust_matrix)
-    return matrix
 
 
 def sel_batch_epsilon_lexicase(
@@ -82,7 +69,7 @@ def sel_batch_epsilon_lexicase(
         trust_matrix: When ``True``, ``matrix`` is accepted on shape
             alone. Defaults to ``False``.
         fit_weights: Optional per-column maximize/minimize signs.
-            Required when ``matrix`` has more columns than
+            Required when ``matrix`` width differs from
             ``fitness.values``.
         reduction: Maps a ``(n_individuals, batch_width)`` block to
             one score per individual. Defaults to mean squared error.
@@ -93,14 +80,15 @@ def sel_batch_epsilon_lexicase(
     Raises:
         IndexError: If the population is empty or a case index is
             outside the fitness length.
-        ValueError: If ``batch_size`` is not a positive integer or
-            ``matrix`` shape or values do not match fitness.
+        ValueError: If ``batch_size`` is not a positive integer,
+            ``matrix`` shape or values do not match fitness, or
+            ``epsilon`` is negative or not finite.
     """
     if sel_count <= 0:
         return []
     require_population(individuals)
-    partition_case_batches([], batch_size)
-    packed = _resolve_matrix(individuals, matrix, trust_matrix=trust_matrix)
+    validate_batch_size(batch_size)
+    packed = resolve_case_matrix(individuals, matrix, trust_matrix=trust_matrix)
     n_cases = int(packed.shape[1])
     subset = case_subset(individuals, cases, n_cases=n_cases)
     weights = resolve_case_weights(individuals, packed, fit_weights)

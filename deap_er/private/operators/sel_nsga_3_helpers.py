@@ -56,44 +56,49 @@ def find_extreme_points(
 
 
 def find_intercepts(
-    extreme_points: ndarray, best_point: ndarray, current_worst: ndarray, front_worst: ndarray
+    extreme_points: ndarray,
+    best_point: ndarray,
+    current_worst: ndarray,
+    front_worst: ndarray,
+    population_worst: ndarray,
 ) -> ndarray:
-    """Compute axis intercepts of the hyperplane through the extreme points.
+    """Estimate the nadir point from the hyperplane through the extreme points.
 
-    Falls back to a worst-point estimate when the hyperplane is
-    degenerate or the intercepts are not usable.
+    Falls back to ``front_worst`` when the hyperplane is degenerate
+    or the intercepts are not usable. Any objective whose nadir is
+    still within ``1e-6`` of the ideal takes ``population_worst``
+    instead (Blank, Deb, Roy 2019; pymoo ``get_nadir_point``).
 
     Args:
         extreme_points: One extreme point per objective.
         best_point: Current ideal point.
         current_worst: Worst point including memory from prior generations.
-        front_worst: Worst point on the current fronts.
+        front_worst: Worst point on the non-dominated front.
+        population_worst: Worst point of the current population.
 
     Returns:
-        Intercepts used to scale the objectives.
+        Nadir point used to scale the objectives.
     """
     b = numpy.ones(extreme_points.shape[1])
     big_a = extreme_points - best_point
+    nadir = front_worst
     try:
         x = numpy.linalg.solve(big_a, b)
     except numpy.linalg.LinAlgError:
-        intercepts = current_worst
+        pass
     else:
-        if numpy.count_nonzero(x) != len(x):
-            intercepts = front_worst
-        else:
+        if numpy.count_nonzero(x) == len(x):
             intercepts = 1 / x
-
             if (
-                not numpy.allclose(numpy.dot(big_a, x), b)
-                or numpy.any(intercepts <= 1e-6)
-                or numpy.any((intercepts + best_point) > current_worst)
+                numpy.allclose(numpy.dot(big_a, x), b)
+                and not numpy.any(intercepts <= 1e-6)
+                and not numpy.any((intercepts + best_point) > current_worst)
             ):
-                intercepts = front_worst
-            else:
-                intercepts = intercepts + best_point
-
-    return intercepts
+                nadir = intercepts + best_point
+    nadir = numpy.array(nadir, dtype=float)
+    flat = nadir - best_point <= 1e-6
+    nadir[flat] = numpy.asarray(population_worst, dtype=float)[flat]
+    return nadir
 
 
 def associate_to_niche(

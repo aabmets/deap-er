@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 from deap_er.private.various.rng import rng
 
-from .sel_lexicase_matrix import validate_case_matrix
+from .sel_lexicase_matrix import SOLVE_ATOL, solve_mask, validate_case_matrix
 
 __all__: list[str] = ["sample_informed_cases"]
 
@@ -29,7 +29,7 @@ type CaseSolved = Callable[[Individual, int], bool]
 
 
 def _default_solved(individual: Individual, case: int) -> bool:
-    return isclose(individual.fitness.values[case], 0.0, abs_tol=1e-12)
+    return isclose(individual.fitness.values[case], 0.0, abs_tol=SOLVE_ATOL)
 
 
 def _solve_matrix(individuals: list[Individual], n_cases: int, solved: CaseSolved) -> numpy.ndarray:
@@ -68,10 +68,6 @@ def _farthest_first_cases(solve: numpy.ndarray, case_count: int) -> list[int]:
     return chosen
 
 
-def _solve_from_matrix(matrix: numpy.ndarray) -> numpy.ndarray:
-    return numpy.isclose(matrix.T, 0.0, atol=1e-12)
-
-
 def sample_informed_cases(
     individuals: list[Individual],
     case_count: int,
@@ -96,7 +92,8 @@ def sample_informed_cases(
         individuals: Population whose fitness vectors supply solve bits.
             Pass a fully scored parent sample if evaluation is sparse.
         case_count: Number of case indices to return. Values above the
-            number of cases are capped. ``case_count <= 0`` returns
+            number of cases (matrix columns when ``matrix`` is used) are
+            capped. ``case_count <= 0`` returns
             an empty list.
         solved: Predicate ``(individual, case) -> bool``. Optional.
             When not the default zero test, ``matrix`` is ignored.
@@ -121,14 +118,12 @@ def sample_informed_cases(
         raise ValueError("individuals must be non-empty")
     if count <= 0:
         return []
-    n_cases = len(individuals[0].fitness.values)
-    if n_cases == 0:
-        raise ValueError("every individual must have a valid fitness of the same length")
-    size = min(count, n_cases)
     predicate = solved if solved is not None else _default_solved
     if matrix is not None and predicate is _default_solved:
         validate_case_matrix(matrix, individuals, trust=trust_matrix)
-        solve = _solve_from_matrix(matrix)
+        solve = solve_mask(matrix).T
     else:
-        solve = _solve_matrix(individuals, n_cases, predicate)
-    return _farthest_first_cases(solve, size)
+        solve = _solve_matrix(individuals, len(individuals[0].fitness.values), predicate)
+    if solve.shape[0] == 0:
+        raise ValueError("every individual must have a valid fitness of the same length")
+    return _farthest_first_cases(solve, min(count, solve.shape[0]))

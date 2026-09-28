@@ -11,9 +11,9 @@
 import numpy
 import pytest
 from deap_er import tools
+from deap_er.private.operators.lexicase_vectorized import lexicase_select_vectorized
 from deap_er.private.operators.sel_lexicase_matrix import (
     fitness_case_matrix,
-    lexicase_select_vectorized,
     validate_case_matrix,
 )
 
@@ -134,3 +134,22 @@ def test_vectorized_epsilon_minimize_and_empty_survivors(multi_obj, make):
             (1.0, 1.0),
             mode="epsilon_fixed",
         )
+
+
+def test_narrow_trusted_matrix_without_weights_names_the_width(multi_obj, make):
+    population = [make(multi_obj, [i], (1.0, 2.0)) for i in range(2)]
+    narrow = numpy.array([[1.0], [2.0]])
+
+    with pytest.raises(ValueError, match="matrix has 1 columns but fitness has 2"):
+        tools.sel_lexicase(population, 1, matrix=narrow, trust_matrix=True)
+    assert (
+        len(tools.sel_lexicase(population, 1, matrix=narrow, trust_matrix=True, fit_weights=[1.0]))
+        == 1
+    )
+
+
+def test_lexicase_select_vectorized_zero_count(multi_obj, make):
+    population = [make(multi_obj, [0], (1.0, 2.0))]
+    matrix = numpy.array([[1.0, 2.0]])
+
+    assert lexicase_select_vectorized(population, 0, matrix, [0, 1], (1.0, 1.0)) == []

@@ -20,35 +20,16 @@ if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 from deap_er.private.various.rng import rng
 
-from .sel_lexicase_matrix import (
-    case_subset,
-    fitness_case_matrix,
-    require_population,
-    validate_case_matrix,
-)
+from .sel_lexicase_matrix import case_subset, require_population, resolve_case_matrix, solve_mask
 
 __all__: list[str] = ["sel_team", "sel_team_archive"]
-
-_SOLVE_ATOL = 1e-12
-
-
-def _resolve_matrix(
-    individuals: list[Individual],
-    matrix: numpy.ndarray | None,
-    *,
-    trust_matrix: bool,
-) -> numpy.ndarray:
-    if matrix is None:
-        return fitness_case_matrix(individuals)
-    validate_case_matrix(matrix, individuals, trust=trust_matrix)
-    return matrix
 
 
 def _solve_columns(matrix: numpy.ndarray, subset: list[int]) -> numpy.ndarray:
     columns = list(dict.fromkeys(subset))
     if not columns:
         return numpy.zeros((matrix.shape[0], 0), dtype=bool)
-    return numpy.isclose(matrix[:, columns], 0.0, atol=_SOLVE_ATOL)
+    return solve_mask(matrix[:, columns])
 
 
 def _next_member(taken: numpy.ndarray, solve: numpy.ndarray, uncovered: numpy.ndarray) -> int:
@@ -93,14 +74,14 @@ def sel_team(
 
     Raises:
         IndexError: If the population is empty or a case index is
-            outside the fitness length.
+            outside the case-matrix width.
         ValueError: If ``matrix`` shape or values do not match fitness.
     """
     if sel_count <= 0:
         return []
     require_population(individuals)
-    packed = _resolve_matrix(individuals, matrix, trust_matrix=trust_matrix)
-    solve = _solve_columns(packed, case_subset(individuals, cases))
+    packed = resolve_case_matrix(individuals, matrix, trust_matrix=trust_matrix)
+    solve = _solve_columns(packed, case_subset(individuals, cases, n_cases=packed.shape[1]))
     taken = numpy.zeros(len(individuals), dtype=bool)
     uncovered = numpy.ones(solve.shape[1], dtype=bool)
     team: list[Individual] = []

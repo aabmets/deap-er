@@ -22,18 +22,6 @@ _NR_EPS = 1e-10
 _LOG_MAX = numpy.log(numpy.finfo(float).max)
 
 
-def _positive_power_sum(point: ndarray, p: float, epsilon: float) -> float | None:
-    total = 0.0
-    for value in point:
-        if value <= 0.0:
-            continue
-        log_value = p * numpy.log(value + epsilon)
-        if log_value >= _LOG_MAX:
-            return None
-        total += float(numpy.exp(log_value))
-    return float(total)
-
-
 def _nr_power_moments(point: ndarray, p: float, epsilon: float) -> tuple[float, float] | None:
     numerator = 0.0
     denominator = 0.0
@@ -51,20 +39,16 @@ def _nr_power_moments(point: ndarray, p: float, epsilon: float) -> tuple[float, 
 
 
 def _nr_next_p(point: ndarray, p: float) -> float | None:
-    total = _positive_power_sum(point, p, _NR_EPS)
-    if total is None:
-        return None
     moments = _nr_power_moments(point, p, _NR_EPS)
     if moments is None:
         return None
-    numerator, denominator = moments
-    if abs(denominator) < _ZERO_TOL or not numpy.isfinite(numerator + denominator):
+    numerator, total = moments
+    if abs(total) < _ZERO_TOL or not numpy.isfinite(numerator + total):
         return None
-    deriv = numerator / denominator
+    deriv = numerator / total
     if abs(deriv) < _ZERO_TOL:
         return None
-    func = numpy.log(total) if total > 0.0 else 0.0
-    return float(p - func / deriv)
+    return float(p - numpy.log(total) / deriv)
 
 
 def estimate_curvature_nr(

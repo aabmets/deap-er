@@ -19,14 +19,14 @@ if TYPE_CHECKING:
 from deap_er.private.records.case_exam import CaseExam
 from deap_er.private.various.rng import rng
 
-from .case_exam_guard import guard_case_exams
+from .case_exam_guard import repair_case_exams
 from .case_exams import (
     CaseSolved,
     DifficultyMode,
     ExamLike,
     bound_case_exams,
     elite_solve_matrix,
-    score_case_exams,
+    exam_scores,
 )
 from .mut_case_exam import mut_case_mask, mut_case_ranges
 
@@ -80,22 +80,30 @@ def next_lexicase_cases(
         Case indices for the next lexicase call.
 
     Raises:
-        ValueError: If ``elites`` or ``exams`` is empty, or ``n_cases`` is 0.
+        ValueError: If ``elites`` or ``exams`` is empty, ``n_cases`` is 0,
+            or ``min_cases`` is less than 1. Exams are not varied when
+            an argument is rejected.
     """
-    n_cases, _solve = elite_solve_matrix(elites, matrix, trust_matrix, solved)
+    floor = min_cases
+    if case_count is not None:
+        floor = max(floor, int(case_count))
+    if floor < 1:
+        raise ValueError("min_cases must be at least 1")
+    n_cases, solve = elite_solve_matrix(elites, matrix, trust_matrix, solved)
+    if n_cases == 0:
+        raise ValueError("every individual must have a valid fitness of the same length")
     items, pool = bound_case_exams(exams, n_cases)
     if not items:
         raise ValueError("exams must be non-empty")
     for exam in items:
         span = exam.mutation_bound(n_cases) if length is None else length
         _vary_exam(exam, span, mut_prob)
-    source: ExamLike = pool if pool is not None else items
-    floor = min_cases
-    if case_count is not None:
-        floor = max(floor, int(case_count))
-    repaired = guard_case_exams(
-        source,
+    repaired = repair_case_exams(
+        items,
+        pool,
         elites,
+        n_cases,
+        solve,
         matrix=matrix,
         trust_matrix=trust_matrix,
         solved=solved,
@@ -104,14 +112,7 @@ def next_lexicase_cases(
         mode=mode,
         informed=informed,
     )
-    scores = score_case_exams(
-        repaired,
-        elites,
-        matrix=matrix,
-        trust_matrix=trust_matrix,
-        solved=solved,
-        mode=mode,
-    )
+    scores = exam_scores(repaired, solve, n_cases, mode)
     winner = _argmax_ties(scores)
     return repaired[winner].as_cases(n_cases)
 

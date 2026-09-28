@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 from deap_er.private.records.case_exam import CaseExam
 from deap_er.private.records.case_exam_pool import CaseExamPool, coerce_case_exam
 
-from .sel_lexicase_matrix import fitness_case_matrix, validate_case_matrix
+from .sel_lexicase_matrix import resolve_case_matrix, solve_mask
 
 __all__: list[str] = [
     "CaseSolved",
@@ -30,6 +30,7 @@ __all__: list[str] = [
     "bound_case_exams",
     "elite_solve_matrix",
     "exam_difficulty",
+    "exam_scores",
     "score_case_exams",
 ]
 
@@ -74,6 +75,23 @@ def score_case_exams(
     """
     n_cases, solve = elite_solve_matrix(elites, matrix, trust_matrix, solved)
     items, _pool = bound_case_exams(exams, n_cases)
+    return exam_scores(items, solve, n_cases, mode)
+
+
+def exam_scores(
+    items: list[CaseExam], solve: numpy.ndarray, n_cases: int, mode: DifficultyMode
+) -> list[int]:
+    """Score resolved exams against a precomputed elite solve matrix.
+
+    Args:
+        items: Exams from :func:`bound_case_exams`.
+        solve: Elite solve bits from :func:`elite_solve_matrix`.
+        n_cases: Catalog length.
+        mode: ``unsolved`` or ``hamming``.
+
+    Returns:
+        One difficulty score per exam.
+    """
     return [exam_difficulty(solve, exam.as_cases(n_cases), mode) for exam in items]
 
 
@@ -109,10 +127,8 @@ def elite_solve_matrix(
             for case in range(n_cases):
                 bits[row, case] = solved(individual, case)
         return n_cases, bits
-    packed = fitness_case_matrix(elites) if matrix is None else matrix
-    if matrix is not None:
-        validate_case_matrix(packed, elites, trust=trust_matrix)
-    return n_cases, numpy.isclose(packed, 0.0, atol=1e-12)
+    packed = resolve_case_matrix(elites, matrix, trust_matrix=trust_matrix)
+    return n_cases, solve_mask(packed)
 
 
 def exam_difficulty(solve: numpy.ndarray, cases: list[int], mode: DifficultyMode) -> int:

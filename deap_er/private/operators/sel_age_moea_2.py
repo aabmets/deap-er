@@ -42,10 +42,16 @@ def _front_survival_scores(
     curvature: float,
     extreme_points: ndarray | None,
     front_worst: ndarray,
+    population_worst: ndarray,
 ) -> ndarray:
     if front_index == 0:
         normalized, _, _, _ = normalize_front(
-            front_fitness, best, worst, extreme_points, front_worst=front_worst
+            front_fitness,
+            best,
+            worst,
+            extreme_points,
+            front_worst=front_worst,
+            population_worst=population_worst,
         )
         extreme_idx = extreme_indexes(front_fitness, best)
         return survival_scores(normalized, numpy.zeros(normalized.shape[1]), extreme_idx, curvature)
@@ -153,7 +159,14 @@ def sel_age_moea_2(
             first_front = fitness[first_indices]
             front_worst = numpy.max(first_front, axis=0)
             curvature, _ = estimate_geometry(
-                first_front, best, worst, extreme_points, nr_tol, nr_max_iter, front_worst
+                first_front,
+                best,
+                worst,
+                extreme_points,
+                nr_tol,
+                nr_max_iter,
+                front_worst,
+                numpy.max(fitness, axis=0),
             )
             _update_memory(_memory, best, worst, first_front, extreme_points, curvature)
         return list(individuals)
@@ -169,8 +182,16 @@ def sel_age_moea_2(
     first_indices = [index_map[id(ind)] for ind in pareto_fronts[0]]
     first_front = fitness[first_indices]
     first_front_worst = numpy.max(first_front, axis=0)
+    population_worst = numpy.max(fitness, axis=0)
     curvature, intercepts = estimate_geometry(
-        first_front, best, worst, extreme_points, nr_tol, nr_max_iter, first_front_worst
+        first_front,
+        best,
+        worst,
+        extreme_points,
+        nr_tol,
+        nr_max_iter,
+        first_front_worst,
+        population_worst,
     )
 
     chosen: list[Individual] = []
@@ -194,6 +215,7 @@ def sel_age_moea_2(
             curvature,
             extreme_points,
             local_worst,
+            population_worst,
         )
         order = numpy.argsort(scores)[::-1]
         chosen.extend(front[idx] for idx in order[:remaining])

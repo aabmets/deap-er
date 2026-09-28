@@ -21,35 +21,33 @@ if TYPE_CHECKING:
 from deap_er.private.various.rng import rng
 
 from .case_batch_reduce import CaseReduction, reduce_case_mean
-from .sel_lexicase_matrix import (
-    case_subset,
-    fitness_case_matrix,
-    validate_case_matrix,
-)
+from .sel_lexicase_matrix import case_subset, resolve_case_matrix
 
 __all__: list[str] = ["sel_tournament_cases"]
 
 
-def _resolve_matrix(
-    individuals: list[Individual],
-    matrix: numpy.ndarray | None,
-    *,
-    trust_matrix: bool,
-) -> numpy.ndarray:
-    if matrix is None:
-        return fitness_case_matrix(individuals)
-    validate_case_matrix(matrix, individuals, trust=trust_matrix)
-    return matrix
+def _checked_cases(individuals: list[Individual], cases: list[int]) -> list[int]:
+    n_weights = len(individuals[0].fitness.weights)
+    for idx in cases:
+        if idx >= n_weights:
+            raise IndexError(
+                f"case index {idx} has no fitness weight: sel_tournament_cases takes "
+                f"the ranking sign from fitness.weights ({n_weights} entries), so "
+                "extra trusted-matrix columns cannot be scored"
+            )
+    return cases
 
 
 def _resolve_case_indices(
     individuals: list[Individual],
     cases: Sequence[int] | None,
     case_count: int | None,
+    n_cases: int,
 ) -> list[int]:
     if cases is not None:
-        return case_subset(individuals, cases)
-    all_cases = case_subset(individuals, None)
+        return _checked_cases(individuals, case_subset(individuals, cases, n_cases=n_cases))
+    n_weights = len(individuals[0].fitness.weights)
+    all_cases = case_subset(individuals, None, n_cases=min(n_cases, n_weights))
     if case_count is None:
         return all_cases
     if isinstance(case_count, bool) or not isinstance(case_count, Integral):
@@ -123,7 +121,9 @@ def sel_tournament_cases(
         The selected individuals.
 
     Raises:
-        IndexError: If the population is empty.
+        IndexError: If the population is empty, or a case index is
+            outside the matrix width or has no entry in
+            ``fitness.weights``.
         ValueError: If ``contestants`` is not positive or ``matrix``
             shape or values do not match fitness.
     """
@@ -134,8 +134,8 @@ def sel_tournament_cases(
         raise IndexError("Cannot choose from an empty sequence")
     if contestants < 1:
         raise ValueError("contestants must be at least 1")
-    packed = _resolve_matrix(individuals, matrix, trust_matrix=trust_matrix)
-    case_indices = _resolve_case_indices(individuals, cases, case_count)
+    packed = resolve_case_matrix(individuals, matrix, trust_matrix=trust_matrix)
+    case_indices = _resolve_case_indices(individuals, cases, case_count, int(packed.shape[1]))
     reduce = reduction if reduction is not None else reduce_case_mean
     scores = _tournament_scores(packed, case_indices, individuals[0].fitness.weights, reduce)
     idxs = rng.integers(0, n, size=rounds * contestants)

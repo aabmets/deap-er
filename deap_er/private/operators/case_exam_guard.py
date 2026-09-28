@@ -17,6 +17,7 @@ import numpy
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 from deap_er.private.records.case_exam import CaseExam
+from deap_er.private.records.case_exam_pool import CaseExamPool
 
 from .case_exams import (
     CaseSolved,
@@ -28,7 +29,7 @@ from .case_exams import (
 )
 from .sample_informed_cases import sample_informed_cases
 
-__all__: list[str] = ["guard_case_exams"]
+__all__: list[str] = ["guard_case_exams", "repair_case_exams"]
 
 
 def guard_case_exams(
@@ -80,6 +81,56 @@ def guard_case_exams(
     if n_cases == 0:
         raise ValueError("every individual must have a valid fitness of the same length")
     items, pool = bound_case_exams(exams, n_cases)
+    return repair_case_exams(
+        items,
+        pool,
+        elites,
+        n_cases,
+        solve,
+        matrix=matrix,
+        trust_matrix=trust_matrix,
+        solved=solved,
+        held_out=held_out,
+        min_cases=min_cases,
+        mode=mode,
+        informed=informed,
+    )
+
+
+def repair_case_exams(
+    items: list[CaseExam],
+    pool: CaseExamPool | None,
+    elites: list[Individual],
+    n_cases: int,
+    solve: numpy.ndarray,
+    *,
+    matrix: numpy.ndarray | None,
+    trust_matrix: bool,
+    solved: CaseSolved | None,
+    held_out: CaseExam | None,
+    min_cases: int,
+    mode: DifficultyMode,
+    informed: bool,
+) -> list[CaseExam]:
+    """Repair resolved exams against a precomputed elite solve matrix.
+
+    Args:
+        items: Exams from :func:`bound_case_exams`, repaired in place.
+        pool: The pool ``items`` came from, if any.
+        elites: Evaluated individuals that supply the case pack.
+        n_cases: Catalog length.
+        solve: Elite solve bits from :func:`elite_solve_matrix`.
+        matrix: Optional pack forwarded to informed resampling.
+        trust_matrix: When ``True``, ``matrix`` is accepted on shape alone.
+        solved: Optional solve predicate.
+        held_out: Exam injected on collapse; defaults to the pool's.
+        min_cases: Minimum catalog size after a repair (at least 1).
+        mode: Difficulty used to detect collapse.
+        informed: Whether informed resampling may fill exams.
+
+    Returns:
+        ``items`` after repair.
+    """
     extra = held_out
     if extra is None and pool is not None:
         extra = pool.held_out

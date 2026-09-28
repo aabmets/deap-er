@@ -189,21 +189,28 @@ def test_tournament_cases_aggregate_uses_first_case_weight(mixed_case_types, mak
     assert chosen_max_first.count(worse) > chosen_max_first.count(better)
 
 
-def test_tournament_cases_trust_matrix_skips_value_check(case_types, make, monkeypatch):
-    population = [make(case_types, [0], (1.0, 2.0, 3.0, 4.0))]
-    matrix = numpy.array([[9.0, 8.0, 7.0, 6.0]])
+def test_tournament_cases_trust_matrix_skips_value_check(case_types, make):
+    better = make(case_types, [0], (0.0, 0.0, 0.0, 0.0))
+    worse = make(case_types, [1], (1.0, 1.0, 1.0, 1.0))
+    population = [better, worse]
+    flipped = numpy.array([[1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]])
 
-    calls: list[str] = []
+    tools.rng.seed(3)
+    chosen = tools.sel_tournament_cases(population, 40, 2, matrix=flipped, trust_matrix=True)
 
-    def _spy_pack(*args, **kwargs):
-        calls.append("pack")
-        raise AssertionError("fitness_case_matrix should not run during trust validation")
+    assert chosen.count(worse) > chosen.count(better)
+    with pytest.raises(ValueError, match="does not match"):
+        tools.sel_tournament_cases(population, 1, 2, matrix=flipped)
 
-    monkeypatch.setattr(
-        "deap_er.private.operators.sel_lexicase_matrix.fitness_case_matrix",
-        _spy_pack,
-    )
 
-    tools.sel_tournament_cases(population, 1, 2, cases=[0, 1], matrix=matrix, trust_matrix=True)
+def test_tournament_cases_trusted_matrix_width_errors_are_clear(case_types, make):
+    population = [make(case_types, [i], (1.0, 2.0, 3.0, 4.0)) for i in range(2)]
+    wide = numpy.ones((2, 6))
+    narrow = numpy.ones((2, 2))
 
-    assert calls == []
+    with pytest.raises(IndexError, match="case index 5 has no fitness weight"):
+        tools.sel_tournament_cases(population, 1, 2, cases=[5], matrix=wide, trust_matrix=True)
+    with pytest.raises(IndexError, match="case index 3 is out of range for 2"):
+        tools.sel_tournament_cases(population, 1, 2, cases=[3], matrix=narrow, trust_matrix=True)
+    chosen = tools.sel_tournament_cases(population, 3, 2, matrix=narrow, trust_matrix=True)
+    assert len(chosen) == 3

@@ -106,24 +106,19 @@ def test_batch_epsilon_lexicase_rejects_non_int_batch_size(case_types, make):
         tools.sel_batch_epsilon_lexicase(population, 1, batch_size=bad_size)
 
 
-def test_batch_epsilon_lexicase_trust_matrix_skips_value_check(case_types, make, monkeypatch):
-    population = [make(case_types, [0], (1.0, 2.0, 3.0, 4.0))]
-    matrix = numpy.array([[9.0, 8.0, 7.0, 6.0]])
+def test_batch_epsilon_lexicase_trust_matrix_skips_value_check(case_types, make):
+    better = make(case_types, [0], (0.0, 0.0, 0.0, 0.0))
+    worse = make(case_types, [1], (1.0, 1.0, 1.0, 1.0))
+    population = [better, worse]
+    flipped = numpy.array([[1.0, 1.0, 1.0, 1.0], [0.0, 0.0, 0.0, 0.0]])
 
-    calls: list[str] = []
-
-    def _spy_pack(*args, **kwargs):
-        calls.append("pack")
-        raise AssertionError("fitness_case_matrix should not run during trust validation")
-
-    monkeypatch.setattr(
-        "deap_er.private.operators.sel_lexicase_matrix.fitness_case_matrix",
-        _spy_pack,
+    trusted = tools.sel_batch_epsilon_lexicase(
+        population, 5, batch_size=2, epsilon=0.0, matrix=flipped, trust_matrix=True
     )
 
-    tools.sel_batch_epsilon_lexicase(population, 1, batch_size=2, matrix=matrix, trust_matrix=True)
-
-    assert calls == []
+    assert trusted == [worse] * 5
+    with pytest.raises(ValueError, match="does not match"):
+        tools.sel_batch_epsilon_lexicase(population, 1, batch_size=2, matrix=flipped)
 
 
 def test_batch_epsilon_lexicase_empty_pool_with_zero_count():

@@ -11,33 +11,27 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from numbers import Integral, Real
+from numbers import Integral
 from typing import TYPE_CHECKING
 
 import numpy
 
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
-from deap_er.private.various.rng import rng
-
-from .epsilon_lexicase_slack import (
-    LexicaseMode,
-    apply_epsilon_filter,
-    apply_strict_filter,
-    epsilon_mode_uses_pool_elite,
-    slack_for_case,
-)
 
 __all__: list[str] = [
-    "LexicaseMode",
+    "SOLVE_ATOL",
     "case_index",
     "case_subset",
     "fitness_case_matrix",
-    "lexicase_select_vectorized",
     "require_population",
+    "resolve_case_matrix",
     "resolve_case_weights",
+    "solve_mask",
     "validate_case_matrix",
 ]
+
+SOLVE_ATOL = 1e-12
 
 
 def require_population(individuals: list[Individual]) -> None:
@@ -117,9 +111,9 @@ def resolve_case_weights(
         Maximize/minimize signs aligned with ``matrix`` columns.
 
     Raises:
-        ValueError: If ``fit_weights`` is missing while the matrix is
-            wider than ``fitness.values``, or if the length does not
-            match ``matrix.shape[1]``.
+        ValueError: If ``fit_weights`` is missing while the matrix
+            width differs from ``fitness.values``, or if its length
+            does not match ``matrix.shape[1]``.
     """
     require_population(individuals)
     n_fitness = len(individuals[0].fitness.values)
@@ -129,7 +123,7 @@ def resolve_case_weights(
             raise ValueError("fit_weights must be empty when matrix has no columns")
         return ()
     if fit_weights is None:
-        if n_matrix > n_fitness:
+        if n_matrix != n_fitness:
             raise ValueError(
                 f"matrix has {n_matrix} columns but fitness has {n_fitness}; "
                 "pass fit_weights= with one sign per matrix column"
@@ -139,9 +133,6 @@ def resolve_case_weights(
         resolved = tuple(float(weight) for weight in fit_weights)
     if len(resolved) != n_matrix:
         raise ValueError(f"fit_weights must have length {n_matrix}, got {len(resolved)}")
-    for weight in resolved:
-        if not isinstance(weight, Real) or isinstance(weight, bool):
-            raise ValueError("fit_weights must be numeric")
     return resolved
 
 
@@ -207,66 +198,38 @@ def validate_case_matrix(
             raise ValueError("matrix does not match fitness.values")
 
 
-def _choice_from_survivors(
+def resolve_case_matrix(
     individuals: list[Individual],
-    survivors: numpy.ndarray,
-) -> Individual:
-    if survivors.size == 0:
-        return rng.choice(individuals)
-    return rng.choice([individuals[i] for i in survivors])
-
-
-def lexicase_select_vectorized(
-    individuals: list[Individual],
-    sel_count: int,
-    matrix: numpy.ndarray,
-    subset: list[int],
-    fit_weights: tuple[float, ...],
+    matrix: numpy.ndarray | None,
     *,
-    mode: LexicaseMode = "strict",
-    epsilon: float | None = None,
-) -> list[Individual]:
-    """Select individuals by vectorized lexicase filtering.
+    trust_matrix: bool,
+) -> numpy.ndarray:
+    """Return a validated caller matrix, or pack one from fitness.
 
     Args:
-        individuals: Individuals to select from.
-        sel_count: Number of individuals to select.
-        matrix: Case matrix with shape ``(len(individuals), n_cases)``.
-        subset: Fitness-case indices to filter on.
-        fit_weights: Per-case maximize/minimize signs from fitness.
-        mode: ``strict``, population MAD (``epsilon_auto`` /
-            ``epsilon_static``), semi-dynamic pool elite
-            (``epsilon_semi``), dynamic pool MAD and elite
-            (``epsilon_dynamic``), or fixed slack (``epsilon_fixed``).
-        epsilon: Fixed slack when ``mode`` is ``epsilon_fixed``.
+        individuals: Population the matrix describes.
+        matrix: Optional pre-packed ``(n_individuals, n_cases)`` matrix.
+        trust_matrix: When ``True``, ``matrix`` is accepted on shape alone.
 
     Returns:
-        The selected individuals.
+        The case matrix to filter on.
+
+    Raises:
+        ValueError: If ``matrix`` shape or values do not match fitness.
     """
-    if sel_count <= 0:
-        return []
-    pool_elite = epsilon_mode_uses_pool_elite(mode)
-    selected: list[Individual] = []
-    for _ in range(sel_count):
-        order = list(subset)
-        rng.shuffle(order)
-        active = numpy.ones(len(individuals), dtype=bool)
-        for case in order:
-            if active.sum() <= 1:
-                break
-            col = matrix[:, case]
-            maximize = fit_weights[case] > 0
-            if mode == "strict":
-                active = apply_strict_filter(active, col, maximize)
-            else:
-                slack = slack_for_case(col, active, mode, epsilon)
-                active = apply_epsilon_filter(
-                    active,
-                    col,
-                    maximize,
-                    slack,
-                    pool_elite=pool_elite,
-                )
-        survivors = numpy.flatnonzero(active)
-        selected.append(_choice_from_survivors(individuals, survivors))
-    return selected
+    if matrix is None:
+        return fitness_case_matrix(individuals)
+    validate_case_matrix(matrix, individuals, trust=trust_matrix)
+    return matrix
+
+
+def solve_mask(matrix: numpy.ndarray) -> numpy.ndarray:
+    """Mark case values within ``SOLVE_ATOL`` of zero as solved.
+
+    Args:
+        matrix: Case values of any shape.
+
+    Returns:
+        Boolean array of the same shape.
+    """
+    return numpy.isclose(matrix, 0.0, rtol=0.0, atol=SOLVE_ATOL)

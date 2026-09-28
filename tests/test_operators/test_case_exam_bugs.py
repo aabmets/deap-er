@@ -60,6 +60,17 @@ def test_next_does_not_double_repair_after_guard(ind_cls):
     assert cases == guarded.as_cases(4)
 
 
+def test_next_rejects_bad_floor_before_varying_exams(ind_cls):
+    elites = [_make(ind_cls, [0], (0.0, 0.0, 1.0, 1.0))]
+    exams = [tools.CaseExam.from_cases([0, 1], 4), tools.CaseExam.from_cases([2, 3], 4)]
+    tools.rng.seed(1)
+
+    with pytest.raises(ValueError, match="min_cases must be at least 1"):
+        tools.next_lexicase_cases(exams, elites, min_cases=0, mut_prob=1.0)
+
+    assert [exam.as_cases(4) for exam in exams] == [[0, 1], [2, 3]]
+
+
 def test_next_default_and_informed_false_keep_winner(ind_cls):
     elites = [
         _make(ind_cls, [0], (0.0, 1.0, 1.0, 0.0)),
@@ -154,3 +165,22 @@ def test_next_pool_honors_case_count_as_repair_floor(ind_cls):
     )
     assert listed == pooled
     assert len(pooled) >= 3
+
+
+def test_next_evaluates_solve_predicate_once_per_elite_case(ind_cls):
+    elites = [
+        _make(ind_cls, [0], (0.0, 0.0, 1.0, 1.0)),
+        _make(ind_cls, [1], (0.0, 1.0, 0.0, 1.0)),
+    ]
+    calls: list[tuple[int, int]] = []
+
+    def solved(individual, case):
+        calls.append((individual[0], case))
+        return individual.fitness.values[case] == 0.0
+
+    tools.rng.seed(2)
+    tools.next_lexicase_cases(
+        [tools.CaseExam.from_cases([2, 3], 4)], elites, solved=solved, informed=False
+    )
+
+    assert sorted(calls) == [(i, c) for i in range(2) for c in range(4)]
