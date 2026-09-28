@@ -18,10 +18,19 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from deap_er.private.typedefs import GPIndividual, GPMates
-from deap_er.private.programming.tape_lower import child_indices
 from deap_er.private.various.rng import rng
 
-__all__: list[str] = ["cx_homologous", "cx_one_point", "cx_one_point_leaf_biased"]
+from .tape_lower import child_indices
+
+__all__: list[str] = [
+    "common_type_candidates",
+    "path_from_root",
+    "index_at_path",
+    "swap_at",
+    "cx_homologous",
+    "cx_one_point",
+    "cx_one_point_leaf_biased",
+]
 
 
 def _collect_indices(
@@ -46,7 +55,7 @@ def _collect_indices(
     return types
 
 
-def _common_type_candidates(
+def common_type_candidates(
     ind1: GPIndividual, ind2: GPIndividual
 ) -> tuple[defaultdict[type, list[int]], defaultdict[type, list[int]], list[type]]:
     """Group crossover candidates in both trees and return shared types.
@@ -54,6 +63,14 @@ def _common_type_candidates(
     Shared types keep their first-occurrence order in ``ind1``. A ``set``
     would order classes by ``id()``, so one seed would draw a different
     type in every process.
+
+    Args:
+        ind1: First individual.
+        ind2: Second individual.
+
+    Returns:
+        Non-root indices of each tree grouped by return type, and the
+        return types present in both.
     """
     types1 = _collect_indices(ind1)
     types2 = _collect_indices(ind2)
@@ -61,40 +78,54 @@ def _common_type_candidates(
     return types1, types2, common_types
 
 
-def _path_from_root(children: Sequence[Sequence[int]], index: int) -> tuple[int, ...]:
-    """Return left-to-right child ranks from the root to ``index``."""
-    if index == 0:
-        return ()
+def path_from_root(children: Sequence[Sequence[int]], index: int) -> tuple[int, ...]:
+    """Return left-to-right child ranks from the root to ``index``.
+
+    Args:
+        children: Child indices of every node, as ``child_indices`` returns.
+        index: Node whose path is wanted.
+
+    Returns:
+        Child ranks from the root down to ``index``. Empty for the root.
+    """
+    parents = {
+        kid: (node, rank) for node, kids in enumerate(children) for rank, kid in enumerate(kids)
+    }
     path: list[int] = []
-    current = index
-    while current != 0:
-        parent = None
-        step = None
-        for candidate, kids in enumerate(children):
-            if current in kids:
-                parent = candidate
-                step = kids.index(current)
-                break
-        if parent is None or step is None:
-            break
-        path.append(step)
-        current = parent
+    while index != 0:
+        index, rank = parents[index]
+        path.append(rank)
     return tuple(reversed(path))
 
 
-def _index_at_path(children: Sequence[Sequence[int]], path: Sequence[int]) -> int | None:
-    """Resolve the node index at ``path``, or ``None`` when the path is invalid."""
+def index_at_path(children: Sequence[Sequence[int]], path: Sequence[int]) -> int | None:
+    """Resolve the node index at ``path``.
+
+    Args:
+        children: Child indices of every node, as ``child_indices`` returns.
+        path: Child ranks from the root.
+
+    Returns:
+        The node index, or ``None`` when the path does not exist.
+    """
     index = 0
     for step in path:
         kids = children[index]
         if step >= len(kids):
             return None
         index = int(kids[step])
-    return int(index)
+    return index
 
 
-def _swap_at(ind1: GPIndividual, ind2: GPIndividual, index1: int, index2: int) -> None:
-    """Swap the subtrees rooted at ``index1`` and ``index2``."""
+def swap_at(ind1: GPIndividual, ind2: GPIndividual, index1: int, index2: int) -> None:
+    """Swap the subtrees rooted at ``index1`` and ``index2`` in place.
+
+    Args:
+        ind1: First individual.
+        ind2: Second individual.
+        index1: Subtree root in ``ind1``.
+        index2: Subtree root in ``ind2``.
+    """
     slice1 = ind1.search_subtree(index1)
     slice2 = ind2.search_subtree(index2)
     ind1[slice1], ind2[slice2] = ind2[slice2], ind1[slice1]
@@ -123,7 +154,7 @@ def _swap_subtrees(
         return
 
     type_ = rng.choice(list(common_types))
-    _swap_at(ind1, ind2, rng.choice(types1[type_]), rng.choice(types2[type_]))
+    swap_at(ind1, ind2, rng.choice(types1[type_]), rng.choice(types2[type_]))
 
 
 def cx_one_point(ind1: GPIndividual, ind2: GPIndividual) -> GPMates:
@@ -143,7 +174,7 @@ def cx_one_point(ind1: GPIndividual, ind2: GPIndividual) -> GPMates:
     if len(ind1) < 2 or len(ind2) < 2:
         return ind1, ind2
 
-    types1, types2, common_types = _common_type_candidates(ind1, ind2)
+    types1, types2, common_types = common_type_candidates(ind1, ind2)
     _swap_subtrees(ind1, ind2, types1, types2, common_types)
     return ind1, ind2
 
@@ -170,13 +201,13 @@ def cx_homologous(ind1: GPIndividual, ind2: GPIndividual) -> GPMates:
 
     children1 = child_indices(list(ind1))
     index1 = int(rng.integers(1, len(ind1)))
-    path = _path_from_root(children1, index1)
-    index2 = _index_at_path(child_indices(list(ind2)), path)
+    path = path_from_root(children1, index1)
+    index2 = index_at_path(child_indices(list(ind2)), path)
 
     if index2 is not None and ind1[index1].ret == ind2[index2].ret:
-        _swap_at(ind1, ind2, index1, index2)
+        swap_at(ind1, ind2, index1, index2)
     else:
-        types1, types2, common_types = _common_type_candidates(ind1, ind2)
+        types1, types2, common_types = common_type_candidates(ind1, ind2)
         _swap_subtrees(ind1, ind2, types1, types2, common_types)
 
     return ind1, ind2
