@@ -84,15 +84,15 @@ def suffix_rescore(
     if used < bound:
         raise ValueError(_SHORT_LOOKBACK.format(lookback=used, bound=bound))
     _check_prefix(prefix, len(tapes), rows - added)
-    span = rows if has_ema else min(rows, used + added)
-    scored = interpret_tapes(
-        tapes, packed[-span:], backend=backend, dispatch=dispatch, parallel=parallel
-    )
     out = numpy.empty((len(tapes), rows), dtype=numpy.float64)
     kept = rows - added
     if kept:
         out[:, :kept] = numpy.asarray(prefix, dtype=numpy.float64)[:, :kept]
     if added:
+        span = rows if has_ema else min(rows, used + added)
+        scored = interpret_tapes(
+            tapes, packed[-span:], backend=backend, dispatch=dispatch, parallel=parallel
+        )
         out[:, kept:] = scored[:, -added:]
     return out
 
