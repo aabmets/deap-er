@@ -132,8 +132,10 @@ def add_window_ephemeral(prim_set: PrimitiveSetTyped, name: str, low: int, high:
 
     Args:
         prim_set: Typed primitive set to register on.
-        name: Name of this ephemeral type. Must be unique across every
-            primitive set in the process.
+        name: Name of this ephemeral type. The sampler is shared by
+            name across the process, so one name can only ever carry
+            one ``[low, high]`` pair. ``columnar_pset`` derives
+            ``window_{low}_{high}`` when no name is given.
         low: Smallest window length that may be sampled. At least 1.
         high: Largest window length that may be sampled.
 

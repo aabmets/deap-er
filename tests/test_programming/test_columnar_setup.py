@@ -154,6 +154,26 @@ def test_columnar_pset_can_leave_out_ema():
     assert kept == names - {"ema"}
 
 
+def _windowed_tree(pset):
+    for _ in range(200):
+        tree = gp.PrimitiveTree(gp.gen_full(pset, 1, 1))
+        if any(node.ret is gp.Window for node in tree):
+            return tree
+    raise AssertionError("no windowed tree was generated")
+
+
+def test_columnar_pset_default_window_names_do_not_collide():
+    narrow = gp.columnar_pset(["level"], window=(3, 5))
+    wide = gp.columnar_pset(["level"], window=(6, 9))
+    assert narrow.terminals[gp.Window][0].__name__ == "window_3_5"
+    assert wide.terminals[gp.Window][0].__name__ == "window_6_9"
+    for pset, (low, high) in ((narrow, (3, 5)), (wide, (6, 9))):
+        tree = _windowed_tree(pset)
+        spans = [node.value for node in tree if node.ret is gp.Window]
+        assert all(low <= span <= high for span in spans)
+        assert str(gp.PrimitiveTree.from_string(str(tree), pset)) == str(tree)
+
+
 def test_register_gp_plus_evaluate_columnar_runs_ea_simple():
     creator.create_type(COL_FIT, Fitness, weights=(-1.0,))
     creator.create_type(COL_IND, gp.PrimitiveTree, fitness=creator.__dict__[COL_FIT])

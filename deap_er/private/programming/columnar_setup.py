@@ -38,7 +38,7 @@ def columnar_pset(
     *,
     name: str = "MAIN",
     window: tuple[int, int] | None = (2, 64),
-    window_name: str = "window",
+    window_name: str | None = None,
     pair_windows: bool = False,
     ts: bool = False,
     ema: bool = True,
@@ -54,7 +54,9 @@ def columnar_pset(
         name: Name of the primitive set.
         window: Inclusive ``(low, high)`` window-ephemeral bounds.
             ``None`` skips the ephemeral.
-        window_name: Ephemeral type name. Must be unique for a given
+        window_name: Ephemeral type name. Defaults to
+            ``window_{low}_{high}``, so sets with different bounds do
+            not collide. An explicit name must be unique for a given
             bound pair across the process.
         pair_windows: If True, also register ``rolling_corr``,
             ``rolling_cov``, and ``rolling_beta``.
@@ -78,7 +80,9 @@ def columnar_pset(
     if ts:
         add_ts_primitives(pset)
     if window is not None:
-        add_window_ephemeral(pset, window_name, window[0], window[1])
+        low, high = window
+        name_ = f"window_{low}_{high}" if window_name is None else window_name
+        add_window_ephemeral(pset, name_, low, high)
     return pset
 
 

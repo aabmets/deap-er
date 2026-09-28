@@ -22,6 +22,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the existing class with no warning and no replacement (classes are
   compared by identity, other values with `==`); a different definition
   still warns and replaces
+- `columnar_pset` defaults `window_name` to `None` and derives the
+  ephemeral name from the bounds (`window_{low}_{high}`). A second
+  `columnar_pset` with different window bounds in the same process no
+  longer raises `ValueError`. Stored programs that name the old default
+  `window` ephemeral need `window_name="window"`
 - `gp.UnboundedLookbackError` (a `ValueError`), raised by
   `tape_lookback` for tapes that hold `ema`
 
