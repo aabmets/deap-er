@@ -10,6 +10,7 @@
 #
 import operator
 
+import numpy
 import pytest
 from deap_er import Fitness, creator, gp, tools
 from deap_er.private.programming.compilers import clear_compile_cache, invalidate_compiled
@@ -203,3 +204,21 @@ def test_clear_and_invalidate_reach_every_live_eval_cache(ind_cls):
     clear_compile_cache()
     assert len(first) == 0
     assert len(second) == 0
+
+
+@pytest.mark.parametrize(
+    ("left", "right"),
+    [
+        (numpy.array([0.1234567891, 0.0]), numpy.array([0.1234567892, 0.0])),
+        (numpy.zeros(3000), numpy.concatenate([numpy.zeros(1500), [1.0], numpy.zeros(1499)])),
+    ],
+)
+def test_eval_cache_keeps_distinct_ndarray_genomes_apart(left, right):
+    cache = tools.EvalCache(lambda individual: (float(numpy.sum(individual)),))
+
+    first = cache.evaluate(left)
+    second = cache.evaluate(right)
+
+    assert first == (float(numpy.sum(left)),)
+    assert second == (float(numpy.sum(right)),)
+    assert len(cache) == 2
