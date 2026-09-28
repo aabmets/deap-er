@@ -8,7 +8,9 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+import gc
 import operator
+import weakref
 
 from deap_er import gp
 from deap_er.private.programming.compile_cache import CompileCache, expression_key
@@ -140,3 +142,26 @@ def test_compile_tree_symbolic_and_repr_leaves_do_not_share_cache():
     assert str(literal) == "'x'"
     assert gp.compile_tree(named, pset) == 7
     assert gp.compile_tree(literal, pset) == "x"
+
+
+def test_compile_tree_does_not_reuse_a_freed_primitive_address():
+    results = []
+    for value in range(5):
+        pset = gp.PrimitiveSet("fresh", 0)
+        pset.add_terminal(lambda value=value: value, name="const", call_zero=True)
+        results.append(gp.compile_tree(gp.PrimitiveTree([pset.mapping["const"]]), pset))
+        del pset
+    assert results == [0, 1, 2, 3, 4]
+
+
+def test_compile_cache_pins_the_context_values_named_in_its_key():
+    def seven():
+        return 7
+
+    pset = gp.PrimitiveSet("pinned", 0)
+    pset.add_terminal(seven, name="seven", call_zero=True)
+    ref = weakref.ref(seven)
+    assert gp.compile_tree("seven()", pset) == 7
+    del pset, seven
+    gc.collect()
+    assert ref() is not None

@@ -96,7 +96,9 @@ class CompileCache:
     """Least-recently-used cache for compiled GP expressions.
 
     Evicts one entry at a time when the cache is full so a diverse
-    working set is not flushed together.
+    working set is not flushed together. Each entry can pin objects
+    whose ``id()`` appears in its key, so a live key never matches a
+    different object that reused a freed address.
     """
 
     def __init__(self, maxsize: int = 1024) -> None:
@@ -106,7 +108,7 @@ class CompileCache:
             maxsize: Maximum number of compiled callables to retain.
         """
         self._maxsize = maxsize
-        self._entries: OrderedDict[CacheKey, Any] = OrderedDict()
+        self._entries: OrderedDict[CacheKey, tuple[Any, Any]] = OrderedDict()
 
     def get(self, key: CacheKey) -> Any | None:
         """Return a cached value and mark it recently used.
@@ -117,24 +119,26 @@ class CompileCache:
         Returns:
             The cached callable, or ``None`` when the key is absent.
         """
-        value = self._entries.pop(key, None)
-        if value is None:
+        entry = self._entries.pop(key, None)
+        if entry is None:
             return None
-        self._entries[key] = value
-        return value
+        self._entries[key] = entry
+        return entry[0]
 
-    def set(self, key: CacheKey, value: Any) -> None:
+    def set(self, key: CacheKey, value: Any, pins: Any = None) -> None:
         """Store a compiled value, evicting the oldest entry when full.
 
         Args:
             key: Cache key produced by ``compile_tree``.
             value: Compiled callable or constant result to retain.
+            pins: Objects kept alive with the entry because the key
+                holds their ``id()``. Optional.
         """
         if key in self._entries:
             self._entries.pop(key)
         elif len(self._entries) >= self._maxsize:
             self._entries.popitem(last=False)
-        self._entries[key] = value
+        self._entries[key] = (value, pins)
 
     def clear(self) -> None:
         """Remove every cached entry."""

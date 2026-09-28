@@ -193,7 +193,8 @@ def compile_tree(
             f"Unknown compile backend '{backend}'. Use 'python', 'opcode', or 'numba'."
         )
 
-    _compile_cache.set(cache_key, compiled)
+    pins = (tuple(prim_set.context.values()), dispatch)
+    _compile_cache.set(cache_key, compiled, pins)
     return compiled
 
 
