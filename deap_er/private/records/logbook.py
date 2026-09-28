@@ -12,11 +12,10 @@ import json
 from collections import defaultdict
 from typing import Any, SupportsIndex, override
 
-import numpy
-
 from .logbook_format import format_txt
+from .record_json import json_ready
 
-__all__: list[str] = ["Logbook", "json_ready"]
+__all__: list[str] = ["Logbook"]
 
 
 class Logbook(list[dict[str, Any]]):
@@ -115,6 +114,20 @@ class Logbook(list[dict[str, Any]]):
         if idx < self.buff_index:
             self.buff_index -= 1
         return super().pop(idx)
+
+    @override
+    def remove(self, value: dict[str, Any], /) -> None:
+        """Remove the first entry equal to ``value``.
+
+        Uses the same chapter pairing and stream-cursor rules as ``pop``.
+
+        Args:
+            value: Entry to remove.
+
+        Raises:
+            ValueError: If no entry equals ``value``.
+        """
+        self.pop(self.index(value))
 
     def _delete_slice(self, key: slice) -> None:
         """Delete a slice of entries and matching chapter rows.
@@ -222,25 +235,3 @@ class Logbook(list[dict[str, Any]]):
         for name, chapter in data.get("chapters", {}).items():
             book.chapters[name] = cls.from_json(json.dumps(chapter))
         return book
-
-
-def json_ready(value: Any) -> Any:
-    """Convert ``value`` into a JSON-serializable object.
-
-    Args:
-        value: Nested mapping, sequence, or scalar.
-
-    Returns:
-        A JSON-safe value. Unknown types become strings.
-    """
-    if isinstance(value, numpy.generic):
-        return value.item()
-    if isinstance(value, numpy.ndarray):
-        return value.tolist()
-    if isinstance(value, dict):
-        return {key: json_ready(item) for key, item in value.items()}
-    if isinstance(value, list | tuple):
-        return [json_ready(item) for item in value]
-    if isinstance(value, str | int | float | bool) or value is None:
-        return value
-    return str(value)

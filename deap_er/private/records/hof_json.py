@@ -11,7 +11,7 @@
 import json
 from typing import TYPE_CHECKING, Any
 
-from .logbook import json_ready
+from .record_json import json_ready
 
 if TYPE_CHECKING:
     from .hall_of_fame import HallOfFame

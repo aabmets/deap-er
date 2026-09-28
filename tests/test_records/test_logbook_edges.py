@@ -117,3 +117,14 @@ def test_stream_header_after_enabling_log_header_includes_chapter_columns():
     assert set(lines[1].strip()) == {"-"}
     assert lines[2].split() == ["gen", "x", "avg", "gen", "x"]
     assert lines[3].split() == ["1", "2", "2", "1", "2"]
+
+
+def test_remove_drops_chapter_row_and_keeps_stream_cursor():
+    logbook = Logbook()
+    logbook.record(gen=0, fit={"avg": 1})
+    logbook.record(gen=1, fit={"avg": 2})
+    _ = logbook.stream
+    logbook.remove(logbook[0])
+    assert logbook.chapters["fit"].select("gen") == [1]
+    logbook.record(gen=2, fit={"avg": 3})
+    assert logbook.stream.split() == ["2", "3", "2"]
