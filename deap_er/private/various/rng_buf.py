@@ -38,7 +38,7 @@ class RngBuffers:
     def _reset_ints(self) -> None:
         """Forget leftover uint64s and zero the integer array."""
         self._ibuf = numpy.zeros(_BUFSIZE, dtype=numpy.uint64)
-        self._u64s = []
+        self._u64s: list[int] = []
         self._ii = _BUFSIZE
 
     def pack(self) -> dict[str, Any]:
@@ -86,7 +86,7 @@ class RngBuffers:
             self._reset_ints()
             return
         self._ibuf, self._ii = ints
-        self._u64s = [int(value) for value in self._ibuf.tolist()]
+        self._u64s = cast(list[int], self._ibuf.tolist())
 
     def next_float(self, gen: numpy.random.Generator) -> float:
         """Pop the next uniform float in ``[0.0, 1.0)``.
@@ -144,9 +144,9 @@ class RngBuffers:
         """
         if self._ii >= _BUFSIZE:
             self._ibuf = numpy.asarray(gen.bit_generator.random_raw(_BUFSIZE), dtype=numpy.uint64)
-            self._u64s = [int(value) for value in self._ibuf.tolist()]
+            self._u64s = cast(list[int], self._ibuf.tolist())
             self._ii = 0
-        value = int(self._u64s[self._ii])
+        value = self._u64s[self._ii]
         self._ii += 1
         return value
 
