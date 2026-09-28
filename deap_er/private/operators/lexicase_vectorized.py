@@ -82,23 +82,38 @@ def lexicase_select_vectorized(
     for _ in range(sel_count):
         order = list(subset)
         rng.shuffle(order)
-        active = numpy.ones(len(individuals), dtype=bool)
-        for case in order:
-            if active.sum() <= 1:
-                break
-            col = matrix[:, case]
-            maximize = fit_weights[case] > 0
-            if mode == "strict":
-                active = apply_strict_filter(active, col, maximize)
-            else:
-                slack = slack_for_case(col, active, mode, epsilon)
-                active = apply_epsilon_filter(
-                    active,
-                    col,
-                    maximize,
-                    slack,
-                    pool_elite=pool_elite,
-                )
+        active = _filter_cases(
+            len(individuals), matrix, order, fit_weights, mode, epsilon, pool_elite
+        )
         survivors = numpy.flatnonzero(active)
         selected.append(_choice_from_survivors(individuals, survivors))
     return selected
+
+
+def _filter_cases(
+    n_individuals: int,
+    matrix: numpy.ndarray,
+    order: list[int],
+    fit_weights: tuple[float, ...],
+    mode: LexicaseMode,
+    epsilon: float | None,
+    pool_elite: bool,
+) -> numpy.ndarray:
+    active = numpy.ones(n_individuals, dtype=bool)
+    for case in order:
+        if active.sum() <= 1:
+            break
+        col = matrix[:, case]
+        maximize = fit_weights[case] > 0
+        if mode == "strict":
+            active = apply_strict_filter(active, col, maximize)
+        else:
+            slack = slack_for_case(col, active, mode, epsilon)
+            active = apply_epsilon_filter(
+                active,
+                col,
+                maximize,
+                slack,
+                pool_elite=pool_elite,
+            )
+    return active

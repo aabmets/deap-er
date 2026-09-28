@@ -83,7 +83,7 @@ def case_exam_key(exam: CaseExam, n_cases: int) -> tuple[Any, ...]:
         ValueError: If the stored ranges or mask are invalid.
     """
     if _is_catalog_exam(exam, n_cases):
-        return ("mask", exam.as_mask(n_cases).tobytes())
+        return ("mask", exam.as_mask(n_cases).tobytes(), None)
     span = n_cases if exam.mask is not None else exam.mutation_bound(n_cases)
     ranges = tuple(exam.as_ranges(span))
     return ("ranges", ranges, exam.length)

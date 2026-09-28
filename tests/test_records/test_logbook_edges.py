@@ -175,6 +175,7 @@ def test_in_place_repetition_is_rejected():
 @pytest.mark.parametrize("method", ["sort", "reverse"])
 def test_reordering_is_rejected(method):
     logbook = _streamed_logbook()
+    reorder = getattr(logbook, method)
     with pytest.raises(TypeError, match=method):
-        getattr(logbook, method)()
+        reorder()
     assert logbook.select("gen") == [0, 1, 2]

@@ -63,6 +63,16 @@ def test_tape_interval_includes_fill_when_division_crosses_zero():
     assert hi >= tape.fill
 
 
+def test_tape_interval_includes_fill_when_division_overflows():
+    tape = _tape("vdiv(first, second)")
+    matrix = numpy.array([[1e308, 1e-10]], dtype=numpy.float64)
+    with numpy.errstate(over="ignore"):
+        value = float(gp.interpret_tape(tape, matrix)[0])
+    lo, hi = gp.tape_interval(tape, gp.bounds_from_matrix(matrix))
+    assert value == pytest.approx(tape.fill)
+    assert lo <= value <= hi
+
+
 def test_tape_interval_keeps_window_output_inside_the_input_hull():
     tape = _tape("rolling_mean(first, 5)")
     bounds = numpy.array([[1.0, 3.0], [0.0, 0.0]], dtype=numpy.float64)

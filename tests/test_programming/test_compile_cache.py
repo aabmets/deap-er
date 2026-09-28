@@ -41,19 +41,15 @@ def test_compile_cache_touch_keeps_a_hot_entry():
     assert cache.get(("c",)) == 3
 
 
-def test_compile_tree_lru_does_not_flush_the_whole_cache():
+def test_compile_tree_lru_does_not_flush_the_whole_cache(monkeypatch):
     pset = gp.PrimitiveSet("main", 1)
     pset.add_primitive(operator.add, 2)
     small = CompileCache(maxsize=3)
-    previous = compilers.shared_compile_cache
-    try:
-        compilers.shared_compile_cache = small
-        for value in range(5):
-            tree = gp.PrimitiveTree.from_string(f"add(ARG0, {value})", pset)
-            gp.compile_tree(tree, pset)
-        assert len(small) == 3
-    finally:
-        compilers.shared_compile_cache = previous
+    monkeypatch.setattr(compilers, "shared_compile_cache", small)
+    for value in range(5):
+        tree = gp.PrimitiveTree.from_string(f"add(ARG0, {value})", pset)
+        gp.compile_tree(tree, pset)
+    assert len(small) == 3
 
 
 def test_expression_key_uses_nodes_for_trees_and_text_for_source():

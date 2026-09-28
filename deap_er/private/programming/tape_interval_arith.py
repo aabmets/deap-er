@@ -128,7 +128,7 @@ def apply_binary(opcode: int, left: Summary, right: Summary, fill: float) -> Sum
             tuple(_product(a, b) for a in (left.lo, left.hi) for b in (right.lo, right.hi))
         )
     elif opcode == int(Opcode.DIV):
-        lo, hi = _quotient(left, right)
+        lo, hi = _quotient(left, right, fill)
         # A divisor interval that holds zero also holds divisors that
         # fall back to ``fill``, so the result is no longer one value.
         const = const and not right.lo <= 0.0 <= right.hi
@@ -137,9 +137,13 @@ def apply_binary(opcode: int, left: Summary, right: Summary, fill: float) -> Sum
     return Summary(lo, hi, lookback, first_finite, const, can_finite, "array")
 
 
-def _quotient(left: Summary, right: Summary) -> tuple[float, float]:
+def _quotient(left: Summary, right: Summary, fill: float) -> tuple[float, float]:
     """Return the envelope of protected ``left / right``."""
     if right.lo <= 0.0 <= right.hi:
         # Divisors arbitrarily close to zero make the quotient unbounded.
         return _UNBOUNDED
-    return hull(tuple(a / b for a in (left.lo, left.hi) for b in (right.lo, right.hi)))
+    lo, hi = hull(tuple(a / b for a in (left.lo, left.hi) for b in (right.lo, right.hi)))
+    if math.isinf(lo) or math.isinf(hi):
+        # A quotient of finite operands that overflows falls back to ``fill``.
+        lo, hi = min(lo, fill), max(hi, fill)
+    return lo, hi
