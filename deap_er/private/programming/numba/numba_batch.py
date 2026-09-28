@@ -20,6 +20,7 @@ from ..tape_cse import run_opcode_cse
 from . import numba_kernels
 from .numba_compile import build
 from .numba_ops import reserve
+from .numba_pack import pack_tapes
 
 __all__: list[str] = ["compiled_batch_kernels", "launch_kernels", "run_tapes", "serial_kernels"]
 
@@ -118,50 +119,6 @@ def _parallel_kernel() -> Any:
     return _batch["many_parallel"]
 
 
-def _pack(tapes: Sequence[Tape]) -> dict[str, numpy.ndarray | int]:
-    """Concatenate tapes into jagged streams plus offsets.
-
-    Args:
-        tapes: Tapes to pack. Must not be empty.
-
-    Returns:
-        Arrays consumed by the compiled batch kernels.
-    """
-    op_lens = numpy.array([tape.opcodes.size for tape in tapes], dtype=numpy.int64)
-    c_lens = numpy.array([tape.constants.size for tape in tapes], dtype=numpy.int64)
-    op_starts = numpy.zeros(len(tapes), dtype=numpy.int64)
-    c_starts = numpy.zeros(len(tapes), dtype=numpy.int64)
-    op_starts[1:] = numpy.cumsum(op_lens[:-1])
-    c_starts[1:] = numpy.cumsum(c_lens[:-1])
-    if int(op_lens.sum()) == 0:
-        opcodes = numpy.empty(0, dtype=numpy.int32)
-        operands = numpy.empty(0, dtype=numpy.int32)
-    else:
-        opcodes = numpy.concatenate([tape.opcodes for tape in tapes]).astype(
-            numpy.int32, copy=False
-        )
-        operands = numpy.concatenate([tape.operands for tape in tapes]).astype(
-            numpy.int32, copy=False
-        )
-    if int(c_lens.sum()) == 0:
-        constants = numpy.empty(0, dtype=numpy.float64)
-    else:
-        constants = numpy.concatenate([tape.constants for tape in tapes]).astype(
-            numpy.float64, copy=False
-        )
-    return {
-        "opcodes": opcodes,
-        "operands": operands,
-        "constants": constants,
-        "op_starts": op_starts,
-        "op_lens": op_lens,
-        "c_starts": c_starts,
-        "c_lens": c_lens,
-        "fills": numpy.array([tape.fill for tape in tapes], dtype=numpy.float64),
-        "max_depth": max(tape.depth for tape in tapes),
-    }
-
-
 def run_tapes(
     tapes: Sequence[Tape],
     matrix: numpy.ndarray,
@@ -235,7 +192,7 @@ def launch_kernels(
     run, idle, many = serial_kernels()
     if dispatch is None:
         dispatch = idle
-    packed = _pack(tapes)
+    packed = pack_tapes(tapes)
     streams = (packed["opcodes"], packed["operands"], packed["constants"])
     layout = (
         packed["op_starts"],
