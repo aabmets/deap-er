@@ -95,3 +95,11 @@ def test_case_exam_accepts_numpy_range_table():
     assert exam.ranges == [(0, 2), (3, 4)]
     assert exam.as_cases(5) == [0, 1, 3]
     assert coerced.as_cases(5) == [0, 1, 3]
+
+
+def test_coerce_case_exam_accepts_integer_index_array():
+    exam = tools.coerce_case_exam(numpy.array([3, 1]), n_cases=4)
+    assert exam.as_cases(4) == [1, 3]
+    assert tools.coerce_case_exam(numpy.array([], dtype=int)).ranges == []
+    with pytest.raises(ValueError, match="n_cases"):
+        tools.coerce_case_exam(numpy.array([0, 1]))

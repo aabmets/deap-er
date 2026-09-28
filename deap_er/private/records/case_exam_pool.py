@@ -90,7 +90,9 @@ def coerce_case_exam(
     if isinstance(exam, numpy.ndarray):
         if exam.dtype == bool:
             return CaseExam(mask=exam)
-        return CaseExam(ranges=exam)
+        if exam.ndim != 1:
+            return CaseExam(ranges=exam)
+        exam = cast(list[int], exam.tolist())
     if not exam:
         return CaseExam(ranges=[])
     first = exam[0]
