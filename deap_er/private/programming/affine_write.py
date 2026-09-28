@@ -15,7 +15,7 @@ from typing import Any, override
 from .columnar import Window
 from .compile_cache import expression_key
 from .compilers import invalidate_compiled
-from .primitives.primitive_nodes import Ephemeral
+from .primitives.primitive_nodes import Ephemeral, Terminal
 from .slim.slim_tree import SlimTree
 
 __all__: list[str] = ["write_affine_scale"]
@@ -126,10 +126,14 @@ def _is_numeric_ephemeral_type(term: Any) -> bool:
 
 
 def _scale_leaf(value: float, ret_type: type, template: type[Ephemeral] | None) -> Ephemeral:
-    """Return an independent ephemeral carrying ``value``."""
-    node = template() if template is not None else AffineEphemeral()
-    node.ret = ret_type
-    node.value = float(value)
+    """Return an independent ephemeral carrying ``value``.
+
+    The node is built without calling the class sampler, so writing a
+    fitted value never draws from the process RNG.
+    """
+    cls = template if template is not None else AffineEphemeral
+    node = cls.__new__(cls)
+    Terminal.__init__(node, float(value), symbolic=False, ret_type=ret_type)
     node.name = repr(float(value))
     return node
 

@@ -102,3 +102,19 @@ def test_write_affine_scale_requires_add_and_mul(ind_cls):
     tree = _arg_tree(ind_cls, pset)
     with pytest.raises(TypeError, match="multiplication"):
         gp.write_affine_scale(tree, 0.0, 1.0, pset)
+
+
+def test_write_affine_scale_does_not_draw_from_the_rng(ind_cls):
+    pset = gp.PrimitiveSet("main", 1)
+    pset.add_primitive(operator.add, 2)
+    pset.add_primitive(operator.mul, 2)
+    pset.add_ephemeral_constant("AFFINE_WRITE_RNG", lambda: tools.rng.random())
+    tree = _arg_tree(ind_cls, pset)
+    tools.rng.seed(5)
+    expected = tools.rng.random()
+    tools.rng.seed(5)
+
+    gp.write_affine_scale(tree, 1.0, 2.0, pset)
+
+    assert tools.rng.random() == expected
+    numpy.testing.assert_allclose(gp.extract_ephemerals(tree), [1.0, 2.0])
