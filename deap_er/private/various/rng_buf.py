@@ -76,18 +76,17 @@ class RngBuffers:
                 size or its index lies outside it.
         """
         fbuf, fi = _checked_buffer(state["buf"], state["index"], numpy.float64)
-        has_ints = "ibuf" in state and "iindex" in state
-        if has_ints:
-            ibuf, ii = _checked_buffer(state["ibuf"], state["iindex"], numpy.uint64)
+        ints = None
+        if "ibuf" in state and "iindex" in state:
+            ints = _checked_buffer(state["ibuf"], state["iindex"], numpy.uint64)
         self._fbuf = fbuf
         self._floats = cast(list[float], fbuf.tolist())
         self._fi = fi
-        if has_ints:
-            self._ibuf = ibuf
-            self._u64s = [int(value) for value in ibuf.tolist()]
-            self._ii = ii
+        if ints is None:
+            self._reset_ints()
             return
-        self._reset_ints()
+        self._ibuf, self._ii = ints
+        self._u64s = [int(value) for value in self._ibuf.tolist()]
 
     def next_float(self, gen: numpy.random.Generator) -> float:
         """Pop the next uniform float in ``[0.0, 1.0)``.

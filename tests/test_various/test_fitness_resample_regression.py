@@ -72,8 +72,8 @@ def test_resample_cache_without_key_keeps_individuals_apart(cache_ind_cls):
     """Without ``key`` the draw entries must not be shared across genomes."""
     cache = tools.EvalCache(lambda ind: (float(ind[0]),))
 
-    first = tools.resample(cache_ind_cls([1]), None, 2, cache=cache)
-    second = tools.resample(cache_ind_cls([7]), None, 2, cache=cache)
+    first = tools.resample(cache_ind_cls([1]), cache.evaluate, 2, cache=cache)
+    second = tools.resample(cache_ind_cls([7]), cache.evaluate, 2, cache=cache)
 
     assert first == (1.0,)
     assert second == (7.0,)
@@ -83,11 +83,11 @@ def test_race_stop_cache_without_key_fn_sees_in_place_mutation(max_ind_cls):
     """The default cache key follows the genome, not ``id(individual)``."""
     cache = tools.EvalCache(lambda ind: (float(ind[0]),))
     individual = max_ind_cls([1])
-    tools.race_stop([individual], None, 1, cache=cache, write=True)
+    tools.race_stop([individual], cache.evaluate, 1, cache=cache, write=True)
     individual[0] = 7
     del individual.fitness.values
 
-    tools.race_stop([individual], None, 1, cache=cache, write=True)
+    tools.race_stop([individual], cache.evaluate, 1, cache=cache, write=True)
 
     assert individual.fitness.values == (7.0,)
 
