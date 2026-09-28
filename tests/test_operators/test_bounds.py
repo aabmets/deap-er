@@ -58,3 +58,9 @@ def test_mut_uniform_int_accepts_numpy_0d_integer_bounds():
     tools.rng.seed(1)
     (mutant,) = tools.mut_uniform_int(individual, low, up, 1.0)
     assert all(0 <= gene <= 3 for gene in mutant)
+
+
+def test_mut_uniform_int_accepts_per_gene_bounds():
+    individual: Any = [0, 0, 0]
+    (mutant,) = tools.mut_uniform_int(individual, [1, 5, 9], [1, 5, 9], 1.0)
+    assert mutant == [1, 5, 9]
