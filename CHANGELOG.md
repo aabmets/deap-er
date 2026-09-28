@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `structural_meta_case_columns(..., valid=mask)` computes
   `non_finite_fraction` over the masked rows only (for example the
   scored rows, leaving out warmup and inter-series padding)
+- `gp.UnboundedLookbackError` (a `ValueError`), raised by
+  `tape_lookback` for tapes that hold `ema`
 
 ### Changed
 
@@ -27,8 +29,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `columnar_pset` with different window bounds in the same process no
   longer raises `ValueError`. Stored programs that name the old default
   `window` ephemeral need `window_name="window"`
-- `gp.UnboundedLookbackError` (a `ValueError`), raised by
-  `tape_lookback` for tapes that hold `ema`
 
 ### Fixed
 
