@@ -238,3 +238,10 @@ def test_es_log_normal_empty_individual_is_noop():
     (mutant,) = tools.mut_es_log_normal(individual, 1.0, 1.0)
     assert mutant is individual
     assert mutant == []
+
+
+def test_polynomial_bounded_zero_prob_never_mutates(monkeypatch):
+    monkeypatch.setattr(tools.rng, "random", lambda: 0.0)
+    individual: Any = [0.25, 0.5, 0.75]
+    (mutant,) = tools.mut_polynomial_bounded(individual, 20.0, 0.0, 1.0, 0.0)
+    assert mutant == [0.25, 0.5, 0.75]

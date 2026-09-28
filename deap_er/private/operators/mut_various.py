@@ -91,7 +91,7 @@ def mut_polynomial_bounded(
 
     idx = list(range(size))
     for i, xl, xu in zip(idx, low, up, strict=False):
-        if rng.random() <= mut_prob:
+        if rng.random() < mut_prob:
             if xu <= xl:
                 continue
             x = min(max(individual[i], xl), xu)
