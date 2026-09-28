@@ -21,7 +21,7 @@ from . import numba_kernels
 from .numba_compile import build
 from .numba_ops import reserve
 
-__all__: list[str] = ["compiled_batch_kernels", "run_tapes"]
+__all__: list[str] = ["compiled_batch_kernels", "launch_kernels", "run_tapes"]
 
 _NO_COLUMNS = (
     "The numba backend evaluates a tape over columns and cannot size a "
@@ -185,9 +185,8 @@ def run_tapes(
             opcode without a dispatcher.
     """
     rows = matrix.shape[0]
-    out = numpy.empty((len(tapes), rows), dtype=numpy.float64)
     if not tapes:
-        return out
+        return numpy.empty((0, rows), dtype=numpy.float64)
     for tape in tapes:
         if tape.columns == 0:
             raise ValueError(_NO_COLUMNS)
@@ -197,15 +196,38 @@ def run_tapes(
                 f"The tape holds consumer opcode {int(unknown[0])} but no dispatch "
                 "kernel was given. Pass dispatch= to interpret_tapes."
             )
-    run, idle, many = _serial_kernel()
-    if dispatch is None:
-        dispatch = idle
+    _serial_kernel()
     use_parallel = parallel and numba.get_num_threads() > 1
     has_consumer = any(numpy.any(tape.opcodes >= USER_BASE) for tape in tapes)
     if not use_parallel and not has_consumer:
         max_depth = max(tape.depth for tape in tapes)
         reserve(max_depth, rows)
         return run_opcode_cse(tapes, matrix)
+    return launch_kernels(tapes, matrix, dispatch, use_parallel)
+
+
+def launch_kernels(
+    tapes: Sequence[Tape], matrix: numpy.ndarray, dispatch: Any, parallel: bool
+) -> numpy.ndarray:
+    """Run tapes on the serial or ``prange`` compiled batch kernel.
+
+    ``run_tapes`` sends builtin-only serial batches through the CSE
+    plan instead, so this is also how the kernels are specialized.
+
+    Args:
+        tapes: Tapes to evaluate. Must not be empty.
+        matrix: C-contiguous ``(n_rows, n_columns)`` ``float64`` table.
+        dispatch: Consumer kernel, or None to use the idle dispatcher.
+        parallel: If True, use one workspace per Numba thread.
+
+    Returns:
+        ``(n_tapes, n_rows)`` results.
+    """
+    rows = matrix.shape[0]
+    out = numpy.empty((len(tapes), rows), dtype=numpy.float64)
+    run, idle, many = _serial_kernel()
+    if dispatch is None:
+        dispatch = idle
     packed = _pack(tapes)
     streams = (packed["opcodes"], packed["operands"], packed["constants"])
     layout = (
@@ -215,12 +237,11 @@ def run_tapes(
         packed["c_lens"],
         packed["fills"],
     )
-    if use_parallel:
+    if parallel:
         n_threads = numba.get_num_threads()
         stacks = numpy.empty((n_threads, int(packed["max_depth"]) + 1, rows), dtype=numpy.float64)
         scratches = numpy.empty((n_threads, rows), dtype=numpy.float64)
-        many_parallel = _parallel_kernel()
-        many_parallel(run, streams, layout, matrix, stacks, scratches, dispatch, out)
+        _parallel_kernel()(run, streams, layout, matrix, stacks, scratches, dispatch, out)
         return out
     stack, scratch = reserve(int(packed["max_depth"]), rows)
     many(run, streams, layout, matrix, stack, scratch, dispatch, out)

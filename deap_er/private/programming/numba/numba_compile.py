@@ -8,6 +8,8 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+import os
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -25,7 +27,7 @@ from . import (
     numba_window_ts,
 )
 
-__all__: list[str] = ["build"]
+__all__: list[str] = ["build", "ensure_numba_cache_dir"]
 
 _MISSING = (
     "The numba backend needs the optional 'numba' dependency. "
@@ -40,10 +42,9 @@ def ensure_numba_cache_dir() -> None:
 
     The default location is an absolute path under the user's cache
     directory so spawned workers with a different working directory
-    still share the same on-disk JIT cache.
+    still share the same on-disk JIT cache. It also applies when numba
+    was imported before this call.
     """
-    import os
-
     if os.environ.get("NUMBA_CACHE_DIR"):
         return
     xdg_cache = os.environ.get("XDG_CACHE_HOME")
@@ -54,6 +55,11 @@ def ensure_numba_cache_dir() -> None:
     cache = cache.resolve()
     cache.mkdir(parents=True, exist_ok=True)
     os.environ["NUMBA_CACHE_DIR"] = str(cache)
+    config = sys.modules.get("numba.core.config")
+    if config is not None:
+        # Numba reads the variable at import. A consumer kernel module
+        # usually imports numba first, so refresh its config here.
+        config.reload_config()
 
 
 JIT_GROUPS: tuple[tuple[Any, tuple[str, ...]], ...] = (
