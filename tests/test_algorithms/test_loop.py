@@ -11,6 +11,7 @@
 import logging
 from typing import Any, override
 
+import pytest
 from deap_er import Fitness, Toolbox, creator, tools
 
 LOOP_FIT = "LOOP_FIT"
@@ -86,6 +87,21 @@ def test_ea_simple_empty_population_with_max_stats():
             toolbox, [], generations=0, cx_prob=0.0, mut_prob=0.0, stats=stats
         )
         assert logbook.select("gen") == [0]
+    finally:
+        del creator.__dict__[LOOP_FIT]
+        del creator.__dict__[LOOP_IND]
+
+
+def test_evaluate_invalid_rejects_a_short_evaluate_batch():
+    creator.create_type(LOOP_FIT, Fitness, weights=(-1.0,))
+    creator.create_type(LOOP_IND, list, fitness=creator.__dict__[LOOP_FIT])
+    try:
+        ind_cls = creator.__dict__[LOOP_IND]
+        toolbox = Toolbox()
+        toolbox.register("evaluate_batch", lambda individuals: [(0.0,)])
+        population = [ind_cls([0]), ind_cls([1])]
+        with pytest.raises(ValueError, match="zip"):
+            tools.evaluate_invalid(toolbox, population)
     finally:
         del creator.__dict__[LOOP_FIT]
         del creator.__dict__[LOOP_IND]

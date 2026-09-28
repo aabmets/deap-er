@@ -81,7 +81,7 @@ def ea_mu_comma_lambda(
 
     logbook = new_logbook(stats, log_time=log_time)
     t0 = time.perf_counter()
-    nevals, used = consume_evals(toolbox, population, n_evals, 0)
+    nevals, used = consume_evals(toolbox, population, 0)
     duration = time.perf_counter() - t0 if log_time else None
     record_generation(
         logbook,
@@ -103,7 +103,7 @@ def ea_mu_comma_lambda(
         t0 = time.perf_counter()
         offspring = var_or(toolbox, population, offsprings, cx_prob, mut_prob)
 
-        nevals, used = consume_evals(toolbox, offspring, n_evals, used)
+        nevals, used = consume_evals(toolbox, offspring, used)
 
         population[:] = toolbox.select(offspring, survivors)
         duration = time.perf_counter() - t0 if log_time else None

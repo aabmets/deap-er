@@ -17,7 +17,7 @@ from deap_er.private.records.logbook import Logbook
 from deap_er.private.toolbox import Toolbox
 from deap_er.private.typedefs import EvoStats, Individual
 
-from .loop import budget_spent, check_n_evals, consume_evals, new_logbook
+from .loop import budget_spent, check_n_evals, consume_evals, new_logbook, record_generation
 from .variation import var_or
 
 __all__: list[str] = ["ea_map_elites"]
@@ -42,31 +42,14 @@ def _parent_pool(
     return [initial[index % len(initial)] for index in range(pool_size)]
 
 
-def _record_map_elites_generation(
-    logbook,
-    gen: int,
-    nevals: int,
-    archive: MapElitesArchive,
-    population: list[Individual],
-    stats: EvoStats | None,
-    verbose: bool,
-    logger: Logger | None,
-    duration: float | None,
-) -> None:
-    record = stats.compile(population) if stats and population else {}
+def _archive_extra(archive: MapElitesArchive) -> dict[str, float]:
+    """Return the archive metrics merged into each generation row."""
     archive_stats = archive.stats
-    record["coverage"] = archive_stats.coverage
-    record["num_elites"] = archive_stats.num_elites
-    record["qd_score"] = archive_stats.qd_score
-    if duration is not None:
-        record["duration"] = duration
-    logbook.record(gen=gen, nevals=nevals, **record)
-    if verbose:
-        text = logbook.stream
-        if logger is not None:
-            logger.info(text)
-        else:
-            print(text)
+    return {
+        "coverage": archive_stats.coverage,
+        "num_elites": archive_stats.num_elites,
+        "qd_score": archive_stats.qd_score,
+    }
 
 
 def ea_map_elites(
@@ -141,20 +124,22 @@ def ea_map_elites(
     )
 
     t0 = time.perf_counter()
-    nevals, used = consume_evals(toolbox, initial, n_evals, 0)
+    nevals, used = consume_evals(toolbox, initial, 0)
     for individual in initial:
         archive.add(individual, descriptor_fn(individual))
     duration = time.perf_counter() - t0 if log_time else None
-    _record_map_elites_generation(
+    record_generation(
         logbook,
         0,
         nevals,
-        archive,
-        initial,
-        stats,
-        verbose,
-        logger,
-        duration,
+        population=initial,
+        offspring=initial,
+        hof=None,
+        stats=stats,
+        verbose=verbose,
+        logger=logger,
+        duration=duration,
+        extra=_archive_extra(archive),
     )
     if budget_spent(n_evals, used):
         return archive, logbook
@@ -163,20 +148,22 @@ def ea_map_elites(
         t0 = time.perf_counter()
         parents = _parent_pool(archive, initial, batch_size, cx_prob)
         offspring = var_or(toolbox, parents, batch_size, cx_prob, mut_prob)
-        nevals, used = consume_evals(toolbox, offspring, n_evals, used)
+        nevals, used = consume_evals(toolbox, offspring, used)
         for individual in offspring:
             archive.add(individual, descriptor_fn(individual))
         duration = time.perf_counter() - t0 if log_time else None
-        _record_map_elites_generation(
+        record_generation(
             logbook,
             gen,
             nevals,
-            archive,
-            offspring,
-            stats,
-            verbose,
-            logger,
-            duration,
+            population=offspring,
+            offspring=offspring,
+            hof=None,
+            stats=stats,
+            verbose=verbose,
+            logger=logger,
+            duration=duration,
+            extra=_archive_extra(archive),
         )
         if budget_spent(n_evals, used):
             break

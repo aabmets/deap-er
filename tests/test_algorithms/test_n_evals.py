@@ -161,3 +161,13 @@ def test_ea_map_elites_n_evals_stops_after_variation(toolbox):
 
     assert logbook.select("gen") == [0, 1, 2]
     assert sum(logbook.select("nevals")) == 8
+
+
+@pytest.mark.parametrize("name", ["ea_simple", "ea_mu_plus_lambda", "ea_mu_comma_lambda"])
+def test_n_evals_zero_finishes_generation_zero(toolbox, name):
+    population = _unevaluated()
+    _, logbook = _drivers(toolbox, population, generations=8, n_evals=0)[name]()
+
+    assert logbook.select("gen") == [0]
+    assert logbook.select("nevals") == [4]
+    assert all(ind.fitness.is_valid() for ind in population)

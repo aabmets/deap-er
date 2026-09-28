@@ -124,7 +124,7 @@ def ea_policy(
     held_out_score: float | None = None
 
     t0 = time.perf_counter()
-    nevals, used = consume_evals(toolbox, population, n_evals, 0)
+    nevals, used = consume_evals(toolbox, population, 0)
     _sync_guard_evals(guard, used)
     if active_cases is None:
         active_cases = initial_policy_cases(population, exams, n_cases)
@@ -189,7 +189,7 @@ def ea_policy(
             break
         offspring = select_policy_offspring(toolbox, population, active_cases)
         offspring = var_and(toolbox, offspring, cx_prob, mut_prob)
-        nevals, used = consume_evals(toolbox, offspring, n_evals, used)
+        nevals, used = consume_evals(toolbox, offspring, used)
         _sync_guard_evals(guard, used)
         population[:] = offspring
         _record(
