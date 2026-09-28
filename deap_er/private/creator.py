@@ -65,8 +65,7 @@ def create_type(name: str, base: type | object, **kwargs: Any) -> type:
     # separate kwargs by their type
     inst_attr, cls_attr = {}, {}
     for key, value in kwargs.items():
-        condition = type(value) is type
-        _dict = inst_attr if condition else cls_attr
+        _dict = inst_attr if isinstance(value, type) else cls_attr
         _dict[key] = value
     if array_typecode is not None:
         cls_attr.setdefault("typecode", array_typecode)

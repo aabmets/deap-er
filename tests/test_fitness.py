@@ -150,6 +150,14 @@ class TestFitness:
 
         assert ft.values == (1.0, 2.0, 3.0)
 
+    def test_mixed_float_and_int_values_are_stored_as_floats(self, monkeypatch):
+        monkeypatch.setattr(Fitness, "weights", [1, 1])
+
+        ft = Fitness((1.0, numpy.int64(2)))
+
+        assert ft.values == (1.0, 2.0)
+        assert all(type(value) is float for value in ft.values)
+
     def test_numpy_0d_array_is_accepted(self, monkeypatch):
         monkeypatch.setattr(Fitness, "weights", [1])
 

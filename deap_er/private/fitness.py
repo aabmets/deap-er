@@ -122,7 +122,7 @@ class Fitness:
                 "The assigned values must have the same length as "
                 "the 'weights' attribute of the 'Fitness' class."
             )
-        if raw and type(raw[0]) is float:
+        if all(type(value) is float for value in raw):
             seq = cast(tuple[float, ...], raw)
         else:
             seq = tuple(float(value) for value in raw)

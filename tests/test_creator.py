@@ -112,6 +112,22 @@ class TestCreatorBasicFunctionality:
         assert hasattr(creator.__dict__[CNAME](), "my_attr")
         creator.__dict__.pop(CNAME)
 
+    def test_instance_attr_accepts_a_class_with_a_metaclass(self):
+        class Registry(type):
+            pass
+
+        class Tracker(metaclass=Registry):
+            pass
+
+        creator.create_type(CNAME, list, tracker=Tracker)
+        try:
+            first = creator.__dict__[CNAME]([1])
+            second = creator.__dict__[CNAME]([2])
+            assert isinstance(first.tracker, Tracker)
+            assert first.tracker is not second.tracker
+        finally:
+            creator.__dict__.pop(CNAME)
+
     def test_list_creation(self):
         creator.create_type(CNAME, list)
         obj = creator.__dict__[CNAME]([1, 2, 3, 4])
