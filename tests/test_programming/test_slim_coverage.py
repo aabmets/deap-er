@@ -12,7 +12,7 @@ import copy
 import math
 import operator
 
-from deap_er import Fitness, gp, tools
+from deap_er import Fitness, creator, gp, tools
 
 
 class _FitMin(Fitness):
@@ -84,3 +84,23 @@ def test_slim_str_and_deepcopy_copy_fitness():
     assert clone is not slim
     assert clone.fitness is not slim.fitness
     assert clone.fitness.values == (1.0,)
+
+
+def test_slim_deepcopy_keeps_creator_class_and_attributes():
+    creator.create_type("SLIM_COPY_FIT", Fitness, weights=(-1.0,))
+    creator.create_type("SLIM_COPY_IND", gp.SlimTree, fitness=creator.__dict__["SLIM_COPY_FIT"])
+    try:
+        ind_cls = creator.__dict__["SLIM_COPY_IND"]
+        slim = ind_cls(gp.gen_grow(_semantic_pset(), 1, 2))
+        slim.history_index = 7
+        slim.fitness.values = (1.0,)
+
+        clone = copy.deepcopy(slim)
+
+        assert type(clone) is ind_cls
+        assert clone.history_index == 7
+        assert clone.fitness.values == (1.0,)
+        assert clone.head is not slim.head
+    finally:
+        del creator.__dict__["SLIM_COPY_FIT"]
+        del creator.__dict__["SLIM_COPY_IND"]
