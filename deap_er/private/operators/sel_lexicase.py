@@ -19,14 +19,13 @@ if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 from deap_er.private.various.rng import rng
 
+from .epsilon_lexicase_slack import LexicaseMode
+from .lexicase_vectorized import lexicase_select_vectorized
 from .sel_lexicase_matrix import (
-    LexicaseMode,
     case_subset,
-    fitness_case_matrix,
-    lexicase_select_vectorized,
     require_population,
+    resolve_case_matrix,
     resolve_case_weights,
-    validate_case_matrix,
 )
 
 __all__: list[str] = ["lexicase_select", "sel_lexicase", "sel_epsilon_lexicase"]
@@ -89,18 +88,6 @@ def lexicase_select(
     return selected
 
 
-def _resolve_matrix(
-    individuals: list[Individual],
-    matrix: numpy.ndarray | None,
-    *,
-    trust_matrix: bool,
-) -> numpy.ndarray:
-    if matrix is None:
-        return fitness_case_matrix(individuals)
-    validate_case_matrix(matrix, individuals, trust=trust_matrix)
-    return matrix
-
-
 def sel_lexicase(
     individuals: list[Individual],
     sel_count: int,
@@ -142,7 +129,7 @@ def sel_lexicase(
     if sel_count <= 0:
         return []
     require_population(individuals)
-    packed = _resolve_matrix(individuals, matrix, trust_matrix=trust_matrix)
+    packed = resolve_case_matrix(individuals, matrix, trust_matrix=trust_matrix)
     n_cases = int(packed.shape[1])
     subset = case_subset(individuals, cases, n_cases=n_cases)
     weights = resolve_case_weights(individuals, packed, fit_weights)
@@ -203,12 +190,13 @@ def sel_epsilon_lexicase(
     Raises:
         IndexError: If the population is empty or a case index is
             outside the fitness length.
-        ValueError: If ``matrix`` shape or values do not match fitness.
+        ValueError: If ``matrix`` shape or values do not match fitness,
+            or ``epsilon`` is negative or not finite.
     """
     if sel_count <= 0:
         return []
     require_population(individuals)
-    packed = _resolve_matrix(individuals, matrix, trust_matrix=trust_matrix)
+    packed = resolve_case_matrix(individuals, matrix, trust_matrix=trust_matrix)
     n_cases = int(packed.shape[1])
     subset = case_subset(individuals, cases, n_cases=n_cases)
     weights = resolve_case_weights(individuals, packed, fit_weights)

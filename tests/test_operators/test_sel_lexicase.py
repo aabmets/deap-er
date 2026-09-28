@@ -138,3 +138,39 @@ def test_lexicase_nan_fitness_falls_back_to_pool(multi_obj, make):
 
     assert len(chosen) == 5
     assert all(ind in population for ind in chosen)
+
+
+def _dominated_tail_population(multi_obj, make):
+    # MAD is 0 on both cases. After either case filters the pool, no
+    # survivor reaches the population elite on the other case.
+    values = [(10.0, 5.0)] * 2 + [(5.0, 10.0)] * 5 + [(5.0, 5.0)]
+    return [make(multi_obj, [i], value) for i, value in enumerate(values)]
+
+
+@pytest.mark.parametrize("mode", ["epsilon_auto", "epsilon_static"])
+def test_epsilon_lexicase_population_elite_never_picks_dominated(multi_obj, make, mode):
+    population = _dominated_tail_population(multi_obj, make)
+    tools.rng.seed(0)
+
+    chosen = tools.sel_epsilon_lexicase(population, 200, mode=mode)
+
+    assert all(ind is not population[-1] for ind in chosen)
+
+
+def test_batch_epsilon_lexicase_never_picks_dominated(multi_obj, make):
+    population = _dominated_tail_population(multi_obj, make)
+    tools.rng.seed(0)
+
+    chosen = tools.sel_batch_epsilon_lexicase(population, 200, batch_size=1)
+
+    assert all(ind is not population[-1] for ind in chosen)
+
+
+@pytest.mark.parametrize("epsilon", [-1.0, float("nan"), float("inf")])
+def test_epsilon_lexicase_rejects_invalid_epsilon(multi_obj, make, epsilon):
+    population = _dominated_tail_population(multi_obj, make)
+
+    with pytest.raises(ValueError, match="epsilon must be a finite number"):
+        tools.sel_epsilon_lexicase(population, 1, epsilon=epsilon)
+    with pytest.raises(ValueError, match="epsilon must be a finite number"):
+        tools.sel_batch_epsilon_lexicase(population, 1, batch_size=1, epsilon=epsilon)

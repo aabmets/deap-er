@@ -11,9 +11,9 @@
 import numpy
 import pytest
 from deap_er import tools
+from deap_er.private.operators.lexicase_vectorized import lexicase_select_vectorized
 from deap_er.private.operators.sel_lexicase_matrix import (
     fitness_case_matrix,
-    lexicase_select_vectorized,
     validate_case_matrix,
 )
 

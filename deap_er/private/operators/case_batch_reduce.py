@@ -22,6 +22,7 @@ __all__: list[str] = [
     "partition_case_batches",
     "reduce_case_mean",
     "reduce_case_mse",
+    "validate_batch_size",
 ]
 
 type CaseReduction = Callable[[numpy.ndarray], numpy.ndarray]
@@ -51,6 +52,26 @@ def reduce_case_mse(block: numpy.ndarray) -> numpy.ndarray:
     return numpy.mean(block * block, axis=1)
 
 
+def validate_batch_size(batch_size: int) -> int:
+    """Return ``batch_size`` as ``int`` after checking it is positive.
+
+    Args:
+        batch_size: Maximum cases per batch.
+
+    Returns:
+        The batch size as ``int``.
+
+    Raises:
+        ValueError: If ``batch_size`` is not a positive integer.
+    """
+    if isinstance(batch_size, bool) or not isinstance(batch_size, Integral):
+        raise ValueError("batch_size must be a positive int")
+    size = int(batch_size)
+    if size < 1:
+        raise ValueError("batch_size must be at least 1")
+    return size
+
+
 def partition_case_batches(subset: Sequence[int], batch_size: int) -> list[list[int]]:
     """Shuffle ``subset`` and split it into consecutive batches.
 
@@ -64,11 +85,7 @@ def partition_case_batches(subset: Sequence[int], batch_size: int) -> list[list[
     Raises:
         ValueError: If ``batch_size`` is not a positive integer.
     """
-    if isinstance(batch_size, bool) or not isinstance(batch_size, Integral):
-        raise ValueError("batch_size must be a positive int")
-    size = int(batch_size)
-    if size < 1:
-        raise ValueError("batch_size must be at least 1")
+    size = validate_batch_size(batch_size)
     order = list(subset)
     rng.shuffle(order)
     return [order[i : i + size] for i in range(0, len(order), size)]

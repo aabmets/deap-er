@@ -8,8 +8,8 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+from deap_er.private.operators.lexicase_vectorized import lexicase_select_vectorized
 from deap_er.private.operators.sel_lexicase import lexicase_select
-from deap_er.private.operators.sel_lexicase_matrix import lexicase_select_vectorized
 
 
 def _keep(candidates, case, maximize):

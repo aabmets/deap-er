@@ -96,7 +96,12 @@ def apply_epsilon_filter(
     *,
     pool_elite: bool,
 ) -> numpy.ndarray:
-    """Filter candidates within ``slack`` of the elite error on one case."""
+    """Filter candidates within ``slack`` of the elite error on one case.
+
+    With a population elite (``pool_elite=False``) the case acts as a
+    pass/fail test. When no active candidate passes, the case does not
+    discriminate and the pool is kept unchanged.
+    """
     vals = col[active] if pool_elite else col
     if maximize:
         bound = numpy.max(vals) - slack
@@ -104,4 +109,5 @@ def apply_epsilon_filter(
     else:
         bound = numpy.min(vals) + slack
         keep = col <= bound
-    return numpy.where(active, keep, False)
+    survivors = numpy.logical_and(active, keep)
+    return survivors if survivors.any() else active

@@ -153,6 +153,19 @@ def test_sel_team_trust_matrix_changes_winner(three_cases, make):
         tools.sel_team(population, 1, matrix=matrix)
 
 
+def test_sel_team_trusted_matrix_wider_than_fitness(three_cases, make):
+    # Extra packed columns are addressable, as in sel_lexicase.
+    first = make(three_cases, [0], (1.0, 1.0, 1.0))
+    second = make(three_cases, [1], (1.0, 1.0, 1.0))
+    matrix = numpy.array([[1.0, 1.0, 1.0, 1.0, 0.0], [1.0, 1.0, 1.0, 1.0, 1.0]])
+
+    chosen = tools.sel_team([first, second], 1, cases=[4], matrix=matrix, trust_matrix=True)
+
+    assert chosen == [first]
+    with pytest.raises(IndexError, match="case index 5"):
+        tools.sel_team([first, second], 1, cases=[5], matrix=matrix, trust_matrix=True)
+
+
 def test_sel_team_duplicate_cases_covered_once(three_cases, make):
     only_zero = make(three_cases, [0], (0.0, 1.0, 1.0))
     only_one = make(three_cases, [1], (1.0, 0.0, 1.0))

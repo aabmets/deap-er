@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 from deap_er.private.records.case_exam import CaseExam
 from deap_er.private.records.case_exam_pool import CaseExamPool, coerce_case_exam
 
-from .sel_lexicase_matrix import fitness_case_matrix, validate_case_matrix
+from .sel_lexicase_matrix import resolve_case_matrix
 
 __all__: list[str] = [
     "CaseSolved",
@@ -109,9 +109,7 @@ def elite_solve_matrix(
             for case in range(n_cases):
                 bits[row, case] = solved(individual, case)
         return n_cases, bits
-    packed = fitness_case_matrix(elites) if matrix is None else matrix
-    if matrix is not None:
-        validate_case_matrix(packed, elites, trust=trust_matrix)
+    packed = resolve_case_matrix(elites, matrix, trust_matrix=trust_matrix)
     return n_cases, numpy.isclose(packed, 0.0, atol=1e-12)
 
 

@@ -21,25 +21,9 @@ if TYPE_CHECKING:
 from deap_er.private.various.rng import rng
 
 from .case_batch_reduce import CaseReduction, reduce_case_mean
-from .sel_lexicase_matrix import (
-    case_subset,
-    fitness_case_matrix,
-    validate_case_matrix,
-)
+from .sel_lexicase_matrix import case_subset, resolve_case_matrix
 
 __all__: list[str] = ["sel_tournament_cases"]
-
-
-def _resolve_matrix(
-    individuals: list[Individual],
-    matrix: numpy.ndarray | None,
-    *,
-    trust_matrix: bool,
-) -> numpy.ndarray:
-    if matrix is None:
-        return fitness_case_matrix(individuals)
-    validate_case_matrix(matrix, individuals, trust=trust_matrix)
-    return matrix
 
 
 def _resolve_case_indices(
@@ -134,7 +118,7 @@ def sel_tournament_cases(
         raise IndexError("Cannot choose from an empty sequence")
     if contestants < 1:
         raise ValueError("contestants must be at least 1")
-    packed = _resolve_matrix(individuals, matrix, trust_matrix=trust_matrix)
+    packed = resolve_case_matrix(individuals, matrix, trust_matrix=trust_matrix)
     case_indices = _resolve_case_indices(individuals, cases, case_count)
     reduce = reduction if reduction is not None else reduce_case_mean
     scores = _tournament_scores(packed, case_indices, individuals[0].fitness.weights, reduce)

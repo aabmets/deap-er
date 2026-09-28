@@ -52,28 +52,29 @@ def test_epsilon_static_uses_population_mad(multi_obj, make):
     assert dynamic != static
 
 
+SHRINK_VALUES = [(10.0, 0.0), (9.5, 100.0), (9.2, 100.0), (8.0, 100.0)]
+
+
+def _picked(population, mode):
+    tools.rng.seed(3)
+    return {ind[0] for ind in tools.sel_epsilon_lexicase(population, 300, mode=mode)}
+
+
 def test_epsilon_semi_differs_from_static_on_shrunk_pool(multi_obj, make):
-    values = [(10.0, 0.0), (9.0, 50.0), (8.0, 100.0), (7.0, 150.0)]
-    population = [make(multi_obj, [i], value) for i, value in enumerate(values)]
+    # Case 1 first leaves {1, 2, 3}. Static tests case 0 against the
+    # population elite (10 - MAD 0.4): nobody passes, so all three stay.
+    # Semi anchors to the pool elite (9.5 - 0.4) and drops individual 3.
+    population = [make(multi_obj, [i], value) for i, value in enumerate(SHRINK_VALUES)]
 
-    tools.rng.seed(17)
-    static = tools.sel_epsilon_lexicase(population, 1, mode="epsilon_static")
-    tools.rng.seed(17)
-    semi = tools.sel_epsilon_lexicase(population, 1, mode="epsilon_semi")
-
-    assert semi != static
+    assert 3 in _picked(population, "epsilon_static")
+    assert 3 not in _picked(population, "epsilon_semi")
 
 
 def test_epsilon_dynamic_differs_from_static(multi_obj, make):
-    values = [(10.0, 0.0), (9.0, 50.0), (8.0, 100.0), (7.0, 150.0)]
-    population = [make(multi_obj, [i], value) for i, value in enumerate(values)]
+    population = [make(multi_obj, [i], value) for i, value in enumerate(SHRINK_VALUES)]
 
-    tools.rng.seed(17)
-    static = tools.sel_epsilon_lexicase(population, 1, mode="epsilon_static")
-    tools.rng.seed(17)
-    dynamic = tools.sel_epsilon_lexicase(population, 1, mode="epsilon_dynamic")
-
-    assert dynamic != static
+    assert 3 in _picked(population, "epsilon_static")
+    assert 3 not in _picked(population, "epsilon_dynamic")
 
 
 def test_epsilon_modes_accept_matrix(multi_obj, make):
@@ -172,6 +173,17 @@ def test_downsample_cohort_rejects_out_of_range(ind_cls):
 
     with pytest.raises(IndexError, match="case index 9"):
         tools.next_downsample_cases(population, 2, 0, mode="cohort", cohort=[0, 9])
+    fractional: Any = [0, 1.7]
+    with pytest.raises(IndexError, match="case index 1.7"):
+        tools.next_downsample_cases(population, 2, 0, mode="cohort", cohort=fractional)
+
+
+def test_downsample_rejects_unknown_mode(ind_cls):
+    population = [_make(ind_cls, [0], (0.0, 1.0, 0.0, 1.0) + (0.0,) * 4)]
+    mode: Any = "informd"
+
+    with pytest.raises(ValueError, match="mode must be one of"):
+        tools.next_downsample_cases(population, 2, 0, mode=mode)
 
 
 def test_epsilon_fixed_uses_pool_elite_after_shrink(multi_obj, make):
@@ -200,7 +212,18 @@ def test_apply_epsilon_filter_fixed_slack_anchors_to_pool_elite():
     pop_kept = apply_epsilon_filter(active, col, False, 0.0, pool_elite=False)
 
     assert pool_kept.tolist() == [False, True, False, False]
-    assert pop_kept.tolist() == [False, False, False, False]
+    # No active candidate reaches the population elite: the case does
+    # not discriminate and the pool is kept.
+    assert pop_kept.tolist() == [True, True, False, False]
+
+
+def test_apply_epsilon_filter_population_elite_keeps_passing_subset():
+    col = numpy.array([10.0, 9.0, 1.0, 1.0])
+    active = numpy.array([True, True, True, False])
+
+    kept = apply_epsilon_filter(active, col, False, 0.0, pool_elite=False)
+
+    assert kept.tolist() == [False, False, True, False]
 
 
 def test_epsilon_lexicase_rejects_invalid_mode(multi_obj, make):
