@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
     from .eval_cache import EvalCache
 
-__all__: list[str] = ["noisy_draw_key", "resample", "resample_aggregate"]
+__all__: list[str] = ["cached_draw", "noisy_draw_key", "resample", "resample_aggregate"]
 
 
 def noisy_draw_key(base: Any, draw: int) -> tuple[Any, int]:

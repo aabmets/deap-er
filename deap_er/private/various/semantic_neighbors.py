@@ -19,7 +19,7 @@ from .semantic_mask import (
     validate_semantic_matrix,
 )
 
-__all__: list[str] = ["semantic_distance", "semantic_nearest"]
+__all__: list[str] = ["SemanticMetric", "semantic_distance", "semantic_nearest"]
 
 type SemanticMetric = Literal["euclidean", "cosine"]
 

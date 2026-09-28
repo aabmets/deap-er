@@ -13,7 +13,13 @@ from typing import Any
 
 import numpy
 
-__all__: list[str] = ["semantic_valid_mask"]
+__all__: list[str] = [
+    "as_semantic_matrix",
+    "packed_semantics",
+    "semantic_column_keep",
+    "semantic_valid_mask",
+    "validate_semantic_matrix",
+]
 
 
 def as_semantic_matrix(matrix: numpy.ndarray | Sequence[Sequence[float]]) -> numpy.ndarray:

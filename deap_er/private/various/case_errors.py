@@ -16,7 +16,7 @@ import numpy
 
 from .case_bounds import normalize_case_ranges
 
-__all__: list[str] = ["case_errors", "case_intervals", "case_valid_mask"]
+__all__: list[str] = ["aligned_series", "case_errors", "case_intervals", "case_valid_mask"]
 
 
 def aligned_series(
