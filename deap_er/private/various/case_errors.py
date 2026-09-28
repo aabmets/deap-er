@@ -14,22 +14,35 @@ from collections.abc import Sequence
 
 import numpy
 
-from deap_er.private.various.case_bounds import normalize_case_ranges
+from .case_bounds import normalize_case_ranges
 
 __all__: list[str] = ["case_errors", "case_intervals", "case_valid_mask"]
 
 
-def _as_series(
+def aligned_series(
     predicted: numpy.ndarray,
     target: numpy.ndarray,
-) -> tuple[numpy.ndarray, numpy.ndarray, int]:
+) -> tuple[numpy.ndarray, numpy.ndarray]:
+    """Return both series as aligned one-dimensional ``float64`` arrays.
+
+    Args:
+        predicted: Predicted series.
+        target: Target series.
+
+    Returns:
+        ``(predicted, target)`` as ``float64`` arrays.
+
+    Raises:
+        ValueError: If either series is not one-dimensional or the
+            lengths differ.
+    """
     left = numpy.asarray(predicted, dtype=numpy.float64)
     right = numpy.asarray(target, dtype=numpy.float64)
     if left.ndim != 1 or right.ndim != 1:
         raise ValueError("predicted and target must be one-dimensional arrays")
     if left.shape[0] != right.shape[0]:
         raise ValueError("predicted and target must have the same length")
-    return left, right, int(left.shape[0])
+    return left, right
 
 
 def case_intervals(
@@ -145,8 +158,8 @@ def case_errors(
             if range endpoints are invalid, or if a mask has the wrong
             shape or dtype.
     """
-    predicted, target, length = _as_series(predicted, target)
-    intervals = case_intervals(ranges, length)
+    predicted, target = aligned_series(predicted, target)
+    intervals = case_intervals(ranges, predicted.shape[0])
     sample_valid = case_valid_mask(predicted, target, valid)
     return tuple(
         _case_mse(predicted, target, sample_valid, start, stop, empty) for start, stop in intervals

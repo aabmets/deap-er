@@ -12,22 +12,9 @@ from __future__ import annotations
 
 import numpy
 
-from deap_er.private.various.case_errors import case_valid_mask
+from .case_errors import aligned_series, case_valid_mask
 
 __all__: list[str] = ["affine_scale"]
-
-
-def _as_series(
-    predicted: numpy.ndarray,
-    target: numpy.ndarray,
-) -> tuple[numpy.ndarray, numpy.ndarray]:
-    left = numpy.asarray(predicted, dtype=numpy.float64)
-    right = numpy.asarray(target, dtype=numpy.float64)
-    if left.ndim != 1 or right.ndim != 1:
-        raise ValueError("predicted and target must be one-dimensional arrays")
-    if left.shape[0] != right.shape[0]:
-        raise ValueError("predicted and target must have the same length")
-    return left, right
 
 
 def affine_scale(
@@ -61,7 +48,7 @@ def affine_scale(
         ValueError: If the inputs are not aligned one-dimensional
             arrays, or if ``valid`` has the wrong shape.
     """
-    predicted, target = _as_series(predicted, target)
+    predicted, target = aligned_series(predicted, target)
     sample_valid = case_valid_mask(predicted, target, valid)
     if not numpy.any(sample_valid):
         return 0.0, 1.0

@@ -16,7 +16,8 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
-    from deap_er.private.various.eval_cache import EvalCache
+
+    from .eval_cache import EvalCache
 
 __all__: list[str] = ["noisy_draw_key", "resample", "resample_aggregate"]
 

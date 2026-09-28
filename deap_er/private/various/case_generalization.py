@@ -108,7 +108,8 @@ def case_generalization_pool(
     if not chosen:
         raise ValueError("held_cases must select at least one case")
     held = CaseExam.from_cases(chosen, n_cases)
-    train_indices = [idx for idx in range(n_cases) if idx not in set(chosen)]
+    held_set = set(chosen)
+    train_indices = [idx for idx in range(n_cases) if idx not in held_set]
     if not train_indices:
         raise ValueError("held_cases must leave at least one train case")
     train = CaseExam.from_cases(train_indices, n_cases)

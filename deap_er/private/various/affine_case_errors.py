@@ -14,8 +14,8 @@ from collections.abc import Sequence
 
 import numpy
 
-from deap_er.private.various.affine_scale import affine_scale
-from deap_er.private.various.case_errors import case_errors
+from .affine_scale import affine_scale
+from .case_errors import case_errors
 
 __all__: list[str] = ["affine_case_errors"]
 

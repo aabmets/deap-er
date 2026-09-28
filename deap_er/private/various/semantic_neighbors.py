@@ -13,7 +13,7 @@ from typing import Any, Literal
 
 import numpy
 
-from deap_er.private.various.semantic_mask import (
+from .semantic_mask import (
     as_semantic_matrix,
     semantic_valid_mask,
     validate_semantic_matrix,

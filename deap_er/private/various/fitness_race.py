@@ -19,7 +19,8 @@ from .race_rounds import eliminate_losers, maximize_first_objective, race_z_scor
 
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
-    from deap_er.private.various.eval_cache import EvalCache
+
+    from .eval_cache import EvalCache
 
 __all__: list[str] = ["RaceStopResult", "race_eval_charge", "race_stop"]
 

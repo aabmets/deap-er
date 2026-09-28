@@ -12,7 +12,7 @@
 
 Run from the repository root after an intentional behaviour change::
 
-    uv run python -m tests.golden._generate
+    uv run python -m tests.golden.generate
 
 Review the resulting diff before committing: every changed value is a change
 in library behaviour.

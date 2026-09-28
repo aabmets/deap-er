@@ -13,7 +13,7 @@
 The cases live in ``tests/golden/cases.py`` and the recorded results in the
 JSON files beside them. Regenerate with::
 
-    uv run python -m tests.golden._generate
+    uv run python -m tests.golden.generate
 
 A failure here means library behaviour changed. That is sometimes intended,
 but it should never happen by accident during a refactor.

@@ -13,9 +13,9 @@ from typing import Any, Literal
 
 import numpy
 
-from deap_er.private.various.case_errors import case_intervals
-from deap_er.private.various.semantic_mask import packed_semantics, semantic_valid_mask
-from deap_er.private.various.semantic_project import semantic_project
+from .case_errors import case_intervals
+from .semantic_mask import packed_semantics, semantic_valid_mask
+from .semantic_project import semantic_project
 
 __all__: list[str] = ["semantic_descriptors", "semantic_moments", "semantic_solve_bits"]
 
