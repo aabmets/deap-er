@@ -11,9 +11,16 @@
 from collections import defaultdict
 from collections.abc import Iterable
 from itertools import chain
-from typing import Any
+from typing import Any, cast
 
-__all__: list[str] = ["chapter_blocks", "build_rows", "build_header", "format_txt"]
+from .logbook_header import build_header
+
+__all__: list[str] = [
+    "chapter_blocks",
+    "build_rows",
+    "default_columns",
+    "format_txt",
+]
 
 
 def _chapter_row_for_parent(logbook: Any, chapter: Any, parent_index: int) -> dict[str, Any]:
@@ -28,24 +35,28 @@ def _chapter_row_for_parent(logbook: Any, chapter: Any, parent_index: int) -> di
     """
     generation = logbook[parent_index].get("gen")
     match = logbook.chapter_index_for_generation(chapter, generation, parent_index)
-    if match is not None:
-        return chapter[match]
-    if generation is None and len(chapter) == len(logbook):
-        return chapter[parent_index]
-    return {}
+    return {} if match is None else chapter[match]
 
 
 class _AlignedChapter:
     """Chapter rows lined up with a parent logbook."""
 
     def __init__(self, logbook: Any, chapter: Any) -> None:
-        self.header = chapter.header
+        self._chapter = chapter
+        self.header = chapter.header or (default_columns(chapter) if len(chapter) else [])
         self.log_header = chapter.log_header
-        self.columns_len = list(chapter.columns_len)
         self._rows = [_chapter_row_for_parent(logbook, chapter, i) for i in range(len(logbook))]
         self.chapters = {
             name: _AlignedChapter(logbook, nested) for name, nested in chapter.chapters.items()
         }
+
+    @property
+    def columns_len(self) -> list[int]:
+        return cast(list[int], self._chapter.columns_len)
+
+    @columns_len.setter
+    def columns_len(self, value: list[int]) -> None:
+        self._chapter.columns_len = value
 
     def __len__(self) -> int:
         return len(self._rows)
@@ -53,36 +64,48 @@ class _AlignedChapter:
     def __getitem__(self, key: Any) -> Any:
         return self._rows[key]
 
-    def __txt__(self, start_index: int) -> list[str]:
-        return format_txt(self, start_index)
+
+def default_columns(logbook: Any) -> list[str]:
+    """Return the columns shown when ``logbook.header`` is empty.
+
+    Args:
+        logbook: Non-empty logbook or aligned chapter.
+
+    Returns:
+        Sorted keys of the first entry, then sorted chapter names.
+    """
+    return cast(list[str], sorted(logbook[0].keys()) + sorted(logbook.chapters.keys()))
 
 
 def chapter_blocks(
-    logbook: Any, start_index: int
+    logbook: Any, start_index: int, include_header: bool
 ) -> tuple[dict[str, list[str]], defaultdict[str, int]]:
     """Render every chapter and measure how far each one leads.
 
     A chapter carries its own header rows, so it produces more
-    lines than this logbook has entries. That surplus is the
+    lines than this logbook renders entries. That surplus is the
     chapter's offset.
 
     Args:
         logbook: Logbook whose chapters to render.
         start_index: First entry to include.
+        include_header: Whether the parent banner is rendered, so
+            chapters render their own header rows too.
 
     Returns:
         The rendered lines of each chapter and their offsets.
     """
     chapters_txt: dict[str, list[str]] = {}
     offsets: defaultdict[str, int] = defaultdict(int)
+    n_rows = len(logbook) - start_index
     for name, chapter in logbook.chapters.items():
         if isinstance(chapter, _AlignedChapter):
             view = chapter
         else:
             view = _AlignedChapter(logbook, chapter)
-        chapters_txt[name] = view.__txt__(start_index)
-        if start_index == 0:
-            offsets[name] = len(chapters_txt[name]) - len(logbook)
+        chapter_header = include_header and view.log_header
+        chapters_txt[name] = format_txt(view, start_index, include_header=chapter_header)
+        offsets[name] = len(chapters_txt[name]) - n_rows
     return chapters_txt, offsets
 
 
@@ -121,91 +144,6 @@ def build_rows(
     return str_matrix
 
 
-def _chapter_header_cells(
-    name: str,
-    chapter_lines: list[str],
-    offset: int,
-    n_lines: int,
-    header: list[list[str]],
-) -> None:
-    """Fill header rows for a chapter column.
-
-    Args:
-        name: Chapter name, centred on the banner row.
-        chapter_lines: Rendered lines of the chapter.
-        offset: Header offset of the chapter.
-        n_lines: Total number of banner rows.
-        header: Banner rows to append cells to.
-    """
-    length = max(len(line.expandtabs()) for line in chapter_lines)
-    blanks = n_lines - 2 - offset
-    for i in range(blanks):
-        header[i].append(" " * length)
-    header[blanks].append(name.center(length))
-    header[blanks + 1].append("-" * length)
-    for i in range(offset):
-        header[blanks + 2 + i].append(chapter_lines[i])
-
-
-def _plain_header_cells(
-    name: str,
-    column_index: int,
-    logbook: Any,
-    str_matrix: list[list[str]],
-    header: list[list[str]],
-) -> None:
-    """Fill header rows for a plain (non-chapter) column.
-
-    Args:
-        name: Column name, placed on the last banner row.
-        column_index: Index of the column in each data row.
-        logbook: Logbook used to size empty columns.
-        str_matrix: Rendered data rows, used to size the column.
-        header: Banner rows to append cells to.
-    """
-    if str_matrix:
-        length = max(len(line[column_index].expandtabs()) for line in str_matrix)
-    else:
-        length = max(len(name), logbook.columns_len[column_index] if logbook.columns_len else 0)
-    for line in header[:-1]:
-        line.append(" " * length)
-    header[-1].append(name)
-
-
-def build_header(
-    logbook: Any,
-    columns: list[str],
-    chapters_txt: dict[str, list[str]],
-    offsets: defaultdict[str, int],
-    str_matrix: list[list[str]],
-) -> list[list[str]]:
-    """Build the banner rows that sit above the data rows.
-
-    Chapter names are centred over their columns above a dashed
-    rule; plain columns are named on the last row only.
-
-    Args:
-        logbook: Logbook whose header to build.
-        columns: Column names, in display order.
-        chapters_txt: Rendered lines of each chapter.
-        offsets: Header offset of each chapter.
-        str_matrix: Rendered data rows, used to size plain columns.
-
-    Returns:
-        One list of cell strings per header row.
-    """
-    n_lines = 1
-    if len(logbook.chapters) > 0:
-        n_lines += max(map(len, chapters_txt.values())) - len(logbook) + 1
-    header: list[list[str]] = [[] for _ in range(n_lines)]
-    for j, name in enumerate(columns):
-        if name in chapters_txt:
-            _chapter_header_cells(name, chapters_txt[name], offsets[name], n_lines, header)
-        else:
-            _plain_header_cells(name, j, logbook, str_matrix, header)
-    return header
-
-
 def format_txt(logbook: Any, start_index: int, include_header: bool | None = None) -> list[str]:
     """Format rows from ``start_index`` as aligned column strings.
 
@@ -232,11 +170,11 @@ def format_txt(logbook: Any, start_index: int, include_header: bool | None = Non
             return [template.format(*columns)]
         return ["The Logbook is empty."]
     if not columns:
-        columns = sorted(logbook[0].keys()) + sorted(logbook.chapters.keys())
+        columns = default_columns(logbook)
     if not logbook.columns_len or len(logbook.columns_len) != len(columns):
         logbook.columns_len = list(map(len, columns))
 
-    chapters_txt, offsets = chapter_blocks(logbook, start_index)
+    chapters_txt, offsets = chapter_blocks(logbook, start_index, include_header)
     str_matrix = build_rows(logbook, columns, start_index, chapters_txt, offsets)
 
     rows: Iterable[list[str]] = str_matrix

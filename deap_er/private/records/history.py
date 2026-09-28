@@ -88,24 +88,18 @@ class History:
         Raises:
             AttributeError: If the individual has no ``history_index``.
         """
-
-        def _recursive(index: int, depth: int) -> None:
-            if index not in self.genealogy_tree:
-                return
-            depth += 1
-            if depth > max_depth:
-                return
-            parent_indices = self.genealogy_tree[index]
-            gtree[index] = parent_indices
-            for ind in parent_indices:
-                if ind not in visited:
-                    _recursive(ind, depth)
-                visited.add(ind)
-
-        if hasattr(individual, "history_index"):
-            visited = set()
-            gtree = {}
-            _recursive(individual.history_index, 0)
-            return gtree
-        else:
+        if not hasattr(individual, "history_index"):
             raise AttributeError("The individual must have the 'history_index' attribute.")
+        gtree: dict[int, Any] = {}
+        frontier = [individual.history_index]
+        depth = 1
+        while frontier and depth <= max_depth:
+            next_frontier = []
+            for index in frontier:
+                if index in gtree or index not in self.genealogy_tree:
+                    continue
+                gtree[index] = self.genealogy_tree[index]
+                next_frontier.extend(gtree[index])
+            frontier = next_frontier
+            depth += 1
+        return gtree

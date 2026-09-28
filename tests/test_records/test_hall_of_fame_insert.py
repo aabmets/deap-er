@@ -10,6 +10,7 @@
 #
 import math
 
+import pytest
 from deap_er import Fitness, creator, tools
 
 HOF_FIT = "HOF_INS_FIT"
@@ -68,3 +69,8 @@ def test_from_json_does_not_restore_non_finite_fitness():
     finally:
         del creator.__dict__[HOF_FIT]
         del creator.__dict__[HOF_IND]
+
+
+def test_negative_maxsize_raises():
+    with pytest.raises(ValueError, match="maxsize"):
+        tools.HallOfFame(maxsize=-1)

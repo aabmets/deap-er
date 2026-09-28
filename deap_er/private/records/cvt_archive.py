@@ -10,6 +10,7 @@
 #
 from __future__ import annotations
 
+import math
 from collections.abc import Iterator, Sequence
 from typing import TYPE_CHECKING, Any
 
@@ -110,12 +111,14 @@ class CvtArchive:
 
         Raises:
             ValueError: If ``descriptor`` length does not match
-                ``dimensions``.
+                ``dimensions``, or any coordinate is non-finite.
         """
         if len(descriptor) != self.dimensions:
             raise ValueError(
                 f"descriptor length {len(descriptor)} does not match {self.dimensions} dimensions"
             )
+        if not all(math.isfinite(float(value)) for value in descriptor):
+            raise ValueError("descriptor must be finite")
         return self._centroid_index(descriptor)
 
     def _centroid_index(self, descriptor: Sequence[float] | numpy.ndarray) -> int:

@@ -101,13 +101,12 @@ def check_archive_add(
         raise ValueError(
             f"descriptor length {len(descriptor)} does not match {dimensions} dimensions"
         )
+    fitness = getattr(individual, "fitness", None)
+    if fitness is not None and len(fitness.weights) != 1:
+        raise ValueError(f"{archive_name} requires single-objective fitness")
     if not all(math.isfinite(float(value)) for value in descriptor):
         return False
-    if not has_comparable_fitness(individual):
-        return False
-    if len(individual.fitness.weights) != 1:
-        raise ValueError(f"{archive_name} requires single-objective fitness")
-    return True
+    return has_comparable_fitness(individual)
 
 
 def replace_cell_if_better(cells: dict[Any, Any], key: Any, individual: Any) -> bool:

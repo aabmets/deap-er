@@ -38,6 +38,7 @@ class Statistics:
         """Register a statistic computed by ``compile``.
 
         Extra positional and keyword arguments are bound into ``func``.
+        Registering an existing ``name`` again replaces its function.
 
         Args:
             name: Key used for this statistic in the compiled record.
@@ -45,8 +46,9 @@ class Statistics:
             *args: Positional arguments bound into ``func``.
             **kwargs: Keyword arguments bound into ``func``.
         """
+        if name not in self.functions:
+            self.fields.append(name)
         self.functions[name] = partial(func, *args, **kwargs)
-        self.fields.append(name)
 
     def compile(self, data: Iterable[Any]) -> dict[str, Any]:
         """Compute every registered statistic on ``data``.

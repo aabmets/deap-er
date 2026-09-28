@@ -36,6 +36,8 @@ def _normalize_ranges(
             raise ValueError("each range must be finite")
         if low >= high:
             raise ValueError("each range must satisfy low < high")
+        if not math.isfinite(high - low):
+            raise ValueError("each range span high - low must be finite")
     return ranges_tuple
 
 

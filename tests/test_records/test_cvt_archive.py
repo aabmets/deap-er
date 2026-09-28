@@ -58,8 +58,8 @@ def test_add_assigns_nearest_centroid(ind_cls):
     assert archive.nearest_centroid((0.9, 1.0)) == 1
     assert 0 in archive
     assert 1 in archive
-    assert archive.get(0) is not None
-    assert archive.get(1) is not None
+    assert archive.get(0) == [0]
+    assert archive.get(1) == [1]
 
 
 def test_add_replaces_strictly_better_fitness(ind_cls):

@@ -103,10 +103,15 @@ class HallOfFame(BaseRecordStorage):
         maxsize: Maximum number of individuals to keep.
         similar: Equality test used to skip duplicates. Defaults to
             ``operator.eq``.
+
+    Raises:
+        ValueError: If ``maxsize`` is negative.
     """
 
     def __init__(self, maxsize: int, similar: Callable[..., Any] = eq) -> None:
         """See the class docstring."""
+        if maxsize < 0:
+            raise ValueError("maxsize must be non-negative")
         self.maxsize = maxsize
         self.similar = similar
         super().__init__()
