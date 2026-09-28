@@ -18,7 +18,7 @@ from ..matrix_pack import as_matrix
 from ..numpy.numpy_ops import add_numpy_primitives
 from ..opcodes import USER_BASE, lower_tree
 from ..primitives.primitive_tree import PrimitiveTree
-from ..tape import Tape
+from ..tape import Tape, check_tape
 from .numba_compile import build, ensure_numba_cache_dir
 
 __all__: list[str] = [
@@ -119,8 +119,9 @@ def bind_tape(tape: Tape, dispatch: Any = None) -> Callable[..., numpy.ndarray]:
 
     Raises:
         ImportError: If the ``numba`` extra is not installed.
-        ValueError: If the tape expects no columns, or if it holds
-            consumer opcodes but no dispatcher was given.
+        ValueError: If the tape expects no columns, if it holds
+            consumer opcodes but no dispatcher was given, or if it is
+            malformed (see ``check_tape``).
     """
     if tape.columns == 0:
         raise ValueError(
@@ -137,6 +138,7 @@ def bind_tape(tape: Tape, dispatch: Any = None) -> Callable[..., numpy.ndarray]:
                 "kernel was given. Pass dispatch= to compile_tree."
             )
         dispatch = idle
+    check_tape(tape)
 
     def call(*columns: Any) -> numpy.ndarray:
         matrix = as_matrix(columns, tape.columns)

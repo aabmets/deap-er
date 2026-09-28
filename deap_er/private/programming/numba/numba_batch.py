@@ -15,7 +15,7 @@ import numba  # optional extra; this module is imported only for backend='numba'
 import numpy
 
 from ..opcodes import USER_BASE
-from ..tape import Tape
+from ..tape import Tape, check_tape
 from ..tape_cse import run_opcode_cse
 from . import numba_kernels
 from .numba_compile import build
@@ -185,8 +185,9 @@ def run_tapes(
         ``(n_tapes, n_rows)`` results.
 
     Raises:
-        ValueError: If a tape has no columns, or holds a consumer
-            opcode without a dispatcher.
+        ValueError: If a tape has no columns, holds a consumer opcode
+            without a dispatcher, or is malformed on a path that runs
+            the compiled kernels (see ``check_tape``).
     """
     rows = matrix.shape[0]
     if not tapes:
@@ -223,7 +224,12 @@ def launch_kernels(
 
     Returns:
         ``(n_tapes, n_rows)`` results.
+
+    Raises:
+        ValueError: If a tape is malformed (see ``check_tape``).
     """
+    for tape in tapes:
+        check_tape(tape)
     rows = matrix.shape[0]
     out = numpy.empty((len(tapes), rows), dtype=numpy.float64)
     run, idle, many = serial_kernels()

@@ -12,7 +12,7 @@ import numpy
 import pytest
 from deap_er import gp, tools
 from deap_er.private.programming.numba import numba_ops
-from deap_er.private.programming.numba.numba_batch import compiled_batch_kernels
+from deap_er.private.programming.numba.numba_batch import compiled_batch_kernels, launch_kernels
 
 pytestmark = pytest.mark.skipif(
     not gp.numba_available(), reason="the optional numba extra is not installed"
@@ -206,3 +206,38 @@ def test_a_serial_builtin_batch_compiles_no_batch_kernel():
     gp.interpret_tapes([tape], _matrix(columns), backend="numba")
 
     assert compiled_batch_kernels() == before
+
+
+def _hand_tape(opcodes, operands, depth=2, constants=()):
+    return gp.Tape(
+        opcodes=numpy.array(opcodes, dtype=numpy.int32),
+        operands=numpy.array(operands, dtype=numpy.int32),
+        constants=numpy.array(constants, dtype=numpy.float64),
+        columns=1,
+        depth=depth,
+        fill=1.0,
+    )
+
+
+MALFORMED = {
+    "window_below_one": (_hand_tape([gp.Opcode.COL_LOAD, gp.Opcode.DELAY], [0, -2]), "operand -2"),
+    "zero_window": (_hand_tape([gp.Opcode.COL_LOAD, gp.Opcode.ROLL_SUM], [0, 0]), "operand 0"),
+    "underflow": (_hand_tape([gp.Opcode.COL_LOAD, gp.Opcode.ADD], [0, -1]), "underflows"),
+    "column": (_hand_tape([gp.Opcode.COL_LOAD], [5]), "operand 5"),
+    "constant": (_hand_tape([gp.Opcode.CONST], [3]), "operand 3"),
+    "depth": (
+        _hand_tape([gp.Opcode.COL_LOAD] * 3 + [gp.Opcode.ADD] * 2, [0, 0, 0, -1, -1], depth=1),
+        "above its declared",
+    ),
+}
+
+
+@pytest.mark.parametrize("case", sorted(MALFORMED))
+def test_the_compiled_entry_points_reject_a_malformed_tape(case):
+    tape, message = MALFORMED[case]
+    matrix = numpy.arange(6.0).reshape(6, 1)
+
+    with pytest.raises(ValueError, match=message):
+        gp.bind_tape(tape)
+    with pytest.raises(ValueError, match=message):
+        launch_kernels([tape], matrix, None, False)
