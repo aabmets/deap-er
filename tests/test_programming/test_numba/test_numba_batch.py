@@ -12,7 +12,7 @@ import numpy
 import pytest
 from deap_er import gp, tools
 from deap_er.private.programming.numba import numba_ops
-from deap_er.private.programming.numba.numba_batch import compiled_batch_kernels
+from deap_er.private.programming.numba.numba_batch import compiled_batch_kernels, launch_kernels
 
 pytestmark = pytest.mark.skipif(
     not gp.numba_available(), reason="the optional numba extra is not installed"
@@ -111,12 +111,13 @@ def test_interpret_tapes_parallel_leaves_the_process_workspace():
     pset = _kit("BATCH_NUMBA_WORKSPACE")
     columns = _samples()
     tapes = _lower_trees(pset, 4, seed=47)
-    gp.interpret_tapes(tapes[:1], _matrix(columns), backend="numba")
-    held = numba_ops._workspace["stack"]
+    gp.bind_tape(tapes[0])(_matrix(columns))
+    held = numba_ops.reserve(0, 24)[0].base
 
     gp.interpret_tapes(tapes, _matrix(columns), backend="numba", parallel=True)
 
-    assert numba_ops._workspace["stack"] is held
+    assert held is not None
+    assert numba_ops.reserve(0, 24)[0].base is held
     assert held.shape[1] == 24
 
 
@@ -158,7 +159,7 @@ def test_interpret_tapes_rejects_a_set_without_arguments():
         gp.interpret_tapes([tape], numpy.zeros((4, 0)), backend="numba")
 
 
-def test_interpret_tapes_grows_the_shared_workspace_to_max_depth():
+def test_interpret_tapes_evaluates_tapes_of_different_depths():
     pset = _kit("BATCH_NUMBA_DEPTH")
     columns = _samples()
     mapping = pset.mapping
@@ -175,11 +176,12 @@ def test_interpret_tapes_grows_the_shared_workspace_to_max_depth():
         ),
         pset,
     )
-    gp.interpret_tapes([shallow], _matrix(columns), backend="numba")
-    gp.interpret_tapes([shallow, deep], _matrix(columns), backend="numba")
-
-    assert numba_ops._workspace["stack"].shape[0] >= deep.depth + 1
-    assert numba_ops._workspace["stack"].shape[1] == 24
+    matrix = _matrix(columns)
+    for parallel in (False, True):
+        actual = gp.interpret_tapes([shallow, deep], matrix, backend="numba", parallel=parallel)
+        for row, tape in zip(actual, (shallow, deep), strict=True):
+            expected = gp.interpret_tape(tape, matrix)
+            numpy.testing.assert_allclose(row, expected, equal_nan=True, rtol=1e-12)
 
 
 def test_interpret_tapes_accepts_a_generator_of_tapes():
@@ -195,7 +197,7 @@ def test_interpret_tapes_accepts_a_generator_of_tapes():
         )
 
 
-def test_a_serial_batch_does_not_compile_the_parallel_kernel():
+def test_a_serial_builtin_batch_compiles_no_batch_kernel():
     pset = _kit("BATCH_NUMBA_SERIAL_ONLY")
     columns = _samples()
     tape = gp.lower_tree(gp.PrimitiveTree([pset.mapping["first"]]), pset)
@@ -203,6 +205,39 @@ def test_a_serial_batch_does_not_compile_the_parallel_kernel():
 
     gp.interpret_tapes([tape], _matrix(columns), backend="numba")
 
-    after = compiled_batch_kernels()
-    assert "many" in after
-    assert "many_parallel" not in (after - before)
+    assert compiled_batch_kernels() == before
+
+
+def _hand_tape(opcodes, operands, depth=2, constants=()):
+    return gp.Tape(
+        opcodes=numpy.array(opcodes, dtype=numpy.int32),
+        operands=numpy.array(operands, dtype=numpy.int32),
+        constants=numpy.array(constants, dtype=numpy.float64),
+        columns=1,
+        depth=depth,
+        fill=1.0,
+    )
+
+
+MALFORMED = {
+    "window_below_one": (_hand_tape([gp.Opcode.COL_LOAD, gp.Opcode.DELAY], [0, -2]), "operand -2"),
+    "zero_window": (_hand_tape([gp.Opcode.COL_LOAD, gp.Opcode.ROLL_SUM], [0, 0]), "operand 0"),
+    "underflow": (_hand_tape([gp.Opcode.COL_LOAD, gp.Opcode.ADD], [0, -1]), "underflows"),
+    "column": (_hand_tape([gp.Opcode.COL_LOAD], [5]), "operand 5"),
+    "constant": (_hand_tape([gp.Opcode.CONST], [3]), "operand 3"),
+    "depth": (
+        _hand_tape([gp.Opcode.COL_LOAD] * 3 + [gp.Opcode.ADD] * 2, [0, 0, 0, -1, -1], depth=1),
+        "above its declared",
+    ),
+}
+
+
+@pytest.mark.parametrize("case", sorted(MALFORMED))
+def test_the_compiled_entry_points_reject_a_malformed_tape(case):
+    tape, message = MALFORMED[case]
+    matrix = numpy.arange(6.0).reshape(6, 1)
+
+    with pytest.raises(ValueError, match=message):
+        gp.bind_tape(tape)
+    with pytest.raises(ValueError, match=message):
+        launch_kernels([tape], matrix, None, False)

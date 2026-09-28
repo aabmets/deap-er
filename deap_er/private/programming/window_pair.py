@@ -35,6 +35,9 @@ type PairMoments = tuple[
 def as_pair_series(left: Any, right: Any, window: Any) -> tuple[numpy.ndarray, numpy.ndarray, int]:
     """Normalize two operands and a shared window length.
 
+    A scalar operand is read as a constant series as long as the other
+    operand.
+
     Args:
         left: First series operand.
         right: Second series operand.
@@ -49,6 +52,10 @@ def as_pair_series(left: Any, right: Any, window: Any) -> tuple[numpy.ndarray, n
             operand is not one-dimensional, or if the operands do not
             have the same length.
     """
+    if numpy.ndim(left) == 0 and numpy.ndim(right) == 1:
+        left = numpy.full(numpy.shape(right), left, dtype=numpy.float64)
+    elif numpy.ndim(right) == 0 and numpy.ndim(left) == 1:
+        right = numpy.full(numpy.shape(left), right, dtype=numpy.float64)
     left_series, length = as_series(left, window)
     right_series, _ = as_series(right, window)
     if left_series.ndim != 1 or right_series.ndim != 1 or left_series.shape != right_series.shape:

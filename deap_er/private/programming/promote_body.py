@@ -82,7 +82,9 @@ def consume_node(
                 f"Primitive {node} return type {node.ret} "
                 f"does not match the expected one: {expected}."
             )
-        terminal_only = not prim_set.primitives[expected] and bool(prim_set.terminals[expected])
+        # .get keeps the check from inserting empty lists into the set.
+        primitives = prim_set.primitives.get(expected, ())
+        terminal_only = not primitives and bool(prim_set.terminals.get(expected, ()))
         if terminal_only and isinstance(node, Primitive):
             raise ValueError(f"Type '{expected}' is leaf-only; a primitive is not a valid closure.")
     if not isinstance(node, Primitive):

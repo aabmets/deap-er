@@ -206,3 +206,14 @@ def test_register_gp_plus_evaluate_columnar_runs_ea_simple():
     finally:
         del creator.__dict__[COL_FIT]
         del creator.__dict__[COL_IND]
+
+
+@pytest.mark.parametrize("static_filter", [True, False])
+def test_evaluate_columnar_rejects_a_matrix_without_rows(static_filter):
+    pset = gp.columnar_pset(["level"], window=None)
+    tree = gp.PrimitiveTree.from_string("vneg(level)", pset)
+
+    with pytest.raises(ValueError, match="at least one row"):
+        gp.evaluate_columnar(
+            [tree], pset, numpy.empty((0, 1)), numpy.empty(0), static_filter=static_filter
+        )

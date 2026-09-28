@@ -58,6 +58,27 @@ def test_lowering_rejects_a_window_that_is_not_a_leaf():
         gp.lower_tree(tree, pset)
 
 
+@pytest.mark.parametrize("value", [3.7, float("nan"), 0, -2])
+def test_lowering_rejects_a_window_leaf_that_is_not_a_positive_integer(value):
+    pset = _kit("OPCODES_FRACTIONAL_WINDOW")
+    pset.add_terminal(value, gp.Window)
+    window = pset.terminals[gp.Window][-1]
+    tree = gp.PrimitiveTree([pset.mapping["delay"], pset.mapping["first"], window])
+
+    with pytest.raises(ValueError, match="holding a positive integer"):
+        gp.lower_tree(tree, pset)
+
+
+def test_lowering_resolves_a_named_integral_window_leaf():
+    pset = _kit("OPCODES_INTEGRAL_WINDOW")
+    pset.add_terminal(3.0, gp.Window, "integral_window")
+    tree = gp.PrimitiveTree(
+        [pset.mapping["delay"], pset.mapping["first"], pset.mapping["integral_window"]]
+    )
+
+    assert int(gp.lower_tree(tree, pset).operands[-1]) == 3
+
+
 def test_lowering_rejects_a_terminal_that_is_not_a_column_or_a_number():
     pset = gp.make_column_pset(COLUMNS)
     gp.add_numpy_primitives(pset)

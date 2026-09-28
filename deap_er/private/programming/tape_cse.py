@@ -15,10 +15,10 @@ from typing import Any
 import numpy
 
 from .opcode_set import OPCODES_ARITY, Opcode
-from .opcodes import _apply_opcode, interpret_tape
+from .opcodes import apply_opcode, interpret_tape
 from .tape import Tape
 
-__all__: list[str] = ["build_cse_plan", "run_opcode_cse"]
+__all__: list[str] = ["build_cse_plan", "evaluate_cse_nodes", "run_opcode_cse"]
 
 
 @dataclass(frozen=True)
@@ -107,7 +107,7 @@ def run_opcode_cse(tapes: Sequence[Tape], matrix: numpy.ndarray) -> numpy.ndarra
     if not tapes:
         return out
     plan = build_cse_plan(tapes)
-    values = _evaluate_nodes_opcode(plan.nodes, matrix)
+    values = evaluate_cse_nodes(plan.nodes, matrix)
     for index, root in enumerate(plan.roots):
         out[index] = values[root]
     return out
@@ -135,21 +135,17 @@ def _join_tapes(
     if not parts:
         raise ValueError("A combined tape needs at least one child tape.")
     constants: list[float] = []
-    remap: dict[int, int] = {}
     opcodes: list[int] = []
     operands: list[int] = []
     for part in parts:
-        for index, value in enumerate(part.constants):
-            old = int(index)
-            if old not in remap:
-                remap[old] = len(constants)
-                constants.append(float(value))
-        opcodes.extend(int(code) for code in part.opcodes)
-        for index, old_operand in enumerate(part.operands):
-            if int(part.opcodes[index]) == int(Opcode.CONST):
-                operands.append(remap[int(old_operand)])
-            else:
-                operands.append(int(old_operand))
+        # Each part indexes its own pool, so shift its CONST operands
+        # past the constants already copied from earlier parts.
+        offset = len(constants)
+        constants.extend(float(value) for value in part.constants)
+        for code, old_operand in zip(part.opcodes, part.operands, strict=True):
+            is_const = int(code) == int(Opcode.CONST)
+            opcodes.append(int(code))
+            operands.append(int(old_operand) + offset if is_const else int(old_operand))
     opcodes.append(opcode)
     operands.append(operand)
     return Tape(
@@ -175,11 +171,22 @@ def _tape_depth(opcodes: list[int]) -> int:
     return depth
 
 
-def _evaluate_nodes_opcode(
+def evaluate_cse_nodes(
     nodes: tuple[CseNode, ...],
     matrix: numpy.ndarray,
 ) -> list[numpy.ndarray]:
-    """Evaluate unique nodes bottom-up with the Python oracle."""
+    """Evaluate unique nodes bottom-up with the Python oracle.
+
+    Args:
+        nodes: Node table of a ``CsePlan``.
+        matrix: Packed ``(n_rows, n_columns)`` column table.
+
+    Returns:
+        One value per node id, aligned with ``nodes``.
+
+    Raises:
+        ValueError: If a node was left unevaluated.
+    """
     values: list[numpy.ndarray | None] = [None] * len(nodes)
     order = sorted(range(len(nodes)), key=lambda index: nodes[index].tape.opcodes.size)
     for index in order:
@@ -190,7 +197,7 @@ def _evaluate_nodes_opcode(
         stack = [values[child] for child in node.children]
         opcode = int(node.tape.opcodes[-1])
         operand = int(node.tape.operands[-1])
-        _apply_opcode(stack, matrix, node.tape, opcode, operand)
+        apply_opcode(stack, matrix, node.tape, opcode, operand)
         values[index] = numpy.asarray(stack[-1], dtype=numpy.float64)
     for index, value in enumerate(values):
         if value is None:

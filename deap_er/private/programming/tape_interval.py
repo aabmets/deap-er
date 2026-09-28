@@ -16,7 +16,7 @@ from dataclasses import dataclass
 import numpy
 
 from .tape import Tape
-from .tape_interval_ops import normalize_bounds
+from .tape_interval_ops import is_point, normalize_bounds
 from .tape_interval_walk import walk_tape
 
 __all__: list[str] = [
@@ -52,11 +52,13 @@ def bounds_from_matrix(matrix: numpy.ndarray | Sequence[Sequence[float]]) -> num
         A ``(n_columns, 2)`` ``float64`` array of column bounds.
 
     Raises:
-        ValueError: If ``matrix`` is not two-dimensional.
+        ValueError: If ``matrix`` is not two-dimensional or has no rows.
     """
     packed = numpy.asarray(matrix, dtype=numpy.float64)
     if packed.ndim != 2:
         raise ValueError("matrix must be a two-dimensional array")
+    if packed.shape[0] == 0:
+        raise ValueError("matrix must hold at least one row to bound")
     bounds = numpy.empty((packed.shape[1], 2), dtype=numpy.float64)
     for column in range(packed.shape[1]):
         series = packed[:, column]
@@ -112,7 +114,7 @@ def tape_flags(
     scorable = summary.can_finite and summary.first_finite < n_rows
     return TapeFlags(
         all_nan=not scorable,
-        constant=scorable and summary.const and summary.lo == summary.hi,
+        constant=scorable and summary.const and is_point(summary.lo, summary.hi),
         hides_warmup=walked.warmup_hidden,
     )
 

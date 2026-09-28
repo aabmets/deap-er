@@ -158,11 +158,14 @@ def test_compiled_tapes_share_one_workspace():
     )
 
     gp.compile_tree(shallow, pset, backend="numba")(*columns)
-    held = numba_ops._workspace["stack"]
+    held = numba_ops.reserve(0, 24)[0].base
     gp.compile_tree(deep, pset, backend="numba")(*columns)
+    grown = numba_ops.reserve(0, 24)[0].base
 
-    assert numba_ops._workspace["stack"].shape[1] == 24
-    assert held.base is None
+    assert held is not None
+    assert grown is not None
+    assert grown.shape[1] == 24
+    assert grown.shape[0] >= gp.lower_tree(deep, pset).depth + 1
 
 
 def test_the_workspace_reserves_the_row_promised_to_a_kernel():

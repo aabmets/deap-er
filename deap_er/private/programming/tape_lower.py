@@ -59,13 +59,17 @@ def child_indices(nodes: Sequence[Any]) -> list[list[int]]:
 
 
 def immediate_windows(
-    nodes: Sequence[Any], children: list[list[int]]
+    nodes: Sequence[Any], children: list[list[int]], prim_set: PrimitiveSetTyped
 ) -> tuple[dict[int, int], set[int]]:
     """Fold the window argument of every builtin rolling node inline.
+
+    A named window terminal is resolved through the set's evaluation
+    context, as ``leaf_instruction`` does for numeric terminals.
 
     Args:
         nodes: Tree nodes in prefix order.
         children: Child indices of every node.
+        prim_set: Primitive set the tree was built from.
 
     Returns:
         The window length of each rolling node, and the set of child
@@ -73,7 +77,7 @@ def immediate_windows(
 
     Raises:
         ValueError: If a window argument is not a leaf, or if its value
-            is not an integer.
+            is not a positive integer.
     """
     windows: dict[int, int] = {}
     folded: set[int] = set()
@@ -85,10 +89,13 @@ def immediate_windows(
                 continue
             child = children[index][position]
             value = getattr(nodes[child], "value", None)
-            if nodes[child].arity != 0 or not isinstance(value, Real):
+            if isinstance(value, str):
+                value = prim_set.context.get(value)
+            positive = isinstance(value, Real) and float(value).is_integer() and value >= 1
+            if nodes[child].arity != 0 or not positive:
                 raise ValueError(
-                    f"The window argument of '{node.name}' must be a leaf holding "
-                    f"an integer, so that it can be lowered to an immediate operand."
+                    f"The window argument of '{node.name}' must be a leaf holding a "
+                    f"positive integer, so that it can be lowered to an immediate operand."
                 )
             windows[index] = int(value)
             folded.add(child)
@@ -178,7 +185,7 @@ def lower_tree(
 
     Raises:
         ValueError: If a primitive has no opcode, if a window argument
-            is not an integer leaf, if a terminal is neither a column
+            is not a positive integer leaf, if a terminal is neither a column
             nor a number, or if the tree is empty, holds unreachable
             nodes, or does not balance the evaluation stack.
     """
@@ -190,7 +197,7 @@ def lower_tree(
     nodes = expand_promoted(nodes, prim_set)
 
     children = child_indices(nodes)
-    windows, folded = immediate_windows(nodes, children)
+    windows, folded = immediate_windows(nodes, children, prim_set)
     order = postfix_order(children, folded)
     if len(order) + len(folded) != len(nodes):
         raise ValueError("The expression holds nodes that are not reachable from the root.")

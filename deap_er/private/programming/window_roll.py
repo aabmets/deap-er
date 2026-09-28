@@ -40,8 +40,11 @@ def as_series(value: Any, window: Any) -> tuple[numpy.ndarray, int]:
         window length as an ``int``.
 
     Raises:
-        ValueError: If the window length is less than 1.
+        ValueError: If the window length is not an integer, or is
+            less than 1.
     """
+    if not float(window).is_integer():
+        raise ValueError(f"Window length must be an integer, got {window}.")
     length = int(window)
     if length < 1:
         raise ValueError(f"Window length must be at least 1, got {length}.")

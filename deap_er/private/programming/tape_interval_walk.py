@@ -12,8 +12,9 @@ from __future__ import annotations
 
 import numpy
 
-from .opcode_set import OPCODES_ARITY, USER_BASE, Opcode
+from .opcode_set import USER_BASE, Opcode
 from .tape import Tape
+from .tape_interval_arith import apply_binary, apply_unary
 from .tape_interval_ops import (
     BINARY,
     BINARY_PROTECTED,
@@ -23,9 +24,8 @@ from .tape_interval_ops import (
     UNARY,
     WINDOWED,
     Summary,
-    apply_binary,
-    apply_unary,
     hides_warmup,
+    is_point,
     merge_arrays,
 )
 from .tape_interval_window import apply_pair_window, apply_window
@@ -97,15 +97,13 @@ def _apply_step(stack: list[Summary], tape: Tape, step: int, column_bounds: nump
     if opcode in PAIR_WINDOWED:
         _push_pair_window(stack, opcode, operand)
         return False
-    if opcode not in OPCODES_ARITY:
-        raise ValueError(f"Opcode {opcode} has no interval certificate.")
     raise ValueError(f"Opcode {opcode} has no interval certificate.")
 
 
 def _push_col_load(stack: list[Summary], column_bounds: numpy.ndarray, operand: int) -> None:
     lo, hi = float(column_bounds[operand, 0]), float(column_bounds[operand, 1])
     can_finite = numpy.isfinite(lo) or numpy.isfinite(hi)
-    stack.append(Summary(lo, hi, 0, 0, lo == hi, can_finite, "array"))
+    stack.append(Summary(lo, hi, 0, 0, is_point(lo, hi), can_finite, "array"))
 
 
 def _push_const(stack: list[Summary], tape: Tape, operand: int) -> None:

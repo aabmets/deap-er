@@ -134,7 +134,7 @@ def test_serial_numba_with_consumer_skips_cse(monkeypatch):
     columns = _samples()
     routed = {"cse": False, "many": 0}
     original_cse = tape_cse.run_opcode_cse
-    original_serial = numba_batch._serial_kernel
+    original_serial = numba_batch.serial_kernels
 
     def tracking_cse(tapes, matrix):
         routed["cse"] = True
@@ -150,7 +150,7 @@ def test_serial_numba_with_consumer_skips_cse(monkeypatch):
         return run, idle, wrapped_many
 
     monkeypatch.setattr(numba_batch, "run_opcode_cse", tracking_cse)
-    monkeypatch.setattr(numba_batch, "_serial_kernel", tracking_serial)
+    monkeypatch.setattr(numba_batch, "serial_kernels", tracking_serial)
     actual = gp.interpret_tapes(
         [tape],
         _matrix(columns),
