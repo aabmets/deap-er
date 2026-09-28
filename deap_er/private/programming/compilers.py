@@ -23,6 +23,7 @@ from .numba.numba_ops import bind_tape
 from .opcodes import USER_BASE, interpret_tape, lower_tree
 from .primitives.primitive_nodes import Primitive
 from .primitives.primitive_set_typed import PrimitiveSetTyped
+from .python_source import compile_python
 from .tree_graph import build_tree_graph, static_limit
 
 __all__: list[str] = [
@@ -49,28 +50,6 @@ def clear_compile_cache() -> None:
     """
     shared_compile_cache.clear()
     clear_eval_caches()
-
-
-def _compile_python(code: str, prim_set: PrimitiveSetTyped) -> Any:
-    """Evaluate source text in the context of a primitive set.
-
-    Args:
-        code: Source text of the expression or of a lambda over it.
-        prim_set: Primitive set that supplies the evaluation context.
-
-    Returns:
-        The evaluated object.
-
-    Raises:
-        MemoryError: If evaluation exceeds the recursion limit.
-    """
-    try:
-        # nosemgrep: python.lang.security.audit.eval-detected.eval-detected
-        return eval(code, prim_set.context, {})
-    except MemoryError as err:
-        raise MemoryError(
-            "Recursion depth of 90 exceeded. Use bloat control on your operators.\n"
-        ) from err
 
 
 def _compile_tape(
@@ -182,11 +161,7 @@ def compile_tree(
 
     _reject_unknown_primitive(expr, prim_set)
     if backend == "python":
-        code = str(expr)
-        if len(prim_set.arguments) > 0:
-            args = ",".join(prim_set.arguments)
-            code = f"lambda {args}: {code}"
-        compiled = _compile_python(code, prim_set)
+        compiled = compile_python(expr, prim_set)
     elif backend in ("opcode", "numba"):
         compiled = _compile_tape(expr, prim_set, backend, dispatch)
     else:
