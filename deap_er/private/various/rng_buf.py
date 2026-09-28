@@ -70,14 +70,22 @@ class RngBuffers:
             state: Mapping with ``buf`` and ``index``. ``ibuf`` and
                 ``iindex`` are optional; omit them for an empty
                 integer buffer.
+
+        Raises:
+            ValueError: If a buffer does not hold exactly the buffer
+                size or its index lies outside it.
         """
-        self._fbuf = numpy.array(state["buf"], dtype=numpy.float64, copy=True)
-        self._floats = cast(list[float], self._fbuf.tolist())
-        self._fi = int(state["index"])
-        if "ibuf" in state and "iindex" in state:
-            self._ibuf = numpy.array(state["ibuf"], dtype=numpy.uint64, copy=True)
-            self._u64s = [int(value) for value in self._ibuf.tolist()]
-            self._ii = int(state["iindex"])
+        fbuf, fi = _checked_buffer(state["buf"], state["index"], numpy.float64)
+        has_ints = "ibuf" in state and "iindex" in state
+        if has_ints:
+            ibuf, ii = _checked_buffer(state["ibuf"], state["iindex"], numpy.uint64)
+        self._fbuf = fbuf
+        self._floats = cast(list[float], fbuf.tolist())
+        self._fi = fi
+        if has_ints:
+            self._ibuf = ibuf
+            self._u64s = [int(value) for value in ibuf.tolist()]
+            self._ii = ii
             return
         self._reset_ints()
 
@@ -185,6 +193,15 @@ class RngBuffers:
             value = self.next_u64(gen)
             if value < limit:
                 return value % n
+
+
+def _checked_buffer(raw: Any, index: Any, dtype: type) -> tuple[numpy.ndarray, int]:
+    """Copy a packed buffer and validate its shape and read index."""
+    buf = numpy.array(raw, dtype=dtype, copy=True)
+    position = int(index)
+    if buf.shape != (_BUFSIZE,) or not 0 <= position <= _BUFSIZE:
+        raise ValueError(f"RNG buffer state must hold {_BUFSIZE} values and an index within them")
+    return buf, position
 
 
 def draw_integers(

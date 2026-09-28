@@ -60,6 +60,9 @@ class RNG:
 
         Args:
             state: Mapping from ``get_state``. ``ibuf`` and ``iindex`` are optional.
+
+        Raises:
+            ValueError: If a buffer in ``state`` is malformed.
         """
         self._gen.bit_generator.state = state["bit_generator"]
         self._buffers.unpack(state)

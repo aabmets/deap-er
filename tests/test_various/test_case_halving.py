@@ -180,3 +180,21 @@ def test_evaluate_case_halving_single_individual():
         assert result.nevals == expected
     finally:
         _drop_types()
+
+
+def test_evaluate_case_halving_ranks_nan_scores_last():
+    _make_types(2)
+    try:
+        ind_cls = creator.__dict__[IND]
+        scores = {0: 5.0, 1: float("nan"), 2: 1.0, 3: 3.0}
+        population = [ind_cls([key]) for key in scores]
+
+        def evaluate_cases(ind, cases):
+            return tuple(scores[ind[0]] for _ in cases)
+
+        result = tools.evaluate_case_halving(
+            population, evaluate_cases, [0, 1], n_cases=2, eta=2, min_cases=1
+        )
+        assert [ind[0] for ind in result.survivors] == [2, 3]
+    finally:
+        _drop_types()

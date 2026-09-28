@@ -101,7 +101,8 @@ def semantic_solve_bits(
         diff = packed[:, start:stop] - series[start:stop]
         sq = numpy.where(sample, diff * diff, 0.0)
         counts = sample.sum(axis=1)
-        mse = numpy.where(counts > 0, sq.sum(axis=1) / counts, empty)
+        mse = numpy.full(counts.shape, empty, dtype=numpy.float64)
+        numpy.divide(sq.sum(axis=1), counts, out=mse, where=counts > 0)
         bits[:, index] = numpy.isclose(mse, 0.0, atol=1e-12)
     return bits
 
