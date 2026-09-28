@@ -38,7 +38,7 @@ class RngBuffers:
     def _reset_ints(self) -> None:
         """Forget leftover uint64s and zero the integer array."""
         self._ibuf = numpy.zeros(_BUFSIZE, dtype=numpy.uint64)
-        self._u64s = []
+        self._u64s: list[int] = []
         self._ii = _BUFSIZE
 
     def pack(self) -> dict[str, Any]:
@@ -70,16 +70,23 @@ class RngBuffers:
             state: Mapping with ``buf`` and ``index``. ``ibuf`` and
                 ``iindex`` are optional; omit them for an empty
                 integer buffer.
+
+        Raises:
+            ValueError: If a buffer does not hold exactly the buffer
+                size or its index lies outside it.
         """
-        self._fbuf = numpy.array(state["buf"], dtype=numpy.float64, copy=True)
-        self._floats = cast(list[float], self._fbuf.tolist())
-        self._fi = int(state["index"])
+        fbuf, fi = _checked_buffer(state["buf"], state["index"], numpy.float64)
+        ints = None
         if "ibuf" in state and "iindex" in state:
-            self._ibuf = numpy.array(state["ibuf"], dtype=numpy.uint64, copy=True)
-            self._u64s = [int(value) for value in self._ibuf.tolist()]
-            self._ii = int(state["iindex"])
+            ints = _checked_buffer(state["ibuf"], state["iindex"], numpy.uint64)
+        self._fbuf = fbuf
+        self._floats = cast(list[float], fbuf.tolist())
+        self._fi = fi
+        if ints is None:
+            self._reset_ints()
             return
-        self._reset_ints()
+        self._ibuf, self._ii = ints
+        self._u64s = cast(list[int], self._ibuf.tolist())
 
     def next_float(self, gen: numpy.random.Generator) -> float:
         """Pop the next uniform float in ``[0.0, 1.0)``.
@@ -137,9 +144,9 @@ class RngBuffers:
         """
         if self._ii >= _BUFSIZE:
             self._ibuf = numpy.asarray(gen.bit_generator.random_raw(_BUFSIZE), dtype=numpy.uint64)
-            self._u64s = [int(value) for value in self._ibuf.tolist()]
+            self._u64s = cast(list[int], self._ibuf.tolist())
             self._ii = 0
-        value = int(self._u64s[self._ii])
+        value = self._u64s[self._ii]
         self._ii += 1
         return value
 
@@ -185,6 +192,15 @@ class RngBuffers:
             value = self.next_u64(gen)
             if value < limit:
                 return value % n
+
+
+def _checked_buffer(raw: Any, index: Any, dtype: type) -> tuple[numpy.ndarray, int]:
+    """Copy a packed buffer and validate its shape and read index."""
+    buf = numpy.array(raw, dtype=dtype, copy=True)
+    position = int(index)
+    if buf.shape != (_BUFSIZE,) or not 0 <= position <= _BUFSIZE:
+        raise ValueError(f"RNG buffer state must hold {_BUFSIZE} values and an index within them")
+    return buf, position
 
 
 def draw_integers(

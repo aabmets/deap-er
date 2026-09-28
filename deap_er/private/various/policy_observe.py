@@ -48,39 +48,31 @@ def _reject_raw_arrays(value: object, *, label: str) -> None:
             _reject_raw_arrays(item, label=label)
 
 
-def _validate_solve_bit(bit: int | float | bool) -> None:
-    """Reject values that are not explicit ``0/1`` solve-bit encodings."""
+def _solve_bit(bit: int | float | bool) -> int:
+    """Return an explicit ``0/1`` solve-bit encoding as an int."""
     if isinstance(bit, bool):
-        return
-    if isinstance(bit, int) and not isinstance(bit, bool):
+        return int(bit)
+    if isinstance(bit, int):
         if bit in (0, 1):
-            return
+            return bit
         raise ValueError("solve_bits must contain only 0 and 1")
     value = float(bit)
-    if numpy.isclose(value, 0.0, atol=_SOLVE_ATOL) or numpy.isclose(value, 1.0, atol=_SOLVE_ATOL):
-        return
+    if numpy.isclose(value, 1.0, atol=_SOLVE_ATOL):
+        return 1
+    if numpy.isclose(value, 0.0, atol=_SOLVE_ATOL):
+        return 0
     raise ValueError("solve_bits must contain only 0 and 1")
 
 
 def _coerce_solve_bits(bits: Sequence[int | float | bool]) -> tuple[int, ...]:
     """Normalize solve bits to a fixed ``0/1`` tuple."""
     _reject_raw_arrays(bits, label="solve_bits")
-    for bit in bits:
-        _validate_solve_bit(bit)
-    return tuple(1 if _bit_is_solved(bit) else 0 for bit in bits)
+    return tuple(_solve_bit(bit) for bit in bits)
 
 
 def _unsolved_count(bits: tuple[int, ...]) -> int:
     """Count unsolved cases in an already coerced solve-bit tuple."""
     return sum(1 for bit in bits if bit == 0)
-
-
-def _bit_is_solved(bit: int | float | bool) -> bool:
-    if isinstance(bit, bool):
-        return bit
-    if isinstance(bit, int) and not isinstance(bit, bool):
-        return bit == 1
-    return bool(numpy.isclose(float(bit), 1.0, atol=_SOLVE_ATOL))
 
 
 def policy_solve_bits_from_errors(errors: tuple[float, ...]) -> tuple[int, ...]:

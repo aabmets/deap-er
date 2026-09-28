@@ -12,7 +12,7 @@
 
 Each ``*_case`` function returns the results of one seed as a JSON-friendly
 mapping. The test modules compare those results against the stored data;
-``_generate.py`` writes that data. Both go through this module, so a case is
+``generate.py`` writes that data. Both go through this module, so a case is
 defined exactly once.
 
 Functions ending in ``_exact`` return values that are reproducible bit for

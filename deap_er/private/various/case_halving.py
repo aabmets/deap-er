@@ -10,6 +10,7 @@
 #
 from __future__ import annotations
 
+import math
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
@@ -117,18 +118,21 @@ def _mean_score(
     scores: Sequence[float],
     weights: Sequence[float] | None,
 ) -> float:
+    """Return the (weighted) mean error; a missing or NaN mean ranks last."""
     if not scores:
         return float("inf")
     if weights is None:
-        return float(sum(scores) / len(scores))
-    total = 0.0
-    weight_sum = 0.0
-    for value, weight in zip(scores, weights, strict=False):
-        total += float(value) * float(weight)
-        weight_sum += float(weight)
-    if weight_sum <= 0.0:
-        return float("inf")
-    return total / weight_sum
+        mean = float(sum(scores) / len(scores))
+    else:
+        total = 0.0
+        weight_sum = 0.0
+        for value, weight in zip(scores, weights, strict=False):
+            total += float(value) * float(weight)
+            weight_sum += float(weight)
+        if weight_sum <= 0.0:
+            return float("inf")
+        mean = total / weight_sum
+    return float("inf") if math.isnan(mean) else mean
 
 
 def _rank_on_cases(

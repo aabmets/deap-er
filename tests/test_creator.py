@@ -46,6 +46,20 @@ def test_create_type_is_idempotent_for_an_equal_definition():
         creator.__dict__.pop("IDEM_FIT")
 
 
+def test_create_type_is_idempotent_for_an_equal_ndarray_attribute():
+    first = creator.create_type(CNAME, list, bounds=numpy.array([1.0, 2.0]))
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter("error", RuntimeWarning)
+            second = creator.create_type(CNAME, list, bounds=numpy.array([1.0, 2.0]))
+        assert second is first
+        with pytest.warns(RuntimeWarning):
+            third = creator.create_type(CNAME, list, bounds=numpy.array([1.0, 3.0]))
+        assert third is not first
+    finally:
+        creator.__dict__.pop(CNAME)
+
+
 def test_create_type_replaces_a_different_definition():
     first = creator.create_type(CNAME, list, tag="x")
     with pytest.warns(RuntimeWarning):
@@ -111,6 +125,22 @@ class TestCreatorBasicFunctionality:
         assert not hasattr(creator.__dict__[CNAME], "my_attr")
         assert hasattr(creator.__dict__[CNAME](), "my_attr")
         creator.__dict__.pop(CNAME)
+
+    def test_instance_attr_accepts_a_class_with_a_metaclass(self):
+        class Registry(type):
+            pass
+
+        class Tracker(metaclass=Registry):
+            pass
+
+        creator.create_type(CNAME, list, tracker=Tracker)
+        try:
+            first = creator.__dict__[CNAME]([1])
+            second = creator.__dict__[CNAME]([2])
+            assert isinstance(first.tracker, Tracker)
+            assert first.tracker is not second.tracker
+        finally:
+            creator.__dict__.pop(CNAME)
 
     def test_list_creation(self):
         creator.create_type(CNAME, list)

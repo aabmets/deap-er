@@ -26,7 +26,7 @@ ALLURE_RESULTS_DIR = REPORTS_DIR / "allure-results"
 ALLURE_REPORT_DIR = REPORTS_DIR / "allure-report"
 COVERAGE_JSON = REPORTS_DIR / "coverage.json"
 COVERAGE_MARKDOWN = REPORTS_DIR / "coverage.md"
-HTML_COVERAGE_INDEX = Path(".htmlcov/index.html")
+HTML_COVERAGE_INDEX = REPORTS_DIR / "coverage-html" / "index.html"
 
 
 def _remove_path(path: Path) -> None:
@@ -170,8 +170,7 @@ def _allure_command(root: Path) -> list[str] | None:
         if shutil.which("node") is None and bun is not None:
             return [bun, str(project_allure)]
         return [str(project_allure)]
-    found = shutil.which("allure")
-    return [found] if found else None
+    return None
 
 
 def pytest_sessionstart(session: pytest.Session) -> None:

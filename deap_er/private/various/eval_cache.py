@@ -14,6 +14,8 @@ from collections.abc import Callable, Sequence
 from typing import Any
 from weakref import WeakSet
 
+import numpy
+
 from deap_er.private.programming.compile_cache import expression_key
 
 __all__: list[str] = ["EvalCache", "clear_eval_caches", "invalidate_eval"]
@@ -58,6 +60,9 @@ def _expression_fragment(individual: Any, caller_key: Any) -> Any:
         return caller_key
     if isinstance(individual, str):
         return individual
+    if isinstance(individual, numpy.ndarray):
+        # str() rounds and elides array values, so distinct genomes would collide.
+        return individual.shape, individual.dtype.str, individual.tobytes()
     try:
         node = individual[0]
     except (TypeError, IndexError, KeyError):
@@ -94,8 +99,9 @@ class EvalCache:
     Wrap the caller's ``evaluate`` / ``evaluate_batch``. A hit returns
     the stored fitness tuple and does not call the wrapped callable.
     The default expression key is tree structure via
-    ``expression_key``, source text, or ``str(individual)``. Pass
-    ``key=`` (or ``keys=`` on a batch) to override.
+    ``expression_key``, source text, the bytes of an ndarray, or
+    ``str(individual)``. Pass ``key=`` (or ``keys=`` on a batch) to
+    override.
 
     Live instances register with the process-wide invalidation hook:
     ``clear_compile_cache`` clears every cache; ``invalidate_compiled``

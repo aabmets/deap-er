@@ -16,9 +16,10 @@ from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
-    from deap_er.private.various.eval_cache import EvalCache
 
-__all__: list[str] = ["noisy_draw_key", "resample", "resample_aggregate"]
+    from .eval_cache import EvalCache
+
+__all__: list[str] = ["cached_draw", "noisy_draw_key", "resample", "resample_aggregate"]
 
 
 def noisy_draw_key(base: Any, draw: int) -> tuple[Any, int]:
@@ -35,6 +36,19 @@ def noisy_draw_key(base: Any, draw: int) -> tuple[Any, int]:
         ``(base, draw)`` suitable for ``EvalCache.evaluate(..., key=)``.
     """
     return (base, int(draw))
+
+
+def cached_draw(
+    cache: EvalCache, individual: Individual, base: Any, draw: int
+) -> tuple[float, ...]:
+    """Score one draw of ``individual`` through ``cache`` under a per-draw key.
+
+    ``base`` defaults to the cache's own expression key, so distinct
+    genomes never share a draw entry.
+    """
+    fragment = base if base is not None else cache.cache_key(individual)[0]
+    sample = cache.evaluate(individual, key=noisy_draw_key(fragment, draw))
+    return tuple(float(value) for value in sample)
 
 
 def resample_aggregate(samples: Sequence[Sequence[float]]) -> tuple[float, ...]:
@@ -89,6 +103,7 @@ def resample(
         n: Number of independent draws. Must be at least ``1``.
         cache: Optional :class:`~deap_er.tools.EvalCache` wrapper.
         key: Optional caller key fragment paired with each draw index.
+            Defaults to the cache's expression key for ``ind``.
         aggregate: Reduces draw tuples to one fitness tuple.
         write: When true, assign the aggregate to ``ind.fitness.values``.
 
@@ -103,11 +118,9 @@ def resample(
     samples: list[Sequence[float]] = []
     for draw in range(n):
         if cache is not None:
-            draw_key = noisy_draw_key(key, draw) if key is not None else draw
-            sample = cache.evaluate(ind, key=draw_key)
+            samples.append(cached_draw(cache, ind, key, draw))
         else:
-            sample = evaluate(ind)
-        samples.append(tuple(float(value) for value in sample))
+            samples.append(tuple(float(value) for value in evaluate(ind)))
     values = tuple(aggregate(samples))
     if write:
         ind.fitness.values = values

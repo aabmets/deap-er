@@ -13,9 +13,9 @@ from typing import Any, Literal
 
 import numpy
 
-from deap_er.private.various.case_errors import case_intervals
-from deap_er.private.various.semantic_mask import packed_semantics, semantic_valid_mask
-from deap_er.private.various.semantic_project import semantic_project
+from .case_errors import case_intervals
+from .semantic_mask import packed_semantics, semantic_valid_mask
+from .semantic_project import semantic_project
 
 __all__: list[str] = ["semantic_descriptors", "semantic_moments", "semantic_solve_bits"]
 
@@ -101,7 +101,8 @@ def semantic_solve_bits(
         diff = packed[:, start:stop] - series[start:stop]
         sq = numpy.where(sample, diff * diff, 0.0)
         counts = sample.sum(axis=1)
-        mse = numpy.where(counts > 0, sq.sum(axis=1) / counts, empty)
+        mse = numpy.full(counts.shape, empty, dtype=numpy.float64)
+        numpy.divide(sq.sum(axis=1), counts, out=mse, where=counts > 0)
         bits[:, index] = numpy.isclose(mse, 0.0, atol=1e-12)
     return bits
 

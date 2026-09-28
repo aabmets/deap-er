@@ -37,7 +37,6 @@ class SortingNetwork:
         if connectors:
             for wire1, wire2 in connectors:
                 self.add_connector(wire1, wire2)
-        super().__init__()
 
     def __iter__(self) -> Iterator[list[tuple[int, int]]]:
         """Iterate over comparator levels."""

@@ -13,8 +13,8 @@ from typing import Any
 
 import numpy
 
-from deap_er.private.various.rng import rng
-from deap_er.private.various.semantic_mask import (
+from .rng import rng
+from .semantic_mask import (
     as_semantic_matrix,
     packed_semantics,
     semantic_column_keep,

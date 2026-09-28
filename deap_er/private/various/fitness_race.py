@@ -10,24 +10,19 @@
 #
 from __future__ import annotations
 
-import math
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
 
-from deap_er.private.various.fitness_resample import noisy_draw_key, resample_aggregate
+from .fitness_resample import cached_draw, resample_aggregate
+from .race_rounds import eliminate_losers, maximize_first_objective, race_z_score
 
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
-    from deap_er.private.various.eval_cache import EvalCache
+
+    from .eval_cache import EvalCache
 
 __all__: list[str] = ["RaceStopResult", "race_eval_charge", "race_stop"]
-
-_ALPHA_TO_Z: dict[float, float] = {
-    0.10: 1.64,
-    0.05: 1.96,
-    0.01: 2.58,
-}
 
 
 def race_eval_charge(n_individuals: int, n_draws: int = 1) -> int:
@@ -46,15 +41,6 @@ def race_eval_charge(n_individuals: int, n_draws: int = 1) -> int:
     if n_individuals < 0 or n_draws < 0:
         raise ValueError("n_individuals and n_draws must be non-negative")
     return n_individuals * n_draws
-
-
-def race_z_score(alpha: float) -> float:
-    """Map a significance level to an approximate normal critical value."""
-    if alpha in _ALPHA_TO_Z:
-        return _ALPHA_TO_Z[alpha]
-    if not 0.0 < alpha < 1.0:
-        raise ValueError("alpha must be strictly between 0 and 1")
-    return 1.96
 
 
 @dataclass(frozen=True, slots=True)
@@ -82,133 +68,9 @@ def score_draw(
 ) -> tuple[float, ...]:
     """Score one draw for ``individual`` through cache or ``evaluate``."""
     if cache is not None:
-        base = key_fn(individual) if key_fn is not None else id(individual)
-        cached = cache.evaluate(individual, key=noisy_draw_key(base, draw))
-        return tuple(float(value) for value in cached)
+        base = key_fn(individual) if key_fn is not None else None
+        return cached_draw(cache, individual, base, draw)
     return tuple(float(value) for value in evaluate(individual))
-
-
-def objective_score(values: Sequence[float], objective: int, maximize: bool) -> float:
-    """Return a scalar for ranking on one objective."""
-    value = float(values[objective])
-    if not math.isfinite(value):
-        return float("-inf") if maximize else float("inf")
-    return value if maximize else -value
-
-
-def sample_mean_std(samples: Sequence[Sequence[float]], objective: int) -> tuple[float, float]:
-    """Return the sample mean and standard error on one objective."""
-    values = [float(sample[objective]) for sample in samples if math.isfinite(sample[objective])]
-    if not values:
-        return float("nan"), float("inf")
-    mean = sum(values) / len(values)
-    if len(values) == 1:
-        return mean, float("inf")
-    variance = sum((value - mean) ** 2 for value in values) / (len(values) - 1)
-    return mean, math.sqrt(variance / len(values))
-
-
-def maximize_first_objective(individuals: Sequence[Individual]) -> bool:
-    """Return whether the first fitness objective is maximized."""
-    for individual in individuals:
-        weights = individual.fitness.weights
-        if weights:
-            return float(weights[0]) > 0.0
-    return False
-
-
-def challenger_is_not_worse(
-    challenger_mean: float,
-    challenger_se: float,
-    leader_mean: float,
-    leader_se: float,
-    *,
-    z_score: float,
-    maximize: bool,
-) -> bool:
-    """Return whether a challenger is not confidently worse than the leader."""
-    if maximize:
-        return challenger_mean + z_score * challenger_se >= leader_mean - z_score * leader_se
-    return challenger_mean - z_score * challenger_se <= leader_mean + z_score * leader_se
-
-
-def keep_challenger_after_race(
-    challenger_samples: Sequence[Sequence[float]],
-    leader_mean: float,
-    leader_se: float,
-    *,
-    z_score: float,
-    maximize: bool,
-) -> bool:
-    """Return whether a challenger survives comparison with the leader."""
-    if len(challenger_samples) < 2:
-        return True
-    challenger_mean, challenger_se = sample_mean_std(challenger_samples, 0)
-    if not math.isfinite(challenger_mean):
-        return False
-    return challenger_is_not_worse(
-        challenger_mean,
-        challenger_se,
-        leader_mean,
-        leader_se,
-        z_score=z_score,
-        maximize=maximize,
-    )
-
-
-def restore_min_survivors(
-    kept: list[Individual],
-    ranked: Sequence[Individual],
-    min_survivors: int,
-) -> list[Individual]:
-    """Add back ranked challengers until ``min_survivors`` is met."""
-    if len(kept) >= min_survivors:
-        return kept
-    restored = list(kept)
-    for challenger in ranked[1:]:
-        if challenger not in restored:
-            restored.append(challenger)
-        if len(restored) >= min_survivors:
-            break
-    return restored
-
-
-def eliminate_losers(
-    survivors: list[Individual],
-    samples: dict[int, list[tuple[float, ...]]],
-    *,
-    aggregate: Callable[[Sequence[Sequence[float]]], Sequence[float]],
-    alpha: float,
-    maximize: bool,
-    min_survivors: int,
-) -> list[Individual]:
-    """Drop challengers whose first objective is significantly worse."""
-    if len(survivors) <= min_survivors:
-        return survivors
-    ranked = sorted(
-        survivors,
-        key=lambda individual: objective_score(aggregate(samples[id(individual)]), 0, maximize),
-        reverse=True,
-    )
-    leader = ranked[0]
-    leader_samples = samples[id(leader)]
-    if len(leader_samples) < 2:
-        return survivors
-    leader_mean, leader_se = sample_mean_std(leader_samples, 0)
-    if not math.isfinite(leader_mean):
-        return survivors
-    z_score = race_z_score(alpha)
-    kept = [leader]
-    for challenger in ranked[1:]:
-        if keep_challenger_after_race(
-            samples[id(challenger)],
-            leader_mean,
-            leader_se,
-            z_score=z_score,
-            maximize=maximize,
-        ):
-            kept.append(challenger)
-    return restore_min_survivors(kept, ranked, min_survivors)
 
 
 def race_stop(
@@ -238,8 +100,10 @@ def race_stop(
         evaluate: One-draw fitness callable.
         n_rounds: Maximum resample rounds.
         cache: Optional :class:`~deap_er.tools.EvalCache` wrapper.
-        key_fn: Optional per-individual cache key fragment.
-        alpha: Significance level mapped to a normal critical value.
+        key_fn: Optional per-individual cache key fragment. Defaults
+            to the cache's expression key.
+        alpha: Two-sided significance level in ``(0, 1)``, mapped to
+            a normal critical value.
         min_survivors: Stop eliminating below this count.
         aggregate: Reduces each individual's draw list to one tuple.
         write: When true, write the final aggregate to ``fitness.values``.
@@ -248,12 +112,14 @@ def race_stop(
         Survivors, total evaluate calls, and rounds executed.
 
     Raises:
-        ValueError: If ``n_rounds`` or ``min_survivors`` is invalid.
+        ValueError: If ``n_rounds``, ``min_survivors``, or ``alpha`` is
+            invalid.
     """
     if n_rounds < 0:
         raise ValueError("n_rounds must be non-negative")
     if min_survivors < 1:
         raise ValueError("min_survivors must be at least 1")
+    z_score = race_z_score(alpha)
     survivors = list(individuals)
     if not survivors or n_rounds == 0:
         return RaceStopResult([], 0, 0)
@@ -280,7 +146,7 @@ def race_stop(
                 survivors,
                 samples,
                 aggregate=aggregate,
-                alpha=alpha,
+                z_score=z_score,
                 maximize=maximize,
                 min_survivors=min_survivors,
             )

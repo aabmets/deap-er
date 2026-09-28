@@ -55,12 +55,20 @@ def _write_bad_rng(path: Path) -> None:
     _dump(path, {"generation": 9, "_rng_state_": {"bit_generator": "garbage"}})
 
 
+def _write_short_rng_buffer(path: Path) -> None:
+    state = tools.RNG(1).get_state()
+    state["buf"] = state["buf"][:4]
+    state["index"] = 0
+    _dump(path, {"generation": 9, "_rng_state_": state})
+
+
 BROKEN_FILES = {
     "empty": lambda path: path.write_bytes(b""),
     "truncated": lambda path: path.write_bytes(b"\x80\x04"),
     "not_a_dict": lambda path: _dump(path, [1, 2, 3]),
     "missing_creator_type": _write_missing_type,
     "bad_rng_state": _write_bad_rng,
+    "short_rng_buffer": _write_short_rng_buffer,
     "legacy_json_hof_without_type": lambda path: _dump(path, {"_hof_json_": "{}"}),
 }
 
@@ -101,7 +109,9 @@ def test_unreadable_path_raises_os_error(tmp_path):
     assert quiet.load() is False
 
 
-@pytest.mark.parametrize("kind", ["bad_rng_state", "legacy_json_hof_without_type"])
+@pytest.mark.parametrize(
+    "kind", ["bad_rng_state", "short_rng_buffer", "legacy_json_hof_without_type"]
+)
 def test_failed_load_changes_neither_instance_nor_rng(tmp_path, kind):
     BROKEN_FILES[kind](tmp_path / "bad.dcpf")
     cpt = Checkpoint(file_name="bad.dcpf", dir_path=tmp_path, autoload=False)

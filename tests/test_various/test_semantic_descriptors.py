@@ -9,6 +9,7 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import math
+import warnings
 from typing import Any, cast
 
 import numpy
@@ -79,6 +80,15 @@ def test_semantic_solve_bits_match_case_errors():
         errors = tools.case_errors(row, target, ranges)
         bits.append([math.isclose(error, 0.0, abs_tol=1e-12) for error in errors])
     numpy.testing.assert_array_equal(actual, numpy.asarray(bits, dtype=numpy.float64))
+
+
+def test_semantic_solve_bits_empty_case_uses_empty_without_warning():
+    matrix = numpy.array([[math.nan, 1.0]])
+    target = numpy.array([1.0, 1.0])
+    with warnings.catch_warnings():
+        warnings.simplefilter("error")
+        actual = tools.semantic_solve_bits(matrix, target, [(0, 1), (1, 2)], empty=0.0)
+    numpy.testing.assert_array_equal(actual, [[1.0, 1.0]])
 
 
 def test_semantic_project_and_random_pca_shapes(ind_cls):

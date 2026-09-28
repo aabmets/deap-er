@@ -12,6 +12,8 @@ import array
 import warnings
 from typing import Any, cast
 
+import numpy
+
 from .overrides import ArrayOverride, NumpyOverride
 
 __all__: list[str] = ["create_type"]
@@ -65,8 +67,7 @@ def create_type(name: str, base: type | object, **kwargs: Any) -> type:
     # separate kwargs by their type
     inst_attr, cls_attr = {}, {}
     for key, value in kwargs.items():
-        condition = type(value) is type
-        _dict = inst_attr if condition else cls_attr
+        _dict = inst_attr if isinstance(value, type) else cls_attr
         _dict[key] = value
     if array_typecode is not None:
         cls_attr.setdefault("typecode", array_typecode)
@@ -118,6 +119,8 @@ def _same_attrs(left: dict[str, Any], right: dict[str, Any]) -> bool:
 def _same_value(left: Any, right: Any) -> bool:
     if isinstance(left, type) or isinstance(right, type):
         return left is right
+    if isinstance(left, numpy.ndarray) or isinstance(right, numpy.ndarray):
+        return type(left) is type(right) and bool(numpy.array_equal(left, right))
     try:
         return bool(left == right)
     except (TypeError, ValueError):

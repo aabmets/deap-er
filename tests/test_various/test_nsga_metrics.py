@@ -170,3 +170,14 @@ def test_nsga_convergence_and_igd_empty_sets_are_zero():
     assert conv_no_opt == pytest.approx(0.0)
     assert igd_empty == pytest.approx(0.0)
     assert igd_no_ref == pytest.approx(0.0)
+
+
+def test_reference_individual_without_fitness_is_rejected_not_read_as_genes():
+    _setup()
+    try:
+        front = [_ind((0.1, 0.9))]
+        unevaluated = creator.__dict__[MO_IND]([0.0, 1.0])
+        with pytest.raises(ValueError, match="valid fitness"):
+            tools.nsga_convergence(front, [unevaluated])
+    finally:
+        _teardown()
