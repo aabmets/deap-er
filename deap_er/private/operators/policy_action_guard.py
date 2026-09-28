@@ -81,13 +81,14 @@ class PolicyActionGuard:
             raise ValueError("nevals_used must be at least 0")
 
     def begin_generation(self, generation: int | None = None) -> None:
-        """Reset per-generation counters and optionally bump ``generation``.
+        """Reset per-generation counters and advance ``generation``.
 
         Args:
             generation: When given, replaces :attr:`generation`.
+                Otherwise :attr:`generation` is incremented by one, so
+                promote cooldowns elapse without an explicit index.
         """
-        if generation is not None:
-            self.generation = generation
+        self.generation = self.generation + 1 if generation is None else generation
         self.promotes_this_gen = 0
 
     def allows(self, action: str, /, **kwargs: Any) -> bool:
