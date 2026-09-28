@@ -10,7 +10,7 @@ description: >-
 
 [RTK](https://github.com/rtk-ai/rtk) rewrites supported commands to `rtk <command>` so the model sees compact output.
 
-Binary: `.bin/rtk` (gitignored). Project hook: `.cursor/hooks.json` → `.cursor/hooks/rtk-pretooluse.sh` (fails open if the binary is missing). Bootstrap: `source tools/dev`. Never run `rtk init -g`.
+Binary: `.bin/rtk` (gitignored). Project hooks: Cursor `.cursor/hooks.json` → `.cursor/hooks/rtk-pretooluse.sh`; Claude Code `.claude/settings.json` → `.claude/hooks/rtk-pretooluse.sh` (both fail open if the binary is missing). Bootstrap: `source tools/dev`. Never run `rtk init -g`.
 
 ## Before using
 
@@ -27,7 +27,7 @@ If the binary is not installed yet, run the original command. Do not block the t
 
 ## How rewrite works
 
-The hook intercepts Shell tool calls only. Built-in Read / Grep / Glob do not pass through it. For compact output there, use shell (`rg`, `ls`) or `rtk grep` / `rtk find` / `rtk read`.
+The hook intercepts shell tool calls only (Cursor `Shell`, Claude Code `Bash`). Built-in read / search / glob tools do not pass through it. For compact output there, use shell (`rg`, `ls`) or `rtk grep` / `rtk find` / `rtk read`.
 
 Preview:
 

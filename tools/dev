@@ -51,6 +51,7 @@ source "${SCRIPTS}/03_install_cli_tools.sh"
 source "${SCRIPTS}/04_install_python_deps.sh"
 source "${SCRIPTS}/05_install_node_deps.sh"
 source "${SCRIPTS}/06_enable_autosource.sh"
+source "${SCRIPTS}/07_link_claude_skills.sh"
 
 source .venv/bin/activate
 _deap_er_enable_prompt

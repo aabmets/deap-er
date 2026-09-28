@@ -1,6 +1,6 @@
 # Agent Directives and Best Practices
 
-This document contains **always-on** mandates for AI agents. Procedural playbooks live in [`.cursor/skills/`](.cursor/skills/) — read the relevant skill **before** starting work that needs it.
+This document contains **always-on** mandates for AI agents (Cursor, Claude Code, and others). Procedural playbooks live in [`.cursor/skills/`](.cursor/skills/) — the single source of truth; `source tools/dev` symlinks it to `.claude/skills/` for Claude Code. Read the relevant skill **before** starting work that needs it.
 
 **deap-er** is a single-package scientific library (`deap_er/`) for evolutionary algorithms. There is no `backend/`, frontend, database, or devstack. `tools/dev` is developer bootstrap only — not a second installable package.
 
@@ -66,9 +66,9 @@ Follow the typing already used in the file you are editing (`deap_er.base.typede
 
 ### Tool Usage
 
-- **Hooks:** project `preToolUse` rewrites supported Shell commands via RTK (`.cursor/hooks.json` → `.cursor/hooks/rtk-pretooluse.sh`). Fails open until `.bin/rtk` exists. Never run `rtk init -g`. If the binary is missing, `source tools/dev`.
-- **MCP:** `.cursor/mcp.json` registers **this** repo’s `.bin/codebase-memory-mcp` and the SonarCloud-hosted MCP (`https://api.sonarcloud.io/mcp`). `.cursor/environment.json` `mcpServerAllowlist` must keep those identities so Cloud Agents can load them. Do not use another project’s codebase-memory server. Graph tools need `source tools/dev` if the binary is missing. SonarCloud tools need `SONARQUBE_TOKEN` and `SONARQUBE_ORG` as Cloud Agent environment secrets and in the shell that runs `agent` (`source tools/dev` calls `loadenv`; skill `sonarqube-mcp` creates `.env` keys for the user to fill in).
-- **Structured tools first:** Use Read, Grep, Write, and StrReplace when they fit; Shell is for commands that need a real terminal environment.
+- **Hooks:** a project pre-tool-use hook rewrites supported shell commands via RTK — Cursor: `.cursor/hooks.json` → `.cursor/hooks/rtk-pretooluse.sh`; Claude Code: `.claude/settings.json` → `.claude/hooks/rtk-pretooluse.sh`. Both fail open until `.bin/rtk` exists. Never run `rtk init -g`. If the binary is missing, `source tools/dev`.
+- **MCP:** **this** repo’s `.bin/codebase-memory-mcp` and the SonarCloud-hosted MCP (`https://api.sonarcloud.io/mcp`) are registered in `.cursor/mcp.json` (Cursor) and `.mcp.json` (Claude Code; enabled via `.claude/settings.json`). Keep both files in sync. `.cursor/environment.json` `mcpServerAllowlist` must keep those identities so Cursor Cloud Agents can load them. Do not use another project’s codebase-memory server. Graph tools need `source tools/dev` if the binary is missing. SonarCloud tools need `SONARQUBE_TOKEN` and `SONARQUBE_ORG` in the shell that launches the agent CLI (`agent` or `claude`) and, for Cursor Cloud Agents, as environment secrets (`source tools/dev` calls `loadenv`; skill `sonarqube-mcp` creates `.env` keys for the user to fill in).
+- **Structured tools first:** Use the client’s dedicated read, search, write, and edit tools when they fit; the shell tool is for commands that need a real terminal environment.
 
 ## 3. Task Skills (Read Before Doing)
 

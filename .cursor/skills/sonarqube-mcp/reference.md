@@ -1,15 +1,15 @@
 # SonarCloud MCP — tool catalog
 
 Read this when the short `SKILL.md` loop is not enough.
-Live schemas win: `GetDynamicTools` namespace `sonarqube`. Names below match
+Live schemas win: Cursor `GetDynamicTools` namespace `sonarqube`; Claude Code `mcp__sonarqube__*` tools. Names below match
 https://docs.sonarsource.com/sonarqube-mcp-server/reference/tools
 
 ## Setup
 
 - Endpoint: `https://api.sonarcloud.io/mcp` (US orgs: `https://api.sonarqube.us/mcp`).
-- Auth headers: `Authorization: Bearer ${env:SONARQUBE_TOKEN}`, `SONARQUBE_ORG`.
+- Auth headers: `Authorization: Bearer <SONARQUBE_TOKEN>`, `SONARQUBE_ORG` (Cursor `${env:VAR}` in `.cursor/mcp.json`; Claude Code `${VAR}` in `.mcp.json`).
 - Hosted defaults to **read-only**. Heavy local analysis, Vortex, and IDE bridge tools are not registered.
-- Reload Cursor MCP after env or `mcp.json` changes.
+- Reload MCP after env or config changes (Cursor: reload MCP; Claude Code: restart `claude`).
 
 ## Issue search
 
