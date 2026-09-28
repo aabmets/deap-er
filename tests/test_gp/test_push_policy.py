@@ -209,6 +209,33 @@ def test_push_policy_truncated_program_raises_value_error():
         policy_push.push_policy_decide(program, obs)
 
 
+def test_push_policy_add_keeps_float_scores():
+    next_index = policy_action_index("next_lexicase_cases")
+    skip_index = policy_action_index(tools.POLICY_ACTION_SKIP_TUNE)
+    program = policy_push.PushPolicyProgram(
+        code=(
+            policy_push.LOAD_TRAIN_SCORE,
+            policy_push.LOAD_TRAIN_SCORE,
+            policy_push.ADD,
+            policy_push.PUSH_INT,
+            1,
+            policy_push.GT,
+            policy_push.EMIT,
+            next_index,
+        ),
+        default_action=skip_index,
+    )
+    obs = tools.policy_observe(solve_bits=(1,), train_score=0.6)
+    assert policy_push.push_policy_decide(program, obs) == "next_lexicase_cases"
+
+
+def test_push_policy_stack_underflow_raises_value_error():
+    program = policy_push.PushPolicyProgram(code=(policy_push.PUSH_INT, 1, policy_push.SUB))
+    obs = tools.policy_observe(solve_bits=(1,), train_score=0.0)
+    with pytest.raises(ValueError, match="stack underflow"):
+        policy_push.push_policy_decide(program, obs)
+
+
 def test_push_policy_last_emit_wins():
     skip_index = policy_action_index(tools.POLICY_ACTION_SKIP_TUNE)
     next_index = policy_action_index("next_lexicase_cases")

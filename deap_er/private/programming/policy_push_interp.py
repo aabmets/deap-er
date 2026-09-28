@@ -13,11 +13,13 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from deap_er.private.programming.policy_loop import (
+from deap_er.private.records.policy_observation import PolicyObservation
+
+from .policy_loop import (
     POLICY_LOOP_ACTIONS,
     policy_action_from_index,
 )
-from deap_er.private.programming.policy_push_ops import (
+from .policy_push_ops import (
     ADD,
     AND,
     EMIT,
@@ -44,7 +46,6 @@ from deap_er.private.programming.policy_push_ops import (
     SUB,
     StackValue,
 )
-from deap_er.private.records.policy_observation import PolicyObservation
 
 __all__: list[str] = ["interpret_push_policy"]
 
@@ -92,25 +93,21 @@ def _operand(state: _PushInterpState) -> int:
     return value
 
 
-def _pop_int(stack: list[StackValue]) -> int:
-    value = stack.pop()
-    if isinstance(value, bool):
-        return int(value)
-    return int(value)
+def _pop(stack: list[StackValue]) -> StackValue:
+    if not stack:
+        raise ValueError("Push policy stack underflow")
+    return stack.pop()
 
 
 def _pop_numeric(stack: list[StackValue]) -> int | float:
-    value = stack.pop()
+    value = _pop(stack)
     if isinstance(value, bool):
         return int(value)
     return value
 
 
 def _pop_bool(stack: list[StackValue]) -> bool:
-    value = stack.pop()
-    if isinstance(value, bool):
-        return value
-    return bool(value)
+    return bool(_pop(stack))
 
 
 def _push_int(state: _PushInterpState) -> None:
@@ -175,14 +172,14 @@ def _load_solve_bit(state: _PushInterpState) -> None:
 
 
 def _add(state: _PushInterpState) -> None:
-    right = _pop_int(state.stack)
-    left = _pop_int(state.stack)
+    right = _pop_numeric(state.stack)
+    left = _pop_numeric(state.stack)
     state.stack.append(left + right)
 
 
 def _sub(state: _PushInterpState) -> None:
-    right = _pop_int(state.stack)
-    left = _pop_int(state.stack)
+    right = _pop_numeric(state.stack)
+    left = _pop_numeric(state.stack)
     state.stack.append(left - right)
 
 
@@ -199,8 +196,8 @@ def _gt(state: _PushInterpState) -> None:
 
 
 def _eq(state: _PushInterpState) -> None:
-    right = state.stack.pop()
-    left = state.stack.pop()
+    right = _pop(state.stack)
+    left = _pop(state.stack)
     state.stack.append(left == right)
 
 
