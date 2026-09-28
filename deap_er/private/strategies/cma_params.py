@@ -179,16 +179,18 @@ def apply_cma_hyperparams(
         rank_scale: Multiplier for default rank-one and rank-μ rates.
 
     Raises:
+        ValueError: If ``survivors`` is not in ``[1, offsprings]``.
         RuntimeError: If ``weights`` is not ``superlinear``,
             ``linear``, or ``equal``.
     """
     dim = strategy.dim
-    default = int(4 + 3 * log(dim))
-    strategy.lamb = int(kwargs.get("offsprings", default))
-    default_survivors = int(strategy.lamb / 2)
-    if strategy.lamb >= 1:
-        default_survivors = max(1, default_survivors)
-    strategy.mu = int(kwargs.get("survivors", default_survivors))
+    lamb = int(kwargs.get("offsprings", int(4 + 3 * log(dim))))
+    mu = int(kwargs.get("survivors", max(1, lamb // 2)))
+    if not 1 <= mu <= lamb:
+        raise ValueError(
+            f"survivors must be between 1 and offsprings; got survivors={mu}, offsprings={lamb}."
+        )
+    strategy.lamb, strategy.mu = lamb, mu
     scheme = kwargs.get("weights", "superlinear")
     if scheme == "superlinear":
         weights = log(strategy.mu + 0.5) - numpy.log(numpy.arange(1, strategy.mu + 1))
