@@ -186,7 +186,8 @@ def run_tapes(
 
     Raises:
         ValueError: If a tape has no columns, holds a consumer opcode
-            without a dispatcher, or fails ``check_tape`` on a kernel path.
+            without a dispatcher, or is malformed on a path that runs
+            the compiled kernels (see ``check_tape``).
     """
     rows = matrix.shape[0]
     if not tapes:
@@ -212,6 +213,9 @@ def launch_kernels(
 ) -> numpy.ndarray:
     """Run tapes on the serial or ``prange`` compiled batch kernel.
 
+    ``run_tapes`` sends builtin-only serial batches through the CSE
+    plan instead, so this is also how the kernels are specialized.
+
     Args:
         tapes: Tapes to evaluate. Must not be empty.
         matrix: C-contiguous ``(n_rows, n_columns)`` ``float64`` table.
@@ -229,7 +233,8 @@ def launch_kernels(
     rows = matrix.shape[0]
     out = numpy.empty((len(tapes), rows), dtype=numpy.float64)
     run, idle, many = serial_kernels()
-    dispatch = idle if dispatch is None else dispatch
+    if dispatch is None:
+        dispatch = idle
     packed = _pack(tapes)
     streams = (packed["opcodes"], packed["operands"], packed["constants"])
     layout = (
