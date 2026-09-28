@@ -28,7 +28,7 @@ from .sel_moead_helpers import (
     scalarization_tchebycheff,
 )
 
-__all__: list[str] = ["sel_moead", "SelMOEADWithMemory"]
+__all__: list[str] = ["sel_moead", "SelMOEADWithMemory", "update_ideal_point"]
 
 ScalarizationName = Literal["tchebycheff", "pbi"]
 
@@ -50,7 +50,20 @@ def _minimize_fitness(individuals: list[Individual]) -> ndarray:
     return -numpy.array([ind.fitness.wvalues for ind in individuals], dtype=float)
 
 
-def _update_ideal_point(fitness: ndarray, ideal_point: ndarray | None) -> ndarray:
+def update_ideal_point(fitness: ndarray, ideal_point: ndarray | None) -> ndarray:
+    """Merge the current per-objective minima with a prior ideal point.
+
+    Args:
+        fitness: Minimize-space objective matrix with shape ``(n, m)``.
+        ideal_point: Prior ideal point, or ``None``. Non-finite entries
+            are ignored.
+
+    Returns:
+        The updated ideal point with shape ``(m,)``.
+
+    Raises:
+        ValueError: If ``ideal_point`` length differs from ``m``.
+    """
     current = numpy.min(fitness, axis=0)
     if ideal_point is None or ideal_point.size == 0:
         return current
@@ -215,14 +228,14 @@ def sel_moead(
 
     if sel_count >= len(individuals):
         if isinstance(_memory, SelMOEADWithMemory):
-            z_star = _update_ideal_point(fitness, prior)
+            z_star = update_ideal_point(fitness, prior)
             _memory.ideal_point = numpy.asarray(z_star).reshape((1, -1))
         return list(individuals)
 
     scalar_fn = _resolve_scalarization(scalarization, theta)
     ranks = _pareto_ranks(individuals)
 
-    z_star = _update_ideal_point(fitness, prior)
+    z_star = update_ideal_point(fitness, prior)
     chosen = _select_by_subproblems(
         individuals, fitness, weights, z_star, scalar_fn, sel_count, ranks
     )

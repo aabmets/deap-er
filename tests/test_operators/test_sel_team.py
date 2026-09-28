@@ -122,22 +122,16 @@ def test_sel_team_matrix_mismatch_raises(three_cases, make):
         tools.sel_team(population, 1, matrix=matrix)
 
 
-def test_sel_team_trust_matrix_skips_value_check(three_cases, make, monkeypatch):
+def test_sel_team_trust_matrix_skips_value_check(three_cases, make):
     first, *_ = _cover_pool(make, three_cases)
     population = [first]
     matrix = numpy.array([[9.0, 8.0, 7.0]])
 
-    def _spy_pack(*_args, **_kwargs):
-        raise AssertionError("fitness_case_matrix should not run during trust validation")
-
-    monkeypatch.setattr(
-        "deap_er.private.operators.sel_lexicase_matrix.fitness_case_matrix",
-        _spy_pack,
-    )
-
     chosen = tools.sel_team(population, 1, matrix=matrix, trust_matrix=True)
 
     assert chosen == [first]
+    with pytest.raises(ValueError, match="does not match"):
+        tools.sel_team(population, 1, matrix=matrix)
 
 
 def test_sel_team_trust_matrix_changes_winner(three_cases, make):

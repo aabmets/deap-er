@@ -10,14 +10,13 @@
 #
 from __future__ import annotations
 
-from collections.abc import Callable, Sequence
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 import numpy
 
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
-from deap_er.private.various.rng import rng
 
 from .epsilon_lexicase_slack import LexicaseMode
 from .lexicase_vectorized import lexicase_select_vectorized
@@ -28,7 +27,7 @@ from .sel_lexicase_matrix import (
     resolve_case_weights,
 )
 
-__all__: list[str] = ["lexicase_select", "sel_lexicase", "sel_epsilon_lexicase"]
+__all__: list[str] = ["sel_lexicase", "sel_epsilon_lexicase"]
 
 _EPSILON_MODES = frozenset(
     {
@@ -38,54 +37,6 @@ _EPSILON_MODES = frozenset(
         "epsilon_dynamic",
     }
 )
-
-
-def lexicase_select(
-    individuals: list[Individual],
-    sel_count: int,
-    keep: Callable[[list[Individual], int, bool], list[Individual]],
-    *,
-    cases: Sequence[int] | None = None,
-) -> list[Individual]:
-    """Select individuals by filtering fitness cases one at a time.
-
-    Cases are considered in a fresh random order for each selection.
-    The last remaining candidate wins; ties are broken at random.
-    When ``cases`` is given, every draw uses that subset; only the
-    filter order is rerolled.
-
-    Args:
-        individuals: Individuals to select from.
-        sel_count: Number of individuals to select.
-        keep: Callable that receives the current candidates, the index
-            of the active fitness case, and whether that case is
-            maximized, and returns the surviving candidates.
-        cases: Fitness-case indices to filter on. All cases are used
-            when omitted. The caller's sequence is not mutated.
-
-    Returns:
-        The selected individuals.
-
-    Raises:
-        IndexError: If the population is empty or a case index is
-            outside the fitness length.
-    """
-    if sel_count <= 0:
-        return []
-    subset = case_subset(individuals, cases)
-    fit_weights = individuals[0].fitness.weights
-    selected = []
-    for _i in range(sel_count):
-        order = list(subset)
-        rng.shuffle(order)
-        candidates = individuals
-        while len(order) > 0 and len(candidates) > 1:
-            case = order[0]
-            candidates = keep(candidates, case, fit_weights[case] > 0)
-            order.pop(0)
-        pool = candidates if candidates else individuals
-        selected.append(rng.choice(pool))
-    return selected
 
 
 def sel_lexicase(

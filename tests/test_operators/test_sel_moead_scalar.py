@@ -11,7 +11,7 @@
 import numpy
 import pytest
 from deap_er import Fitness, creator, tools
-from deap_er.private.operators.sel_moead import _update_ideal_point
+from deap_er.private.operators.sel_moead import update_ideal_point
 
 
 def test_tchebycheff_known_values():
@@ -81,7 +81,7 @@ def test_moead_memory_updates_on_full_pool_select():
 
 def test_update_ideal_point_mixed_inf():
     fitness = numpy.array([[1.0, 2.0, 3.0], [0.5, 1.5, 2.5]])
-    got = _update_ideal_point(fitness, numpy.array([0.1, numpy.inf, 0.2]))
+    got = update_ideal_point(fitness, numpy.array([0.1, numpy.inf, 0.2]))
     assert got.shape == (3,)
     assert got.tolist() == pytest.approx([0.1, 1.5, 0.2])
 
@@ -89,7 +89,7 @@ def test_update_ideal_point_mixed_inf():
 def test_update_ideal_point_raises_on_shape_mismatch():
     fitness = numpy.array([[1.0, 2.0]])
     with pytest.raises(ValueError, match="objective count"):
-        _update_ideal_point(fitness, numpy.array([0.5]))
+        update_ideal_point(fitness, numpy.array([0.5]))
 
 
 def test_sel_moead_raises_on_ideal_point_shape_mismatch():

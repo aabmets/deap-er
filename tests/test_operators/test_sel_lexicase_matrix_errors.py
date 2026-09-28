@@ -146,3 +146,10 @@ def test_narrow_trusted_matrix_without_weights_names_the_width(multi_obj, make):
         len(tools.sel_lexicase(population, 1, matrix=narrow, trust_matrix=True, fit_weights=[1.0]))
         == 1
     )
+
+
+def test_lexicase_select_vectorized_zero_count(multi_obj, make):
+    population = [make(multi_obj, [0], (1.0, 2.0))]
+    matrix = numpy.array([[1.0, 2.0]])
+
+    assert lexicase_select_vectorized(population, 0, matrix, [0, 1], (1.0, 1.0)) == []
