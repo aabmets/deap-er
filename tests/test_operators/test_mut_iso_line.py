@@ -111,3 +111,14 @@ def test_mut_iso_line_zero_noise_is_deterministic_with_seed():
     tools.rng.seed(6)
     (second,) = tools.mut_iso_line(second_parent, second_donor, iso=0.0, sigma=0.0)
     assert first == second
+
+
+def test_iso_line_int_inverted_bounds_match_mut_iso_line():
+    tools.rng.seed(1)
+    gene = tools.iso_line_int(1, 8, iso=0.0, sigma=0.0, low=5, up=1)
+    parent: Any = [1]
+    donor: Any = [8]
+    tools.rng.seed(1)
+    (mutant,) = tools.mut_iso_line(parent, donor, iso=0.0, sigma=0.0, low=5, up=1)
+    assert gene == mutant[0]
+    assert gene != 1

@@ -85,15 +85,16 @@ def iso_line_int(
         iso: Line extension for ``t ~ Uniform(-iso, 1 + iso)``.
         sigma: Standard deviation of the isotropic perturbation.
         low: Inclusive lower bound.
-        up: Inclusive upper bound.
+        up: Inclusive upper bound. When ``up < low`` the gene is not
+            clamped.
 
     Returns:
         The mutated integer gene.
     """
-    raw = parent + _sample_t(iso) * (donor - parent) + rng.gauss(0.0, sigma)
+    gene = int(round(parent + _sample_t(iso) * (donor - parent) + rng.gauss(0.0, sigma)))
     if up < low:
-        return int(parent)
-    return int(min(max(int(round(raw)), low), up))
+        return gene
+    return min(max(gene, low), up)
 
 
 def iso_line_bit(parent: bool, donor: bool, iso: float, sigma: float) -> bool:
@@ -131,12 +132,10 @@ def _mutate_iso_line_gene(
         value = iso_line_bit(bool(parent), bool(elite), iso, sigma)
         return type(parent)(value)
     if isinstance(parent, Integral):
-        xl = int(low) if low is not None else int(parent)
-        xu = int(up) if up is not None else int(parent)
-        if low is None or up is None or xu < xl:
+        if low is None or up is None:
             gene = parent + _sample_t(iso) * (elite - parent) + rng.gauss(0.0, sigma)
             return int(round(gene))
-        return iso_line_int(parent, int(elite), iso, sigma, low=xl, up=xu)
+        return iso_line_int(parent, int(elite), iso, sigma, low=int(low), up=int(up))
     float_low = float(low) if low is not None else None
     float_up = float(up) if up is not None else None
     return iso_line_float(parent, elite, iso, sigma, low=float_low, up=float_up)
