@@ -75,8 +75,10 @@ def fill_from_density(
 ) -> list[int]:
     """Top up an undersized archive with the least crowded individuals.
 
-    Adds a density term to every raw fitness, then takes the best of
-    the individuals that are not already chosen.
+    Adds the density ``1 / (sigma_k + 2)`` to every raw fitness, where
+    ``sigma_k`` is the squared distance to the ``k``-th nearest other
+    individual and ``k = floor(sqrt(N))`` (Zitzler et al., 2001). Then
+    takes the best of the individuals that are not already chosen.
 
     Args:
         individuals: Individuals to select from.
@@ -88,7 +90,7 @@ def fill_from_density(
         The chosen indices, extended to ``sel_count`` entries.
     """
     big_n = len(individuals)
-    big_k = math.sqrt(big_n)
+    kth_rank = max(math.isqrt(big_n), 1) - 1
     vals = numpy.array([ind.fitness.values for ind in individuals], dtype=float)
     delta = vals[:, numpy.newaxis, :] - vals[numpy.newaxis, :, :]
     sq_dist = numpy.einsum("ijk,ijk->ij", delta, delta)
@@ -96,7 +98,7 @@ def fill_from_density(
     for i in range(big_n):
         distances = sq_dist[i].tolist()
         distances[i] = math.inf
-        kth_dist = randomized_select(distances, 0, big_n - 1, big_k)
+        kth_dist = randomized_select(distances, 0, big_n - 1, kth_rank)
         fits[i] += 1.0 / (kth_dist + 2.0)
 
     chosen_set = set(chosen)

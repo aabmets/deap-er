@@ -111,7 +111,7 @@ def sel_nsga_3(
         worst_point = numpy.max(fitness, axis=0)
 
     extreme_points = find_extreme_points(fitness, best_point, extreme_points)
-    front_worst = numpy.max(fitness[: sum(len(f) for f in pareto_fronts), :], axis=0)
+    front_worst = numpy.max(fitness[: len(pareto_fronts[0]), :], axis=0)
     intercepts = find_intercepts(extreme_points, best_point, worst_point, front_worst)
     niches, dist = associate_to_niche(fitness, ref_points, best_point, intercepts)
 

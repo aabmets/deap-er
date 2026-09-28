@@ -190,3 +190,40 @@ def test_nsga3():
     finally:
         del creator.__dict__[FIT]
         del creator.__dict__[IND]
+
+
+def test_find_intercepts_singular_plane_falls_back_to_front_worst():
+    extreme = numpy.array([[0.0, 0.0, 2.0], [0.0, 0.0, 2.0], [0.0, 0.0, 2.0]])
+    best = numpy.zeros(3)
+    current_worst = numpy.array([9.0, 9.0, 9.0])
+    front_worst = numpy.array([3.0, 2.0, 2.0])
+
+    intercepts = find_intercepts(extreme, best, current_worst, front_worst)
+
+    assert numpy.array_equal(intercepts, front_worst)
+
+
+def test_nsga3_fallback_normalizes_by_first_front_worst():
+    # First front {0, 3, 5} has worst point (3, 2, 2); the critical second
+    # front stretches the pool worst to (3, 4, 4). The hyperplane is
+    # unusable, so normalization must use the first-front worst, under
+    # which (2, 2, 2) is the member picked from the critical front.
+    creator.create_type("NSGA3_FB_FIT", Fitness, weights=(-1.0, -1.0, -1.0))
+    creator.create_type("NSGA3_FB_IND", list, fitness=creator.__dict__["NSGA3_FB_FIT"])
+    try:
+        values = [(3.0, 1.0, 0.0), (2.0, 0.0, 4.0), (3.0, 4.0, 1.0)]
+        values += [(2.0, 2.0, 0.0), (2.0, 2.0, 2.0), (0.0, 0.0, 2.0)]
+        population = []
+        for i, value in enumerate(values):
+            ind = creator.__dict__["NSGA3_FB_IND"]([i])
+            ind.fitness.values = value
+            population.append(ind)
+        ref_points = tools.uniform_reference_points(3, 2)
+
+        for seed in range(10):
+            tools.rng.seed(seed)
+            chosen = tools.sel_nsga_3(population, 4, ref_points)
+            assert sorted(ind[0] for ind in chosen) == [0, 3, 4, 5]
+    finally:
+        del creator.__dict__["NSGA3_FB_FIT"]
+        del creator.__dict__["NSGA3_FB_IND"]

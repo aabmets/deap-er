@@ -60,13 +60,15 @@ def test_spea2_returns_requested_count(multi_obj, make):
     ("sel_count", "expected"),
     [
         (2, [7, 8]),
-        (5, [7, 8, 9, 5, 6]),
+        (5, [7, 8, 5, 9, 4]),
     ],
 )
 def test_spea2_mixed_sign_weights_change_the_archive(make, sel_count, expected):
     # Dominance uses wvalues, so maximizing the first objective and
     # minimizing the second is not the same front as (1, 1) weights.
-    # Distances stay in objective-value space.
+    # Distances stay in objective-value space. With N = 10 the density
+    # uses the 3rd nearest neighbour (k = floor(sqrt(10))): 5 and 9 tie
+    # at raw 8, then 4 wins the raw-14 tie with 6 by index.
     creator.create_type("SEL_MS_FIT", Fitness, weights=(1.0, -1.0))
     creator.create_type("SEL_MS_IND", list, fitness=creator.__dict__["SEL_MS_FIT"])
     try:
@@ -122,6 +124,25 @@ def test_spea2_density_fill_prefers_tied_isolate(make):
     finally:
         del creator.__dict__["SEL_S2T_FIT"]
         del creator.__dict__["SEL_S2T_IND"]
+
+
+def test_spea2_density_uses_kth_nearest_neighbour(make):
+    # N = 4 gives k = 2: point 0 at squared distances 1, 9, 49 has
+    # sigma_k = 9 (Zitzler et al., 2001), not the 3rd-nearest 49.
+    creator.create_type("SEL_S2K_FIT", Fitness, weights=(-1.0, -1.0))
+    creator.create_type("SEL_S2K_IND", list, fitness=creator.__dict__["SEL_S2K_FIT"])
+    try:
+        pts = [(0.0, 0.0), (1.0, 0.0), (3.0, 0.0), (7.0, 0.0)]
+        population = [
+            make(creator.__dict__["SEL_S2K_IND"], [i], value) for i, value in enumerate(pts)
+        ]
+        fits = [0.0] * len(population)
+        tools.rng.seed(0)
+        fill_from_density(population, [], fits, 1)
+        assert fits == pytest.approx([1 / 11, 1 / 6, 1 / 11, 1 / 38])
+    finally:
+        del creator.__dict__["SEL_S2K_FIT"]
+        del creator.__dict__["SEL_S2K_IND"]
 
 
 def test_spea2_empty_population_returns_empty():

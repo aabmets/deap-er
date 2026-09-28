@@ -60,14 +60,14 @@ def find_intercepts(
 ) -> ndarray:
     """Compute axis intercepts of the hyperplane through the extreme points.
 
-    Falls back to a worst-point estimate when the hyperplane is
-    degenerate or the intercepts are not usable.
+    Falls back to ``front_worst`` when the hyperplane is degenerate
+    or the intercepts are not usable.
 
     Args:
         extreme_points: One extreme point per objective.
         best_point: Current ideal point.
         current_worst: Worst point including memory from prior generations.
-        front_worst: Worst point on the current fronts.
+        front_worst: Worst point on the non-dominated front.
 
     Returns:
         Intercepts used to scale the objectives.
@@ -77,7 +77,7 @@ def find_intercepts(
     try:
         x = numpy.linalg.solve(big_a, b)
     except numpy.linalg.LinAlgError:
-        intercepts = current_worst
+        intercepts = front_worst
     else:
         if numpy.count_nonzero(x) != len(x):
             intercepts = front_worst
