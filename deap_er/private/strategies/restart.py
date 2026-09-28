@@ -35,6 +35,7 @@ from deap_er.private.strategies.restart_ops import (
     resize_offsprings,
     set_strategy_sigma,
     target_met,
+    validate_lambda_factor,
 )
 from deap_er.private.strategies.restart_tracker import RunTracker
 from deap_er.private.typedefs import Individual
@@ -86,6 +87,7 @@ class RestartStrategy:
 
         self.dim = strategy_dim(strategy)
         self._lambda_default = int(getattr(strategy, "lamb", default_lambda(self.dim)))
+        validate_lambda_factor(self._lambda_default, lambda_factor, max_large_restarts)
         self._lambda_large = self._lambda_default
         self._mu_default = int(getattr(strategy, "mu", 1))
         self._irestart_large = 0
@@ -228,9 +230,8 @@ class RestartStrategy:
                 budget_large=self._budget_large,
                 budget_small=self._budget_small,
             )
-        self._small_run_cap = (
-            max(1, self._last_large_run_evals // 2) if self._regime == "small" else None
-        )
+        small = self._regime == "small"
+        self._small_run_cap = max(1, self._last_large_run_evals // 2) if small else None
         self._apply_restart(lamb, sigma)
         self._run_evals = 0
         self._begin_run(lamb, sigma)

@@ -33,6 +33,7 @@ __all__: list[str] = [
     "resize_offsprings",
     "set_strategy_sigma",
     "target_met",
+    "validate_lambda_factor",
 ]
 
 
@@ -122,6 +123,32 @@ def apply_strategy_restart(
         del ind.fitness.values
         parents.append(ind)
     strategy.reset_state(parents, sigma, offsprings=lamb, survivors=survivors)
+
+
+def validate_lambda_factor(
+    lambda_default: int, lambda_factor: float, max_large_restarts: int
+) -> None:
+    """Reject a ``lambda_factor`` whose large-regime λ can drop below 1.
+
+    Large restarts use ``int(lambda_default * lambda_factor**i)`` for
+    ``i`` up to ``max_large_restarts``.
+
+    Args:
+        lambda_default: First-run offspring count.
+        lambda_factor: Population growth factor per large restart.
+        max_large_restarts: Largest exponent ``i``.
+
+    Raises:
+        ValueError: If any reachable large-regime λ is less than 1.
+    """
+    exponents = range(max_large_restarts + 1)
+    smallest = min((int(lambda_default * lambda_factor**i) for i in exponents), default=1)
+    if smallest < 1:
+        raise ValueError(
+            f"lambda_factor={lambda_factor} with offsprings={lambda_default} and "
+            f"max_large_restarts={max_large_restarts} gives a restart λ of {smallest}; "
+            "every restart needs at least 1 offspring."
+        )
 
 
 def next_ipop_params(

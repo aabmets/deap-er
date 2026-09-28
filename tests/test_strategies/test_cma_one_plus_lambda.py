@@ -78,3 +78,16 @@ def test_update_invalid_parent_adopts_best_without_fake_success():
         assert strategy.big_c == pytest.approx(cov0)
     finally:
         _teardown()
+
+
+def test_one_plus_lambda_reset_state_requires_fitness():
+    ind_cls = _setup()
+    try:
+        parent = ind_cls([1.0, 1.0])
+        parent.fitness.values = (2.0,)
+        strategy = tools.StrategyOnePlusLambda(parent, 1.0)
+        bare: Any = [0.0, 0.0]
+        with pytest.raises(TypeError, match="fitness"):
+            strategy.reset_state(bare, 0.5)
+    finally:
+        _teardown()

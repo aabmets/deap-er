@@ -9,6 +9,7 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import numpy
+import pytest
 from deap_er import Fitness, creator, tools
 from deap_er.private.strategies.restart_common import sample_small_lambda
 from deap_er.private.strategies.restart_ops import (
@@ -201,3 +202,22 @@ def test_multi_objective_leftover_batch_keeps_parent_count():
         assert len(strategy.parents) == 6
     finally:
         _teardown_mo()
+
+
+def test_lambda_factor_that_shrinks_lambda_to_zero_is_rejected():
+    strategy = tools.Strategy([0.0] * 2, sigma=1.0, offsprings=4)
+    with pytest.raises(ValueError, match="lambda_factor=0.1"):
+        tools.RestartStrategy(strategy, mode="ipop", budget=1000, lambda_factor=0.1)
+
+
+def test_shrinking_lambda_factor_that_stays_positive_is_accepted():
+    ind_cls = _so_types()
+    try:
+        strategy = tools.Strategy([0.0] * 2, sigma=1.0, offsprings=10)
+        restart = tools.RestartStrategy(strategy, mode="ipop", budget=1000, lambda_factor=0.9)
+        restart.generate(ind_cls)
+        restart._tracker.terminate = True
+        restart.restart()
+        assert strategy.lamb == 9
+    finally:
+        _teardown_so()
