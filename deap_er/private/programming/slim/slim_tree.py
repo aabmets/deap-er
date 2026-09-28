@@ -115,7 +115,8 @@ def compile_slim_tree(
         compile_tree(delta, prim_set, backend=backend, dispatch=dispatch) for delta in slim.deltas
     ]
     if len(prim_set.arguments) == 0:
-        return head_fn() + sum(delta_fn() for delta_fn in delta_fns)
+        # compile_tree already evaluated each block to its value.
+        return head_fn + sum(delta_fns)
 
     def combined(*args: Any, **kwargs: Any) -> Any:
         total = head_fn(*args, **kwargs)
