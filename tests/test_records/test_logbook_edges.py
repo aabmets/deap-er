@@ -128,3 +128,53 @@ def test_remove_drops_chapter_row_and_keeps_stream_cursor():
     assert logbook.chapters["fit"].select("gen") == [1]
     logbook.record(gen=2, fit={"avg": 3})
     assert logbook.stream.split() == ["2", "3", "2"]
+
+
+def _streamed_logbook() -> Logbook:
+    logbook = Logbook()
+    for gen in range(3):
+        logbook.record(gen=gen, fit={"avg": gen})
+    _ = logbook.stream
+    return logbook
+
+
+@pytest.mark.parametrize("index", [0, -2, -99])
+def test_insert_before_stream_cursor_does_not_restream_rows(index):
+    logbook = _streamed_logbook()
+    logbook.insert(index, {"gen": -1})
+    assert logbook.buff_index == 4
+    logbook.record(gen=3, fit={"avg": 3})
+    assert logbook.stream.split() == ["3", "3", "3"]
+
+
+def test_insert_after_stream_cursor_is_streamed():
+    logbook = _streamed_logbook()
+    logbook.insert(len(logbook), {"gen": 3})
+    assert logbook.buff_index == 3
+    assert logbook.stream.split() == ["3"]
+    assert logbook.buff_index == 4
+
+
+def test_slice_assignment_is_rejected_and_integer_assignment_kept():
+    logbook = _streamed_logbook()
+    with pytest.raises(TypeError, match="slice assignment"):
+        logbook[0:2] = []
+    assert logbook.select("gen") == [0, 1, 2]
+    logbook[1] = {"gen": 1, "note": "edited"}
+    assert logbook[1]["note"] == "edited"
+
+
+def test_in_place_repetition_is_rejected():
+    logbook = _streamed_logbook()
+    with pytest.raises(TypeError, match="clear"):
+        logbook *= 0
+    assert logbook.select("gen") == [0, 1, 2]
+    assert logbook.chapters["fit"].select("gen") == [0, 1, 2]
+
+
+@pytest.mark.parametrize("method", ["sort", "reverse"])
+def test_reordering_is_rejected(method):
+    logbook = _streamed_logbook()
+    with pytest.raises(TypeError, match=method):
+        getattr(logbook, method)()
+    assert logbook.select("gen") == [0, 1, 2]
