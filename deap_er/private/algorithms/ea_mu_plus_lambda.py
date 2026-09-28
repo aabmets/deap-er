@@ -15,7 +15,7 @@ from deap_er.private.toolbox import Toolbox
 from deap_er.private.typedefs import EvoAlgoResult, EvoRecords, EvoStats, Individual
 
 from .generations import evolve_generations
-from .variation import var_or
+from .variation import check_var_or_pool, var_or
 
 __all__ = ["ea_mu_plus_lambda"]
 
@@ -69,8 +69,11 @@ def ea_mu_plus_lambda(
         The final population and the logbook.
 
     Raises:
-        ValueError: If ``n_evals`` is negative.
+        ValueError: If ``n_evals`` is negative, or if ``population``
+            is empty while ``generations`` and ``offsprings`` are positive.
     """
+    if generations > 0:
+        check_var_or_pool(population, offsprings)
     return evolve_generations(
         toolbox,
         population,

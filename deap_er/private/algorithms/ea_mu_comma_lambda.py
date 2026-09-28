@@ -15,7 +15,7 @@ from deap_er.private.toolbox import Toolbox
 from deap_er.private.typedefs import EvoAlgoResult, EvoRecords, EvoStats, Individual
 
 from .generations import evolve_generations
-from .variation import var_or
+from .variation import check_var_or_pool, var_or
 
 __all__ = ["ea_mu_comma_lambda"]
 
@@ -70,13 +70,16 @@ def ea_mu_comma_lambda(
 
     Raises:
         ValueError: If ``survivors`` is greater than ``offsprings``,
-            or if ``n_evals`` is negative.
+            if ``n_evals`` is negative, or if ``population`` is empty
+            while ``generations`` and ``offsprings`` are positive.
     """
     if survivors > offsprings:
         raise ValueError(
             "The number of survivors must be less than or equal to the number of offsprings."
         )
 
+    if generations > 0:
+        check_var_or_pool(population, offsprings)
     return evolve_generations(
         toolbox,
         population,
