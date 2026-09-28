@@ -17,7 +17,7 @@ from deap_er.private.records.logbook import Logbook
 from deap_er.private.toolbox import Toolbox
 from deap_er.private.typedefs import EvoStats, Individual
 
-from .loop import budget_spent, check_n_evals, consume_evals, new_logbook, record_generation
+from .loop import budget_spent, check_n_evals, consume_evals, record_generation
 from .variation import var_or
 
 __all__: list[str] = ["ea_map_elites"]
@@ -116,7 +116,7 @@ def ea_map_elites(
             ``initial`` are both empty, or if ``n_evals`` is negative.
     """
     check_n_evals(n_evals)
-    logbook = new_logbook(stats, log_time=log_time)
+    logbook = Logbook()
     logbook.header = (
         ["gen", "nevals", "coverage", "num_elites", "qd_score"]
         + (["duration"] if log_time else [])
