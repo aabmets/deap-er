@@ -71,10 +71,12 @@ def step_islands(
     if eval_keys is not None and len(eval_keys) != len(demes):
         raise ValueError("eval_keys must have one entry per deme.")
 
-    populations: list[list[Individual]] = []
-    for toolbox, population in demes:
+    for toolbox, _population in demes:
         _require_operator(toolbox, "vary")
         _require_operator(toolbox, "select")
+
+    populations: list[list[Individual]] = []
+    for toolbox, population in demes:
         evaluate_invalid(toolbox, population)
         offspring = toolbox.vary(population)
         evaluate_invalid(toolbox, offspring)
