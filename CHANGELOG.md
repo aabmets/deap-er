@@ -14,6 +14,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `structural_meta_case_columns(..., valid=mask)` computes
   `non_finite_fraction` over the masked rows only (for example the
   scored rows, leaving out warmup and inter-series padding)
+
+### Changed
+
+- `creator.create_type` returns the created class instead of `None`.
+  Calling it again with the same name and an equal definition returns
+  the existing class with no warning and no replacement (classes are
+  compared by identity, other values with `==`); a different definition
+  still warns and replaces
 - `gp.UnboundedLookbackError` (a `ValueError`), raised by
   `tape_lookback` for tapes that hold `ema`
 
@@ -59,6 +67,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `structural_meta_case_weights` maximised `non_finite_fraction`, which
   pushed lexicase toward programs that output nothing. Every structural
   meta-case is now minimised (`-1.0`). **Selection behaviour changes**
+- `creator.create_type` wrote new types into the module's own globals,
+  so a type named `array`, `warnings`, `cast`, `create_type` and so on
+  overwrote the module's import and broke later calls. Such names now
+  raise `ValueError`
 
 ## [3.1.2] - 2026-09-10
 
