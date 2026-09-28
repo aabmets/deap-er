@@ -24,6 +24,13 @@ class TestStatistics:
         res = s.compile([5, 6, 7, 8])
         assert res == {"mean": 6.5, "max": 8}
 
+    def test_register_same_name_replaces_function_without_duplicate_field(self):
+        s = Statistics()
+        s.register("avg", numpy.mean)
+        s.register("avg", max)
+        assert s.fields == ["avg"]
+        assert s.compile([1, 2, 3]) == {"avg": 3}
+
     def test_multi_statistics(self):
         length_stats = Statistics(key=len)
         item_stats = Statistics(key=itemgetter(0))
