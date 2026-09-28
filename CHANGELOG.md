@@ -7,6 +7,208 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Bug-hunt release: records, variation, algorithms, strategies and
+benchmarks, GP core, selection, GP backends, and core utilities
+([#122](https://github.com/aabmets/deap-er/pull/122)–[#129](https://github.com/aabmets/deap-er/pull/129)).
+The public names on `deap_er`, `tools`, and `gp` are unchanged.
+
+### Changed
+
+- `Logbook.sort`, `Logbook.reverse`, slice assignment, and `*=` raise
+  `TypeError`. They bypassed the chapter and stream-cursor bookkeeping
+  and silently desynchronized the log. Integer item assignment still
+  works ([#122](https://github.com/aabmets/deap-er/pull/122))
+- Records raise `ValueError` on input they used to accept: a negative
+  `HallOfFame` `maxsize`; a multi-objective individual in
+  `GridArchive`, `CvtArchive`, or `UnstructuredArchive`, now also when
+  it is unevaluated or its descriptor is NaN; a `GridArchive` range
+  whose span `high - low` overflows; and a non-finite descriptor in
+  `CvtArchive.nearest_centroid`, which used to return cell 0
+  ([#122](https://github.com/aabmets/deap-er/pull/122))
+- `ea_mu_plus_lambda`, `ea_mu_comma_lambda`, and `var_or` raise
+  `ValueError` up front on an empty population when offspring are due,
+  instead of failing mid-run. `evaluate_invalid`, and so every
+  driver, raises `ValueError` when `evaluate_batch` returns fewer
+  fitnesses than individuals; the result used to be truncated and the
+  rest left unevaluated
+  ([#124](https://github.com/aabmets/deap-er/pull/124))
+- **`n_evals=0` now evaluates and records generation 0**, then stops.
+  It used to record an unevaluated generation 0, and statistics
+  crashed on it ([#124](https://github.com/aabmets/deap-er/pull/124))
+- `ea_generate_update_restarts`, `ea_map_elites`, and `ea_policy`
+  record through the same path as `ea_simple`, so restart fields now
+  also reach `MultiStatistics` chapters
+  ([#124](https://github.com/aabmets/deap-er/pull/124))
+- `RestartStrategy` raises `ValueError` for a `lambda_factor` that
+  shrinks λ to 0, and `Strategy` / `StrategySeparable` for `survivors`
+  outside `[1, offsprings]`; both used to fail later with
+  `ZeroDivisionError` or a NumPy shape error.
+  `StrategyOnePlusLambda.reset_state` raises `TypeError` for a parent
+  without `fitness`. `RestartStrategy.mode`, `sigma_large`,
+  `lambda_factor`, and `max_large_restarts` are read-only
+  ([#125](https://github.com/aabmets/deap-er/pull/125))
+- Selection rejects input it used to accept: `sel_epsilon_lexicase`
+  and `sel_batch_epsilon_lexicase` raise `ValueError` for a negative,
+  NaN, or infinite `epsilon`; `next_downsample_cases` raises
+  `ValueError` for an unknown `mode` (it silently used `random`) and
+  `IndexError` for a fractional cohort index (it was truncated).
+  A trusted case matrix whose width differs from `fitness.values`
+  raises an error that names the case index or the width instead of a
+  bare `IndexError` or `ValueError`
+  ([#127](https://github.com/aabmets/deap-er/pull/127))
+- GP raises `ValueError` on input it used to accept or crash on:
+  `evaluate_columnar` and `bounds_from_matrix` on a matrix with no
+  rows; `lower_tree` on a window leaf that is not a positive integer
+  (it was truncated, and a window below 1 read outside the Numba
+  buffers); window primitives on a non-integral window; and the Numba
+  entry points on a malformed hand-built `gp.Tape`
+  ([#128](https://github.com/aabmets/deap-er/pull/128))
+- `race_stop` rejects an `alpha` outside `(0, 1)` before racing
+  instead of mid-race. `nsga_convergence`, `nsga_diversity`, and
+  `inv_gen_dist` raise `ValueError` for a reference individual without
+  a valid fitness instead of reading its genes as objectives. `mut_de`
+  raises `ValueError` when only one of `low` / `up` is given, also on
+  an empty individual
+  ([#123](https://github.com/aabmets/deap-er/pull/123),
+  [#129](https://github.com/aabmets/deap-er/pull/129))
+- Refilling the library RNG buffer is faster; the drawn stream is
+  bit-identical ([#129](https://github.com/aabmets/deap-er/pull/129))
+
+### Fixed
+
+- `Logbook` bookkeeping: `pop` with an out-of-range index moved the
+  stream cursor before raising; `remove` skipped the chapter rows and
+  the cursor; `insert` before the cursor streamed rows again; a
+  chapter without a first-generation row rendered no columns; a
+  streamed chapter lost its column widths; and turning `log_header`
+  on mid-stream left the chapter columns out of the header
+  ([#122](https://github.com/aabmets/deap-er/pull/122))
+- `History.get_genealogy` dropped an ancestor shared by two branches
+  under `max_depth`. It now walks breadth-first and keeps each
+  ancestor at its shallowest depth
+  ([#122](https://github.com/aabmets/deap-er/pull/122))
+- Registering a `Statistics` name again appended a duplicate field and
+  log column; it now replaces the function. `SemanticSurrogate`
+  nearest-neighbour prediction skips rows with non-finite values, and
+  `coerce_case_exam` accepts a 1-D integer index array
+  ([#122](https://github.com/aabmets/deap-er/pull/122))
+- Variation operators: `mut_polynomial_bounded` could mutate at
+  `mut_prob=0` (it compared with `<=`); `mut_es_log_normal` divided by
+  zero on an empty individual; `mig_ring([])` raised `IndexError`;
+  `cx_two_point_copy` and the other copy crossovers crashed on
+  `array.array` individuals; `iso_line_int` disagreed with
+  `mut_iso_line` on inverted bounds; and `mut_uniform_int` bounds are
+  typed as scalars or per-gene sequences
+  ([#123](https://github.com/aabmets/deap-er/pull/123))
+- Policy helpers: `island_eval_keys` raised on series case exams and
+  split equivalent catalog exams; `guard_policy_fitness_exam` compared
+  exams by segment index and both over- and under-rejected; and
+  `PolicyActionGuard.begin_generation()` without an index never
+  advanced, so a promote cooldown blocked promotes forever
+  ([#123](https://github.com/aabmets/deap-er/pull/123))
+- `ea_policy` logged a `step_islands` action as fewer evaluations than
+  ran (1 and 4 where 9 had run). It now charges the pre-dispatch
+  estimate to `nevals` and the `n_evals` budget
+  ([#124](https://github.com/aabmets/deap-er/pull/124))
+- `step_islands` could step earlier demes before rejecting a later
+  one, and an immigrant whose `id()` was reused from a freed
+  individual could keep another deme's fitness. Every deme is now
+  validated first, and arrivals are invalidated correctly
+  ([#124](https://github.com/aabmets/deap-er/pull/124))
+- Default ε-lexicase could filter out every candidate and then draw
+  from the whole pool, returning strictly dominated individuals. A
+  case that every remaining candidate fails now removes no one.
+  **Selection output of `sel_epsilon_lexicase` and
+  `sel_batch_epsilon_lexicase` changes**
+  ([#127](https://github.com/aabmets/deap-er/pull/127))
+- `sel_spea_2` density used the (k+1)-th nearest neighbour, which
+  for N < 4 was the point itself. It now uses the k-th, with
+  k = ⌊√N⌋ (Zitzler et al., 2001). **Seeded output of `sel_spea_2`
+  changes** when the archive is filled by density
+  ([#127](https://github.com/aabmets/deap-er/pull/127))
+- `sel_nsga_3` normalized by the worst point of every sorted front
+  (or of the whole population on a singular hyperplane) instead of the
+  first front, and a flat objective was divided by a near-zero gap.
+  `sel_nsga_3` and `sel_age_moea_2` now use the first-front worst and
+  pymoo's degenerate-nadir correction. **Selection changes when the
+  fallback fires or an objective is flat**
+  ([#127](https://github.com/aabmets/deap-er/pull/127))
+- `sel_team` failed on a trusted matrix wider than `fitness.values`,
+  `sample_informed_cases` did not cap at the trusted matrix width, and
+  `next_lexicase_cases` mutated the exams before rejecting a bad floor
+  ([#127](https://github.com/aabmets/deap-er/pull/127))
+- BIPOP drew the small-regime λ with exponent U where Hansen (2009)
+  uses U². **Seeded output of BIPOP restarts changes**
+  ([#125](https://github.com/aabmets/deap-er/pull/125))
+- MO-CMA restarts ratcheted the parent count down and never let it
+  grow back, and a leftover-budget batch collapsed the parent set.
+  `RestartStrategy.best_fitness` and the `target_f` stop test read the
+  `stagnation_key` value instead of the fitness
+  ([#125](https://github.com/aabmets/deap-er/pull/125))
+- Benchmarks: `MovingPeaks` raised on a `pfunc` pool shorter than
+  `npeaks` and used a negative `uniform_height` / `uniform_width` as is
+  instead of drawing random values; `bm_chuang_f3` added the wrap
+  block elementwise on NumPy individuals; and `bm_rastrigin_scaled`
+  divided by zero on one dimension
+  ([#125](https://github.com/aabmets/deap-er/pull/125))
+- `compile_tree` could return a stale compiled function when a
+  discarded callable's memory address was reused
+  ([#126](https://github.com/aabmets/deap-er/pull/126))
+- `PrimitiveSet.rename_arguments` left the terminal's `name` stale
+  ([#126](https://github.com/aabmets/deap-er/pull/126))
+- `tune_ephemerals` left clip bounds on a caller's reused strategy and
+  wrote floats into bool and string ephemerals. A deep copy of a
+  creator-made `SlimTree` lost its class, and `compile_slim_tree`
+  crashed on a zero-argument set. Push policy programs truncated float
+  scores in `ADD` / `SUB` and leaked `IndexError` on stack underflow
+  (now `ValueError`)
+  ([#126](https://github.com/aabmets/deap-er/pull/126))
+- A constant under a window op came out as an all-`nan` series on the
+  Python and opcode backends but as a constant series on Numba, and
+  pair windows raised on a constant operand. All backends now read it
+  as a constant column. **Output changes for
+  programs that window a constant**
+  ([#126](https://github.com/aabmets/deap-er/pull/126),
+  [#128](https://github.com/aabmets/deap-er/pull/128))
+- `tape_interval` / `tape_flags` certificates were not conservative
+  for `rolling_sum`, `diff`, `rolling_std`, `rolling_cov`,
+  `rolling_beta`, `vdiv`, and for `vlog` / `vsqrt` on partial domains,
+  and missed an all-`nan` `ema` one row short of its warmup. The CSE
+  planner shared constant pools across child tapes, and `lower_tree`
+  could not lower a named window terminal
+  ([#128](https://github.com/aabmets/deap-er/pull/128))
+- `write_affine_scale` drew from the library RNG when it built the
+  ephemerals it writes. **Seeded runs that call it change**
+  ([#128](https://github.com/aabmets/deap-er/pull/128))
+- `warmup_numba` compiled no kernels, and the default
+  `NUMBA_CACHE_DIR` was ignored when Numba was already imported
+  ([#128](https://github.com/aabmets/deap-er/pull/128))
+- `creator.create_type` did not instantiate a class attribute with a
+  custom metaclass per individual, and re-creating a type with an
+  equal ndarray attribute warned and replaced the class. `Fitness`
+  kept non-float entries when `values` mixed floats and ints
+  ([#129](https://github.com/aabmets/deap-er/pull/129))
+- `EvalCache` keyed NumPy genomes by a rounded `str()`, so distinct
+  genomes collided; it now keys them by shape, dtype, and bytes.
+  `resample` with a cache and no `key`, and `race_stop` without
+  `key_fn`, shared or went stale on draws across individuals; draws
+  now follow the genome. `race_stop` crashed restoring survivors on
+  ndarray individuals and dropped equal-but-distinct ones, and used
+  1.96 for any `alpha` other than 0.10, 0.05, and 0.01. It now uses
+  the exact normal quantile. **`race_stop` eliminations can change**
+  ([#129](https://github.com/aabmets/deap-er/pull/129))
+- `Checkpoint.load` accepted a malformed RNG buffer and failed later
+  with `IndexError`. It now raises `CheckpointError` and leaves the
+  instance and the RNG untouched
+  ([#129](https://github.com/aabmets/deap-er/pull/129))
+- `semantic_solve_bits` raised a 0/0 `RuntimeWarning` on an empty
+  case, and a NaN mean corrupted the `evaluate_case_halving` ranking
+  and kept the worst individuals; NaN now ranks last
+  ([#129](https://github.com/aabmets/deap-er/pull/129))
+- The `noisy_fitness` example used a constant resample key, so every
+  mutant shared three cache entries and evolution stalled
+  ([#129](https://github.com/aabmets/deap-er/pull/129))
+
 ## [3.1.3] - 2026-09-28
 
 ### Added

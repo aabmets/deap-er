@@ -185,6 +185,9 @@ The following is extra.
     the first parent. DEAP drew it from a `set` of classes, so one
     seed bred different children in different processes and a
     checkpoint resumed in a fresh process left the original path.
+36. `rename_arguments` renames the argument terminal's `name` as
+    well as its `value`. DEAP updated only `value`, so the terminal
+    kept reporting the old `ARG0` name after the rename.
 
 The columnar contract is in the
 [columnar GP tutorial](../../tutorials/columnar_gp.md). The private

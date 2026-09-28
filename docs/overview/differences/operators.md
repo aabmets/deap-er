@@ -50,7 +50,10 @@ from the original sources.
     strategy vector.
 12. `sel_spea_2` uses the full distance row for density, with the
     self-distance set to infinity, so the $k$-th neighbour is not the
-    zero pad of the upper triangle. An empty pool returns `[]`.
+    zero pad of the upper triangle. The density is
+    $1 / (\sigma_i^k + 2)$ with $k = \lfloor\sqrt{N}\rfloor$
+    (Zitzler, Laumanns and Thiele, 2001), not the $(k+1)$-th
+    neighbour. An empty pool returns `[]`.
 13. `sel_nsga_3` intercepts on the success path are $1/x + \mathrm{best}$.
     Association treats a near-zero $\mathrm{intercepts} - \mathrm{best}$
     gap as $1$ so the niche distance is not NaN. Niching stops when
@@ -202,6 +205,21 @@ from the original sources.
 39. `sel_double_tournament` returns `[]` when the pool is empty
     or `rounds <= 0`. It no longer `ValueError`s on `max([])`
     after `sel_random` started returning an empty draw.
+40. `mut_polynomial_bounded` mutates a gene when the draw is
+    strictly below `mut_prob`, like every other mutator. A draw of
+    exactly `0.0` no longer mutates at `mut_prob=0`.
+41. `mut_es_log_normal` leaves an empty individual unchanged. It no
+    longer raises `ZeroDivisionError` computing the learning rates
+    from a length of $0$.
+42. `mig_ring([])` is a no-op. With no demes, the default ring was
+    `[0]` and raised `IndexError` on the missing deme.
+43. `sel_nsga_3` falls back to the worst point of the first front
+    (not of every sorted front, or of the whole pool) when the
+    hyperplane is singular or its intercepts are unusable. An
+    objective whose nadir still sits within $10^{-6}$ of the ideal
+    point takes the population worst instead (Blank, Deb and Roy,
+    2019), so a flat axis is not normalized by a near-zero gap.
+    `sel_age_moea_2` shares the correction.
 
 [deap-321]: https://github.com/DEAP/deap/issues/321
 [deap-472]: https://github.com/DEAP/deap/issues/472
