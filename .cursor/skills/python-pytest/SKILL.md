@@ -20,7 +20,7 @@ uv run pytest tests/test_base/test_toolbox.py -n0
 uv run pytest tests/test_base/test_toolbox.py::TestToolbox::test_registration -n0
 ```
 
-Default `addopts` in `pyproject.toml`: coverage on `deap_er`, xdist `worksteal` (max 8), Allure results under `reports/allure-results/`, HTML coverage under `.htmlcov/`. `session_timeout = 60`. Use `-n0` when isolating a single test.
+Default `addopts` in `pyproject.toml`: coverage on `deap_er`, xdist `worksteal` (max 8), Allure results under `reports/allure-results/`, HTML coverage under `.htmlcov/`. `session_timeout = 120`. Use `-n0` when isolating a single test.
 
 Allure HTML is generated after the session by `tests/harness/allure_report_plugin.py` (via `tests/conftest.py`) using `node_modules/.bin/allure`. If the CLI is missing, `source tools/dev` or `bun install`. Do not use a global `allure`. Open the report with the `allure` helper from `tools/dev`.
 

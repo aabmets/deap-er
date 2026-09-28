@@ -87,3 +87,17 @@ def test_uncorrelated_large_columns_agree_to_an_absolute_floor(name):
     right = 1e6 + numpy.cumsum(generator.normal(0.0, 1.0, 20_000))
     pset = window_kit(16, "pair")
     check_parity(window_tree(pset, name, "pair"), pset, (left, right), atol=1e-9)
+
+
+def test_numba_backend_reads_a_constant_window_operand_as_a_column():
+    pset = gp.make_column_pset(["value"])
+    gp.add_numpy_primitives(pset)
+    gp.add_window_primitives(pset)
+    pset.add_terminal(2.0, gp.Array, name="two")
+    tree = gp.PrimitiveTree.from_string("vadd(value, rolling_mean(two, 3))", pset)
+    column = numpy.arange(6.0)
+
+    expected = gp.compile_tree(tree, pset)(column)
+    actual = gp.compile_tree(tree, pset, backend="numba")(column)
+
+    numpy.testing.assert_allclose(actual, expected)

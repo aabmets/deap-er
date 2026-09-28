@@ -119,6 +119,3 @@ def test_python_backend_reads_a_constant_window_operand_as_a_column():
     result = gp.compile_tree(tree, pset)(column)
 
     numpy.testing.assert_allclose(result, [numpy.nan, numpy.nan, 4.0, 5.0, 6.0, 7.0])
-    if gp.numba_available():
-        numba_result = gp.compile_tree(tree, pset, backend="numba")(column)
-        numpy.testing.assert_allclose(result, numba_result)
