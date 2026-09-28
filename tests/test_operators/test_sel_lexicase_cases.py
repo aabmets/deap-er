@@ -60,6 +60,19 @@ def test_informed_cases_empty_count_or_pool(error_cases, make):
         tools.sample_informed_cases(population, bad_count)
 
 
+def test_informed_cases_caps_at_trusted_matrix_width(error_cases, make):
+    population = [make(error_cases, [i], (0.0, 1.0, 0.0, 1.0)) for i in range(3)]
+    tools.rng.seed(0)
+
+    narrow = tools.sample_informed_cases(
+        population, 3, matrix=numpy.zeros((3, 2)), trust_matrix=True
+    )
+    wide = tools.sample_informed_cases(population, 8, matrix=numpy.ones((3, 8)), trust_matrix=True)
+
+    assert sorted(narrow) == [0, 1]
+    assert sorted(wide) == list(range(8))
+
+
 def test_informed_cases_invalid_first_fitness_raises(error_cases, make):
     # An unevaluated first individual must not collapse to an empty subset.
     invalid = error_cases([0])

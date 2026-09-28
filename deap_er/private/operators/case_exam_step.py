@@ -80,9 +80,18 @@ def next_lexicase_cases(
         Case indices for the next lexicase call.
 
     Raises:
-        ValueError: If ``elites`` or ``exams`` is empty, or ``n_cases`` is 0.
+        ValueError: If ``elites`` or ``exams`` is empty, ``n_cases`` is 0,
+            or ``min_cases`` is less than 1. Exams are not varied when
+            an argument is rejected.
     """
+    floor = min_cases
+    if case_count is not None:
+        floor = max(floor, int(case_count))
+    if floor < 1:
+        raise ValueError("min_cases must be at least 1")
     n_cases, _solve = elite_solve_matrix(elites, matrix, trust_matrix, solved)
+    if n_cases == 0:
+        raise ValueError("every individual must have a valid fitness of the same length")
     items, pool = bound_case_exams(exams, n_cases)
     if not items:
         raise ValueError("exams must be non-empty")
@@ -90,9 +99,6 @@ def next_lexicase_cases(
         span = exam.mutation_bound(n_cases) if length is None else length
         _vary_exam(exam, span, mut_prob)
     source: ExamLike = pool if pool is not None else items
-    floor = min_cases
-    if case_count is not None:
-        floor = max(floor, int(case_count))
     repaired = guard_case_exams(
         source,
         elites,

@@ -96,7 +96,8 @@ def sample_informed_cases(
         individuals: Population whose fitness vectors supply solve bits.
             Pass a fully scored parent sample if evaluation is sparse.
         case_count: Number of case indices to return. Values above the
-            number of cases are capped. ``case_count <= 0`` returns
+            number of cases (matrix columns when ``matrix`` is used) are
+            capped. ``case_count <= 0`` returns
             an empty list.
         solved: Predicate ``(individual, case) -> bool``. Optional.
             When not the default zero test, ``matrix`` is ignored.
@@ -121,14 +122,12 @@ def sample_informed_cases(
         raise ValueError("individuals must be non-empty")
     if count <= 0:
         return []
-    n_cases = len(individuals[0].fitness.values)
-    if n_cases == 0:
-        raise ValueError("every individual must have a valid fitness of the same length")
-    size = min(count, n_cases)
     predicate = solved if solved is not None else _default_solved
     if matrix is not None and predicate is _default_solved:
         validate_case_matrix(matrix, individuals, trust=trust_matrix)
         solve = _solve_from_matrix(matrix)
     else:
-        solve = _solve_matrix(individuals, n_cases, predicate)
-    return _farthest_first_cases(solve, size)
+        solve = _solve_matrix(individuals, len(individuals[0].fitness.values), predicate)
+    if solve.shape[0] == 0:
+        raise ValueError("every individual must have a valid fitness of the same length")
+    return _farthest_first_cases(solve, min(count, solve.shape[0]))

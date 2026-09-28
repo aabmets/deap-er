@@ -65,7 +65,11 @@ def sel_tournament(
         fit_attr: Attribute used as the selection criterion.
 
     Returns:
-        The selected individuals.
+        The selected individuals. ``rounds <= 0`` returns an empty list.
+
+    Raises:
+        IndexError: If ``individuals`` is empty and ``rounds > 0``.
+        ValueError: If ``contestants`` is less than 1.
     """
     if rounds <= 0:
         return []
