@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.3] - 2026-09-28
+
 ### Added
 
 - `add_window_primitives(..., ema=False)` and
@@ -340,7 +342,8 @@ commits that landed on that tag.
 - Hypervolume and least-contributed indicator
 - CMA strategy keyword arguments
 
-[Unreleased]: https://github.com/aabmets/deap-er/compare/3.1.2...HEAD
+[Unreleased]: https://github.com/aabmets/deap-er/compare/3.1.3...HEAD
+[3.1.3]: https://github.com/aabmets/deap-er/compare/3.1.2...3.1.3
 [3.1.2]: https://github.com/aabmets/deap-er/compare/3.1.1...3.1.2
 [3.1.1]: https://github.com/aabmets/deap-er/compare/3.0.0...3.1.1
 [3.1.0]: https://github.com/aabmets/deap-er/compare/3.0.0...3.1.0
