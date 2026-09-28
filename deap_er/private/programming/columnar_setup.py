@@ -140,7 +140,8 @@ def evaluate_columnar(
 
     Raises:
         ValueError: If ``target`` is not a one-dimensional series
-            whose length matches ``matrix`` rows.
+            whose length matches ``matrix`` rows, or if ``matrix`` has
+            no rows.
     """
     expected = numpy.asarray(target, dtype=numpy.float64)
     if expected.ndim != 1:
@@ -148,6 +149,8 @@ def evaluate_columnar(
     packed = numpy.asarray(matrix, dtype=numpy.float64)
     if packed.ndim != 2 or packed.shape[0] != expected.shape[0]:
         raise ValueError("matrix rows must match the target length")
+    if packed.shape[0] == 0:
+        raise ValueError("matrix must hold at least one row to score against")
     if not individuals:
         return []
     tapes, index = _lower_unique(individuals, pset)

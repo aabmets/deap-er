@@ -183,3 +183,8 @@ def test_tape_flags_marks_an_ema_shorter_than_its_warmup_as_all_nan():
     bounds = numpy.array([[0.0, 1.0], [0.0, 1.0]], dtype=numpy.float64)
     assert gp.tape_flags(tape, bounds, n_rows=3).all_nan
     assert not gp.tape_flags(tape, bounds, n_rows=4).all_nan
+
+
+def test_bounds_from_matrix_rejects_a_matrix_without_rows():
+    with pytest.raises(ValueError, match="at least one row"):
+        gp.bounds_from_matrix(numpy.empty((0, 2)))
