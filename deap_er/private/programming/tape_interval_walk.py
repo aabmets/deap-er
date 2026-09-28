@@ -25,6 +25,7 @@ from .tape_interval_ops import (
     WINDOWED,
     Summary,
     hides_warmup,
+    is_point,
     merge_arrays,
 )
 from .tape_interval_window import apply_pair_window, apply_window
@@ -102,7 +103,7 @@ def _apply_step(stack: list[Summary], tape: Tape, step: int, column_bounds: nump
 def _push_col_load(stack: list[Summary], column_bounds: numpy.ndarray, operand: int) -> None:
     lo, hi = float(column_bounds[operand, 0]), float(column_bounds[operand, 1])
     can_finite = numpy.isfinite(lo) or numpy.isfinite(hi)
-    stack.append(Summary(lo, hi, 0, 0, lo == hi, can_finite, "array"))
+    stack.append(Summary(lo, hi, 0, 0, is_point(lo, hi), can_finite, "array"))
 
 
 def _push_const(stack: list[Summary], tape: Tape, operand: int) -> None:

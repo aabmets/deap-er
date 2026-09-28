@@ -27,6 +27,8 @@ __all__: list[str] = [
     "WINDOWED",
     "Summary",
     "both_can_be_finite",
+    "const_pair",
+    "is_point",
     "hides_warmup",
     "merge_arrays",
     "normalize_bounds",
@@ -147,9 +149,32 @@ def merge_arrays(left: Summary, right: Summary) -> Summary:
         max(left.hi, right.hi),
         max(left.lookback, right.lookback),
         min(left.first_finite, right.first_finite),
-        left.const and right.const and left.lo == left.hi and right.lo == right.hi,
+        const_pair(left, right),
         left.can_finite or right.can_finite,
         "array",
+    )
+
+
+def is_point(lo: float, hi: float) -> bool:
+    """Return whether ``[lo, hi]`` holds exactly one value.
+
+    Written as a two-sided bound so that a ``nan`` endpoint is never a
+    point and ``-0.0`` and ``0.0`` count as the same value.
+
+    Args:
+        lo: Lower endpoint.
+        hi: Upper endpoint.
+
+    Returns:
+        True when both endpoints are the same number.
+    """
+    return lo <= hi <= lo
+
+
+def const_pair(left: Summary, right: Summary) -> bool:
+    """Return whether both operands are constant, single-valued intervals."""
+    return (
+        left.const and right.const and is_point(left.lo, left.hi) and is_point(right.lo, right.hi)
     )
 
 

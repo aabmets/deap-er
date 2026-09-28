@@ -14,7 +14,7 @@ import math
 
 from .opcode_set import Opcode
 from .tape_interval_arith import hull
-from .tape_interval_ops import Summary, both_can_be_finite
+from .tape_interval_ops import Summary, both_can_be_finite, const_pair
 from .tape_lookback import opcode_lookback
 
 __all__: list[str] = ["apply_pair_window", "apply_window"]
@@ -87,6 +87,6 @@ def apply_pair_window(opcode: int, left: Summary, right: Summary, operand: int) 
     else:
         # beta divides by a variance that may be arbitrarily small.
         lo, hi = -math.inf, math.inf
-    const = left.const and right.const and left.lo == left.hi and right.lo == right.hi
+    const = const_pair(left, right)
     can_finite = both_can_be_finite(left, right)
     return Summary(lo, hi, lookback, first_finite, const, can_finite, "array")

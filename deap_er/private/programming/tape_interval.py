@@ -16,7 +16,7 @@ from dataclasses import dataclass
 import numpy
 
 from .tape import Tape
-from .tape_interval_ops import normalize_bounds
+from .tape_interval_ops import is_point, normalize_bounds
 from .tape_interval_walk import walk_tape
 
 __all__: list[str] = [
@@ -114,7 +114,7 @@ def tape_flags(
     scorable = summary.can_finite and summary.first_finite < n_rows
     return TapeFlags(
         all_nan=not scorable,
-        constant=scorable and summary.const and summary.lo == summary.hi,
+        constant=scorable and summary.const and is_point(summary.lo, summary.hi),
         hides_warmup=walked.warmup_hidden,
     )
 

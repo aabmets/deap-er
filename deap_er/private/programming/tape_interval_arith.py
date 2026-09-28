@@ -13,7 +13,7 @@ from __future__ import annotations
 import math
 
 from .opcode_set import Opcode
-from .tape_interval_ops import Summary, both_can_be_finite
+from .tape_interval_ops import Summary, both_can_be_finite, const_pair
 from .tape_lookback import opcode_lookback
 
 __all__: list[str] = ["apply_binary", "apply_unary", "hull"]
@@ -41,7 +41,7 @@ def hull(candidates: tuple[float, ...]) -> tuple[float, float]:
 
 def _product(left: float, right: float) -> float:
     """Multiply interval endpoints, with ``0 * inf`` read as ``0``."""
-    if left == 0.0 or right == 0.0:
+    if 0.0 in (left, right):
         return 0.0
     return left * right
 
@@ -93,7 +93,8 @@ def _protected_unary(
     # Part of the operand is out of the domain, where the result is
     # ``fill``. The rest maps onto ``(-inf, log(hi)]`` or ``[0, sqrt(hi)]``.
     lo = hi = fill
-    if child.hi > 0.0 or (not log and child.hi == 0.0):
+    reaches_domain = child.hi > 0.0 if log else child.hi >= 0.0
+    if reaches_domain:
         lo = min(fill, -math.inf if log else 0.0)
         hi = max(fill, math.log(child.hi) if log else math.sqrt(child.hi))
     return Summary(lo, hi, lookback, first_finite, False, child.can_finite, "array")
@@ -117,7 +118,7 @@ def apply_binary(opcode: int, left: Summary, right: Summary, fill: float) -> Sum
     lookback = max(left.lookback, right.lookback)
     first_finite = max(left.first_finite, right.first_finite)
     can_finite = both_can_be_finite(left, right)
-    const = left.const and right.const and left.lo == left.hi and right.lo == right.hi
+    const = const_pair(left, right)
     if opcode == int(Opcode.ADD):
         lo, hi = hull((left.lo + right.lo, left.hi + right.hi))
     elif opcode == int(Opcode.SUB):
