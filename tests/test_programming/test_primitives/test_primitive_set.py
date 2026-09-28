@@ -80,6 +80,7 @@ def test_rename_arguments_and_adf():
     pset.add_adf(adf)
     pset.rename_arguments(ARG0="x")
     assert pset.arguments == ["x"]
+    assert pset.mapping["x"].name == "x"
     assert "ADF0" in pset.mapping
 
 
