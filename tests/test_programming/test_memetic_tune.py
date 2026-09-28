@@ -162,3 +162,23 @@ def test_tune_ephemerals_leaves_a_reused_strategy_unboxed(ind_cls):
 
     gp.tune_ephemerals(free, strategy, evaluate, n_gen=1)
     assert gp.extract_ephemerals(free)[0] > 50.0
+
+
+def test_tune_ephemerals_leaves_bool_ephemerals_untouched(ind_cls):
+    pset = _float_pset("MEMETIC_BOOL_FLOAT")
+    number = pset.terminals[object][-1]()
+    pset.add_ephemeral_constant("MEMETIC_BOOL_FLAG", _true)
+    flag = pset.terminals[object][-1]()
+    tree = ind_cls([pset.mapping["add"], flag, number])
+
+    assert gp.numeric_leaves(tree) == [(tree, 2)]
+
+    strategy = tools.Strategy([0.0], 0.5, offsprings=4, survivors=2)
+    tools.rng.seed(5)
+    gp.tune_ephemerals(tree, strategy, lambda _ind: (0.0,), n_gen=1)
+
+    assert tree[1].value is True
+
+
+def _true():
+    return True

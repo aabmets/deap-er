@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import copy
 from collections.abc import Sequence
+from numbers import Real
 from typing import Any
 
 import numpy
@@ -34,8 +35,11 @@ type LeafLoc = tuple[PrimitiveTree, int]
 def numeric_leaves(individual: Any) -> list[LeafLoc]:
     """Return numeric-leaf locations in documented walk order.
 
-    A numeric leaf is an ``Ephemeral`` or a ``Terminal`` whose
-    ``ret is Window``. Order is prefix list order. A ``SlimTree``
+    A numeric leaf is an ``Ephemeral`` whose value is a real number
+    (``bool`` excluded), or a ``Terminal`` whose ``ret is Window``.
+    Ephemerals holding a ``bool``, a string, or any other non-number
+    are not numeric leaves, so tuning never rewrites them. Order is
+    prefix list order. A ``SlimTree``
     walks ``head``, then each delta, each in prefix order.
 
     Args:
@@ -51,9 +55,20 @@ def numeric_leaves(individual: Any) -> list[LeafLoc]:
         trees = [individual]
     for tree in trees:
         for index, node in enumerate(tree):
-            if isinstance(node, Ephemeral) or (isinstance(node, Terminal) and node.ret is Window):
+            if _is_numeric_leaf(node):
                 leaves.append((tree, index))
     return leaves
+
+
+def _is_numeric_leaf(node: Any) -> bool:
+    """Return whether ``node`` is a tunable numeric leaf."""
+    if isinstance(node, Terminal) and node.ret is Window:
+        return True
+    return (
+        isinstance(node, Ephemeral)
+        and isinstance(node.value, Real)
+        and not isinstance(node.value, bool)
+    )
 
 
 def extract_ephemerals(individual: Any) -> numpy.ndarray:

@@ -42,7 +42,8 @@ def tune_ephemerals(
 ) -> Any:
     """Polish numeric leaves with a short boxed CMA run.
 
-    Extracts ephemeral floats and ``Window`` ints, runs ``n_gen``
+    Extracts real-valued ephemerals and ``Window`` ints (see
+    :func:`numeric_leaves`), runs ``n_gen``
     ``generate`` / ``update`` steps on ``strategy``, writes the
     repaired centroid back, then invalidates fitness, the compile
     cache, and matching ``EvalCache`` keys for the previous
