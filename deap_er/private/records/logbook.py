@@ -16,7 +16,7 @@ import numpy
 
 from .logbook_format import format_txt
 
-__all__: list[str] = ["Logbook"]
+__all__: list[str] = ["Logbook", "json_ready"]
 
 
 class Logbook(list[dict[str, Any]]):
@@ -96,18 +96,22 @@ class Logbook(list[dict[str, Any]]):
 
         Returns:
             The removed entry.
+
+        Raises:
+            IndexError: If ``index`` is out of range.
         """
         idx = int(index)
         if idx < 0:
             idx += len(self)
-        if 0 <= idx < len(self):
-            generation = self[idx].get("gen")
-            for chapter in self.chapters.values():
-                if not chapter:
-                    continue
-                match = self.chapter_index_for_generation(chapter, generation, idx)
-                if match is not None:
-                    chapter.pop(match)
+        if not 0 <= idx < len(self):
+            raise IndexError("pop index out of range")
+        generation = self[idx].get("gen")
+        for chapter in self.chapters.values():
+            if not chapter:
+                continue
+            match = self.chapter_index_for_generation(chapter, generation, idx)
+            if match is not None:
+                chapter.pop(match)
         if idx < self.buff_index:
             self.buff_index -= 1
         return super().pop(idx)
@@ -194,7 +198,7 @@ class Logbook(list[dict[str, Any]]):
         """
         payload = {
             "header": self.header,
-            "entries": [_json_ready(entry) for entry in self],
+            "entries": [json_ready(entry) for entry in self],
             "chapters": {
                 name: json.loads(chapter.to_json()) for name, chapter in self.chapters.items()
             },
@@ -220,7 +224,7 @@ class Logbook(list[dict[str, Any]]):
         return book
 
 
-def _json_ready(value: Any) -> Any:
+def json_ready(value: Any) -> Any:
     """Convert ``value`` into a JSON-serializable object.
 
     Args:
@@ -234,9 +238,9 @@ def _json_ready(value: Any) -> Any:
     if isinstance(value, numpy.ndarray):
         return value.tolist()
     if isinstance(value, dict):
-        return {key: _json_ready(item) for key, item in value.items()}
+        return {key: json_ready(item) for key, item in value.items()}
     if isinstance(value, list | tuple):
-        return [_json_ready(item) for item in value]
+        return [json_ready(item) for item in value]
     if isinstance(value, str | int | float | bool) or value is None:
         return value
     return str(value)

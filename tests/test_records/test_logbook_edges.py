@@ -11,6 +11,7 @@
 import json
 
 import numpy
+import pytest
 from deap_er.private.records.logbook import Logbook
 
 
@@ -68,3 +69,51 @@ def test_clear_after_stream_does_not_drop_new_rows():
     text = logbook.stream
     assert "1" in text
     assert "9" in text
+
+
+def test_pop_out_of_range_keeps_stream_cursor():
+    logbook = Logbook()
+    logbook.record(gen=0)
+    logbook.record(gen=1)
+    _ = logbook.stream
+    with pytest.raises(IndexError):
+        logbook.pop(-10)
+    assert logbook.buff_index == 2
+    logbook.record(gen=2)
+    assert logbook.stream.split() == ["2"]
+
+
+def test_chapter_without_first_generation_row_renders_its_columns():
+    logbook = Logbook()
+    logbook.record(gen=0, x=1)
+    logbook.record(gen=1, x=2, fit={"avg": 3})
+    lines = str(logbook).splitlines()
+    assert lines[2].split() == ["gen", "x", "avg", "gen", "x"]
+    assert lines[-1].split() == ["1", "2", "3", "1", "2"]
+
+
+def test_streamed_chapter_keeps_column_widths_across_reads():
+    logbook = Logbook()
+    logbook.header = ["gen", "fit"]
+    logbook.chapters["fit"].header = ["avg", "max"]
+    logbook.record(gen=0, fit={"avg": 123456.0, "max": 98765.5})
+    first = logbook.stream.splitlines()
+    logbook.record(gen=1, fit={"avg": 1.5, "max": 2.5})
+    second = logbook.stream.splitlines()
+    assert len(second) == 1
+    assert len(second[0]) == len(first[-1])
+    assert second[0] == str(logbook).splitlines()[-1]
+
+
+def test_stream_header_after_enabling_log_header_includes_chapter_columns():
+    logbook = Logbook()
+    logbook.log_header = False
+    logbook.record(gen=0, x=1, fit={"avg": 1})
+    _ = logbook.stream
+    logbook.log_header = True
+    logbook.record(gen=1, x=2, fit={"avg": 2})
+    lines = logbook.stream.splitlines()
+    assert lines[0].split() == ["fit"]
+    assert set(lines[1].strip()) == {"-"}
+    assert lines[2].split() == ["gen", "x", "avg", "gen", "x"]
+    assert lines[3].split() == ["1", "2", "2", "1", "2"]

@@ -11,7 +11,7 @@
 import json
 from typing import TYPE_CHECKING, Any
 
-from .logbook import _json_ready
+from .logbook import json_ready
 
 if TYPE_CHECKING:
     from .hall_of_fame import HallOfFame
@@ -35,8 +35,8 @@ def hall_of_fame_to_json(hof: "HallOfFame") -> str:
         "maxsize": hof.maxsize,
         "items": [
             {
-                "genes": _json_ready(list(individual)),
-                "fitness": _json_ready(list(individual.fitness.values)),
+                "genes": json_ready(list(individual)),
+                "fitness": json_ready(list(individual.fitness.values)),
             }
             for individual in hof.items
         ],
