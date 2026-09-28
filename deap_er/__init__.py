@@ -10,7 +10,8 @@
 #
 from .private import creator
 from .private.checkpoint import Checkpoint
+from .private.checkpoint_read import CheckpointError
 from .private.fitness import Fitness
 from .private.toolbox import Toolbox
 
-__all__ = ["creator", "Checkpoint", "Fitness", "Toolbox"]
+__all__ = ["creator", "Checkpoint", "CheckpointError", "Fitness", "Toolbox"]

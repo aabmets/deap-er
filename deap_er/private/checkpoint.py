@@ -17,6 +17,7 @@ from typing import Any, override
 
 import dill
 
+from .checkpoint_read import CheckpointError, read_checkpoint
 from .records.hall_of_fame import HallOfFame
 from .various.rng import rng
 
@@ -37,7 +38,8 @@ class Checkpoint:
         dir_path: Directory for the file. Defaults to
             ``<cwd>/deap-er``.
         autoload: If True and the file exists, load it during
-            initialization. Defaults to True.
+            initialization. A missing file is not an error, even with
+            ``raise_errors``. Defaults to True.
         make_dir: If True, create missing parent directories on
             save. Defaults to True.
         raise_errors: If True, propagate I/O and pickle errors.
@@ -45,7 +47,8 @@ class Checkpoint:
             to False.
         hof_ind_cls: Creator individual type used to rebuild
             ``hof`` from JSON on load. When set, ``hof`` is stored
-            as JSON instead of dill.
+            as JSON instead of dill. Otherwise ``hof`` is pickled
+            like any other attribute.
     """
 
     _dir_ = "deap-er"  # Checkpoint Directory
@@ -86,56 +89,44 @@ class Checkpoint:
         self.raise_errors = raise_errors
         self.make_dir = make_dir
         self._hof_ind_cls_ = hof_ind_cls
-        if autoload is True:
+        if autoload is True and self.file_path.is_file():
             self.load()
 
     def load(self) -> bool:
         """Load attributes from the checkpoint file onto this instance.
+
+        The file is read and validated before anything changes. A failed
+        load leaves the instance and the library RNG untouched.
 
         Returns:
             True on success, False on failure when ``raise_errors`` is False.
 
         Raises:
             OSError: If the file cannot be read and ``raise_errors`` is True.
-            dill.PickleError: If deserialization fails and ``raise_errors`` is True.
+            CheckpointError: If the file is not a loadable checkpoint and
+                ``raise_errors`` is True.
         """
         file_path = self.file_path
         raise_errors = self.raise_errors
         make_dir = self.make_dir
         hof_ind_cls = self._hof_ind_cls_
         try:
-            with open(self.file_path, "rb") as f:
-                # nosemgrep: python.lang.security.deserialization.pickle.avoid-dill
-                self.__dict__ = dill.load(f)
-            self.file_path = file_path
-            self.raise_errors = raise_errors
-            self.make_dir = make_dir
-            if hof_ind_cls is not None:
-                self._hof_ind_cls_ = hof_ind_cls
-            if self._rng_state_ is not None:
-                rng.set_state(self._rng_state_)
-            self._restore_hof()
-        except (OSError, dill.PickleError, EOFError, TypeError) as ex:
-            self.file_path = file_path
-            self.raise_errors = raise_errors
-            self.make_dir = make_dir
-            if self.raise_errors:
-                raise ex
+            state = read_checkpoint(file_path, hof_ind_cls)
+        except (OSError, CheckpointError):
+            if raise_errors:
+                raise
             self._last_op_ = "load_error"
             return False
+        self.__dict__ = state
+        self.file_path = file_path
+        self.raise_errors = raise_errors
+        self.make_dir = make_dir
+        if hof_ind_cls is not None or "_hof_ind_cls_" not in state:
+            self._hof_ind_cls_ = hof_ind_cls
+        if self._rng_state_ is not None:
+            rng.set_state(self._rng_state_)
         self._last_op_ = "load_success"
         return True
-
-    def _restore_hof(self) -> None:
-        """Rebuild ``hof`` from JSON when a checkpoint stores ``_hof_json_``."""
-        raw = getattr(self, "_hof_json_", None)
-        if raw is None:
-            return
-        ind_cls = getattr(self, "_hof_ind_cls_", None)
-        if ind_cls is None:
-            return
-        self.hof = HallOfFame.from_json(raw, ind_cls)
-        del self._hof_json_
 
     def save(self) -> bool:
         """Write this instance's attributes to the checkpoint file.
@@ -158,7 +149,7 @@ class Checkpoint:
             for key in self._omit_:
                 _dict_.pop(key, None)
             hof = _dict_.get("hof")
-            if isinstance(hof, HallOfFame):
+            if self._hof_ind_cls_ is not None and isinstance(hof, HallOfFame):
                 _dict_["_hof_json_"] = hof.to_json()
                 del _dict_["hof"]
             tmp_path = self.file_path.with_name(self.file_path.name + ".tmp")

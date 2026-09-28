@@ -17,6 +17,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   are now drawn in first-occurrence order in the first parent.
   **Seeded output of strongly typed GP changes.** Untyped GP is
   unaffected
+- `Checkpoint(autoload=True, raise_errors=True)` raised
+  `FileNotFoundError` at construction when the file did not exist yet.
+  Autoload now loads only an existing file; an explicit `load()` on a
+  missing file still raises or returns `False`
+- `Checkpoint.load` let `AttributeError`, `ImportError`, `ValueError`,
+  `UnicodeDecodeError` and similar unpickling failures escape even with
+  `raise_errors=False`. Every failure to deserialise, a payload that
+  is not a `dict`, a malformed RNG state, and a failed `hof` rebuild
+  now raise the new public `deap_er.CheckpointError` (a `ValueError`)
+  or return `False`. An unreadable file still raises `OSError`
+- `Checkpoint.load` replaced the instance state and moved the library
+  RNG before it knew the file was good. It now validates everything
+  first; a failed load changes neither
+- `Checkpoint` stored `hof` as JSON even without `hof_ind_cls`, and then
+  dropped it on load, leaving a stray `_hof_json_`. Without
+  `hof_ind_cls`, `hof` is now pickled like any other attribute. A file
+  that holds a JSON `hof` and no individual type raises
+  `CheckpointError`. JSON-`hof` files written by 3.1.x still load when
+  `hof_ind_cls` is given or was saved in the file
 
 ## [3.1.2] - 2026-09-10
 
