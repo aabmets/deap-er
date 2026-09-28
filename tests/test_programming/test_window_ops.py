@@ -135,6 +135,32 @@ def test_ema_returns_all_nan_for_a_series_without_finite_samples():
     assert numpy.all(numpy.isnan(gp.ema(numpy.full(6, NAN), 2)))
 
 
+def test_ema_of_a_packed_series_matches_that_series_alone():
+    span = 3
+    first = numpy.linspace(1.0, 2.0, 8)
+    second = numpy.linspace(5.0, -3.0, 9)
+    packed = numpy.concatenate([first, numpy.full(span, NAN), second])
+
+    result = gp.ema(packed, span)
+
+    numpy.testing.assert_allclose(result[: first.size], gp.ema(first, span), equal_nan=True)
+    assert numpy.all(numpy.isnan(result[first.size : first.size + span]))
+    numpy.testing.assert_allclose(result[first.size + span :], gp.ema(second, span), equal_nan=True)
+
+
+def test_ema_restarts_its_warmup_after_an_interior_nan():
+    span = 3
+    values = RAMP.copy()
+    values[5] = NAN
+
+    result = gp.ema(values, span)
+
+    assert numpy.all(numpy.isfinite(result[span - 1 : 5]))
+    assert numpy.all(numpy.isnan(result[5 : 6 + span - 1]))
+    numpy.testing.assert_allclose(result[6:], gp.ema(RAMP[6:], span), equal_nan=True)
+    assert numpy.all(numpy.isfinite(result[6 + span - 1 :]))
+
+
 def test_window_primitives_are_registered_as_leaf_typed_operators():
     pset = gp.make_column_pset(["value"])
     gp.add_window_primitives(pset)

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `add_window_primitives(..., ema=False)` and
+  `columnar_pset(..., ema=False)` leave `ema` out of the window kit
+- `gp.UnboundedLookbackError` (a `ValueError`), raised by
+  `tape_lookback` for tapes that hold `ema`
+
 ### Fixed
 
 - Typed GP crossover (`cx_one_point`, `cx_one_point_leaf_biased`,
@@ -36,6 +43,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that holds a JSON `hof` and no individual type raises
   `CheckpointError`. JSON-`hof` files written by 3.1.x still load when
   `hof_ind_cls` is given or was saved in the file
+- `ema` turned every sample after the first interior `nan` into `nan`
+  on both the opcode and numba backends, so in a frame packed series
+  after series only the first series had an average. A non-finite
+  sample now ends the segment; the next finite sample seeds a new one
+  with its own `window - 1` warmup. **Output changes for inputs with
+  interior non-finite samples**
+- `tape_lookback` certified `ema` at `window - 1` rows, but an IIR
+  average depends on every earlier sample of its segment. It now raises
+  `UnboundedLookbackError`; `suffix_rescore` keeps scoring `ema` tapes
+  over the full matrix
 
 ## [3.1.2] - 2026-09-10
 

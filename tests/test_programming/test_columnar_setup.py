@@ -144,6 +144,16 @@ def test_evaluate_columnar_static_filter_can_be_disabled():
     assert scores == [(0.0,)]
 
 
+def test_columnar_pset_can_leave_out_ema():
+    default = gp.columnar_pset(["level"], window=None)
+    without = gp.columnar_pset(["level"], window=None, ema=False)
+    names = {prim.name for prims in default.primitives.values() for prim in prims}
+    kept = {prim.name for prims in without.primitives.values() for prim in prims}
+    assert "ema" in names
+    assert "ema" not in kept
+    assert kept == names - {"ema"}
+
+
 def test_register_gp_plus_evaluate_columnar_runs_ea_simple():
     creator.create_type(COL_FIT, Fitness, weights=(-1.0,))
     creator.create_type(COL_IND, gp.PrimitiveTree, fitness=creator.__dict__[COL_FIT])

@@ -83,24 +83,21 @@ def roll_ema(rows: int, sp: int, stack: Any, scratch: Any, arg: int) -> None:  #
         scratch: Spare row of ``rows`` values.
         arg: Span of the average.
     """
-    start = -1
-    for t in range(rows):
-        if math.isfinite(stack[sp - 1, t]):
-            start = t
-            break
-    if start < 0 or arg > rows:
+    if arg > rows:
         for t in range(rows):
             scratch[t] = math.nan
     else:
-        fill_ema(rows, sp, stack, scratch, arg, start)
+        fill_ema(rows, sp, stack, scratch, arg)
     for t in range(rows):
         stack[sp - 1, t] = scratch[t]
 
 
-def fill_ema(  # pragma: no cover
-    rows: int, sp: int, stack: Any, scratch: Any, arg: int, start: int
-) -> None:
-    """Fill ``scratch`` with the EMA of ``stack[sp - 1]`` from ``start``.
+def fill_ema(rows: int, sp: int, stack: Any, scratch: Any, arg: int) -> None:  # pragma: no cover
+    """Fill ``scratch`` with the gap-reset EMA of ``stack[sp - 1]``.
+
+    A non-finite sample writes ``nan`` and ends the segment. The next
+    finite sample seeds a new one, whose first ``arg - 1`` outputs are
+    ``nan``.
 
     Args:
         rows: Number of samples.
@@ -108,18 +105,16 @@ def fill_ema(  # pragma: no cover
         stack: Column-length workspace.
         scratch: Spare row of ``rows`` values.
         arg: Span of the average.
-        start: Index of the first finite sample.
     """
     alpha = 2.0 / (arg + 1.0)
-    previous = stack[sp - 1, start]
-    for t in range(start):
-        scratch[t] = math.nan
-    scratch[start] = previous
-    for t in range(start + 1, rows):
-        previous = alpha * stack[sp - 1, t] + (1.0 - alpha) * previous
-        scratch[t] = previous
-    stop = start + arg - 1
-    if stop > rows:
-        stop = rows
-    for t in range(stop):
-        scratch[t] = math.nan
+    previous = 0.0
+    seen = 0
+    for t in range(rows):
+        value = stack[sp - 1, t]
+        if not math.isfinite(value):
+            seen = 0
+            scratch[t] = math.nan
+            continue
+        previous = value if seen == 0 else alpha * value + (1.0 - alpha) * previous
+        seen += 1
+        scratch[t] = previous if seen >= arg else math.nan

@@ -27,6 +27,24 @@ def test_large_magnitude_rolling_std_matches_the_python_oracle():
     check_parity(window_tree(pset, "rolling_std", "unary"), pset, (series,))
 
 
+def test_ema_across_nan_gaps_matches_the_python_oracle():
+    series = numpy.linspace(-2.0, 3.0, 40)
+    series[[0, 7, 8, 9, 20, 22, 39]] = numpy.nan
+    series[30] = numpy.inf
+    pset = window_kit(3, "unary")
+    check_parity(window_tree(pset, "ema", "unary"), pset, (series,))
+
+
+def test_numba_ema_of_a_packed_series_matches_that_series_alone():
+    alone = numpy.linspace(5.0, -3.0, 12)
+    packed = numpy.concatenate([numpy.linspace(1.0, 2.0, 10), numpy.full(4, numpy.nan), alone])
+    pset = window_kit(4, "unary")
+    run = gp.compile_tree(window_tree(pset, "ema", "unary"), pset, backend="numba")
+    tail = run(packed, packed, packed)[-alone.size :]
+    numpy.testing.assert_allclose(tail, run(alone, alone, alone), equal_nan=True, rtol=1e-12)
+    numpy.testing.assert_allclose(tail, gp.ema(alone, 4), equal_nan=True, rtol=1e-12)
+
+
 @pytest.mark.parametrize("name", PAIR)
 def test_a_large_ramp_then_constant_pair_matches_the_python_oracle(name):
     # After a 1e6 ramp the right series is constant, so its variance is

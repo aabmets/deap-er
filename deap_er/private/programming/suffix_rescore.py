@@ -76,14 +76,15 @@ def suffix_rescore(
     packed = _as_grown_matrix(matrix)
     rows = packed.shape[0]
     added = _new_rows(n_new, rows, prefix)
-    bound = _required_lookback(tapes)
+    has_ema = _has_ema(tapes)
+    bound = 0 if has_ema else _required_lookback(tapes)
     used = bound if lookback is None else lookback
     if used < 0:
         raise ValueError(f"lookback must be at least 0, got {used}.")
     if used < bound:
         raise ValueError(_SHORT_LOOKBACK.format(lookback=used, bound=bound))
     _check_prefix(prefix, len(tapes), rows - added)
-    span = rows if _has_ema(tapes) else min(rows, used + added)
+    span = rows if has_ema else min(rows, used + added)
     scored = interpret_tapes(
         tapes, packed[-span:], backend=backend, dispatch=dispatch, parallel=parallel
     )

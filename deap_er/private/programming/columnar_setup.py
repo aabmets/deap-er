@@ -41,6 +41,7 @@ def columnar_pset(
     window_name: str = "window",
     pair_windows: bool = False,
     ts: bool = False,
+    ema: bool = True,
 ) -> PrimitiveSetTyped:
     """Build a columnar primitive set with the usual kits registered.
 
@@ -59,6 +60,8 @@ def columnar_pset(
             ``rolling_cov``, and ``rolling_beta``.
         ts: If True, also register ``ts_rank``, ``ts_argmax``, and
             ``ts_argmin``.
+        ema: If False, leave out ``ema``, whose output has no finite
+            lookback.
 
     Returns:
         A typed primitive set ready for ``register_gp``.
@@ -69,7 +72,7 @@ def columnar_pset(
     """
     pset = make_column_pset(names, name=name)
     add_numpy_primitives(pset)
-    add_window_primitives(pset)
+    add_window_primitives(pset, ema=ema)
     if pair_windows:
         add_pair_window_primitives(pset)
     if ts:

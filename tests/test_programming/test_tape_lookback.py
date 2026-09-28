@@ -44,7 +44,6 @@ def test_opcode_lookback_matches_the_declared_families():
     assert opcode_lookback(int(gp.Opcode.DIFF), 4) == 4
     assert opcode_lookback(int(gp.Opcode.ROLL_MEAN), 5) == 5
     assert opcode_lookback(int(gp.Opcode.TS_RANK), 6) == 6
-    assert opcode_lookback(int(gp.Opcode.EMA), 5) == 4
     assert opcode_lookback(int(gp.Opcode.ADD), -1) == 0
 
 
@@ -52,12 +51,23 @@ def test_tape_lookback_is_zero_for_a_pointwise_program():
     assert gp.tape_lookback(_tape("vadd(first, second)")) == 0
 
 
-def test_tape_lookback_uses_the_window_arg_delay_steps_and_ema_warmup():
+def test_tape_lookback_uses_the_window_arg_and_delay_steps():
     assert gp.tape_lookback(_tape("rolling_mean(first, 5)")) == 5
     assert gp.tape_lookback(_tape("delay(first, 3)")) == 3
-    assert gp.tape_lookback(_tape("ema(first, 5)")) == 4
     assert gp.tape_lookback(_tape("rolling_corr(first, second, 4)")) == 4
     assert gp.tape_lookback(_tape("ts_rank(first, 6)")) == 6
+
+
+@pytest.mark.parametrize("expr", ["ema(first, 5)", "vadd(delay(ema(first, 2), 3), second)"])
+def test_tape_lookback_raises_for_the_unbounded_ema(expr):
+    with pytest.raises(gp.UnboundedLookbackError, match="no finite lookback"):
+        gp.tape_lookback(_tape(expr))
+
+
+def test_opcode_lookback_raises_for_ema():
+    assert issubclass(gp.UnboundedLookbackError, ValueError)
+    with pytest.raises(gp.UnboundedLookbackError):
+        opcode_lookback(int(gp.Opcode.EMA), 5)
 
 
 def test_tape_lookback_composes_along_the_tape():

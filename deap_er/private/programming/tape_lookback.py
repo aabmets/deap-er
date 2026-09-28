@@ -11,7 +11,7 @@
 from .opcode_set import OPCODES_ARITY, USER_BASE, Opcode
 from .tape import Tape
 
-__all__: list[str] = ["opcode_lookback", "tape_lookback"]
+__all__: list[str] = ["UnboundedLookbackError", "opcode_lookback", "tape_lookback"]
 
 _STACK_UNDERFLOW = "The tape is malformed and underflows the lookback stack."
 _CONSUMER_LOOKBACK = (
@@ -20,7 +20,7 @@ _CONSUMER_LOOKBACK = (
 )
 
 _DELAY_STEPS = frozenset({int(Opcode.DELAY), int(Opcode.DIFF)})
-_EMA_WARMUP = frozenset({int(Opcode.EMA)})
+_UNBOUNDED = frozenset({int(Opcode.EMA)})
 _WINDOW_ARG = frozenset(
     {
         int(Opcode.ROLL_SUM),
@@ -38,12 +38,21 @@ _WINDOW_ARG = frozenset(
 )
 
 
+class UnboundedLookbackError(ValueError):
+    """An instruction depends on every earlier sample of its input.
+
+    ``ema`` is an IIR filter: its output depends on all earlier finite
+    samples of the segment, so no finite lookback bound exists. A
+    caller must score such tapes over the full matrix.
+    """
+
+
 def opcode_lookback(opcode: int, operand: int) -> int:
     """Return the finite lookback one instruction adds.
 
     Delay and diff look back ``operand`` steps. Rolling, pair-window,
-    and time-series opcodes use the ``Window`` argument. EMA uses the
-    documented warmup of ``window - 1``. Pointwise opcodes add nothing.
+    and time-series opcodes use the ``Window`` argument. Pointwise
+    opcodes add nothing. ``ema`` has no finite lookback.
 
     Args:
         opcode: Instruction to classify.
@@ -53,12 +62,16 @@ def opcode_lookback(opcode: int, operand: int) -> int:
         Rows of earlier history that instruction needs.
 
     Raises:
+        UnboundedLookbackError: If ``opcode`` is ``ema``.
         ValueError: If ``opcode`` is a consumer kernel or is unknown.
     """
     if opcode in _DELAY_STEPS:
         return operand
-    if opcode in _EMA_WARMUP:
-        return max(operand - 1, 0)
+    if opcode in _UNBOUNDED:
+        raise UnboundedLookbackError(
+            f"Opcode {opcode} (ema) has no finite lookback. "
+            f"Rescore the full matrix with interpret_tapes."
+        )
     if opcode in _WINDOW_ARG:
         return operand
     if opcode in OPCODES_ARITY or opcode in {int(Opcode.COL_LOAD), int(Opcode.CONST)}:
@@ -84,6 +97,7 @@ def tape_lookback(tape: Tape) -> int:
         The program's lookback in rows. ``0`` for a pointwise tape.
 
     Raises:
+        UnboundedLookbackError: If the tape holds ``ema``.
         ValueError: If the tape underflows, leaves no result, or holds
             a consumer opcode.
     """

@@ -36,10 +36,17 @@ def ema(value: Any, window: Any) -> numpy.ndarray:
     """Take a causal exponential moving average of a series.
 
     The recurrence is ``y[t] = a * x[t] + (1 - a) * y[t - 1]`` with
-    ``a = 2 / (window + 1)``, seeded so that ``y`` equals ``x`` at the
-    first finite sample. The first ``window - 1`` samples after that
-    seed are reported as ``nan`` to match the rolling primitives. A
-    ``nan`` inside the series propagates to every later sample.
+    ``a = 2 / (window + 1)``. A non-finite sample is ``nan`` in the
+    output and ends the current segment. Each run of finite samples is
+    its own segment: it is seeded so that ``y`` equals ``x`` at its
+    first sample, and its first ``window - 1`` samples are reported as
+    ``nan`` to match the rolling primitives. A gap therefore never
+    poisons the rest of the series, and a series packed after ``nan``
+    padding gets the same average as that series alone.
+
+    The average depends on every earlier sample of its segment, so it
+    has no finite lookback. :func:`~deap_er.gp.tape_lookback` raises
+    :class:`~deap_er.gp.UnboundedLookbackError` for it.
 
     Args:
         value: Series to filter.
@@ -60,24 +67,35 @@ def ema(value: Any, window: Any) -> numpy.ndarray:
     if length > series.size:
         return result
 
-    finite = numpy.flatnonzero(numpy.isfinite(series))
-    if finite.size == 0:
-        return result
-
-    start = int(finite[0])
-    tail = series[start:]
     alpha = 2.0 / (length + 1.0)
     numer = numpy.array([alpha], dtype=numpy.float64)
     denom = numpy.array([1.0, alpha - 1.0], dtype=numpy.float64)
-    state = lfilter_zi(numer, denom) * tail[0]
-    filtered, _ = lfilter(numer, denom, tail, zi=state)
+    zi = lfilter_zi(numer, denom)
 
-    result[start:] = filtered
-    result[: start + length - 1] = numpy.nan
+    finite = numpy.isfinite(series).astype(numpy.int8)
+    edges = numpy.flatnonzero(numpy.diff(finite, prepend=0, append=0))
+    for start, stop in zip(edges[::2].tolist(), edges[1::2].tolist(), strict=True):
+        if stop - start < length:
+            continue
+        segment = series[start:stop]
+        filtered, _ = lfilter(numer, denom, segment, zi=zi * segment[0])
+        result[start + length - 1 : stop] = filtered[length - 1 :]
     return result
 
 
-def add_window_primitives(prim_set: PrimitiveSetTyped) -> None:
+_WINDOWED: dict[str, Callable[..., Any]] = {
+    "delay": delay,
+    "diff": diff,
+    "rolling_sum": rolling_sum,
+    "rolling_mean": rolling_mean,
+    "rolling_std": rolling_std,
+    "rolling_min": rolling_min,
+    "rolling_max": rolling_max,
+    "ema": ema,
+}
+
+
+def add_window_primitives(prim_set: PrimitiveSetTyped, *, ema: bool = True) -> None:
     """Register the causal window primitive kit on a typed primitive set.
 
     Every primitive takes an ``Array`` and a ``Window`` and returns an
@@ -89,21 +107,14 @@ def add_window_primitives(prim_set: PrimitiveSetTyped) -> None:
     Args:
         prim_set: Typed primitive set built by ``make_column_pset`` or
             an equivalent set over ``Array`` and ``Window``.
+        ema: If False, leave out ``ema``, whose output has no finite
+            lookback. Defaults to True.
 
     Raises:
         ValueError: If a primitive name collides with an argument of
             ``prim_set``, or if a name is already registered.
     """
-    windowed: dict[str, Callable[..., Any]] = {
-        "delay": delay,
-        "diff": diff,
-        "rolling_sum": rolling_sum,
-        "rolling_mean": rolling_mean,
-        "rolling_std": rolling_std,
-        "rolling_min": rolling_min,
-        "rolling_max": rolling_max,
-        "ema": ema,
-    }
+    windowed = {key: func for key, func in _WINDOWED.items() if ema or key != "ema"}
     reject_shadowed(prim_set, list(windowed))
 
     in_types: list[type] = [Array, Window]

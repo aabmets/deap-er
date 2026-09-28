@@ -21,7 +21,10 @@ TS_OUTPUT = frozenset({int(Opcode.TS_RANK), int(Opcode.TS_ARGMAX), int(Opcode.TS
 
 def apply_window(opcode: int, child: Summary, operand: int) -> Summary:
     """Propagate one causal window opcode."""
-    extra = opcode_lookback(opcode, operand)
+    # ema has no finite lookback; its per-segment warmup of window - 1 still
+    # bounds first_finite, which is all interval analysis needs from it.
+    is_ema = opcode == int(Opcode.EMA)
+    extra = max(operand - 1, 0) if is_ema else opcode_lookback(opcode, operand)
     lookback = child.lookback + extra
     warmup = extra if opcode in {int(Opcode.DELAY), int(Opcode.DIFF)} else max(extra - 1, 0)
     first_finite = child.first_finite + warmup

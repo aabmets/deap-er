@@ -106,7 +106,7 @@ from .private.programming.tape_interval import (
     tape_interval,
     tape_skip_score,
 )
-from .private.programming.tape_lookback import tape_lookback
+from .private.programming.tape_lookback import UnboundedLookbackError, tape_lookback
 from .private.programming.window_ops import (
     add_window_ephemeral,
     add_window_primitives,
@@ -213,6 +213,7 @@ __all__ = [
     "tape_flags",
     "tape_skip_score",
     "tape_lookback",
+    "UnboundedLookbackError",
     "suffix_rescore",
     "semantic_descriptors",
     "semantic_moments",

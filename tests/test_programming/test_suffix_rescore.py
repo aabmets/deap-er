@@ -69,6 +69,18 @@ def test_suffix_rescore_matches_the_full_matrix_oracle(expr):
     numpy.testing.assert_allclose(actual[:, : prefix.shape[0]], cached, equal_nan=True)
 
 
+@pytest.mark.parametrize("expr", ["ema(first, 3)", "vadd(ema(first, 4), rolling_mean(second, 2))"])
+def test_suffix_rescore_matches_the_oracle_for_ema_across_nan_gaps(expr):
+    prefix, grown, _n_new = _grown(prefix_rows=14, n_new=6)
+    grown[[4, 9, 15], 0] = numpy.nan
+    prefix = numpy.ascontiguousarray(grown[: prefix.shape[0]])
+    tape = _tape(expr)
+    cached = gp.interpret_tapes([tape], prefix)
+    actual = gp.suffix_rescore([tape], grown, cached)
+    expected = gp.interpret_tapes([tape], grown)
+    numpy.testing.assert_allclose(actual, expected, equal_nan=True)
+
+
 def test_suffix_rescore_rejects_a_lookback_shorter_than_the_tape_bound():
     _prefix, grown, _n_new, tape, cached = _cached_mean()
     bound = gp.tape_lookback(tape)
