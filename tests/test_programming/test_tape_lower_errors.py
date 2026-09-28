@@ -58,14 +58,14 @@ def test_lowering_rejects_a_window_that_is_not_a_leaf():
         gp.lower_tree(tree, pset)
 
 
-@pytest.mark.parametrize("value", [3.7, float("nan")])
-def test_lowering_rejects_a_window_leaf_that_is_not_an_integer(value):
+@pytest.mark.parametrize("value", [3.7, float("nan"), 0, -2])
+def test_lowering_rejects_a_window_leaf_that_is_not_a_positive_integer(value):
     pset = _kit("OPCODES_FRACTIONAL_WINDOW")
     pset.add_terminal(value, gp.Window)
     window = pset.terminals[gp.Window][-1]
     tree = gp.PrimitiveTree([pset.mapping["delay"], pset.mapping["first"], window])
 
-    with pytest.raises(ValueError, match="holding an integer"):
+    with pytest.raises(ValueError, match="holding a positive integer"):
         gp.lower_tree(tree, pset)
 
 

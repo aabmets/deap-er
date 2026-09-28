@@ -77,7 +77,7 @@ def immediate_windows(
 
     Raises:
         ValueError: If a window argument is not a leaf, or if its value
-            is not an integer.
+            is not a positive integer.
     """
     windows: dict[int, int] = {}
     folded: set[int] = set()
@@ -91,11 +91,11 @@ def immediate_windows(
             value = getattr(nodes[child], "value", None)
             if isinstance(value, str):
                 value = prim_set.context.get(value)
-            integral = isinstance(value, Real) and float(value).is_integer()
-            if nodes[child].arity != 0 or not integral:
+            positive = isinstance(value, Real) and float(value).is_integer() and value >= 1
+            if nodes[child].arity != 0 or not positive:
                 raise ValueError(
-                    f"The window argument of '{node.name}' must be a leaf holding "
-                    f"an integer, so that it can be lowered to an immediate operand."
+                    f"The window argument of '{node.name}' must be a leaf holding a "
+                    f"positive integer, so that it can be lowered to an immediate operand."
                 )
             windows[index] = int(value)
             folded.add(child)
@@ -185,7 +185,7 @@ def lower_tree(
 
     Raises:
         ValueError: If a primitive has no opcode, if a window argument
-            is not an integer leaf, if a terminal is neither a column
+            is not a positive integer leaf, if a terminal is neither a column
             nor a number, or if the tree is empty, holds unreachable
             nodes, or does not balance the evaluation stack.
     """
