@@ -102,10 +102,40 @@ def test_structural_meta_case_columns_unique_opcodes_dedup(monkeypatch):
     assert calls["count"] == 1
 
 
-def test_structural_meta_case_weights_signs():
+def test_structural_meta_case_weights_minimize_every_column():
     weights = tools.structural_meta_case_weights()
-    assert weights == (-1.0, -1.0, -1.0, -1.0, 1.0)
-    assert tools.structural_meta_case_weights(("size", "non_finite_fraction")) == (-1.0, 1.0)
+    assert weights == (-1.0,) * len(tools.STRUCTURAL_META_CASES)
+    assert tools.structural_meta_case_weights(("size", "non_finite_fraction")) == (-1.0, -1.0)
+
+
+def _blank_share(predicted, valid=None):
+    pset = _typed_set()
+    compact, _ = _trees(pset)
+    matrix = tools.structural_meta_case_columns(
+        [compact],
+        predicted=predicted,
+        columns=("non_finite_fraction",),
+        valid=valid,
+    )
+    return matrix[0, 0]
+
+
+def test_non_finite_fraction_counts_only_valid_rows():
+    predicted = numpy.array([[numpy.nan, numpy.nan, 1.0, 2.0, 3.0, numpy.nan]])
+    valid = numpy.array([False, False, True, True, True, False])
+    assert _blank_share(predicted, valid) == pytest.approx(0.0)
+    assert _blank_share(predicted) == pytest.approx(0.5)
+
+
+def test_non_finite_fraction_is_nan_without_valid_rows():
+    predicted = numpy.array([[1.0, 2.0]])
+    assert numpy.isnan(_blank_share(predicted, numpy.zeros(2, dtype=bool)))
+
+
+def test_non_finite_fraction_rejects_a_mask_of_the_wrong_length():
+    predicted = numpy.array([[1.0, 2.0, 3.0]])
+    with pytest.raises(ValueError, match="length 3"):
+        _blank_share(predicted, numpy.ones(2, dtype=bool))
 
 
 def test_structural_meta_case_columns_empty_population_raises():

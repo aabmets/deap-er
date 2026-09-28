@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `add_window_primitives(..., ema=False)` and
   `columnar_pset(..., ema=False)` leave `ema` out of the window kit
+- `structural_meta_case_columns(..., valid=mask)` computes
+  `non_finite_fraction` over the masked rows only (for example the
+  scored rows, leaving out warmup and inter-series padding)
 - `gp.UnboundedLookbackError` (a `ValueError`), raised by
   `tape_lookback` for tapes that hold `ema`
 
@@ -53,6 +56,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   average depends on every earlier sample of its segment. It now raises
   `UnboundedLookbackError`; `suffix_rescore` keeps scoring `ema` tapes
   over the full matrix
+- `structural_meta_case_weights` maximised `non_finite_fraction`, which
+  pushed lexicase toward programs that output nothing. Every structural
+  meta-case is now minimised (`-1.0`). **Selection behaviour changes**
 
 ## [3.1.2] - 2026-09-10
 

@@ -58,9 +58,9 @@ def structural_meta_case_weights(
 ) -> tuple[float, ...]:
     """Return default lexicase signs for structural meta-case columns.
 
-    Bloat metrics default to minimize (-1). ``non_finite_fraction``
-    defaults to maximize (+1) so lexicase prefers programs that are
-    not finite on every bar.
+    Every structural meta-case is a cost, so every column defaults to
+    minimize (-1). For ``non_finite_fraction`` that makes lexicase
+    prefer programs that are finite on more of the scored rows.
 
     Args:
         columns: Subset of :data:`STRUCTURAL_META_CASES`. All
@@ -73,7 +73,7 @@ def structural_meta_case_weights(
         ValueError: If a column name is unknown.
     """
     names = _resolve_columns(columns)
-    return tuple(1.0 if name == "non_finite_fraction" else -1.0 for name in names)
+    return tuple(-1.0 for _ in names)
 
 
 def _non_finite_fraction(row: numpy.ndarray) -> float:
@@ -109,6 +109,18 @@ def _predicted_rows(
     if packed.ndim != 2 or packed.shape[0] != len(individuals):
         raise ValueError("predicted must have shape (n_individuals, n_rows)")
     return [packed[row] for row in range(packed.shape[0])]
+
+
+def _valid_rows(
+    predicted_rows: list[numpy.ndarray] | None, valid: numpy.ndarray | None
+) -> list[numpy.ndarray] | None:
+    if predicted_rows is None or valid is None:
+        return predicted_rows
+    mask = numpy.asarray(valid, dtype=numpy.bool_)
+    n_rows = predicted_rows[0].size
+    if mask.ndim != 1 or mask.size != n_rows:
+        raise ValueError(f"valid must be a boolean mask of length {n_rows}, got shape {mask.shape}")
+    return [series[mask] for series in predicted_rows]
 
 
 def _unique_opcode_scalar(
@@ -158,6 +170,7 @@ def structural_meta_case_columns(
     prim_set: PrimitiveSetTyped | None = None,
     predicted: numpy.ndarray | Sequence[Sequence[float]] | None = None,
     columns: Sequence[str] | None = None,
+    valid: numpy.ndarray | None = None,
 ) -> numpy.ndarray:
     """Return cheap structural meta-case columns for a population.
 
@@ -165,7 +178,8 @@ def structural_meta_case_columns(
     ``predicted``. ``non_finite_fraction`` needs one row per
     individual in ``predicted`` (``(n_ind, n_rows)`` or a sequence of
     1-D series). When ``predicted`` is missing, that column is filled
-    with ``numpy.nan``.
+    with ``numpy.nan``. ``depth`` is the tree height, so a lone
+    terminal has depth 0 (one less than the number of levels).
 
     Args:
         individuals: Population whose genomes are ``PrimitiveTree`` or
@@ -175,6 +189,10 @@ def structural_meta_case_columns(
         predicted: Optional per-individual output series.
         columns: Subset of :data:`STRUCTURAL_META_CASES`. All columns
             are used when omitted.
+        valid: Optional boolean row mask of length ``n_rows``. When
+            given, ``non_finite_fraction`` counts only the ``True``
+            rows (for example the scored rows, leaving out warmup and
+            padding), and is ``nan`` when no row is ``True``.
 
     Returns:
         Structural scalars with one row per individual.
@@ -182,7 +200,8 @@ def structural_meta_case_columns(
     Raises:
         ValueError: If ``individuals`` is empty, a column name is
             unknown, ``prim_set`` is missing for opcode or promote
-            columns, or ``predicted`` has the wrong shape.
+            columns, ``predicted`` has the wrong shape, or ``valid``
+            does not match the length of the predicted rows.
     """
     if not individuals:
         raise ValueError("individuals must be non-empty")
@@ -193,6 +212,7 @@ def structural_meta_case_columns(
     predicted_rows = (
         _predicted_rows(individuals, predicted) if "non_finite_fraction" in names else None
     )
+    predicted_rows = _valid_rows(predicted_rows, valid)
     promoted = frozenset(promoted_names(prim_set)) if prim_set is not None else frozenset()
     tape_cache: dict[str, Any] = {}
     matrix = numpy.empty((len(individuals), len(names)), dtype=numpy.float64)

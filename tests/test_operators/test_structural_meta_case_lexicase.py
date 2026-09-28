@@ -91,7 +91,7 @@ def test_sel_lexicase_prefers_compact_tree_on_size_meta_case(ind_cls):
     assert chosen[0] is compact
 
 
-def test_sel_lexicase_prefers_sparse_output_on_non_finite_meta_case(ind_cls):
+def test_sel_lexicase_prefers_finite_output_on_non_finite_meta_case(ind_cls):
     pset, compact, bloated, predicted = _population(ind_cls)
     matrix = numpy.hstack(
         [
@@ -113,4 +113,4 @@ def test_sel_lexicase_prefers_sparse_output_on_non_finite_meta_case(ind_cls):
         trust_matrix=True,
         fit_weights=weights,
     )
-    assert chosen[0] is compact
+    assert chosen[0] is bloated
