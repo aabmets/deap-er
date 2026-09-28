@@ -16,6 +16,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   scored rows, leaving out warmup and inter-series padding)
 - `gp.UnboundedLookbackError` (a `ValueError`), raised by
   `tape_lookback` for tapes that hold `ema`
+- `deap_er.CheckpointError` (a `ValueError`), raised by
+  `Checkpoint.load` for a file that exists but is not a loadable
+  checkpoint
 
 ### Changed
 
