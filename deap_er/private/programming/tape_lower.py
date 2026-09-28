@@ -59,13 +59,17 @@ def child_indices(nodes: Sequence[Any]) -> list[list[int]]:
 
 
 def immediate_windows(
-    nodes: Sequence[Any], children: list[list[int]]
+    nodes: Sequence[Any], children: list[list[int]], prim_set: PrimitiveSetTyped
 ) -> tuple[dict[int, int], set[int]]:
     """Fold the window argument of every builtin rolling node inline.
+
+    A named window terminal is resolved through the set's evaluation
+    context, as ``leaf_instruction`` does for numeric terminals.
 
     Args:
         nodes: Tree nodes in prefix order.
         children: Child indices of every node.
+        prim_set: Primitive set the tree was built from.
 
     Returns:
         The window length of each rolling node, and the set of child
@@ -85,7 +89,10 @@ def immediate_windows(
                 continue
             child = children[index][position]
             value = getattr(nodes[child], "value", None)
-            if nodes[child].arity != 0 or not isinstance(value, Real):
+            if isinstance(value, str):
+                value = prim_set.context.get(value)
+            integral = isinstance(value, Real) and float(value).is_integer()
+            if nodes[child].arity != 0 or not integral:
                 raise ValueError(
                     f"The window argument of '{node.name}' must be a leaf holding "
                     f"an integer, so that it can be lowered to an immediate operand."
@@ -190,7 +197,7 @@ def lower_tree(
     nodes = expand_promoted(nodes, prim_set)
 
     children = child_indices(nodes)
-    windows, folded = immediate_windows(nodes, children)
+    windows, folded = immediate_windows(nodes, children, prim_set)
     order = postfix_order(children, folded)
     if len(order) + len(folded) != len(nodes):
         raise ValueError("The expression holds nodes that are not reachable from the root.")
