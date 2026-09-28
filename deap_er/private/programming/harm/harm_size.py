@@ -78,28 +78,26 @@ def natural_histogram(sizes: list[int], pop_len: int, nb_model: int) -> list[flo
     return [val * pop_len / nb_model for val in hist]
 
 
-def cutoff_size(natural_pop: list[GPIndividual], pop_len: int, rho: float, min_cutoff: int) -> int:
+def cutoff_size(population: list[GPIndividual], rho: float, min_cutoff: int) -> int:
     """Return the tree size at which the size penalty starts.
 
     Args:
-        natural_pop: Individuals modeling the natural distribution.
-        pop_len: Number of individuals in the population.
+        population: Evaluated individuals that rank the sizes.
+            Individuals without a valid fitness are ignored.
         rho: Fitness range used to place the cutoff.
         min_cutoff: Absolute minimum cutoff.
 
     Returns:
         The cutoff size.
     """
-    source = [ind for ind in natural_pop if ind.fitness.is_valid()]
+    source = [ind for ind in population if ind.fitness.is_valid()]
     if not source:
         return min_cutoff
-    _ = pop_len
-    sorted_natural = sorted(source, key=lambda ind: ind.fitness)
-    start = max(0, int(len(sorted_natural) * rho - 1))
-    cutoff_candidates = sorted_natural[start:]
-    if not cutoff_candidates:
+    ranked = sorted(source, key=lambda ind: ind.fitness)
+    candidates = ranked[max(0, int(len(ranked) * rho - 1)) :]
+    if not candidates:
         return min_cutoff
-    return max(min_cutoff, len(min(cutoff_candidates, key=len)))
+    return max(min_cutoff, len(min(candidates, key=len)))
 
 
 def target_histogram(

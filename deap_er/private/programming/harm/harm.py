@@ -17,7 +17,7 @@ from deap_er.private.toolbox import Toolbox
 
 if TYPE_CHECKING:
     from deap_er.private.typedefs import EvoAlgoResult, EvoRecords, EvoStats, GPIndividual
-from deap_er.records import Logbook
+from deap_er.private.records.logbook import Logbook
 
 from .harm_breed import produce
 from .harm_size import (
@@ -125,7 +125,7 @@ def harm(
         pop_len = len(population)
         natural_pop, natural_pop_sizes = produce(toolbox, population, nb_model, cx_prob, mut_prob)
         natural_hist = natural_histogram(natural_pop_sizes, pop_len, nb_model)
-        _cutoff_size = cutoff_size(population, pop_len, rho, min_cutoff)
+        _cutoff_size = cutoff_size(population, rho, min_cutoff)
 
         def _target_prob(size: int, cutoff: int = _cutoff_size, length: int = pop_len) -> float:
             return target_prob(size, alpha, beta, gamma, length, cutoff)
