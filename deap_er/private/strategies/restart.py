@@ -107,6 +107,26 @@ class RestartStrategy:
         self._begin_run(lambda_default, sigma_large)
 
     @property
+    def mode(self) -> Literal["ipop", "bipop"]:
+        """Restart scheme, ``ipop`` or ``bipop``."""
+        return self._schedule.mode
+
+    @property
+    def sigma_large(self) -> float:
+        """First-run and large-regime step size."""
+        return self._schedule.sigma_large
+
+    @property
+    def lambda_factor(self) -> float:
+        """Population growth factor per large restart."""
+        return self._schedule.lambda_factor
+
+    @property
+    def max_large_restarts(self) -> int:
+        """Cap on the large-restart exponent."""
+        return self._schedule.max_large_restarts
+
+    @property
     def evals_used(self) -> int:
         """Total function evaluations consumed so far."""
         return self._evals_used

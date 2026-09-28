@@ -11,6 +11,7 @@
 import math
 
 from deap_er import Fitness, Toolbox, creator, tools
+from deap_er.private.strategies.restart_schedule import RestartSchedule
 from deap_er.private.strategies.restart_tracker import RunTracker
 
 FIT = "RST_BF_FIT"
@@ -103,17 +104,26 @@ def test_partial_batch_leaves_reduced_lambda_without_restore():
 
 
 def test_bipop_accounts_initial_run_on_first_restart():
+    schedule = RestartSchedule("bipop", 8, 2.0, 9, 2.0)
+    schedule.account_run(5000)
+    assert schedule.budget_large == 5000
+    assert schedule.last_large_run_evals == 5000
+
+
+def test_bipop_restart_charges_initial_run_to_large_budget():
     creator.create_type(FIT, Fitness, weights=(-1.0,))
     creator.create_type(IND, list, fitness=creator.__dict__[FIT])
     try:
         strategy = tools.Strategy([0.0] * 5, sigma=1.0, offsprings=8)
         restart = tools.RestartStrategy(strategy, mode="bipop", budget=100_000)
-        restart._ind_init = creator.__dict__[IND]
-        restart._run_evals = 5000
-        restart._tracker.terminate = True
+        population = restart.generate(creator.__dict__[IND])
+        for ind in population:
+            ind.fitness.values = tools.bm_sphere(ind)
+        restart.update(population)
         restart.restart()
-        assert restart._schedule.budget_large == 5000
-        assert restart._schedule.last_large_run_evals == 5000
+        assert restart.regime == "large"
+        restart.restart()
+        assert restart.regime == "small"
     finally:
         _teardown()
 

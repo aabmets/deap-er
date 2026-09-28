@@ -9,8 +9,10 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import numpy
+import pytest
 from deap_er import Fitness, Toolbox, creator, tools
 from deap_er.private.strategies.restart_common import sample_centroid
+from deap_er.private.strategies.restart_schedule import RestartSchedule
 from deap_er.private.strategies.restart_tracker import RunTracker
 
 FIT = "RST_FIT"
@@ -127,20 +129,15 @@ def test_restart_centroid_in_box():
 
 
 def test_bipop_small_regime_samples_lambda():
-    strategy, _ = _setup_min(offsprings=8)
-    try:
-        restart = tools.RestartStrategy(strategy, mode="bipop", budget=1_000_000)
-        restart._schedule.lambda_large = 32
-        restart._schedule.budget_large = 100
-        restart._schedule.budget_small = 0
-        restart._restart_count = 2
-        restart._ind_init = creator.__dict__[IND]
-        restart._tracker.terminate = True
-        restart.restart()
-        assert restart.regime == "small"
-        assert 8 <= strategy.lamb <= 16
-    finally:
-        _teardown()
+    schedule = RestartSchedule("bipop", 8, 2.0, 9, 2.0)
+    schedule.lambda_large = 32
+    schedule.budget_large = 100
+    schedule.last_large_run_evals = 50
+    lamb, sigma, cap = schedule.next_run(restart_count=3, evals_used=0, budget=1_000_000)
+    assert schedule.regime == "small"
+    assert 8 <= lamb <= 16
+    assert 0.02 <= sigma <= 2.0
+    assert cap == 25
 
 
 def test_one_plus_lambda_smoke():
@@ -206,3 +203,14 @@ def test_budget_cap():
         assert restart.evals_used <= 60
     finally:
         _teardown()
+
+
+def test_restart_exposes_schedule_config_read_only():
+    strategy = tools.Strategy([0.0] * 3, sigma=1.0, offsprings=6)
+    restart = tools.RestartStrategy(
+        strategy, mode="ipop", budget=100, sigma_large=0.5, lambda_factor=3.0, max_large_restarts=4
+    )
+    assert (restart.mode, restart.sigma_large) == ("ipop", 0.5)
+    assert (restart.lambda_factor, restart.max_large_restarts) == (3.0, 4)
+    with pytest.raises(AttributeError):
+        restart.mode = "bipop"  # ty: ignore[invalid-assignment]
