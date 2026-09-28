@@ -12,9 +12,10 @@ import gc
 import operator
 import weakref
 
+import deap_er.private.programming.compilers as compilers
 from deap_er import gp
 from deap_er.private.programming.compile_cache import CompileCache, expression_key
-from deap_er.private.programming.compilers import _compile_cache, invalidate_compiled
+from deap_er.private.programming.compilers import invalidate_compiled
 
 
 def test_compile_cache_evicts_the_oldest_entry():
@@ -44,17 +45,15 @@ def test_compile_tree_lru_does_not_flush_the_whole_cache():
     pset = gp.PrimitiveSet("main", 1)
     pset.add_primitive(operator.add, 2)
     small = CompileCache(maxsize=3)
-    previous = _compile_cache
+    previous = compilers.shared_compile_cache
     try:
-        import deap_er.private.programming.compilers as compilers
-
-        compilers._compile_cache = small
+        compilers.shared_compile_cache = small
         for value in range(5):
             tree = gp.PrimitiveTree.from_string(f"add(ARG0, {value})", pset)
             gp.compile_tree(tree, pset)
         assert len(small) == 3
     finally:
-        compilers._compile_cache = previous
+        compilers.shared_compile_cache = previous
 
 
 def test_expression_key_uses_nodes_for_trees_and_text_for_source():

@@ -32,10 +32,11 @@ __all__: list[str] = [
     "build_tree_graph",
     "static_limit",
     "invalidate_compiled",
+    "shared_compile_cache",
 ]
 
 _COMPILE_CACHE_MAX = 1024
-_compile_cache = CompileCache(_COMPILE_CACHE_MAX)
+shared_compile_cache = CompileCache(_COMPILE_CACHE_MAX)
 
 
 def clear_compile_cache() -> None:
@@ -46,7 +47,7 @@ def clear_compile_cache() -> None:
     previous context. Also clears every live ``EvalCache`` so a
     language mutation cannot keep stale fitness.
     """
-    _compile_cache.clear()
+    shared_compile_cache.clear()
     clear_eval_caches()
 
 
@@ -175,7 +176,7 @@ def compile_tree(
     cache_key = compile_cache_key(
         backend, dispatch, expr, prim_set.arguments, prim_set.context, generation
     )
-    cached = _compile_cache.get(cache_key)
+    cached = shared_compile_cache.get(cache_key)
     if cached is not None:
         return cached
 
@@ -194,7 +195,7 @@ def compile_tree(
         )
 
     pins = (tuple(prim_set.context.values()), dispatch)
-    _compile_cache.set(cache_key, compiled, pins)
+    shared_compile_cache.set(cache_key, compiled, pins)
     return compiled
 
 
@@ -214,7 +215,7 @@ def invalidate_compiled(expr: Any) -> int:
         The number of compile-cache entries removed.
     """
     fragment = expr if isinstance(expr, str | tuple) else expression_key(expr)
-    removed = _compile_cache.discard_expression(fragment)
+    removed = shared_compile_cache.discard_expression(fragment)
     invalidate_eval(fragment)
     return removed
 
