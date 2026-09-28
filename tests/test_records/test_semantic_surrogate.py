@@ -88,3 +88,12 @@ def test_surrogate_trust_matrix(ind_cls):
         store.update(numpy.array([[0.0]]), [1.0], individuals=[bare], trust_matrix=False)
     store.update(numpy.array([[0.0]]), [1.0], individuals=[bare], trust_matrix=True)
     assert store.predict([0.0], kind="nearest") == pytest.approx(1.0)
+
+
+def test_surrogate_nearest_skips_rows_with_non_finite_values():
+    store = tools.SemanticSurrogate()
+    store.update(numpy.array([[0.0], [0.1], [5.0]]), numpy.array([numpy.nan, 2.0, 3.0]))
+    assert store.predict([0.0]) == pytest.approx(2.0)
+    assert store.predict([0.0], k=2) == pytest.approx(2.5)
+    store.update(numpy.array([[0.0]]), numpy.array([numpy.nan]))
+    assert math.isnan(store.predict([0.0]))

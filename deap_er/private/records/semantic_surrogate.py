@@ -129,9 +129,10 @@ class SemanticSurrogate:
         """Predict a scalar from last-generation semantics.
 
         ``nearest`` returns the stored value of the nearest row, or the
-        mean of ``k`` neighbors. ``linear`` fits least squares on finite
-        stored rows. Fallback to nearest happens only when the design is
-        empty or ``rank < 1``, not when ``rank < min(shape)``.
+        mean of ``k`` neighbors, among rows whose stored value is
+        finite. ``linear`` fits least squares on finite stored rows.
+        Fallback to nearest happens only when the design is empty or
+        ``rank < 1``, not when ``rank < min(shape)``.
         Underdetermined packs (more columns than rows) keep the
         minimum-norm solution.
 
@@ -167,11 +168,20 @@ class SemanticSurrogate:
         metric: SemanticMetric | None,
         valid: numpy.ndarray | None,
     ) -> float:
-        _packed, values = self._require_store()
-        neighbors = self.nearest(query, k=k, metric=metric, valid=valid)
+        packed, values = self._require_store()
+        rows = numpy.flatnonzero(numpy.isfinite(values))
+        if rows.size == 0:
+            return float("nan")
+        neighbors = semantic_nearest(
+            query,
+            packed[rows],
+            k=k,
+            metric=self._metric if metric is None else metric,
+            valid=self._valid if valid is None else valid,
+        )
         if neighbors.size == 0:
             return float("nan")
-        return float(values[neighbors].mean())
+        return float(values[rows[neighbors]].mean())
 
     def _predict_linear(
         self,
