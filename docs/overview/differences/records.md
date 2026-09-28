@@ -133,7 +133,9 @@
     pre-dispatch evaluation estimate for `step_islands`. The
     post-step re-estimate no longer drops after invalids are
     already scored, so a tight `n_evals` cap cannot admit a
-    second island step.
+    second island step. `ea_policy` charges the same estimate to
+    the generation `nevals` and the budget, so a `step_islands`
+    action is no longer logged as fewer evaluations than it ran.
 33. `evaluate_invalid` is public on `algorithms` / `tools`. It is
     the helper `ea_*` and `apply_policy_action` already use:
     score individuals whose fitness is invalid, prefer
@@ -152,6 +154,25 @@
     the population. Not `step_program_search`: Slim, tune,
     archive, and team composition stay on the caller. DEAP has
     no policy driver.
+35. `Logbook.pop` leaves the stream cursor alone when the index is
+    out of range. `pop(-10)` on a short log no longer moves the
+    cursor back before it raises `IndexError`, so the next `stream`
+    does not print a row twice.
+36. `Logbook.remove` and `Logbook.insert` use the same chapter and
+    stream-cursor bookkeeping as `pop`. `remove` drops the matching
+    chapter row, and a row inserted before the cursor counts as
+    already streamed. `sort`, `reverse`, slice assignment, and `*=`
+    raise `TypeError` instead of silently desynchronizing chapters
+    and the cursor.
+37. `History.get_genealogy` walks the tree breadth-first. Under
+    `max_depth`, an ancestor shared by two branches is kept at its
+    shallowest depth. It is no longer dropped because it was first
+    reached through a deeper branch.
+38. `Statistics.register` replaces the function when a name is
+    registered again. The field is not listed twice, so the logbook
+    no longer grows a duplicate column.
+39. `HallOfFame` rejects a negative `maxsize` with `ValueError`
+    instead of silently archiving one member.
 
 [deap-25]: https://github.com/DEAP/deap/issues/25
 [deap-121]: https://github.com/DEAP/deap/issues/121
