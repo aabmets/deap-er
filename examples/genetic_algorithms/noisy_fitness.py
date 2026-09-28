@@ -46,10 +46,10 @@ def setup():
 
 def print_results(best_ind, cache, draws):
     true_score = sum(best_ind)
-    averaged = tools.resample(best_ind, cache.evaluate, 7, write=False)
+    averaged = tools.resample(best_ind, noisy_evaluate, 7, write=False)
     if averaged[0] < true_score - 1.0:
         raise RuntimeError("Resample mean diverged from the latent score.")
-    race = tools.race_stop([tools.clone_individual(best_ind)], cache.evaluate, 5, min_survivors=1)
+    race = tools.race_stop([tools.clone_individual(best_ind)], noisy_evaluate, 5, min_survivors=1)
     if not race.survivors:
         raise RuntimeError("Race stop dropped the only survivor.")
     print(f"\nLatent ones: {true_score} / {N_BITS}")
@@ -64,7 +64,7 @@ def main():
     for gen in range(GENERATIONS):
         offspring = tools.var_and(toolbox, toolbox.select(pop, len(pop)), 0.5, 0.2)
         for mutant in offspring:
-            tools.resample(mutant, toolbox.evaluate, 3, cache=cache, key="genes")
+            tools.resample(mutant, toolbox.evaluate, 3, cache=cache)
         hof.update(offspring)
         pop[:] = offspring
         if gen % 5 == 0:
