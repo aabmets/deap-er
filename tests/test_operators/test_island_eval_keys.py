@@ -70,6 +70,23 @@ def test_island_eval_keys_rejects_matrix_and_matrices():
         tools.island_eval_keys([exam], n_cases=4, matrix=matrix, matrices=[matrix])
 
 
+def test_island_eval_keys_catalog_length_does_not_split_key():
+    explicit = tools.CaseExam(ranges=[(0, 2)], length=4)
+    implicit = tools.CaseExam.from_cases([0, 1], 4)
+    keys = tools.island_eval_keys([explicit, implicit], n_cases=4)
+
+    assert keys[0] == keys[1]
+
+
+def test_island_eval_keys_accepts_series_exams():
+    left = tools.CaseExam(ranges=[(0, 50), (60, 120)])
+    right = tools.CaseExam(ranges=[(0, 50), (70, 120)])
+    keys = tools.island_eval_keys([left, left.copy(), right], n_cases=10)
+
+    assert keys[0] == keys[1]
+    assert keys[0] != keys[2]
+
+
 @pytest.fixture
 def ind_cls():
     creator.create_type(ISL_EVAL_FIT, Fitness, weights=(1.0,))

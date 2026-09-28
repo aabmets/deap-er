@@ -31,7 +31,8 @@ def mut_case_ranges(
 
     Args:
         ranges: Mutable list of ``(start, stop)`` pairs.
-        length: Exclusive upper bound for ``stop``.
+        length: Series length. Endpoints are clamped to
+            ``[0, length]``, so ``stop`` may equal ``length``.
         mut_prob: Probability of mutating each interval.
 
     Returns:

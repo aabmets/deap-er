@@ -164,3 +164,20 @@ def test_es_two_point_copy_swaps_numpy_strategy():
     )
     combined = sorted(first.strategy.tolist() + second.strategy.tolist())
     assert combined == sorted(orig_first_sigma.tolist() + orig_second_sigma.tolist())
+
+
+def test_cx_two_point_copy_accepts_array_array():
+    first: Any = array.array("d", [0.0, 1.0, 2.0, 3.0])
+    second: Any = array.array("d", [9.0, 8.0, 7.0, 6.0])
+    tools.rng.seed(1)
+    tools.cx_two_point_copy(first, second)
+    assert isinstance(first, array.array)
+    assert sorted(first.tolist() + second.tolist()) == [0.0, 1.0, 2.0, 3.0, 6.0, 7.0, 8.0, 9.0]
+
+
+def test_slicer_copy_swaps_array_array_segment():
+    first: Any = array.array("i", [0, 1, 2, 3])
+    second: Any = array.array("i", [9, 8, 7, 6])
+    slicer(first, second, 1, 3, copy=True)
+    assert first.tolist() == [0, 8, 7, 3]
+    assert second.tolist() == [9, 1, 2, 6]

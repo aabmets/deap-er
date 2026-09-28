@@ -136,3 +136,9 @@ def test_mut_de_leaves_unwritten_genes_unclamped():
     other = 1 - index
     assert 0.0 <= trial[index] <= 1.0
     assert trial[other] == [10.0, -5.0][other]
+
+
+def test_mut_de_rejects_unpaired_bounds_on_empty_individual():
+    empty: Any = []
+    with pytest.raises(ValueError, match="both be set or both omitted"):
+        tools.mut_de(empty, empty, empty, empty, 1.0, 1.0, low=0.0)

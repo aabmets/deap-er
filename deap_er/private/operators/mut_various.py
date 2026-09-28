@@ -91,7 +91,7 @@ def mut_polynomial_bounded(
 
     idx = list(range(size))
     for i, xl, xu in zip(idx, low, up, strict=False):
-        if rng.random() <= mut_prob:
+        if rng.random() < mut_prob:
             if xu <= xl:
                 continue
             x = min(max(individual[i], xl), xu)
@@ -161,10 +161,11 @@ def mut_flip_bit(individual: Individual, mut_prob: float) -> Mutant:
     return (individual,)
 
 
-def mut_uniform_int(individual: Individual, low: int, up: int, mut_prob: float) -> Mutant:
+def mut_uniform_int(individual: Individual, low: NumOrSeq, up: NumOrSeq, mut_prob: float) -> Mutant:
     """Replace attributes with integers drawn uniformly from [*low*, *up*].
 
-    The individual is modified in place. Bounds are inclusive.
+    The individual is modified in place. Bounds are inclusive and may
+    be scalars or per-gene sequences.
 
     Args:
         individual: Individual to mutate.
@@ -207,6 +208,8 @@ def mut_es_log_normal(individual: Individual, learn_rate: float, mut_prob: float
         A one-element tuple containing the mutated individual.
     """
     size = len(individual)
+    if size == 0:
+        return (individual,)
     t = learn_rate / math.sqrt(2.0 * math.sqrt(size))
     t0 = learn_rate / math.sqrt(2.0 * size)
     n = rng.gauss(0, 1)

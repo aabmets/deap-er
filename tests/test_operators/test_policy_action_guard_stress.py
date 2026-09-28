@@ -142,3 +142,14 @@ def test_random_policy_runs_many_generations_without_cache_melt(ind_cls, gp_ind_
             kwargs.update(demes=[(toolbox, elites)])
         result = tools.apply_policy_action(action, **kwargs)
         assert isinstance(result, tools.PolicyActionResult)
+
+
+def test_begin_generation_without_index_lets_cooldown_elapse():
+    guard = tools.PolicyActionGuard(promote_cooldown=1)
+    allowed = []
+    for _ in range(3):
+        guard.begin_generation()
+        allowed.append(guard.allows("promote_subtree"))
+        if allowed[-1]:
+            guard.note_applied("promote_subtree")
+    assert allowed == [True, True, True]

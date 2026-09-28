@@ -10,6 +10,7 @@
 #
 import pytest
 from deap_er import Fitness, creator, tools
+from deap_er.private.typedefs import Individual
 
 MIG_FIT = "MIG_FIT"
 MIG_IND = "MIG_IND"
@@ -206,3 +207,9 @@ def test_mig_ring_replacement_does_not_alias_across_demes(ind_cls):
     source_before = [member[0] for member in demes[0]]
     demes[1][0][0] = 999
     assert [member[0] for member in demes[0]] == source_before
+
+
+def test_mig_ring_no_demes_is_noop():
+    populations: list[list[Individual]] = []
+    tools.mig_ring(populations, 1, tools.sel_best)
+    assert populations == []

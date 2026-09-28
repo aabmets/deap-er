@@ -61,13 +61,13 @@ def mut_de(
             only one of ``low`` / ``up`` is set, or if a bound
             sequence is shorter than the individual.
     """
+    if (low is None) ^ (up is None):
+        raise ValueError(_BOUNDS_PAIR)
     size = len(individual)
     if size == 0:
         return (individual,)
     if min(len(a), len(b), len(c)) < size:
         raise ValueError(f"{_DONOR_SHORT}: {min(len(a), len(b), len(c))} < {size}")
-    if (low is None) ^ (up is None):
-        raise ValueError(_BOUNDS_PAIR)
 
     lows = ups = None
     if low is not None and up is not None:
