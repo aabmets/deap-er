@@ -183,7 +183,6 @@ def test_multi_objective_restart_survivors_regrow_with_lambda():
         seen = []
         for _ in range(4):
             _mo_step(restart, ind_cls)
-            restart._tracker.terminate = True
             restart.restart()
             seen.append((strategy.lamb, strategy.mu, len(strategy.parents)))
         assert seen == [(2, 2, 2), (4, 4, 4), (8, 6, 6), (16, 6, 6)]
@@ -216,7 +215,6 @@ def test_shrinking_lambda_factor_that_stays_positive_is_accepted():
         strategy = tools.Strategy([0.0] * 2, sigma=1.0, offsprings=10)
         restart = tools.RestartStrategy(strategy, mode="ipop", budget=1000, lambda_factor=0.9)
         restart.generate(ind_cls)
-        restart._tracker.terminate = True
         restart.restart()
         assert strategy.lamb == 9
     finally:

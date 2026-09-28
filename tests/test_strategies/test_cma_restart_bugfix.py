@@ -60,10 +60,19 @@ def test_first_run_sigma_matches_sigma_large():
     creator.create_type(FIT, Fitness, weights=(-1.0,))
     creator.create_type(IND, list, fitness=creator.__dict__[FIT])
     try:
+        tools.rng.seed(0)
         strategy = tools.Strategy([0.0] * 5, sigma=5.0, offsprings=6)
         restart = tools.RestartStrategy(strategy, mode="ipop", budget=100, sigma_large=2.0)
         assert strategy.sigma == 2.0
-        assert restart._tracker.sigma0 == 2.0
+        # TolUpSigma stops when sigma / sigma0 > 1e20 * sqrt(max eig). After one
+        # update, sigma / sqrt(max eig) is ~2.9e20: above 1e20 * 2.0 (sigma_large)
+        # but below 1e20 * 5.0 (the strategy's own initial sigma).
+        strategy.sigma = 3.5e20
+        population = restart.generate(creator.__dict__[IND])
+        for ind in population:
+            ind.fitness.values = tools.bm_sphere(ind)
+        restart.update(population)
+        assert restart.should_restart()
     finally:
         _teardown()
 

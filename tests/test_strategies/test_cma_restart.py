@@ -101,11 +101,13 @@ def test_run_tracker_equal_bests_do_not_stop_at_generation_two():
 def test_ipop_doubles_lambda_on_restart():
     strategy, toolbox = _setup_min(offsprings=8)
     try:
-        restart = tools.RestartStrategy(strategy, mode="ipop", budget=1_000_000)
-        toolbox.register("generate", restart.generate, creator.__dict__[IND])
-        toolbox.register("update", restart.update)
-        restart.generate(creator.__dict__[IND])
-        restart._tracker.terminate = True
+        restart = tools.RestartStrategy(
+            strategy, mode="ipop", budget=1_000_000, condition_limit=0.0
+        )
+        population = restart.generate(creator.__dict__[IND])
+        for ind in population:
+            ind.fitness.values = toolbox.evaluate(ind)
+        restart.update(population)
         assert restart.should_restart()
         restart.restart()
         assert strategy.lamb == 16
@@ -119,8 +121,7 @@ def test_restart_centroid_in_box():
     strategy, _ = _setup_min()
     try:
         restart = tools.RestartStrategy(strategy, mode="ipop", budget=100_000)
-        restart._ind_init = creator.__dict__[IND]
-        restart._tracker.terminate = True
+        restart.generate(creator.__dict__[IND])
         restart.restart()
         assert numpy.all(strategy.centroid >= -5.0)
         assert numpy.all(strategy.centroid <= 5.0)
@@ -165,16 +166,14 @@ def test_restart_centroid_one_sided_bounds_stay_finite():
     try:
         low_only = tools.Strategy([0.5] * 5, sigma=1.0, offsprings=8, low=0.0)
         restart = tools.RestartStrategy(low_only, mode="ipop", budget=100_000)
-        restart._ind_init = creator.__dict__[IND]
-        restart._tracker.terminate = True
+        restart.generate(creator.__dict__[IND])
         restart.restart()
         assert numpy.isfinite(low_only.centroid).all()
         assert numpy.all(low_only.centroid >= 0.0)
 
         up_only = tools.Strategy([0.5] * 5, sigma=1.0, offsprings=8, up=1.0)
         restart = tools.RestartStrategy(up_only, mode="ipop", budget=100_000)
-        restart._ind_init = creator.__dict__[IND]
-        restart._tracker.terminate = True
+        restart.generate(creator.__dict__[IND])
         restart.restart()
         assert numpy.isfinite(up_only.centroid).all()
         assert numpy.all(up_only.centroid <= 1.0)

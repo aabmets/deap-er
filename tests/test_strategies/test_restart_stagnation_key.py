@@ -40,13 +40,15 @@ def test_restart_update_prefers_weighted_best_for_maximization():
     creator.create_type(IND, list, fitness=creator.__dict__[FIT])
     try:
         strategy = tools.Strategy([0.0] * 3, sigma=1.0, offsprings=2)
-        restart = tools.RestartStrategy(strategy, mode="ipop", budget=100)
+        restart = tools.RestartStrategy(strategy, mode="ipop", budget=100, restart_centroid="best")
+        restart.generate(creator.__dict__[IND])
         better = creator.__dict__[IND]([1.0, 1.0, 1.0])
         better.fitness.values = (10.0,)
         worse = creator.__dict__[IND]([0.0, 0.0, 0.0])
         worse.fitness.values = (5.0,)
         restart.update([worse, better])
-        assert restart._best is better
+        restart.restart()
+        assert list(strategy.centroid) == better
     finally:
         _teardown()
 
@@ -93,6 +95,7 @@ def test_mo_restart_accepts_explicit_stagnation_key():
             mo,
             mode="ipop",
             budget=100,
+            restart_centroid="best",
             stagnation_key=lambda ind: tools.hypervolume([ind], ref),
         )
 
@@ -103,7 +106,9 @@ def test_mo_restart_accepts_explicit_stagnation_key():
         for ind in offspring:
             ind.fitness.values = evaluate(ind)
         restart.update(offspring)
-        assert restart._best is not None
+        best = max(offspring, key=lambda ind: tools.hypervolume([ind], ref))
+        restart.restart()
+        assert [list(parent) for parent in mo.parents] == [list(best)] * 4
     finally:
         _teardown()
 
@@ -117,14 +122,17 @@ def test_stagnation_key_must_be_higher_is_better():
             strategy,
             mode="ipop",
             budget=100,
+            restart_centroid="best",
             stagnation_key=lambda ind: float(ind.fitness.values[0]),
         )
+        restart.generate(creator.__dict__[IND])
         better = creator.__dict__[IND]([1.0, 1.0, 1.0])
         better.fitness.values = (10.0,)
         worse = creator.__dict__[IND]([0.0, 0.0, 0.0])
         worse.fitness.values = (5.0,)
         restart.update([worse, better])
-        assert restart._best is better
+        restart.restart()
+        assert list(strategy.centroid) == better
     finally:
         _teardown()
 

@@ -177,9 +177,13 @@ def test_separable_reset_state_and_ipop_restart():
         assert strategy.lamb == 20
         assert numpy.allclose(strategy.big_c, numpy.ones(5))
         assert numpy.allclose(strategy.pc, 0.0)
-        restart = tools.RestartStrategy(strategy, mode="ipop", budget=1_000_000)
-        restart.generate(ind_cls)
-        restart._tracker.terminate = True
+        restart = tools.RestartStrategy(
+            strategy, mode="ipop", budget=1_000_000, condition_limit=0.0
+        )
+        population = restart.generate(ind_cls)
+        for individual in population:
+            individual.fitness.values = tools.bm_sphere(individual)
+        restart.update(population)
         assert restart.should_restart()
         restart.restart()
         assert strategy.lamb == 40
