@@ -12,7 +12,22 @@ from deap_er.private.toolbox import Toolbox
 from deap_er.private.typedefs import Individual
 from deap_er.private.various.rng import rng
 
-__all__: list[str] = ["var_and", "var_or"]
+__all__: list[str] = ["check_var_or_pool", "var_and", "var_or"]
+
+
+def check_var_or_pool(population: list[Individual], offsprings: int) -> None:
+    """Reject an empty parent pool when ``var_or`` must produce offspring.
+
+    Args:
+        population: Individuals ``var_or`` would sample from.
+        offsprings: Number of individuals ``var_or`` would produce.
+
+    Raises:
+        ValueError: If ``offsprings`` is positive and ``population``
+            is empty.
+    """
+    if offsprings > 0 and not population:
+        raise ValueError("var_or cannot produce offspring from an empty population.")
 
 
 def var_and(
@@ -86,8 +101,9 @@ def var_or(
         A new list of offspring.
 
     Raises:
-        ValueError: If either probability is outside ``[0, 1]``, or if
-            ``cx_prob + mut_prob`` is greater than 1.
+        ValueError: If either probability is outside ``[0, 1]``, if
+            ``cx_prob + mut_prob`` is greater than 1, or if
+            ``offsprings`` is positive and ``population`` is empty.
     """
     err = "The {0} probability must be in the range of [0, 1]."
     if not (0 <= cx_prob <= 1):
@@ -101,6 +117,7 @@ def var_or(
             "The sum of the crossover and the mutation "
             "probabilities must be in the range of [0, 1]."
         )
+    check_var_or_pool(population, offsprings)
 
     offspring = []
     for _ in range(offsprings):

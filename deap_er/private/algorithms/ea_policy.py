@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import time
 from collections.abc import Callable, Sequence
+from functools import partial
 from logging import Logger
 from typing import Any
 
@@ -115,6 +116,15 @@ def ea_policy(
     """
     check_n_evals(n_evals)
     logbook = new_logbook(stats, log_time=log_time, extra_fields=("action",))
+    record = partial(
+        record_generation,
+        logbook,
+        hof=hof,
+        stats=stats,
+        verbose=verbose,
+        logger=logger,
+        fronts=fronts,
+    )
     extras = dict(action_kwargs) if action_kwargs else {}
     observe = dict(observe_kwargs) if observe_kwargs else {}
     active_cases = list(cases) if cases is not None else None
@@ -124,25 +134,18 @@ def ea_policy(
     held_out_score: float | None = None
 
     t0 = time.perf_counter()
-    nevals, used = consume_evals(toolbox, population, n_evals, 0)
+    nevals, used = consume_evals(toolbox, population, 0)
     _sync_guard_evals(guard, used)
     if active_cases is None:
         active_cases = initial_policy_cases(population, exams, n_cases)
     extra = policy_row_extra(action, exams, train_score, held_out_score)
-    _record(
-        logbook,
+    record(
         0,
         nevals,
-        population,
-        population,
-        hof,
-        stats,
-        verbose,
-        logger,
-        t0,
-        log_time,
-        fronts,
-        extra,
+        population=population,
+        offspring=population,
+        duration=_elapsed(t0, log_time),
+        extra=extra,
     )
     if budget_spent(n_evals, used):
         return population, logbook
@@ -171,41 +174,27 @@ def ea_policy(
             active_cases = applied_cases
         extra = policy_row_extra(action, exams, train_score, held_out_score)
         if budget_spent(n_evals, used):
-            _record(
-                logbook,
+            record(
                 gen,
                 action_evals,
-                population,
-                population,
-                hof,
-                stats,
-                verbose,
-                logger,
-                t0,
-                log_time,
-                fronts,
-                extra,
+                population=population,
+                offspring=population,
+                duration=_elapsed(t0, log_time),
+                extra=extra,
             )
             break
         offspring = select_policy_offspring(toolbox, population, active_cases)
         offspring = var_and(toolbox, offspring, cx_prob, mut_prob)
-        nevals, used = consume_evals(toolbox, offspring, n_evals, used)
+        nevals, used = consume_evals(toolbox, offspring, used)
         _sync_guard_evals(guard, used)
         population[:] = offspring
-        _record(
-            logbook,
+        record(
             gen,
             nevals + action_evals,
-            population,
-            offspring,
-            hof,
-            stats,
-            verbose,
-            logger,
-            t0,
-            log_time,
-            fronts,
-            extra,
+            population=population,
+            offspring=offspring,
+            duration=_elapsed(t0, log_time),
+            extra=extra,
         )
         if budget_spent(n_evals, used):
             break
@@ -218,33 +207,5 @@ def _sync_guard_evals(guard: PolicyActionGuard | None, used: int) -> None:
         guard.nevals_used = used
 
 
-def _record(
-    logbook: Any,
-    gen: int,
-    nevals: int,
-    population: list[Individual],
-    offspring: list[Individual],
-    hof: EvoRecords | None,
-    stats: EvoStats | None,
-    verbose: bool,
-    logger: Logger | None,
-    t0: float,
-    log_time: bool,
-    fronts: list[Any] | None,
-    extra: dict[str, Any],
-) -> None:
-    duration = time.perf_counter() - t0 if log_time else None
-    record_generation(
-        logbook,
-        gen,
-        nevals,
-        population=population,
-        offspring=offspring,
-        hof=hof,
-        stats=stats,
-        verbose=verbose,
-        logger=logger,
-        duration=duration,
-        fronts=fronts,
-        extra=extra,
-    )
+def _elapsed(t0: float, log_time: bool) -> float | None:
+    return time.perf_counter() - t0 if log_time else None

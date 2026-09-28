@@ -9,14 +9,14 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import operator
-from unittest import mock
 
-import numpy
 import pytest
 from deap_er import Fitness, Toolbox, creator, gp, tools
 
 POLICY_FIT = "POLICY_FIT"
 POLICY_IND = "POLICY_IND"
+POLICY_GP_FIT = "POLICY_GP_FIT"
+POLICY_GP_IND = "POLICY_GP_IND"
 
 
 @pytest.fixture
@@ -26,6 +26,21 @@ def ind_cls():
     yield creator.__dict__[POLICY_IND]
     del creator.__dict__[POLICY_FIT]
     del creator.__dict__[POLICY_IND]
+
+
+@pytest.fixture
+def gp_ind_cls():
+    creator.create_type(POLICY_GP_FIT, Fitness, weights=(-1.0,))
+    creator.create_type(POLICY_GP_IND, gp.PrimitiveTree, fitness=creator.__dict__[POLICY_GP_FIT])
+    yield creator.__dict__[POLICY_GP_IND]
+    del creator.__dict__[POLICY_GP_FIT]
+    del creator.__dict__[POLICY_GP_IND]
+
+
+def _promote_pset():
+    pset = gp.PrimitiveSetTyped("main", [float, float], float)
+    pset.add_primitive(operator.add, [float, float], float)
+    return pset
 
 
 def test_supported_actions_match_skip_and_dispatch_tokens():
@@ -42,20 +57,30 @@ def test_unknown_action_is_rejected():
 
 
 def test_skip_actions_noop_without_calling_underlying():
-    with (
-        mock.patch("deap_er.private.algorithms.policy_action.tune_ephemerals") as tune,
-        mock.patch("deap_er.private.algorithms.policy_action.promote_subtree") as promote,
-    ):
-        tune_result = tools.apply_policy_action(tools.POLICY_ACTION_SKIP_TUNE)
-        promote_result = tools.apply_policy_action(tools.POLICY_ACTION_SKIP_PROMOTE)
+    pset = _promote_pset()
+    tree = gp.PrimitiveTree.from_string("add(ARG0, ARG1)", pset)
+    tune_result = tools.apply_policy_action(tools.POLICY_ACTION_SKIP_TUNE)
+    promote_result = tools.apply_policy_action(
+        tools.POLICY_ACTION_SKIP_PROMOTE, prim_set=pset, expr=tree
+    )
     assert tune_result == tools.PolicyActionResult(applied=False, rejected=False)
     assert promote_result == tools.PolicyActionResult(applied=False, rejected=False)
-    tune.assert_not_called()
-    promote.assert_not_called()
+    assert gp.promoted_names(pset) == []
 
 
-def test_missing_required_kwargs_are_rejected():
-    result = tools.apply_policy_action("next_lexicase_cases", elites=[])
+@pytest.mark.parametrize(
+    ("action", "kwargs"),
+    [
+        ("next_lexicase_cases", {"elites": []}),
+        ("tune_ephemerals", {"individual": "tree"}),
+        ("promote_subtree", {"expr": "tree"}),
+        ("evaluate_invalid", {"individuals": []}),
+        ("interpret_tapes", {"tapes": []}),
+        ("step_islands", {}),
+    ],
+)
+def test_missing_required_kwargs_are_rejected(action, kwargs):
+    result = tools.apply_policy_action(action, **kwargs)
     assert result.rejected is True
     assert result.applied is False
 
@@ -72,43 +97,30 @@ def test_underlying_callable_errors_propagate(ind_cls):
         )
 
 
-@mock.patch("deap_er.private.algorithms.policy_action.next_lexicase_cases", return_value=[0, 2])
-def test_next_lexicase_cases_dispatch(mock_next, ind_cls):
-    elites = [ind_cls([0]), ind_cls([1])]
-    for elite in elites:
-        elite.fitness.values = (0.0, 1.0)
-    exam = tools.CaseExam.from_cases([0, 1], 2)
-    result = tools.apply_policy_action(
-        "next_lexicase_cases",
-        exams=[exam],
-        elites=elites,
-        mut_prob=0.0,
-    )
-    mock_next.assert_called_once()
-    assert result.applied is True
-    assert result.rejected is False
-    assert result.value == [0, 2]
+def test_tune_ephemerals_forwards_evaluate_and_n_gen(gp_ind_cls):
+    pset = gp.PrimitiveSet("main", 1)
+    pset.add_primitive(operator.add, 2)
+    pset.add_ephemeral_constant("POLICY_DISPATCH_EPH", lambda: 0.25)
+    eph = pset.terminals[object][-1]
+    tree = gp_ind_cls([pset.mapping["add"], eph(), pset.mapping["ARG0"]])
+    gp.assign_ephemerals(tree, [0.0])
+    calls = []
 
+    def evaluate(individual):
+        calls.append(individual)
+        return ((gp.compile_tree(individual, pset)(0.0) - 3.0) ** 2,)
 
-@mock.patch("deap_er.private.algorithms.policy_action.tune_ephemerals", return_value="tuned")
-def test_tune_ephemerals_dispatch(mock_tune):
+    tools.rng.seed(7)
     result = tools.apply_policy_action(
         "tune_ephemerals",
-        individual="tree",
-        strategy="strategy",
-        evaluate=lambda _: (1.0,),
+        individual=tree,
+        strategy=tools.Strategy([0.0], 0.8, offsprings=4, survivors=2),
+        evaluate=evaluate,
         n_gen=2,
-    )
-    mock_tune.assert_called_once_with(
-        "tree",
-        "strategy",
-        evaluate=mock.ANY,
-        n_gen=2,
-        evaluate_batch=None,
-        clone=None,
     )
     assert result.applied is True
-    assert result.value == "tuned"
+    assert result.value is tree
+    assert len(calls) == 2 * 4
 
 
 def test_tune_ephemerals_rejects_without_evaluate_callable():
@@ -120,83 +132,40 @@ def test_tune_ephemerals_rejects_without_evaluate_callable():
     assert result.rejected is True
 
 
-@mock.patch("deap_er.private.algorithms.policy_action.promote_subtree", return_value="promo0")
-def test_promote_subtree_dispatch(mock_promote):
-    pset = gp.PrimitiveSetTyped("main", [float, float], float)
-    pset.add_primitive(operator.add, [float, float], float)
+def test_promote_subtree_forwards_prefix():
+    pset = _promote_pset()
     tree = gp.PrimitiveTree.from_string("add(ARG0, ARG1)", pset)
     result = tools.apply_policy_action(
         "promote_subtree",
         prim_set=pset,
         expr=tree,
         index=0,
-        weight=2.0,
-    )
-    mock_promote.assert_called_once_with(
-        pset,
-        tree,
-        index=0,
-        max_library=32,
-        prefix="promo",
-        weight=2.0,
+        prefix="lib",
     )
     assert result.applied is True
-    assert result.value == "promo0"
+    assert result.value == "lib0"
+    assert gp.promoted_names(pset) == ["lib0"]
 
 
-@mock.patch("deap_er.private.algorithms.policy_action.evaluate_invalid", return_value=3)
-def test_evaluate_invalid_dispatch(mock_evaluate, ind_cls):
+def test_step_islands_forwards_migrate_and_eval_keys(ind_cls):
     toolbox = Toolbox()
-    population = [ind_cls([0]), ind_cls([1])]
-    result = tools.apply_policy_action(
-        "evaluate_invalid",
-        toolbox=toolbox,
-        individuals=population,
-    )
-    mock_evaluate.assert_called_once_with(toolbox, population)
-    assert result.applied is True
-    assert result.value == 3
+    toolbox.register("evaluate", lambda individual: (float(individual[0]), 0.0))
+    toolbox.register("vary", list)
+    toolbox.register("select", tools.sel_best)
+    first = [ind_cls([0.0])]
+    second = [ind_cls([1.0])]
+    immigrant = second[0]
 
-
-@mock.patch(
-    "deap_er.private.algorithms.policy_action.interpret_tapes",
-    return_value=numpy.array([[1.0, 2.0]]),
-)
-def test_interpret_tapes_dispatch(mock_interpret):
-    matrix = numpy.array([[0.0, 1.0], [2.0, 3.0]])
-    result = tools.apply_policy_action(
-        "interpret_tapes",
-        tapes=["tape"],
-        matrix=matrix,
-        backend="opcode",
-    )
-    mock_interpret.assert_called_once_with(
-        ["tape"],
-        matrix,
-        backend="opcode",
-        dispatch=None,
-        parallel=False,
-    )
-    assert result.applied is True
-    assert numpy.array_equal(result.value, numpy.array([[1.0, 2.0]]))
-
-
-@mock.patch("deap_er.private.algorithms.policy_action.step_islands")
-def test_step_islands_dispatch(mock_step, ind_cls):
     def migrate(populations):
         populations[0][:] = populations[1][:1]
 
-    toolbox = Toolbox()
-    first = [ind_cls([0])]
-    second = [ind_cls([1])]
-    demes = [(toolbox, first), (toolbox, second)]
     result = tools.apply_policy_action(
         "step_islands",
-        demes=demes,
+        demes=[(toolbox, first), (toolbox, second)],
         migrate=migrate,
         eval_keys=("a", "b"),
     )
-    mock_step.assert_called_once_with(demes, migrate, eval_keys=("a", "b"))
-    assert result.applied is True
-    assert result.rejected is False
-    assert result.value is None
+    assert result == tools.PolicyActionResult(applied=True, rejected=False)
+    assert first == [immigrant]
+    assert first[0] is immigrant
+    assert not immigrant.fitness.is_valid()

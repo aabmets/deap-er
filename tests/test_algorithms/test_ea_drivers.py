@@ -172,3 +172,15 @@ def test_mu_comma_lambda_accepts_equal_counts(toolbox):
     _, logbook = tools.ea_mu_comma_lambda(toolbox, _population(), 2, 6, 6, 0.5, 0.2)
 
     assert logbook.select("gen") == [0, 1, 2]
+
+
+@pytest.mark.parametrize("driver", [tools.ea_mu_plus_lambda, tools.ea_mu_comma_lambda])
+def test_mu_lambda_drivers_reject_an_empty_population_up_front(toolbox, driver):
+    with pytest.raises(ValueError, match="empty population"):
+        driver(toolbox, [], 2, 4, 4, 0.5, 0.2)
+
+
+def test_ea_simple_runs_an_empty_population(toolbox):
+    _, logbook = tools.ea_simple(toolbox, [], 2, 0.5, 0.2)
+
+    assert logbook.select("nevals") == [0, 0, 0]

@@ -8,14 +8,13 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-import time
 from logging import Logger
 from typing import Any
 
 from deap_er.private.toolbox import Toolbox
 from deap_er.private.typedefs import EvoAlgoResult, EvoRecords, EvoStats, Individual
 
-from .loop import budget_spent, check_n_evals, consume_evals, new_logbook, record_generation
+from .generations import evolve_generations
 from .variation import var_and
 
 __all__: list[str] = ["ea_simple"]
@@ -67,51 +66,17 @@ def ea_simple(
     Raises:
         ValueError: If ``n_evals`` is negative.
     """
-    check_n_evals(n_evals)
-    logbook = new_logbook(stats, log_time=log_time)
-    t0 = time.perf_counter()
-    nevals, used = consume_evals(toolbox, population, n_evals, 0)
-    duration = time.perf_counter() - t0 if log_time else None
-    record_generation(
-        logbook,
-        0,
-        nevals,
-        population=population,
-        offspring=population,
+    return evolve_generations(
+        toolbox,
+        population,
+        generations,
+        lambda pop: var_and(toolbox, toolbox.select(pop, len(pop)), cx_prob, mut_prob),
+        lambda _pop, offspring: offspring,
         hof=hof,
         stats=stats,
         verbose=verbose,
         logger=logger,
-        duration=duration,
+        log_time=log_time,
         fronts=fronts,
+        n_evals=n_evals,
     )
-    if budget_spent(n_evals, used):
-        return population, logbook
-
-    for gen in range(1, generations + 1):
-        t0 = time.perf_counter()
-        offspring = toolbox.select(population, len(population))
-        offspring = var_and(toolbox, offspring, cx_prob, mut_prob)
-
-        nevals, used = consume_evals(toolbox, offspring, n_evals, used)
-
-        population[:] = offspring
-        duration = time.perf_counter() - t0 if log_time else None
-
-        record_generation(
-            logbook,
-            gen,
-            nevals,
-            population=population,
-            offspring=offspring,
-            hof=hof,
-            stats=stats,
-            verbose=verbose,
-            logger=logger,
-            duration=duration,
-            fronts=fronts,
-        )
-        if budget_spent(n_evals, used):
-            break
-
-    return population, logbook

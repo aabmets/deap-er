@@ -12,9 +12,10 @@ from collections.abc import Sequence
 from logging import Logger
 from typing import Any
 
+from deap_er.private.records.hall_of_fame import ParetoFront
+from deap_er.private.records.logbook import Logbook
 from deap_er.private.toolbox import Toolbox
 from deap_er.private.typedefs import EvoRecords, EvoStats, Individual
-from deap_er.records import Logbook, ParetoFront
 
 __all__: list[str] = [
     "budget_spent",
@@ -81,22 +82,22 @@ def budget_spent(n_evals: int | None, used: int) -> bool:
 def consume_evals(
     toolbox: Toolbox,
     individuals: Sequence[Any],
-    n_evals: int | None,
     used: int,
 ) -> tuple[int, int]:
-    """Evaluate invalids unless the evaluation budget is already spent.
+    """Evaluate invalids and add them to the running evaluation total.
+
+    Drivers stop as soon as ``budget_spent`` is true, so every
+    generation that starts is finished, including generation zero
+    under ``n_evals=0``.
 
     Args:
         toolbox: Toolbox with the evaluate and map operators.
         individuals: Individuals to scan for invalid fitness.
-        n_evals: Optional maximum number of evaluations.
         used: Evaluations already consumed.
 
     Returns:
         The number evaluated this call and the new total used.
     """
-    if budget_spent(n_evals, used):
-        return 0, used
     nevals = evaluate_invalid(toolbox, individuals)
     return nevals, used + nevals
 
@@ -123,7 +124,7 @@ def evaluate_invalid(toolbox: Toolbox, individuals: Sequence[Any]) -> int:
         fitness = evaluate_batch(invalids)
     else:
         fitness = toolbox.map(toolbox.evaluate, invalids)
-    for ind, fit in zip(invalids, fitness, strict=False):
+    for ind, fit in zip(invalids, fitness, strict=True):
         ind.fitness.values = fit
     return len(invalids)
 

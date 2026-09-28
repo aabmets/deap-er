@@ -71,10 +71,12 @@ def step_islands(
     if eval_keys is not None and len(eval_keys) != len(demes):
         raise ValueError("eval_keys must have one entry per deme.")
 
-    populations: list[list[Individual]] = []
-    for toolbox, population in demes:
+    for toolbox, _population in demes:
         _require_operator(toolbox, "vary")
         _require_operator(toolbox, "select")
+
+    populations: list[list[Individual]] = []
+    for toolbox, population in demes:
         evaluate_invalid(toolbox, population)
         offspring = toolbox.vary(population)
         evaluate_invalid(toolbox, offspring)
@@ -88,9 +90,14 @@ def step_islands(
         migrate(populations)
         return
 
-    owner = {id(ind): key for key, pop in zip(eval_keys, populations, strict=True) for ind in pop}
+    # Each entry holds its individual so no id can be reused by a new
+    # object while ``migrate`` runs.
+    owner = {
+        id(ind): (key, ind) for key, pop in zip(eval_keys, populations, strict=True) for ind in pop
+    }
     migrate(populations)
     for key, pop in zip(eval_keys, populations, strict=True):
         for ind in pop:
-            if owner.get(id(ind)) != key:
+            home = owner.get(id(ind))
+            if home is None or home[0] != key:
                 del ind.fitness.values

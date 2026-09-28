@@ -31,7 +31,7 @@ from deap_er.private.various.policy_observe import (
     policy_solve_bits_from_fitness,
 )
 
-from .policy_action import POLICY_ACTION_SKIP_PROMOTE, PolicyActionResult, apply_policy_action
+from .policy_action import POLICY_ACTION_SKIP_PROMOTE, applied_eval_cost, apply_policy_action
 
 __all__: list[str] = [
     "initial_policy_cases",
@@ -194,6 +194,9 @@ def step_policy_generation(
         kwargs["exams"] = exams
         if kwargs.get("held_out") is None and exams.held_out is not None:
             kwargs["held_out"] = exams.held_out
+    planned = estimate_policy_action_evals(
+        action, **{key: value for key, value in kwargs.items() if key != "guard"}
+    )
     result = apply_policy_action(action, **kwargs)
     applied_cases: list[int] | None = None
     if result.applied and action == "next_lexicase_cases":
@@ -204,17 +207,8 @@ def step_policy_generation(
         train_score,
         held_out_score,
         applied_cases,
-        _action_evals(action, result, kwargs),
+        applied_eval_cost(action, result, planned),
     )
-
-
-def _action_evals(action: str, result: PolicyActionResult, kwargs: dict[str, Any]) -> int:
-    if not result.applied:
-        return 0
-    if action == "evaluate_invalid" and isinstance(result.value, int):
-        return result.value
-    estimate_kwargs = {key: value for key, value in kwargs.items() if key != "guard"}
-    return estimate_policy_action_evals(action, **estimate_kwargs)
 
 
 def policy_elites(population: list[Individual], elite_count: int) -> list[Individual]:

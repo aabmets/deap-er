@@ -237,3 +237,13 @@ def test_step_islands_rejects_eval_keys_of_the_wrong_length(ind_cls):
 
 def test_step_islands_empty_demes_is_a_noop():
     tools.step_islands([])
+
+
+def test_step_islands_validates_every_deme_before_stepping(ind_cls):
+    population = _individuals(ind_cls, [1])
+    broken = Toolbox()
+    broken.register("evaluate", _evaluate)
+
+    with pytest.raises(ValueError, match="vary"):
+        tools.step_islands([(_toolbox(list, tools.sel_best), population), (broken, [])])
+    assert not population[0].fitness.is_valid()
