@@ -56,6 +56,7 @@ __all__: list[str] = [
     "SUPPORTED_POLICY_ACTIONS",
     "PolicyActionGuard",
     "PolicyActionResult",
+    "applied_eval_cost",
     "apply_policy_action",
     "estimate_policy_action_evals",
     "guard_policy_action",
@@ -105,7 +106,7 @@ def apply_policy_action(action: str, /, **kwargs: Any) -> PolicyActionResult:
         return PolicyActionResult(applied=False, rejected=False)
     planned = estimate_policy_action_evals(action, **kwargs) if guard is not None else 0
     if guard is not None and not guard_policy_action(action, guard, **kwargs):
-        return PolicyActionResult(applied=False, rejected=True)
+        return _reject()
     if action == "next_lexicase_cases":
         result = _dispatch_next_lexicase_cases(**kwargs)
     elif action == "tune_ephemerals":
@@ -119,14 +120,32 @@ def apply_policy_action(action: str, /, **kwargs: Any) -> PolicyActionResult:
     elif action == "step_islands":
         result = _dispatch_step_islands(**kwargs)
     else:
-        return PolicyActionResult(applied=False, rejected=True)
+        return _reject()
     if guard is not None and result.applied:
-        evals = _applied_eval_cost(action, result, planned)
+        evals = applied_eval_cost(action, result, planned)
         guard.note_applied(action, evals=evals)
     return result
 
 
-def _applied_eval_cost(action: str, result: PolicyActionResult, planned: int) -> int:
+def applied_eval_cost(action: str, result: PolicyActionResult, planned: int) -> int:
+    """Return the evaluations an applied policy action spent.
+
+    ``evaluate_invalid`` reports its exact count. Every other action
+    is charged ``planned``, the estimate taken before dispatch, since
+    a re-estimate after the action ran no longer sees the invalids
+    it already scored.
+
+    Args:
+        action: Policy action token that ran.
+        result: Outcome returned by :func:`apply_policy_action`.
+        planned: ``estimate_policy_action_evals`` taken before dispatch.
+
+    Returns:
+        Evaluations to charge against a budget, or 0 when the
+        action was not applied.
+    """
+    if not result.applied:
+        return 0
     if action == "evaluate_invalid" and isinstance(result.value, int):
         return result.value
     return planned
