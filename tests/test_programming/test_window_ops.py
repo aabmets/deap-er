@@ -93,6 +93,17 @@ def test_window_ops_reject_a_window_below_one(func):
         func(RAMP, 0)
 
 
+@pytest.mark.parametrize("window", [2.5, float("nan")])
+@pytest.mark.parametrize("func", [*WINDOW_OPS, gp.ts_rank, gp.ts_argmax])
+def test_window_ops_reject_a_window_that_is_not_an_integer(func, window):
+    with pytest.raises(ValueError, match="must be an integer"):
+        func(RAMP, window)
+
+
+def test_window_ops_accept_an_integral_float_window():
+    numpy.testing.assert_array_equal(gp.rolling_sum(RAMP, 3.0), gp.rolling_sum(RAMP, 3))
+
+
 @pytest.mark.parametrize("func", WINDOW_OPS)
 def test_window_ops_return_all_nan_when_the_window_exceeds_the_series(func):
     assert numpy.all(numpy.isnan(func(RAMP, 40)))

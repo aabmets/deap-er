@@ -227,3 +227,9 @@ def test_pair_windows_read_a_scalar_operand_as_a_constant_series(op):
     expected = op(RAMP, numpy.full(RAMP.shape, 2.0), 3)
     numpy.testing.assert_array_equal(op(RAMP, 2.0, 3), expected)
     numpy.testing.assert_array_equal(op(2.0, RAMP, 3), op(numpy.full(RAMP.shape, 2.0), RAMP, 3))
+
+
+@pytest.mark.parametrize("op", PAIR_OPS)
+def test_pair_windows_reject_a_window_that_is_not_an_integer(op):
+    with pytest.raises(ValueError, match="must be an integer"):
+        op(RAMP, OTHER, 2.5)
