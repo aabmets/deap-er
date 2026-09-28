@@ -22,12 +22,12 @@ if TYPE_CHECKING:
 
 from .common import update_bound_attrs
 from .mo_generate import clip_offspring, resample_offspring
+from .mo_select import select
 from .mo_update import (
     commit_parent_params,
     copy_offspring_state,
     decay_rejected_offspring,
     rank_one_update,
-    select,
     update_chosen_offspring,
 )
 

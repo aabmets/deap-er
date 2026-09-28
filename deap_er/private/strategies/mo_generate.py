@@ -15,14 +15,13 @@ from typing import TYPE_CHECKING, Any
 
 import numpy
 
-from deap_er.private.operators.bounds import broadcast_param
 from deap_er.private.various.rng import rng
 from deap_er.private.various.sort_non_dominated import sort_non_dominated
 
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 
-from .common import apply_box_bounds
+from .common import apply_box_bounds, bound_arrays
 
 __all__ = ["resample_offspring", "clip_offspring"]
 
@@ -103,16 +102,9 @@ def clip_offspring(
         raws[i] = _raw(
             strategy.parents[p_idx], strategy.sigmas[p_idx], strategy.big_a[p_idx], arz[i]
         )
-    if strategy.low is not None or strategy.up is not None:
-        low_seq = broadcast_param(
-            "low", -numpy.inf if strategy.low is None else strategy.low, strategy.dim
-        )
-        up_seq = broadcast_param(
-            "up", numpy.inf if strategy.up is None else strategy.up, strategy.dim
-        )
-        raws = numpy.clip(
-            raws, numpy.asarray(low_seq, dtype=float), numpy.asarray(up_seq, dtype=float)
-        )
+    bounds = bound_arrays(strategy.low, strategy.up, strategy.dim)
+    if bounds is not None:
+        raws = numpy.clip(raws, bounds[0], bounds[1])
     individuals = []
     for i, p_idx in enumerate(parent_idxs):
         init = ind_init(raws[i])

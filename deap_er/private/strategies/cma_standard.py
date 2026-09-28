@@ -54,7 +54,8 @@ class Strategy(CmaCore):
           * The number of children to produce at each generation.
           * *Default:* ``int(4 + 3 * log(len(centroid)))``
        * survivors - *(int)*
-          * The number of children to keep as parents for the next generation.
+          * The number of children to keep as parents for the next
+            generation. Must be between 1 and ``offsprings``.
           * *Default:* ``int(offsprings / 2)``
        * weights - *(str)*
           * Recombination weights. One of ``superlinear``, ``linear``,
@@ -107,6 +108,7 @@ class Strategy(CmaCore):
                 docstring.
 
         Raises:
+            ValueError: If ``survivors`` is not in ``[1, offsprings]``.
             RuntimeError: If ``weights`` is not ``superlinear``,
                 ``linear``, or ``equal``.
         """

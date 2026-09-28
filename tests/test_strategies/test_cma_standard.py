@@ -9,6 +9,7 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import numpy
+import pytest
 from deap_er import Fitness, creator, tools
 
 SO_FIT = "CMA_STD_FIT"
@@ -136,3 +137,15 @@ def test_invalid_bound_mode_and_resample_limit():
         assert "resample_limit" in str(err)
     else:
         raise AssertionError("expected ValueError for resample_limit")
+
+
+@pytest.mark.parametrize("cls", [tools.Strategy, tools.StrategySeparable])
+def test_survivors_outside_one_to_offsprings_is_rejected(cls):
+    with pytest.raises(ValueError, match="survivors=6, offsprings=4"):
+        cls([0.0] * 3, sigma=1.0, offsprings=4, survivors=6)
+    with pytest.raises(ValueError, match="survivors=0"):
+        cls([0.0] * 3, sigma=1.0, offsprings=4, survivors=0)
+    strategy = cls([0.0] * 3, sigma=1.0, offsprings=8, survivors=4)
+    with pytest.raises(ValueError, match="survivors=4, offsprings=2"):
+        strategy.compute_params(offsprings=2, survivors=4)
+    assert (strategy.lamb, strategy.mu) == (8, 4)

@@ -92,3 +92,10 @@ def test_shekel_sums_inverse_squared_distances():
     vector = numpy.array([0.1, 0.2])
     (value,) = tools.bm_shekel(individual, matrix, vector)
     assert value == pytest.approx(1 / 0.1 + 1 / (0.2 + 2.0))
+
+
+def test_rastrigin_scaled_accepts_one_dimension():
+    origin: Any = [0.0]
+    half: Any = [0.5]
+    assert tools.bm_rastrigin_scaled(origin) == (0.0,)
+    assert tools.bm_rastrigin_scaled(half) == tools.bm_rastrigin(half)

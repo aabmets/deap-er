@@ -27,6 +27,7 @@ __all__: list[str] = [
     "update_bound_attrs",
     "apply_box_bounds",
     "finite_sample_bounds",
+    "bound_arrays",
 ]
 
 
@@ -63,7 +64,7 @@ def update_bound_attrs(strategy: Any, kwargs: dict[str, Any]) -> None:
         raise ValueError("resample_limit must be at least 1.")
 
 
-def _bound_arrays(
+def bound_arrays(
     low: NumOrSeq | None, up: NumOrSeq | None, dim: int
 ) -> tuple[numpy.ndarray, numpy.ndarray] | None:
     """Broadcast optional box bounds to length ``dim``.
@@ -104,7 +105,7 @@ def finite_sample_bounds(
     """
     default_lo, default_hi = -5.0, 5.0
     width = default_hi - default_lo
-    bounds = _bound_arrays(low, up, dim)
+    bounds = bound_arrays(low, up, dim)
     if bounds is None:
         return (
             numpy.full(dim, default_lo, dtype=float),
@@ -144,7 +145,7 @@ def apply_box_bounds(
     Returns:
         A vector inside the box, or ``vector`` when no bounds are set.
     """
-    bounds = _bound_arrays(low, up, len(vector))
+    bounds = bound_arrays(low, up, len(vector))
     if bounds is None:
         return vector
     low_arr, up_arr = bounds
@@ -200,7 +201,7 @@ def sample_offspring(
             return numpy.asarray(center + sigma * z * transform, dtype=float)
         return numpy.asarray(center + sigma * numpy.dot(z, transform.T), dtype=float)
 
-    bounds = _bound_arrays(low, up, dim)
+    bounds = bound_arrays(low, up, dim)
     if bounds is None or bound_mode == "clip":
         arz = rng.standard_normal((lamb, dim))
         arz = _map_z(arz)

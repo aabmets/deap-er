@@ -11,12 +11,12 @@
 import numpy
 from deap_er import Fitness, creator, tools
 from deap_er.private.strategies.restart_common import (
-    RunTracker,
     sample_centroid,
     strategy_center,
     strategy_diagnostics,
     strategy_sigma,
 )
+from deap_er.private.strategies.restart_tracker import RunTracker
 
 FIT = "RCM_FIT"
 IND = "RCM_IND"

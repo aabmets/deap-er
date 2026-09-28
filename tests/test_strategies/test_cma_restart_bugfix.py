@@ -10,9 +10,9 @@
 #
 import math
 
-import pytest
 from deap_er import Fitness, Toolbox, creator, tools
-from deap_er.private.strategies.restart_common import RunTracker, scalar_fitness
+from deap_er.private.strategies.restart_schedule import RestartSchedule
+from deap_er.private.strategies.restart_tracker import RunTracker
 
 FIT = "RST_BF_FIT"
 IND = "RST_BF_IND"
@@ -39,36 +39,6 @@ def test_budget_hard_cap_when_not_multiple_of_lambda():
         _teardown()
 
 
-def test_scalar_fitness_uses_weighted_values_for_maximization():
-    creator.create_type(FIT, Fitness, weights=(1.0,))
-    creator.create_type(IND, list, fitness=creator.__dict__[FIT])
-    try:
-        better = creator.__dict__[IND]([0.0])
-        better.fitness.values = (10.0,)
-        worse = creator.__dict__[IND]([1.0])
-        worse.fitness.values = (5.0,)
-        assert scalar_fitness(better) == 10.0
-        assert scalar_fitness(worse) == 5.0
-    finally:
-        _teardown()
-
-
-def test_restart_update_prefers_weighted_best_for_maximization():
-    creator.create_type(FIT, Fitness, weights=(1.0,))
-    creator.create_type(IND, list, fitness=creator.__dict__[FIT])
-    try:
-        strategy = tools.Strategy([0.0] * 3, sigma=1.0, offsprings=2)
-        restart = tools.RestartStrategy(strategy, mode="ipop", budget=100)
-        better = creator.__dict__[IND]([1.0, 1.0, 1.0])
-        better.fitness.values = (10.0,)
-        worse = creator.__dict__[IND]([0.0, 0.0, 0.0])
-        worse.fitness.values = (5.0,)
-        restart.update([worse, better])
-        assert restart._best is better
-    finally:
-        _teardown()
-
-
 def test_mo_reset_trims_parent_arrays_to_survivors():
     creator.create_type(FIT, Fitness, weights=(-1.0, -1.0))
     creator.create_type(IND, list, fitness=creator.__dict__[FIT])
@@ -90,10 +60,19 @@ def test_first_run_sigma_matches_sigma_large():
     creator.create_type(FIT, Fitness, weights=(-1.0,))
     creator.create_type(IND, list, fitness=creator.__dict__[FIT])
     try:
+        tools.rng.seed(0)
         strategy = tools.Strategy([0.0] * 5, sigma=5.0, offsprings=6)
         restart = tools.RestartStrategy(strategy, mode="ipop", budget=100, sigma_large=2.0)
         assert strategy.sigma == 2.0
-        assert restart._tracker.sigma0 == 2.0
+        # TolUpSigma stops when sigma / sigma0 > 1e20 * sqrt(max eig). After one
+        # update, sigma / sqrt(max eig) is ~2.9e20: above 1e20 * 2.0 (sigma_large)
+        # but below 1e20 * 5.0 (the strategy's own initial sigma).
+        strategy.sigma = 3.5e20
+        population = restart.generate(creator.__dict__[IND])
+        for ind in population:
+            ind.fitness.values = tools.bm_sphere(ind)
+        restart.update(population)
+        assert restart.should_restart()
     finally:
         _teardown()
 
@@ -102,84 +81,6 @@ def test_run_tracker_sigma0_matches_strategy_sigma():
     tracker = RunTracker(5, 10, 3.5)
     tracker.begin_run(10, 3.5)
     assert tracker.sigma0 == 3.5
-
-
-def test_scalar_fitness_mo_without_key_raises():
-    creator.create_type(FIT, Fitness, weights=(-1.0, -1.0))
-    creator.create_type(IND, list, fitness=creator.__dict__[FIT])
-    try:
-        ind = creator.__dict__[IND]([0.0, 0.0])
-        ind.fitness.values = (1.0, 2.0)
-        with pytest.raises(ValueError, match="stagnation_key"):
-            scalar_fitness(ind)
-    finally:
-        _teardown()
-
-
-def test_mo_restart_requires_explicit_stagnation_key():
-    creator.create_type(FIT, Fitness, weights=(-1.0, -1.0))
-    creator.create_type(IND, list, fitness=creator.__dict__[FIT])
-    try:
-        parents = [creator.__dict__[IND]([0.0, 0.0]) for _ in range(4)]
-        for parent in parents:
-            del parent.fitness.values
-        mo = tools.StrategyMultiObjective(parents, sigma=1.0, offsprings=8, survivors=4)
-        restart = tools.RestartStrategy(mo, mode="ipop", budget=100)
-        ind = creator.__dict__[IND]([0.0, 0.0])
-        ind.fitness.values = (1.0, 2.0)
-        with pytest.raises(ValueError, match="stagnation_key"):
-            restart.update([ind])
-    finally:
-        _teardown()
-
-
-def test_mo_restart_accepts_explicit_stagnation_key():
-    creator.create_type(FIT, Fitness, weights=(-1.0, -1.0))
-    creator.create_type(IND, list, fitness=creator.__dict__[FIT])
-    try:
-        parents = [creator.__dict__[IND]([0.1, 0.2]) for _ in range(4)]
-        for parent in parents:
-            parent.fitness.values = (parent[0] ** 2, parent[1] ** 2)
-        mo = tools.StrategyMultiObjective(parents, sigma=0.1, offsprings=4, survivors=4)
-        ref = [10.0, 10.0]
-        restart = tools.RestartStrategy(
-            mo,
-            mode="ipop",
-            budget=100,
-            stagnation_key=lambda ind: tools.hypervolume([ind], ref),
-        )
-
-        def evaluate(ind):
-            return (ind[0] ** 2, ind[1] ** 2)
-
-        offspring = restart.generate(creator.__dict__[IND])
-        for ind in offspring:
-            ind.fitness.values = evaluate(ind)
-        restart.update(offspring)
-        assert restart._best is not None
-    finally:
-        _teardown()
-
-
-def test_stagnation_key_must_be_higher_is_better():
-    creator.create_type(FIT, Fitness, weights=(-1.0,))
-    creator.create_type(IND, list, fitness=creator.__dict__[FIT])
-    try:
-        strategy = tools.Strategy([0.0] * 3, sigma=1.0, offsprings=2)
-        restart = tools.RestartStrategy(
-            strategy,
-            mode="ipop",
-            budget=100,
-            stagnation_key=lambda ind: float(ind.fitness.values[0]),
-        )
-        better = creator.__dict__[IND]([1.0, 1.0, 1.0])
-        better.fitness.values = (10.0,)
-        worse = creator.__dict__[IND]([0.0, 0.0, 0.0])
-        worse.fitness.values = (5.0,)
-        restart.update([worse, better])
-        assert restart._best is better
-    finally:
-        _teardown()
 
 
 def test_best_fitness_nan_before_first_update():
@@ -212,17 +113,26 @@ def test_partial_batch_leaves_reduced_lambda_without_restore():
 
 
 def test_bipop_accounts_initial_run_on_first_restart():
+    schedule = RestartSchedule("bipop", 8, 2.0, 9, 2.0)
+    schedule.account_run(5000)
+    assert schedule.budget_large == 5000
+    assert schedule.last_large_run_evals == 5000
+
+
+def test_bipop_restart_charges_initial_run_to_large_budget():
     creator.create_type(FIT, Fitness, weights=(-1.0,))
     creator.create_type(IND, list, fitness=creator.__dict__[FIT])
     try:
         strategy = tools.Strategy([0.0] * 5, sigma=1.0, offsprings=8)
         restart = tools.RestartStrategy(strategy, mode="bipop", budget=100_000)
-        restart._ind_init = creator.__dict__[IND]
-        restart._run_evals = 5000
-        restart._tracker.terminate = True
+        population = restart.generate(creator.__dict__[IND])
+        for ind in population:
+            ind.fitness.values = tools.bm_sphere(ind)
+        restart.update(population)
         restart.restart()
-        assert restart._budget_large == 5000
-        assert restart._last_large_run_evals == 5000
+        assert restart.regime == "large"
+        restart.restart()
+        assert restart.regime == "small"
     finally:
         _teardown()
 

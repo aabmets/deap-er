@@ -139,9 +139,17 @@ def bm_dent(individual: Individual, dent_size: float = 0.85) -> tuple[float, flo
 
     ??? note "Equations"
 
-        $f_{1}(\mathbf{x}) = \text{ ?}$
+        $d = \text{dent\_size} \cdot e^{-(x_1 - x_2)^2}$
 
-        $f_{2}(\mathbf{x}) = \text{ ?}$
+        $$
+        f_{1}(\mathbf{x}) = \frac{1}{2}\left(\sqrt{1 + (x_1 + x_2)^2}
+        + \sqrt{1 + (x_1 - x_2)^2} + x_1 - x_2\right) + d
+        $$
+
+        $$
+        f_{2}(\mathbf{x}) = \frac{1}{2}\left(\sqrt{1 + (x_1 + x_2)^2}
+        + \sqrt{1 + (x_1 - x_2)^2} - x_1 + x_2\right) + d
+        $$
 
         Returns $f_{1}(\mathbf{x})$ and $f_{2}(\mathbf{x})$.
     """

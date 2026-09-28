@@ -35,15 +35,22 @@ def bm_dtlz_5(individual: Individual, count: int) -> list[float]:
 
     ??? note "Equations"
 
-        $g(\mathbf{x}_m) = \text{ ?}$
+        $g(\mathbf{x}_m) = \sum_{x_i \in \mathbf{x}_m} (x_i - 0.5)^2$
 
-        $f_{1}(\mathbf{x}) = \text{ ?}$
+        $\theta_1 = \frac{\pi}{2} x_1$,
+        $\theta_i = \frac{\pi}{4(1 + g(\mathbf{x}_m))}(1 + 2g(\mathbf{x}_m)x_i)$
+        for $i = 2 \ldots m-1$
 
-        $f_{2}(\mathbf{x}) = \text{ ?}$
+        $f_{1}(\mathbf{x}) = (1 + g(\mathbf{x}_m)) \prod_{i=1}^{m-1} \cos(\theta_i)$
+
+        $$
+        f_{2}(\mathbf{x}) = (1 + g(\mathbf{x}_m))
+        \sin(\theta_{m-1}) \prod_{i=1}^{m-2} \cos(\theta_i)
+        $$
 
         $\ldots$
 
-        $f_{m}(\mathbf{x}) = \text{ ?}$
+        $f_{m}(\mathbf{x}) = (1 + g(\mathbf{x}_m)) \sin(\theta_1)$
 
         Where $m$ is the number of objectives and $\mathbf{x}_m$
         is a vector of the remaining attributes $[x_m~\ldots~x_n]$
@@ -68,15 +75,22 @@ def bm_dtlz_6(individual: Individual, count: int) -> list[float]:
 
     ??? note "Equations"
 
-        $g(\mathbf{x}_m) = \text{ ?}$
+        $g(\mathbf{x}_m) = \sum_{x_i \in \mathbf{x}_m} x_i^{0.1}$
 
-        $f_{1}(\mathbf{x}) = \text{ ?}$
+        $\theta_1 = \frac{\pi}{2} x_1$,
+        $\theta_i = \frac{\pi}{4(1 + g(\mathbf{x}_m))}(1 + 2g(\mathbf{x}_m)x_i)$
+        for $i = 2 \ldots m-1$
 
-        $f_{2}(\mathbf{x}) = \text{ ?}$
+        $f_{1}(\mathbf{x}) = (1 + g(\mathbf{x}_m)) \prod_{i=1}^{m-1} \cos(\theta_i)$
+
+        $$
+        f_{2}(\mathbf{x}) = (1 + g(\mathbf{x}_m))
+        \sin(\theta_{m-1}) \prod_{i=1}^{m-2} \cos(\theta_i)
+        $$
 
         $\ldots$
 
-        $f_{m}(\mathbf{x}) = \text{ ?}$
+        $f_{m}(\mathbf{x}) = (1 + g(\mathbf{x}_m)) \sin(\theta_1)$
 
         Where $m$ is the number of objectives and $\mathbf{x}_m$
         is a vector of the remaining attributes $[x_m~\ldots~x_n]$
@@ -101,15 +115,15 @@ def bm_dtlz_7(individual: Individual, count: int) -> list[float]:
 
     ??? note "Equations"
 
-        $g(\mathbf{x}_m) = \text{ ?}$
+        $g(\mathbf{x}_m) = 1 + \frac{9}{|\mathbf{x}_m|} \sum_{x_i \in \mathbf{x}_m} x_i$
 
-        $f_{1}(\mathbf{x}) = \text{ ?}$
+        $f_{i}(\mathbf{x}) = x_i$ for $i = 1 \ldots m-1$
 
-        $f_{2}(\mathbf{x}) = \text{ ?}$
-
-        $\ldots$
-
-        $f_{m}(\mathbf{x}) = \text{ ?}$
+        $$
+        f_{m}(\mathbf{x}) = (1 + g(\mathbf{x}_m)) \left(m -
+        \sum_{i=1}^{m-1} \frac{f_i}{1 + g(\mathbf{x}_m)}
+        \left(1 + \sin(3\pi f_i)\right)\right)
+        $$
 
         Where $m$ is the number of objectives and $\mathbf{x}_m$
         is a vector of the remaining attributes $[x_m~\ldots~x_n]$

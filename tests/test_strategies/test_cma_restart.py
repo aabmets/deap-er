@@ -9,8 +9,11 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import numpy
+import pytest
 from deap_er import Fitness, Toolbox, creator, tools
-from deap_er.private.strategies.restart_common import RunTracker
+from deap_er.private.strategies.restart_common import sample_centroid
+from deap_er.private.strategies.restart_schedule import RestartSchedule
+from deap_er.private.strategies.restart_tracker import RunTracker
 
 FIT = "RST_FIT"
 IND = "RST_IND"
@@ -98,11 +101,13 @@ def test_run_tracker_equal_bests_do_not_stop_at_generation_two():
 def test_ipop_doubles_lambda_on_restart():
     strategy, toolbox = _setup_min(offsprings=8)
     try:
-        restart = tools.RestartStrategy(strategy, mode="ipop", budget=1_000_000)
-        toolbox.register("generate", restart.generate, creator.__dict__[IND])
-        toolbox.register("update", restart.update)
-        restart.generate(creator.__dict__[IND])
-        restart._tracker.terminate = True
+        restart = tools.RestartStrategy(
+            strategy, mode="ipop", budget=1_000_000, condition_limit=0.0
+        )
+        population = restart.generate(creator.__dict__[IND])
+        for ind in population:
+            ind.fitness.values = toolbox.evaluate(ind)
+        restart.update(population)
         assert restart.should_restart()
         restart.restart()
         assert strategy.lamb == 16
@@ -116,8 +121,7 @@ def test_restart_centroid_in_box():
     strategy, _ = _setup_min()
     try:
         restart = tools.RestartStrategy(strategy, mode="ipop", budget=100_000)
-        restart._ind_init = creator.__dict__[IND]
-        restart._tracker.terminate = True
+        restart.generate(creator.__dict__[IND])
         restart.restart()
         assert numpy.all(strategy.centroid >= -5.0)
         assert numpy.all(strategy.centroid <= 5.0)
@@ -126,20 +130,15 @@ def test_restart_centroid_in_box():
 
 
 def test_bipop_small_regime_samples_lambda():
-    strategy, _ = _setup_min(offsprings=8)
-    try:
-        restart = tools.RestartStrategy(strategy, mode="bipop", budget=1_000_000)
-        restart._lambda_large = 32
-        restart._budget_large = 100
-        restart._budget_small = 0
-        restart._restart_count = 2
-        restart._ind_init = creator.__dict__[IND]
-        restart._tracker.terminate = True
-        restart.restart()
-        assert restart.regime == "small"
-        assert 8 <= strategy.lamb <= 16
-    finally:
-        _teardown()
+    schedule = RestartSchedule("bipop", 8, 2.0, 9, 2.0)
+    schedule.lambda_large = 32
+    schedule.budget_large = 100
+    schedule.last_large_run_evals = 50
+    lamb, sigma, cap = schedule.next_run(restart_count=3, evals_used=0, budget=1_000_000)
+    assert schedule.regime == "small"
+    assert 8 <= lamb <= 16
+    assert 0.02 <= sigma <= 2.0
+    assert cap == 25
 
 
 def test_one_plus_lambda_smoke():
@@ -167,16 +166,14 @@ def test_restart_centroid_one_sided_bounds_stay_finite():
     try:
         low_only = tools.Strategy([0.5] * 5, sigma=1.0, offsprings=8, low=0.0)
         restart = tools.RestartStrategy(low_only, mode="ipop", budget=100_000)
-        restart._ind_init = creator.__dict__[IND]
-        restart._tracker.terminate = True
+        restart.generate(creator.__dict__[IND])
         restart.restart()
         assert numpy.isfinite(low_only.centroid).all()
         assert numpy.all(low_only.centroid >= 0.0)
 
         up_only = tools.Strategy([0.5] * 5, sigma=1.0, offsprings=8, up=1.0)
         restart = tools.RestartStrategy(up_only, mode="ipop", budget=100_000)
-        restart._ind_init = creator.__dict__[IND]
-        restart._tracker.terminate = True
+        restart.generate(creator.__dict__[IND])
         restart.restart()
         assert numpy.isfinite(up_only.centroid).all()
         assert numpy.all(up_only.centroid <= 1.0)
@@ -185,8 +182,6 @@ def test_restart_centroid_one_sided_bounds_stay_finite():
 
 
 def test_sample_centroid_expands_when_default_box_misses_the_bound():
-    from deap_er.private.strategies.restart_common import sample_centroid
-
     tools.rng.seed(0)
     high_low = sample_centroid(4, 10.0, None, "random", numpy.zeros(4), None)
     assert numpy.isfinite(high_low).all()
@@ -207,3 +202,14 @@ def test_budget_cap():
         assert restart.evals_used <= 60
     finally:
         _teardown()
+
+
+def test_restart_exposes_schedule_config_read_only():
+    strategy = tools.Strategy([0.0] * 3, sigma=1.0, offsprings=6)
+    restart = tools.RestartStrategy(
+        strategy, mode="ipop", budget=100, sigma_large=0.5, lambda_factor=3.0, max_large_restarts=4
+    )
+    assert (restart.mode, restart.sigma_large) == ("ipop", 0.5)
+    assert (restart.lambda_factor, restart.max_large_restarts) == (3.0, 4)
+    with pytest.raises(AttributeError):
+        restart.mode = "bipop"  # ty: ignore[invalid-assignment]

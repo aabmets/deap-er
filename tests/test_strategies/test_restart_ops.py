@@ -9,13 +9,15 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import numpy
+import pytest
 from deap_er import Fitness, creator, tools
+from deap_er.private.strategies.restart_common import sample_small_lambda
 from deap_er.private.strategies.restart_ops import (
     apply_strategy_restart,
-    next_bipop_params,
     resize_offsprings,
     set_strategy_sigma,
 )
+from deap_er.private.strategies.restart_schedule import next_bipop_params
 
 FIT = "ROP_FIT"
 IND = "ROP_IND"
@@ -45,7 +47,7 @@ def _teardown_mo():
     del creator.__dict__[MO_IND]
 
 
-def test_set_sigma_and_resize_multi_objective():
+def test_set_sigma_and_resize_multi_objective_keeps_survivors():
     ind_cls = _mo_types()
     try:
         parents = [ind_cls([0.0, 0.0]), ind_cls([1.0, 1.0])]
@@ -58,7 +60,7 @@ def test_set_sigma_and_resize_multi_objective():
 
         assert strategy.sigmas == [0.25, 0.25]
         assert strategy.lamb == 1
-        assert strategy.mu == 1
+        assert strategy.mu == 2
     finally:
         _teardown_mo()
 
@@ -142,3 +144,78 @@ def test_bipop_small_sigma_scales_with_sigma_large():
         sigmas.append(sigma)
     assert min(sigmas) >= sigma_large * 0.01
     assert max(sigmas) <= sigma_large
+
+
+def test_bipop_small_lambda_uses_squared_uniform_exponent():
+    for seed in range(20):
+        tools.rng.seed(seed)
+        u = tools.rng.random()
+        tools.rng.seed(seed)
+        assert sample_small_lambda(10, 5120) == int(10 * 256.0 ** (u * u))
+
+
+def _mo_restart(ind_cls, budget: int, offsprings: int = 1):
+    parents = [ind_cls(numpy.full(3, 0.1 * i)) for i in range(6)]
+    for parent in parents:
+        parent.fitness.values = tools.bm_zdt_1(parent)
+    strategy = tools.StrategyMultiObjective(
+        parents, sigma=0.2, offsprings=offsprings, low=0.0, up=1.0
+    )
+    restart = tools.RestartStrategy(
+        strategy, mode="ipop", budget=budget, stagnation_key=lambda ind: -sum(ind.fitness.values)
+    )
+    return strategy, restart
+
+
+def _mo_step(restart, ind_cls):
+    population = restart.generate(ind_cls)
+    for ind in population:
+        ind.fitness.values = tools.bm_zdt_1(ind)
+    restart.update(population)
+    return population
+
+
+def test_multi_objective_restart_survivors_regrow_with_lambda():
+    ind_cls = _mo_types()
+    try:
+        tools.rng.seed(3)
+        strategy, restart = _mo_restart(ind_cls, budget=10**6)
+        seen = []
+        for _ in range(4):
+            _mo_step(restart, ind_cls)
+            restart.restart()
+            seen.append((strategy.lamb, strategy.mu, len(strategy.parents)))
+        assert seen == [(2, 2, 2), (4, 4, 4), (8, 6, 6), (16, 6, 6)]
+    finally:
+        _teardown_mo()
+
+
+def test_multi_objective_leftover_batch_keeps_parent_count():
+    ind_cls = _mo_types()
+    try:
+        tools.rng.seed(4)
+        strategy, restart = _mo_restart(ind_cls, budget=8, offsprings=6)
+        assert len(_mo_step(restart, ind_cls)) == 6
+        assert len(_mo_step(restart, ind_cls)) == 2
+        assert strategy.mu == 6
+        assert len(strategy.parents) == 6
+    finally:
+        _teardown_mo()
+
+
+def test_lambda_factor_that_shrinks_lambda_to_zero_is_rejected():
+    strategy = tools.Strategy([0.0] * 2, sigma=1.0, offsprings=4)
+    with pytest.raises(ValueError, match="lambda_factor=0.1"):
+        tools.RestartStrategy(strategy, mode="ipop", budget=1000, lambda_factor=0.1)
+
+
+def test_shrinking_lambda_factor_that_stays_positive_is_accepted():
+    ind_cls = _so_types()
+    try:
+        strategy = tools.Strategy([0.0] * 2, sigma=1.0, offsprings=10)
+        restart = tools.RestartStrategy(strategy, mode="ipop", budget=1000, lambda_factor=0.9)
+        restart.generate(ind_cls)
+        restart.restart()
+        assert strategy.lamb == 9
+    finally:
+        _teardown_so()

@@ -59,7 +59,8 @@ class StrategySeparable(CmaCore):
         RuntimeError: If ``weights`` is not ``superlinear``,
             ``linear``, or ``equal``.
         ValueError: If ``cm_init`` is not a length-``n`` vector, any
-            variance is not positive, or box-bound kwargs are invalid.
+            variance is not positive, ``survivors`` is not in
+            ``[1, offsprings]``, or box-bound kwargs are invalid.
     """
 
     def __init__(self, centroid: Iterable[float], sigma: float, **kwargs: Any) -> None:
@@ -76,8 +77,9 @@ class StrategySeparable(CmaCore):
 
         Raises:
             RuntimeError: If ``weights`` is unknown.
-            ValueError: If ``cm_init`` is missing, the wrong shape, or
-                not strictly positive.
+            ValueError: If ``cm_init`` is the wrong shape or not
+                strictly positive, or ``survivors`` is not in
+                ``[1, offsprings]``.
         """
         apply_cma_hyperparams(self, kwargs, rank_scale=(self.dim + 2.0) / 3.0)
         if not hasattr(self, "big_c") or "cm_init" in kwargs:

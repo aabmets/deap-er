@@ -47,6 +47,8 @@ def bm_rastrigin(individual: Individual) -> tuple[float]:
 def bm_rastrigin_scaled(individual: Individual) -> tuple[float]:
     r"""Scaled Rastrigin test objective function.
 
+    With $N = 1$ the single gene has scale factor $1$.
+
     Args:
         individual: Individual to evaluate.
 
@@ -72,9 +74,10 @@ def bm_rastrigin_scaled(individual: Individual) -> tuple[float]:
     """
     results = []
     len_ind = len(individual)
+    span = max(len_ind - 1, 1)
     for i, x in enumerate(individual):
-        var_1 = (10 ** (i / (len_ind - 1)) * x) ** 2
-        var_2 = 10 * cos(2 * pi * 10 ** (i / (len_ind - 1)) * x)
+        var_1 = (10 ** (i / span) * x) ** 2
+        var_2 = 10 * cos(2 * pi * 10 ** (i / span) * x)
         results.append(var_1 - var_2)
     result = 10 * len_ind + sum(results)
     return (float(result),)
@@ -98,7 +101,7 @@ def bm_rastrigin_skewed(individual: Individual) -> tuple[float]:
         | Global optima | $x_i = 0, \forall i \in \lbrace 1 \ldots N\rbrace$, $f(\mathbf{x}) = 0$ |
         | Function | see below |
 
-        $f(\mathbf{x}) = 10N + \sum_{i=1}^N \left(y_i^2 - 10 \cos(2\pi x_i)\right)$
+        $f(\mathbf{x}) = 10N + \sum_{i=1}^N \left(y_i^2 - 10 \cos(2\pi y_i)\right)$
 
         $\text{where } y_i = 10\cdot x_i \text{ if } x_i > 0 \text{, else } x_i$
     """

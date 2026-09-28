@@ -130,7 +130,13 @@ class StrategyOnePlusLambda:
         update_bound_attrs(self, kwargs)
 
     def reset_state(self, parent: Individual, sigma: float, **kwargs: Any) -> None:
-        """Reset mutable CMA state for a restart."""
+        """Reset mutable CMA state for a restart.
+
+        Raises:
+            TypeError: If ``parent`` has no fitness attribute.
+        """
+        if not hasattr(parent, "fitness"):
+            raise TypeError("The parent must have a fitness attribute.")
         self.parent = parent
         self.sigma = sigma
         self.big_c = numpy.identity(self.dim)
@@ -175,33 +181,32 @@ class StrategyOnePlusLambda:
         Args:
             population: Evaluated individuals from ``generate``.
         """
-        if hasattr(self.parent, "fitness"):
-            if not population:
-                return
-            population.sort(key=lambda ind: ind.fitness, reverse=True)
-            if not self.parent.fitness.is_valid():
-                self.parent = copy.deepcopy(population[0])
-                return
-            lambda_succ = sum(self.parent.fitness <= ind.fitness for ind in population)
-            psucc = float(lambda_succ) / self.lamb
-            self.psucc = (1 - self.ss_learn_rate) * self.psucc + self.ss_learn_rate * psucc
+        if not population:
+            return
+        population.sort(key=lambda ind: ind.fitness, reverse=True)
+        if not self.parent.fitness.is_valid():
+            self.parent = copy.deepcopy(population[0])
+            return
+        lambda_succ = sum(self.parent.fitness <= ind.fitness for ind in population)
+        psucc = float(lambda_succ) / self.lamb
+        self.psucc = (1 - self.ss_learn_rate) * self.psucc + self.ss_learn_rate * psucc
 
-            if self.parent.fitness <= population[0].fitness:
-                x_step = (population[0] - numpy.array(self.parent)) / self.sigma
-                self.parent = copy.deepcopy(population[0])
-                if self.psucc < self.thresh_sr:
-                    temp_1 = sqrt(self.th_cum * (2 - self.th_cum))
-                    self.pc = (1 - self.th_cum) * self.pc + temp_1 * x_step
-                    temp_1 = numpy.outer(self.pc, self.pc)
-                    self.big_c = (1 - self.cm_learn_rate) * self.big_c + self.cm_learn_rate * temp_1
-                else:
-                    self.pc = (1 - self.th_cum) * self.pc
-                    temp_1 = numpy.outer(self.pc, self.pc)
-                    temp_2 = temp_1 + self.th_cum * (2 - self.th_cum) * self.big_c
-                    self.big_c = (1 - self.cm_learn_rate) * self.big_c + self.cm_learn_rate * temp_2
+        if self.parent.fitness <= population[0].fitness:
+            x_step = (population[0] - numpy.array(self.parent)) / self.sigma
+            self.parent = copy.deepcopy(population[0])
+            if self.psucc < self.thresh_sr:
+                temp_1 = sqrt(self.th_cum * (2 - self.th_cum))
+                self.pc = (1 - self.th_cum) * self.pc + temp_1 * x_step
+                temp_1 = numpy.outer(self.pc, self.pc)
+                self.big_c = (1 - self.cm_learn_rate) * self.big_c + self.cm_learn_rate * temp_1
+            else:
+                self.pc = (1 - self.th_cum) * self.pc
+                temp_1 = numpy.outer(self.pc, self.pc)
+                temp_2 = temp_1 + self.th_cum * (2 - self.th_cum) * self.big_c
+                self.big_c = (1 - self.cm_learn_rate) * self.big_c + self.cm_learn_rate * temp_2
 
-            # Kept inline rather than shared with the multi-objective strategy:
-            # the two groupings of this expression differ in the last ulp.
-            temp_1 = self.psucc - self.tgt_sr
-            self.sigma *= exp(1.0 / self.ss_dmp * temp_1 / (1.0 - self.tgt_sr))
-            self.big_a = numpy.linalg.cholesky(self.big_c)
+        # Kept inline rather than shared with the multi-objective strategy:
+        # the two groupings of this expression differ in the last ulp.
+        temp_1 = self.psucc - self.tgt_sr
+        self.sigma *= exp(1.0 / self.ss_dmp * temp_1 / (1.0 - self.tgt_sr))
+        self.big_a = numpy.linalg.cholesky(self.big_c)
