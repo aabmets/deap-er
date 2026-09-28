@@ -16,10 +16,7 @@ from deap_er import tools
 
 
 def test_mut_iso_line_float_moves_toward_donor(monkeypatch):
-    monkeypatch.setattr(
-        "deap_er.private.operators.mut_iso_line._sample_t",
-        lambda iso: 0.5,
-    )
+    monkeypatch.setattr(tools.rng, "uniform", lambda low, high: 0.5)
     parent: Any = [0.0, 0.0]
     donor: Any = [1.0, 1.0]
     (mutant,) = tools.mut_iso_line(parent, donor, iso=0.0, sigma=0.0)
@@ -81,10 +78,7 @@ def test_mut_iso_line_bit_can_copy_donor():
 
 
 def test_mut_iso_line_preserves_numpy_bool_gene_type(monkeypatch):
-    monkeypatch.setattr(
-        "deap_er.private.operators.mut_iso_line._sample_t",
-        lambda iso: 1.0,
-    )
+    monkeypatch.setattr(tools.rng, "uniform", lambda low, high: 1.0)
     parent: Any = [numpy.bool_(False)]
     donor: Any = [numpy.bool_(True)]
     (mutant,) = tools.mut_iso_line(parent, donor, iso=0.0, sigma=0.0)
@@ -93,10 +87,7 @@ def test_mut_iso_line_preserves_numpy_bool_gene_type(monkeypatch):
 
 
 def test_mut_heterogeneous_can_compose_iso_line_helpers(monkeypatch):
-    monkeypatch.setattr(
-        "deap_er.private.operators.mut_iso_line._sample_t",
-        lambda iso: 1.0,
-    )
+    monkeypatch.setattr(tools.rng, "uniform", lambda low, high: 1.0)
     parent: Any = [0, 1, 0.0]
     donor: Any = [1, 8, 1.0]
     mutators = (
