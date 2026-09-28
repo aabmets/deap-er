@@ -30,15 +30,18 @@ def _objective_row(point: Any) -> tuple[Any, ...]:
             objective coordinates.
 
     Returns:
-        The fitness values when present and non-empty, otherwise
-        ``tuple(point)``.
+        The fitness values of an individual, otherwise ``tuple(point)``.
+
+    Raises:
+        ValueError: If ``point`` is an individual without valid fitness.
     """
     fitness = getattr(point, "fitness", None)
-    if fitness is not None:
-        values = getattr(fitness, "values", ())
-        if values:
-            return tuple(values)
-    return tuple(point)
+    if fitness is None:
+        return tuple(point)
+    values = tuple(getattr(fitness, "values", ()))
+    if not values:
+        raise ValueError("a reference individual must have a valid fitness")
+    return values
 
 
 def duplicate_count(population: list[Any], key: Any | None = None) -> int:

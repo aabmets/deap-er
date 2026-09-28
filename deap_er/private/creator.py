@@ -12,6 +12,8 @@ import array
 import warnings
 from typing import Any, cast
 
+import numpy
+
 from .overrides import ArrayOverride, NumpyOverride
 
 __all__: list[str] = ["create_type"]
@@ -117,6 +119,8 @@ def _same_attrs(left: dict[str, Any], right: dict[str, Any]) -> bool:
 def _same_value(left: Any, right: Any) -> bool:
     if isinstance(left, type) or isinstance(right, type):
         return left is right
+    if isinstance(left, numpy.ndarray) or isinstance(right, numpy.ndarray):
+        return type(left) is type(right) and bool(numpy.array_equal(left, right))
     try:
         return bool(left == right)
     except (TypeError, ValueError):
