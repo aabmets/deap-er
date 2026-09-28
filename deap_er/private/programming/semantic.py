@@ -18,10 +18,10 @@ from .primitives.primitive_nodes import Terminal
 from .primitives.primitive_set_typed import PrimitiveSetTyped
 from .primitives.primitive_tree import PrimitiveTree
 
-__all__: list[str] = ["mut_semantic", "cx_semantic", "build_sig2_delta"]
+__all__: list[str] = ["require_semantic_ops", "mut_semantic", "cx_semantic", "build_sig2_delta"]
 
 
-def _check(p_set: PrimitiveSetTyped, op: str) -> None:
+def require_semantic_ops(p_set: PrimitiveSetTyped, op: str) -> None:
     """Require the semantic operators ``lf``, ``mul``, ``add``, and ``sub``.
 
     Args:
@@ -91,7 +91,7 @@ def mut_semantic(
     Returns:
         A one-element tuple containing the mutated individual.
     """
-    _check(prim_set, "mutation")
+    require_semantic_ops(prim_set, "mutation")
 
     if gen_func is None:
         gen_func = gen_grow
@@ -127,7 +127,7 @@ def cx_semantic(
     Returns:
         The two individuals after crossover.
     """
-    _check(prim_set, "crossover")
+    require_semantic_ops(prim_set, "crossover")
 
     tr = gen_func(prim_set, min_depth, max_depth)
     tr.insert(0, prim_set.mapping["lf"])

@@ -17,7 +17,7 @@ from deap_er.private.various.rng import rng
 
 from ..generators import gen_grow
 from ..primitives.primitive_set_typed import PrimitiveSetTyped
-from ..semantic import _check, build_sig2_delta
+from ..semantic import build_sig2_delta, require_semantic_ops
 from .slim_tree import SlimTree
 
 __all__: list[str] = [
@@ -152,7 +152,7 @@ def mut_slim_inflate(
     Returns:
         A one-element tuple containing the mutated individual.
     """
-    _check(prim_set, "mutation")
+    require_semantic_ops(prim_set, "mutation")
     slim = _require_slim(individual, "inflate mutation")
     if gen_func is None:
         gen_func = gen_grow
@@ -247,7 +247,7 @@ def cx_slim_donor(
     Returns:
         The two parents after crossover.
     """
-    _check(prim_set, "crossover")
+    require_semantic_ops(prim_set, "crossover")
     slim1 = _require_slim(ind1, "donor crossover")
     slim2 = _require_slim(ind2, "donor crossover")
     donor_idx = _pick_donor_index(slim1, slim2, best_donor)
