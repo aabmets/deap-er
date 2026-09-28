@@ -10,6 +10,7 @@
 #
 from typing import Any
 
+import numpy
 from deap_er import tools
 
 
@@ -94,3 +95,14 @@ def test_chuang_f3_optima_and_rotated_trap_blocks():
     assert tools.bm_chuang_f3(zeros) == (40,)
     assert tools.bm_chuang_f3(ones) == (40,)
     assert tools.bm_chuang_f3(flipped) != (40,)
+
+
+def test_chuang_f3_scores_numpy_individuals_like_lists():
+    ones: Any = numpy.ones(41, dtype=int)
+    flipped: Any = ones.copy()
+    flipped[38] = 0
+    ones_list: Any = list(ones)
+    flipped_list: Any = list(flipped)
+
+    assert tools.bm_chuang_f3(ones) == tools.bm_chuang_f3(ones_list) == (40,)
+    assert tools.bm_chuang_f3(flipped) == tools.bm_chuang_f3(flipped_list)

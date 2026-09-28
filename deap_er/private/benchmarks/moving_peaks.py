@@ -35,7 +35,8 @@ class MovingPeaks:
        :margin: 0 5 0 0
 
        ``pfunc`` (*Callable*)
-          The peak function or a list of peak functions.
+          The peak function or a list of peak functions. A list
+          shorter than ``npeaks`` is drawn from with replacement.
        ``bfunc`` (*Callable*)
           Basis function for static landscape.
        ``npeaks`` (*NumOrSeq*)
@@ -105,8 +106,10 @@ class MovingPeaks:
             funcs = list(pfunc)
             if len(funcs) == n_peaks:
                 self.peaks_function = funcs
-            else:
+            elif len(funcs) > n_peaks:
                 self.peaks_function = rng.sample(funcs, n_peaks)
+            else:
+                self.peaks_function = [rng.choice(funcs) for _ in range(n_peaks)]
             self.pfunc_pool: tuple[PeakFunc, ...] = tuple(funcs)
         else:
             self.peaks_function = list(itertools.repeat(pfunc, n_peaks))
@@ -124,7 +127,7 @@ class MovingPeaks:
         uniform_height = float(sc["uniform_height"])
         self.min_height = float(sc["min_height"])
         self.max_height = float(sc["max_height"])
-        if uniform_height != 0:
+        if uniform_height > 0:
             self.peaks_height = [uniform_height for _ in range(n_peaks)]
         else:
             self.peaks_height = [
@@ -134,7 +137,7 @@ class MovingPeaks:
         uniform_width = float(sc["uniform_width"])
         self.min_width = float(sc["min_width"])
         self.max_width = float(sc["max_width"])
-        if uniform_width != 0:
+        if uniform_width > 0:
             self.peaks_width = [uniform_width for _ in range(n_peaks)]
         else:
             self.peaks_width = [rng.uniform(self.min_width, self.max_width) for _ in range(n_peaks)]
@@ -242,4 +245,5 @@ class MovingPeaks:
 
     def change_peaks(self) -> None:
         """Changes the position, the height, the width and the number of peaks."""
+        self._optimum = None
         _change_peaks(self)

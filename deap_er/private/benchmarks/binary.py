@@ -10,6 +10,7 @@
 #
 from __future__ import annotations
 
+from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -97,7 +98,8 @@ def bm_chuang_f2(individual: Individual) -> tuple[int]:
 
     From "Multivariate Multi-Model Approach for Globally Multimodal
     Problems". Four global optima: half-and-half, reverse half-and-half,
-    all-ones, and all-zeros. The individual must have 41 dimensions.
+    all-ones, and all-zeros. The individual must have 42 dimensions:
+    40 trap bits and two selector bits.
 
     Args:
         individual: Individual to evaluate.
@@ -141,11 +143,11 @@ def bm_chuang_f3(individual: Individual) -> tuple[int]:
     else:
         for i in range(2, 38, 4):
             total += _trap(individual[i : i + 4])
-        total += _trap(individual[38:40] + individual[:2])
+        total += _trap([*individual[38:40], *individual[:2]])
     return (total,)
 
 
-def _trap(individual: Individual) -> int:
+def _trap(individual: Sequence[int]) -> int:
     """Score a binary block with a deceptive all-ones trap.
 
     Args:
@@ -159,7 +161,7 @@ def _trap(individual: Individual) -> int:
     return int(k if u == k else k - 1 - u)
 
 
-def _inv_trap(individual: Individual) -> int:
+def _inv_trap(individual: Sequence[int]) -> int:
     """Score a binary block with a deceptive all-zeros trap.
 
     Args:

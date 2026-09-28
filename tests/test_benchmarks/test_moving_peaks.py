@@ -11,7 +11,7 @@
 
 import pytest
 from deap_er import tools
-from deap_er.benchmarks import MovingPeaks
+from deap_er.benchmarks import MovingPeaks, MPFuncs
 
 
 def test_offline_error_before_first_evaluation():
@@ -140,3 +140,19 @@ def test_matching_peak_function_list_is_kept_in_order():
 
     assert landscape.peaks_function == funcs
     assert landscape.pfunc_pool == tuple(funcs)
+
+
+def test_peak_function_pool_shorter_than_npeaks():
+    pool = [MPFuncs.pf1, MPFuncs.pf2]
+    landscape = MovingPeaks(dimensions=2, pfunc=pool, npeaks=5)
+
+    assert len(landscape.peaks_function) == 5
+    assert set(landscape.peaks_function) <= set(pool)
+
+
+def test_non_positive_uniform_height_and_width_are_random():
+    landscape = MovingPeaks(dimensions=2, npeaks=6, uniform_height=-1.0, uniform_width=-1.0)
+
+    assert all(30.0 <= h <= 70.0 for h in landscape.peaks_height)
+    assert all(0.0001 <= w <= 0.2 for w in landscape.peaks_width)
+    assert len(set(landscape.peaks_height)) > 1

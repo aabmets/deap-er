@@ -142,8 +142,6 @@ def change_peaks(landscape: Any) -> None:
     Args:
         landscape: Moving-peaks instance to modify.
     """
-    landscape._optimum = None
-
     _change_peak_count(landscape)
 
     for i in range(len(landscape.peaks_function)):
