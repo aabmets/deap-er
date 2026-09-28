@@ -174,16 +174,15 @@ def cx_ordered(ind1: Individual, ind2: Individual) -> Mates:
     holes1 = {ind2[i] for i in range(a, b + 1)}
     holes2 = {ind1[i] for i in range(a, b + 1)}
 
-    temp1, temp2 = ind1, ind2
+    # Compact in place: each write index trails the read index.
     k1, k2 = b + 1, b + 1
-
     for i in range(size):
-        src1 = temp1[(i + b + 1) % size]
+        src1 = ind1[(i + b + 1) % size]
         if src1 not in holes1:
             ind1[k1 % size] = src1
             k1 += 1
 
-        src2 = temp2[(i + b + 1) % size]
+        src2 = ind2[(i + b + 1) % size]
         if src2 not in holes2:
             ind2[k2 % size] = src2
             k2 += 1

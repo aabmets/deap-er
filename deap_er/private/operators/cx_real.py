@@ -148,6 +148,29 @@ def cx_simulated_binary(ind1: Individual, ind2: Individual, eta: float) -> Mates
     return ind1, ind2
 
 
+def _sbx_child(x1: float, x2: float, diff: float, side: float, rand: float, eta: float) -> float:
+    """Map a gap to the bound into one bounded SBX child value.
+
+    Args:
+        x1: Smaller parent value.
+        x2: Larger parent value.
+        diff: Distance from the nearer parent to the active bound.
+        side: ``-1`` for the lower child, ``+1`` for the upper child.
+        rand: Uniform draw shared by both children of the pair.
+        eta: Crowding degree.
+
+    Returns:
+        One child coordinate for the parent pair.
+    """
+    beta = 1.0 + (2.0 * diff / (x2 - x1))
+    alpha = 2.0 - beta ** -(eta + 1)
+    if rand <= 1.0 / alpha:
+        beta_q = (rand * alpha) ** (1.0 / (eta + 1))
+    else:
+        beta_q = (1.0 / (2.0 - rand * alpha)) ** (1.0 / (eta + 1))
+    return float(0.5 * (x1 + x2 + side * beta_q * (x2 - x1)))
+
+
 def cx_simulated_binary_bounded(
     ind1: Individual, ind2: Individual, eta: float, low: NumOrSeq, up: NumOrSeq
 ) -> Mates:
@@ -172,26 +195,6 @@ def cx_simulated_binary_bounded(
             sequence is shorter than the shorter individual.
     """
     require_positive_eta(eta)
-
-    def calc_c(diff: float, side: float) -> float:
-        """Map a gap to the bound into one bounded SBX child value.
-
-        Args:
-            diff: Distance from the nearer parent to the active bound.
-            side: ``-1`` for the lower child, ``+1`` for the upper child.
-
-        Returns:
-            One child coordinate for the current parent pair.
-        """
-        beta = 1.0 + (2.0 * diff / (x2 - x1))
-        alpha = 2.0 - beta ** -(eta + 1)
-        if rand <= 1.0 / alpha:
-            beta_q = (rand * alpha) ** (1.0 / (eta + 1))
-        else:
-            beta_q = (1.0 / (2.0 - rand * alpha)) ** (1.0 / (eta + 1))
-        c = 0.5 * (x1 + x2 + side * beta_q * (x2 - x1))
-        return float(c)
-
     size = min(len(ind1), len(ind2))
     low = broadcast_param("low", low, size, _SHORTER_INDIVIDUAL)
     up = broadcast_param("up", up, size, _SHORTER_INDIVIDUAL)
@@ -206,10 +209,10 @@ def cx_simulated_binary_bounded(
                 continue
             rand = rng.random()
 
-            c1 = calc_c(x1 - xl, -1.0)
+            c1 = _sbx_child(x1, x2, x1 - xl, -1.0, rand, eta)
             c1 = min(max(c1, xl), xu)
 
-            c2 = calc_c(xu - x2, 1.0)
+            c2 = _sbx_child(x1, x2, xu - x2, 1.0, rand, eta)
             c2 = min(max(c2, xl), xu)
 
             if rng.random() <= 0.5:
