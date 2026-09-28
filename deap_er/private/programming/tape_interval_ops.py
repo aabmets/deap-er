@@ -16,12 +16,16 @@ from dataclasses import dataclass
 import numpy
 
 from .opcode_set import Opcode
-from .tape_lookback import opcode_lookback
 
 __all__: list[str] = [
+    "BINARY",
+    "BINARY_PROTECTED",
+    "COMPARISONS",
+    "PAIR_WINDOWED",
+    "STACK_UNDERFLOW",
+    "UNARY",
+    "WINDOWED",
     "Summary",
-    "apply_binary",
-    "apply_unary",
     "both_can_be_finite",
     "hides_warmup",
     "merge_arrays",
@@ -152,119 +156,3 @@ def merge_arrays(left: Summary, right: Summary) -> Summary:
 def both_can_be_finite(left: Summary, right: Summary) -> bool:
     """Return whether both operands may be finite on the same row."""
     return left.can_finite and right.can_finite
-
-
-def apply_unary(opcode: int, child: Summary, fill: float) -> Summary:
-    """Propagate one unary opcode."""
-    extra = opcode_lookback(opcode, -1)
-    lookback = child.lookback + extra
-    first_finite = child.first_finite + extra
-    if opcode == int(Opcode.NEG):
-        lo, hi = -child.hi, -child.lo
-        return Summary(lo, hi, lookback, first_finite, child.const, child.can_finite, "array")
-    if opcode == int(Opcode.ABS):
-        lo = 0.0 if child.lo <= 0.0 <= child.hi else min(abs(child.lo), abs(child.hi))
-        hi = max(abs(child.lo), abs(child.hi))
-        return Summary(lo, hi, lookback, first_finite, child.const, child.can_finite, "array")
-    if opcode == int(Opcode.LOG):
-        return protected_unary(child, fill, lookback, first_finite, domain_lo=0.0, strict=True)
-    if opcode == int(Opcode.SQRT):
-        return protected_unary(child, fill, lookback, first_finite, domain_lo=0.0, strict=False)
-    if opcode in {int(Opcode.SIN), int(Opcode.COS)}:
-        return Summary(-1.0, 1.0, lookback, first_finite, False, child.can_finite, "array")
-    raise ValueError(f"Opcode {opcode} has no interval certificate.")
-
-
-def protected_unary(
-    child: Summary,
-    fill: float,
-    lookback: int,
-    first_finite: int,
-    *,
-    domain_lo: float,
-    strict: bool,
-) -> Summary:
-    in_domain = child.lo > domain_lo if strict else child.lo >= domain_lo
-    if in_domain and (child.hi > domain_lo if strict else child.hi >= domain_lo):
-        if strict:
-            lo = float(numpy.log(max(child.lo, numpy.finfo(float).tiny)))
-            hi = float(numpy.log(child.hi))
-        else:
-            lo = float(numpy.sqrt(max(child.lo, 0.0)))
-            hi = float(numpy.sqrt(child.hi))
-        return Summary(lo, hi, lookback, first_finite, child.const, child.can_finite, "array")
-    lo = min(fill, child.lo, child.hi)
-    hi = max(fill, child.lo, child.hi)
-    return Summary(lo, hi, lookback, first_finite, False, child.can_finite, "array")
-
-
-def apply_binary(opcode: int, left: Summary, right: Summary, fill: float) -> Summary:
-    """Propagate one binary opcode."""
-    lookback = max(left.lookback, right.lookback)
-    first_finite = max(left.first_finite, right.first_finite)
-    can_finite = both_can_be_finite(left, right)
-    const = left.const and right.const and left.lo == left.hi and right.lo == right.hi
-    if opcode == int(Opcode.ADD):
-        return Summary(
-            left.lo + right.lo,
-            left.hi + right.hi,
-            lookback,
-            first_finite,
-            const,
-            can_finite,
-            "array",
-        )
-    if opcode == int(Opcode.SUB):
-        return Summary(
-            left.lo - right.hi,
-            left.hi - right.lo,
-            lookback,
-            first_finite,
-            const,
-            can_finite,
-            "array",
-        )
-    if opcode == int(Opcode.MUL):
-        products = (
-            left.lo * right.lo,
-            left.lo * right.hi,
-            left.hi * right.lo,
-            left.hi * right.hi,
-        )
-        return Summary(
-            min(products),
-            max(products),
-            lookback,
-            first_finite,
-            const,
-            can_finite,
-            "array",
-        )
-    if opcode == int(Opcode.DIV):
-        return summary_div(left, right, fill, lookback, first_finite, can_finite, const)
-    raise ValueError(f"Opcode {opcode} has no interval certificate.")
-
-
-def summary_div(
-    left: Summary,
-    right: Summary,
-    fill: float,
-    lookback: int,
-    first_finite: int,
-    can_finite: bool,
-    const: bool,
-) -> Summary:
-    """Propagate protected division intervals."""
-    if right.lo <= 0.0 <= right.hi:
-        low_quote = left.lo / right.hi if right.hi else fill
-        high_quote = left.hi / right.lo if right.lo else fill
-        lo = min(low_quote, high_quote, fill)
-        hi = max(low_quote, high_quote, fill)
-        lo = min(lo, fill, left.lo, left.hi, right.lo, right.hi)
-        hi = max(hi, fill, left.lo, left.hi, right.lo, right.hi)
-        return Summary(lo, hi, lookback, first_finite, False, can_finite, "array")
-    if right.hi < 0.0:
-        lo, hi = left.hi / right.lo, left.lo / right.hi
-    else:
-        lo, hi = left.lo / right.hi, left.hi / right.lo
-    return Summary(min(lo, hi), max(lo, hi), lookback, first_finite, const, can_finite, "array")

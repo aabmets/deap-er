@@ -12,8 +12,9 @@ from __future__ import annotations
 
 import numpy
 
-from .opcode_set import OPCODES_ARITY, USER_BASE, Opcode
+from .opcode_set import USER_BASE, Opcode
 from .tape import Tape
+from .tape_interval_arith import apply_binary, apply_unary
 from .tape_interval_ops import (
     BINARY,
     BINARY_PROTECTED,
@@ -23,8 +24,6 @@ from .tape_interval_ops import (
     UNARY,
     WINDOWED,
     Summary,
-    apply_binary,
-    apply_unary,
     hides_warmup,
     merge_arrays,
 )
@@ -97,8 +96,6 @@ def _apply_step(stack: list[Summary], tape: Tape, step: int, column_bounds: nump
     if opcode in PAIR_WINDOWED:
         _push_pair_window(stack, opcode, operand)
         return False
-    if opcode not in OPCODES_ARITY:
-        raise ValueError(f"Opcode {opcode} has no interval certificate.")
     raise ValueError(f"Opcode {opcode} has no interval certificate.")
 
 

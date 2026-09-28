@@ -149,3 +149,37 @@ def test_tape_interval_rejects_an_underflowing_tape():
     bounds = numpy.zeros((2, 2))
     with pytest.raises(ValueError, match="underflows"):
         gp.tape_interval(underflow, bounds)
+
+
+@pytest.mark.parametrize(
+    "expr",
+    [
+        "rolling_sum(first, 3)",
+        "diff(first, 2)",
+        "rolling_std(first, 3)",
+        "rolling_cov(first, second, 4)",
+        "rolling_beta(first, second, 4)",
+        "vdiv(first, second)",
+        "vdiv(vneg(first), vabs(second))",
+        "vlog(second)",
+        "vsqrt(vmul(second, first))",
+    ],
+)
+def test_tape_interval_envelope_covers_the_oracle(expr):
+    generator = numpy.random.default_rng(3)
+    matrix = numpy.column_stack(
+        [generator.uniform(1.0, 2.0, 200), generator.uniform(-1.0, 1.0, 200)]
+    )
+    tape = _tape(expr)
+    lo, hi = gp.tape_interval(tape, gp.bounds_from_matrix(matrix))
+    predicted = gp.interpret_tape(tape, matrix)
+    finite = predicted[numpy.isfinite(predicted)]
+    assert lo <= finite.min()
+    assert hi >= finite.max()
+
+
+def test_tape_flags_marks_an_ema_shorter_than_its_warmup_as_all_nan():
+    tape = _tape("ema(first, 4)")
+    bounds = numpy.array([[0.0, 1.0], [0.0, 1.0]], dtype=numpy.float64)
+    assert gp.tape_flags(tape, bounds, n_rows=3).all_nan
+    assert not gp.tape_flags(tape, bounds, n_rows=4).all_nan
