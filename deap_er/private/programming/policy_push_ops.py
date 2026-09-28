@@ -12,6 +12,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from deap_er.private.records.policy_observation import PolicyObservation
+
 __all__: list[str] = [
     "ADD",
     "AND",
@@ -36,7 +38,9 @@ __all__: list[str] = [
     "PUSH_BOOL",
     "PUSH_INT",
     "PUSH_POLICY_OPS",
+    "PushInterpState",
     "PushPolicyOp",
+    "read_operand",
     "StackValue",
     "SUB",
 ]
@@ -129,3 +133,41 @@ class PushPolicyOp:
     LOAD_HELD_OUT_SET: int = LOAD_HELD_OUT_SET
     LOAD_COVERAGE: int = LOAD_COVERAGE
     LOAD_QD: int = LOAD_QD
+
+
+@dataclass
+class PushInterpState:
+    """Mutable interpreter state for one Push policy run.
+
+    Attributes:
+        code: Instruction tape being run.
+        index: Position of the next tape entry.
+        stack: Value stack.
+        emitted: Last emitted action index, or ``None``.
+        observation: Observation the load instructions read.
+    """
+
+    code: tuple[int, ...]
+    index: int
+    stack: list[StackValue]
+    emitted: int | None
+    observation: PolicyObservation
+
+
+def read_operand(state: PushInterpState) -> int:
+    """Consume the literal operand that follows the current opcode.
+
+    Args:
+        state: Interpreter state; its index advances past the operand.
+
+    Returns:
+        The operand value.
+
+    Raises:
+        ValueError: If the tape ends before the operand.
+    """
+    if state.index >= len(state.code):
+        raise ValueError("truncated Push policy program")
+    value = state.code[state.index]
+    state.index += 1
+    return value

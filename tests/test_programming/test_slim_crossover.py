@@ -12,59 +12,15 @@ import math
 import operator
 from typing import Any
 
-from deap_er import gp, tools
+from deap_er import Fitness, gp, tools
 
 
-class _FitnessStub:
-    """Minimal fitness stand-in for crossover donor tests."""
-
-    def __init__(self, value: float, weight: float = -1.0) -> None:
-        self.values = (value,)
-        self.weights = (weight,)
-        self.wvalues = (value * weight,)
-        self.valid = True
-
-    def is_valid(self) -> bool:
-        return self.valid
-
-    def __gt__(self, other: object) -> bool:
-        if not isinstance(other, _FitnessStub):
-            return NotImplemented
-        return self.wvalues > other.wvalues
+class _FitMin(Fitness):
+    weights = (-1.0,)
 
 
-class _MOFitnessStub:
-    """Two-objective fitness stand-in for donor-selection tests."""
-
-    def __init__(
-        self,
-        values: tuple[float, float],
-        weights: tuple[float, float] = (-1.0, -1.0),
-    ) -> None:
-        self.values = values
-        self.weights = weights
-        self.wvalues = tuple(value * weight for value, weight in zip(values, weights, strict=True))
-        self.valid = True
-
-    def __gt__(self, other: object) -> bool:
-        if not isinstance(other, _MOFitnessStub):
-            return NotImplemented
-        return self.wvalues > other.wvalues
-
-
-class _FitnessValidFlagStub:
-    """Fitness stub exposing only a ``valid`` flag (no ``is_valid``)."""
-
-    def __init__(self, value: float, weight: float = -1.0) -> None:
-        self.values = (value,)
-        self.weights = (weight,)
-        self.wvalues = (value * weight,)
-        self.valid = True
-
-    def __gt__(self, other: object) -> bool:
-        if not isinstance(other, _FitnessValidFlagStub):
-            return NotImplemented
-        return self.wvalues > other.wvalues
+class _FitMin2(Fitness):
+    weights = (-1.0, -1.0)
 
 
 def lf(x):
@@ -106,8 +62,8 @@ def test_cx_slim_donor_best_donor():
     receiver = _slim_head(pset)
     gp.mut_slim_inflate(donor, pset, min_depth=1, max_depth=1, mut_step=0.15)
     donor_block = str(donor.deltas[0])
-    donor.fitness = _FitnessStub(1.0)
-    receiver.fitness = _FitnessStub(10.0)
+    donor.fitness = _FitMin((1.0,))
+    receiver.fitness = _FitMin((10.0,))
     _, child_receiver = gp.cx_slim_donor(donor, receiver, pset, best_donor=True)
     assert any(str(delta) == donor_block for delta in child_receiver.deltas)
 
@@ -129,8 +85,8 @@ def test_cx_empty_donor_deltas_noop():
     slim1 = _slim_head(pset)
     slim2 = _slim_head(pset)
     gp.mut_slim_inflate(slim2, pset, min_depth=1, max_depth=1, mut_step=0.2)
-    slim1.fitness = _FitnessStub(1.0)
-    slim2.fitness = _FitnessStub(10.0)
+    slim1.fitness = _FitMin((1.0,))
+    slim2.fitness = _FitMin((10.0,))
     deltas_before = (len(slim1.deltas), len(slim2.deltas))
     child1, child2 = gp.cx_slim_donor(slim1, slim2, pset, best_donor=True)
     assert len(child1.deltas) == deltas_before[0]
@@ -170,24 +126,11 @@ def test_cx_slim_donor_best_donor_uses_multi_objective_fitness():
     gp.mut_slim_inflate(worse, pset, min_depth=1, max_depth=1, mut_step=0.2)
     gp.mut_slim_inflate(better, pset, min_depth=1, max_depth=1, mut_step=0.3)
     better_block = str(better.deltas[0])
-    worse.fitness = _MOFitnessStub((5.0, 10.0))
-    better.fitness = _MOFitnessStub((5.0, 3.0))
+    worse.fitness = _FitMin2((5.0, 10.0))
+    better.fitness = _FitMin2((5.0, 3.0))
     gp.cx_slim_donor(worse, better, pset, best_donor=True)
     assert len(better.deltas) == 0
     assert any(str(delta) == better_block for delta in worse.deltas)
-
-
-def test_cx_slim_donor_accepts_fitness_with_valid_flag_only():
-    tools.rng.seed(15)
-    pset = _semantic_pset()
-    donor = _slim_head(pset)
-    receiver = _slim_head(pset)
-    gp.mut_slim_inflate(donor, pset, min_depth=1, max_depth=1, mut_step=0.15)
-    donor_block = str(donor.deltas[0])
-    donor.fitness = _FitnessValidFlagStub(1.0)
-    receiver.fitness = _FitnessValidFlagStub(10.0)
-    _, child_receiver = gp.cx_slim_donor(donor, receiver, pset, best_donor=True)
-    assert any(str(delta) == donor_block for delta in child_receiver.deltas)
 
 
 def test_primitive_tree_coercion():

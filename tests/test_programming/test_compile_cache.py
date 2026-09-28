@@ -8,11 +8,14 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+import gc
 import operator
+import weakref
 
+import deap_er.private.programming.compilers as compilers
 from deap_er import gp
 from deap_er.private.programming.compile_cache import CompileCache, expression_key
-from deap_er.private.programming.compilers import _compile_cache, invalidate_compiled
+from deap_er.private.programming.compilers import invalidate_compiled
 
 
 def test_compile_cache_evicts_the_oldest_entry():
@@ -42,17 +45,15 @@ def test_compile_tree_lru_does_not_flush_the_whole_cache():
     pset = gp.PrimitiveSet("main", 1)
     pset.add_primitive(operator.add, 2)
     small = CompileCache(maxsize=3)
-    previous = _compile_cache
+    previous = compilers.shared_compile_cache
     try:
-        import deap_er.private.programming.compilers as compilers
-
-        compilers._compile_cache = small
+        compilers.shared_compile_cache = small
         for value in range(5):
             tree = gp.PrimitiveTree.from_string(f"add(ARG0, {value})", pset)
             gp.compile_tree(tree, pset)
         assert len(small) == 3
     finally:
-        compilers._compile_cache = previous
+        compilers.shared_compile_cache = previous
 
 
 def test_expression_key_uses_nodes_for_trees_and_text_for_source():
@@ -140,3 +141,26 @@ def test_compile_tree_symbolic_and_repr_leaves_do_not_share_cache():
     assert str(literal) == "'x'"
     assert gp.compile_tree(named, pset) == 7
     assert gp.compile_tree(literal, pset) == "x"
+
+
+def test_compile_tree_does_not_reuse_a_freed_primitive_address():
+    results = []
+    for value in range(5):
+        pset = gp.PrimitiveSet("fresh", 0)
+        pset.add_terminal(lambda value=value: value, name="const", call_zero=True)
+        results.append(gp.compile_tree(gp.PrimitiveTree([pset.mapping["const"]]), pset))
+        del pset
+    assert results == [0, 1, 2, 3, 4]
+
+
+def test_compile_cache_pins_the_context_values_named_in_its_key():
+    def seven():
+        return 7
+
+    pset = gp.PrimitiveSet("pinned", 0)
+    pset.add_terminal(seven, name="seven", call_zero=True)
+    ref = weakref.ref(seven)
+    assert gp.compile_tree("seven()", pset) == 7
+    del pset, seven
+    gc.collect()
+    assert ref() is not None

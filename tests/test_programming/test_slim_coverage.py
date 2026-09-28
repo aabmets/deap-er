@@ -12,26 +12,11 @@ import copy
 import math
 import operator
 
-from deap_er import gp, tools
+from deap_er import Fitness, creator, gp, tools
 
 
-class _ValuesWeights:
-    def __init__(self, values, weights):
-        self.values = values
-        self.weights = weights
-
-    def __gt__(self, other):
-        return NotImplemented
-
-
-class _WValuesOnly:
-    def __init__(self, values, weights, wvalues):
-        self.values = values
-        self.weights = weights
-        self.wvalues = wvalues
-
-    def __gt__(self, other):
-        return NotImplemented
+class _FitMin(Fitness):
+    weights = (-1.0,)
 
 
 def lf(x):
@@ -78,36 +63,6 @@ def test_mut_slim_respects_inflate_probability():
     assert deflated.deltas == []
 
 
-def test_cx_slim_donor_compares_values_and_weights():
-    tools.rng.seed(2)
-    pset = _semantic_pset()
-    donor = _slim_head(pset)
-    receiver = _slim_head(pset)
-    gp.mut_slim_inflate(donor, pset, min_depth=1, max_depth=1, mut_step=0.15)
-    block = str(donor.deltas[0])
-    donor.fitness = _ValuesWeights((1.0,), (-1.0,))
-    receiver.fitness = _ValuesWeights((10.0,), (-1.0,))
-
-    gp.cx_slim_donor(donor, receiver, pset, best_donor=True)
-
-    assert any(str(delta) == block for delta in receiver.deltas)
-
-
-def test_cx_slim_donor_compares_wvalues_when_gt_is_unimplemented():
-    tools.rng.seed(3)
-    pset = _semantic_pset()
-    donor = _slim_head(pset)
-    receiver = _slim_head(pset)
-    gp.mut_slim_inflate(donor, pset, min_depth=1, max_depth=1, mut_step=0.15)
-    block = str(donor.deltas[0])
-    donor.fitness = _WValuesOnly((1.0,), (-1.0,), (-1.0,))
-    receiver.fitness = _WValuesOnly((10.0,), (-1.0,), (-10.0,))
-
-    gp.cx_slim_donor(donor, receiver, pset, best_donor=True)
-
-    assert any(str(delta) == block for delta in receiver.deltas)
-
-
 def test_slim_from_tree_returns_existing_instance():
     tools.rng.seed(4)
     slim = _slim_head(_semantic_pset())
@@ -120,7 +75,7 @@ def test_slim_str_and_deepcopy_copy_fitness():
     pset = _semantic_pset()
     slim = _slim_head(pset)
     gp.mut_slim_inflate(slim, pset, min_depth=1, max_depth=1, mut_step=0.2)
-    slim.fitness = _ValuesWeights((1.0,), (-1.0,))
+    slim.fitness = _FitMin((1.0,))
 
     text = str(slim)
     clone = copy.deepcopy(slim)
@@ -129,3 +84,23 @@ def test_slim_str_and_deepcopy_copy_fitness():
     assert clone is not slim
     assert clone.fitness is not slim.fitness
     assert clone.fitness.values == (1.0,)
+
+
+def test_slim_deepcopy_keeps_creator_class_and_attributes():
+    creator.create_type("SLIM_COPY_FIT", Fitness, weights=(-1.0,))
+    creator.create_type("SLIM_COPY_IND", gp.SlimTree, fitness=creator.__dict__["SLIM_COPY_FIT"])
+    try:
+        ind_cls = creator.__dict__["SLIM_COPY_IND"]
+        slim = ind_cls(gp.gen_grow(_semantic_pset(), 1, 2))
+        slim.history_index = 7
+        slim.fitness.values = (1.0,)
+
+        clone = copy.deepcopy(slim)
+
+        assert type(clone) is ind_cls
+        assert clone.history_index == 7
+        assert clone.fitness.values == (1.0,)
+        assert clone.head is not slim.head
+    finally:
+        del creator.__dict__["SLIM_COPY_FIT"]
+        del creator.__dict__["SLIM_COPY_IND"]

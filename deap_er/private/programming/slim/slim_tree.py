@@ -73,18 +73,19 @@ class SlimTree:
     def __deepcopy__(self, memo: dict[int, Any]) -> SlimTree:
         """Return a deep copy of this SLIM individual.
 
+        The copy keeps the concrete class, such as a type built with
+        ``creator``, and every instance attribute.
+
         Args:
             memo: Memo mapping used by ``copy.deepcopy``.
 
         Returns:
-            A new ``SlimTree`` with copied head, deltas, and fitness.
+            A new individual with copied head, deltas, fitness, and
+            other attributes.
         """
-        clone = SlimTree(
-            deepcopy(self.head, memo),
-            [deepcopy(delta, memo) for delta in self.deltas],
-        )
-        if hasattr(self, "fitness"):
-            clone.fitness = deepcopy(self.fitness, memo)
+        clone = self.__class__.__new__(self.__class__)
+        memo[id(self)] = clone
+        clone.__dict__.update(deepcopy(self.__dict__, memo))
         return clone
 
 
@@ -114,7 +115,8 @@ def compile_slim_tree(
         compile_tree(delta, prim_set, backend=backend, dispatch=dispatch) for delta in slim.deltas
     ]
     if len(prim_set.arguments) == 0:
-        return head_fn() + sum(delta_fn() for delta_fn in delta_fns)
+        # compile_tree already evaluated each block to its value.
+        return head_fn + sum(delta_fns)
 
     def combined(*args: Any, **kwargs: Any) -> Any:
         total = head_fn(*args, **kwargs)

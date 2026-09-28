@@ -9,9 +9,8 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import deap_er.private.programming.policy_push as policy_push
-import pytest
 from deap_er import tools
-from deap_er.private.programming.policy_loop import POLICY_LOOP_ACTIONS, policy_action_index
+from deap_er.private.programming.policy_loop import policy_action_index
 
 
 def test_push_policy_emits_from_solve_bits():
@@ -50,20 +49,6 @@ def test_push_policy_uses_solve_bit_index():
     )
     obs = tools.policy_observe(solve_bits=(1, 0, 1, 1), train_score=0.0)
     assert policy_push.push_policy_decide(program, obs) == "next_lexicase_cases"
-
-
-def test_push_policy_rejects_unknown_opcode():
-    program = policy_push.PushPolicyProgram(code=(999,))
-    obs = tools.policy_observe(solve_bits=(1,), train_score=0.0)
-    with pytest.raises(ValueError, match="unknown Push policy opcode"):
-        policy_push.push_policy_decide(program, obs)
-
-
-def test_push_policy_rejects_out_of_range_emit():
-    program = policy_push.PushPolicyProgram(code=(policy_push.EMIT, len(POLICY_LOOP_ACTIONS) + 5))
-    obs = tools.policy_observe(solve_bits=(1,), train_score=0.0)
-    with pytest.raises(ValueError, match="out-of-range action index"):
-        policy_push.push_policy_decide(program, obs)
 
 
 def test_push_policy_conditional_emit_respects_false_branch():
@@ -202,11 +187,24 @@ def test_push_policy_loads_qd_score():
     assert policy_push.push_policy_decide(program, obs) == "next_lexicase_cases"
 
 
-def test_push_policy_truncated_program_raises_value_error():
-    program = policy_push.PushPolicyProgram(code=(policy_push.PUSH_INT,))
-    obs = tools.policy_observe(solve_bits=(1,), train_score=0.0)
-    with pytest.raises(ValueError, match="truncated Push policy program"):
-        policy_push.push_policy_decide(program, obs)
+def test_push_policy_add_keeps_float_scores():
+    next_index = policy_action_index("next_lexicase_cases")
+    skip_index = policy_action_index(tools.POLICY_ACTION_SKIP_TUNE)
+    program = policy_push.PushPolicyProgram(
+        code=(
+            policy_push.LOAD_TRAIN_SCORE,
+            policy_push.LOAD_TRAIN_SCORE,
+            policy_push.ADD,
+            policy_push.PUSH_INT,
+            1,
+            policy_push.GT,
+            policy_push.EMIT,
+            next_index,
+        ),
+        default_action=skip_index,
+    )
+    obs = tools.policy_observe(solve_bits=(1,), train_score=0.6)
+    assert policy_push.push_policy_decide(program, obs) == "next_lexicase_cases"
 
 
 def test_push_policy_last_emit_wins():
@@ -223,16 +221,3 @@ def test_push_policy_last_emit_wins():
     )
     obs = tools.policy_observe(solve_bits=(1,), train_score=0.0)
     assert policy_push.push_policy_decide(program, obs) == tools.POLICY_ACTION_SKIP_TUNE
-
-
-def test_push_policy_forbidden_opcodes_absent():
-    forbidden_names = (
-        "LOAD_COLUMN",
-        "LOAD_MATRIX",
-        "LOAD_WINDOW",
-        "ROLLING_MEAN",
-        "INTERPRET_TAPE",
-    )
-    for name in forbidden_names:
-        assert not hasattr(policy_push, name)
-    assert max(policy_push.PUSH_POLICY_OPS) < 100

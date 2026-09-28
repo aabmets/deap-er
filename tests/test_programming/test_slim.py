@@ -134,3 +134,14 @@ def test_slim_deflate_without_semantic_primitives():
     (mutated,) = gp.mut_slim_deflate(slim)
     assert mutated is slim
     assert mutated.deltas == []
+
+
+def test_compile_slim_tree_sums_blocks_on_a_zero_argument_set():
+    pset = gp.PrimitiveSet("zero_arg_slim", 0)
+    pset.add_primitive(operator.add, 2)
+    pset.add_primitive(operator.mul, 2)
+    pset.add_terminal(2.0)
+    head = gp.PrimitiveTree.from_string("add(2.0, 2.0)", pset)
+    delta = gp.PrimitiveTree.from_string("mul(2.0, 2.0)", pset)
+
+    assert gp.compile_slim_tree(gp.SlimTree(head, [delta]), pset) == 8.0

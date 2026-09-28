@@ -23,6 +23,7 @@ from .numba.numba_ops import bind_tape
 from .opcodes import USER_BASE, interpret_tape, lower_tree
 from .primitives.primitive_nodes import Primitive
 from .primitives.primitive_set_typed import PrimitiveSetTyped
+from .python_source import compile_python
 from .tree_graph import build_tree_graph, static_limit
 
 __all__: list[str] = [
@@ -32,10 +33,11 @@ __all__: list[str] = [
     "build_tree_graph",
     "static_limit",
     "invalidate_compiled",
+    "shared_compile_cache",
 ]
 
 _COMPILE_CACHE_MAX = 1024
-_compile_cache = CompileCache(_COMPILE_CACHE_MAX)
+shared_compile_cache = CompileCache(_COMPILE_CACHE_MAX)
 
 
 def clear_compile_cache() -> None:
@@ -46,30 +48,8 @@ def clear_compile_cache() -> None:
     previous context. Also clears every live ``EvalCache`` so a
     language mutation cannot keep stale fitness.
     """
-    _compile_cache.clear()
+    shared_compile_cache.clear()
     clear_eval_caches()
-
-
-def _compile_python(code: str, prim_set: PrimitiveSetTyped) -> Any:
-    """Evaluate source text in the context of a primitive set.
-
-    Args:
-        code: Source text of the expression or of a lambda over it.
-        prim_set: Primitive set that supplies the evaluation context.
-
-    Returns:
-        The evaluated object.
-
-    Raises:
-        MemoryError: If evaluation exceeds the recursion limit.
-    """
-    try:
-        # nosemgrep: python.lang.security.audit.eval-detected.eval-detected
-        return eval(code, prim_set.context, {})
-    except MemoryError as err:
-        raise MemoryError(
-            "Recursion depth of 90 exceeded. Use bloat control on your operators.\n"
-        ) from err
 
 
 def _compile_tape(
@@ -175,17 +155,13 @@ def compile_tree(
     cache_key = compile_cache_key(
         backend, dispatch, expr, prim_set.arguments, prim_set.context, generation
     )
-    cached = _compile_cache.get(cache_key)
+    cached = shared_compile_cache.get(cache_key)
     if cached is not None:
         return cached
 
     _reject_unknown_primitive(expr, prim_set)
     if backend == "python":
-        code = str(expr)
-        if len(prim_set.arguments) > 0:
-            args = ",".join(prim_set.arguments)
-            code = f"lambda {args}: {code}"
-        compiled = _compile_python(code, prim_set)
+        compiled = compile_python(expr, prim_set)
     elif backend in ("opcode", "numba"):
         compiled = _compile_tape(expr, prim_set, backend, dispatch)
     else:
@@ -193,7 +169,8 @@ def compile_tree(
             f"Unknown compile backend '{backend}'. Use 'python', 'opcode', or 'numba'."
         )
 
-    _compile_cache.set(cache_key, compiled)
+    pins = (tuple(prim_set.context.values()), dispatch)
+    shared_compile_cache.set(cache_key, compiled, pins)
     return compiled
 
 
@@ -213,7 +190,7 @@ def invalidate_compiled(expr: Any) -> int:
         The number of compile-cache entries removed.
     """
     fragment = expr if isinstance(expr, str | tuple) else expression_key(expr)
-    removed = _compile_cache.discard_expression(fragment)
+    removed = shared_compile_cache.discard_expression(fragment)
     invalidate_eval(fragment)
     return removed
 

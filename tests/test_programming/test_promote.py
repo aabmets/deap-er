@@ -13,7 +13,7 @@ from typing import Any
 
 import pytest
 from deap_er import gp, tools
-from deap_er.private.programming.compilers import _compile_cache
+from deap_er.private.programming.compilers import shared_compile_cache
 from deap_er.private.programming.promote import PromotedLibrary
 
 
@@ -140,9 +140,9 @@ def test_promote_and_clear_compile_cache_drop_entries():
     pset.add_primitive(operator.add, 2)
     tree = gp.PrimitiveTree.from_string("add(ARG0, 1)", pset)
     gp.compile_tree(tree, pset)
-    assert len(_compile_cache) > 0
+    assert len(shared_compile_cache) > 0
     name = gp.promote_subtree(pset, gp.PrimitiveTree.from_string("add(ARG0, ARG0)", pset))
-    assert len(_compile_cache) == 0
+    assert len(shared_compile_cache) == 0
     promo = gp.PrimitiveTree.from_string(f"{name}(ARG0)", pset)
     old_fn = gp.compile_tree(promo, pset)
     assert old_fn(4) == 8
@@ -152,7 +152,7 @@ def test_promote_and_clear_compile_cache_drop_entries():
         gp.compile_tree(promo, pset)
     gp.compile_tree(tree, pset)
     gp.clear_compile_cache()
-    assert len(_compile_cache) == 0
+    assert len(shared_compile_cache) == 0
 
 
 def test_failed_promote_rolls_back_eviction():

@@ -11,6 +11,7 @@
 import operator
 from typing import Any
 
+import numpy
 from deap_er import gp, tools
 
 
@@ -105,3 +106,19 @@ def test_static_limit_clones_gp_trees_without_deepcopying_nodes():
     assert rejected is not parent
     assert rejected[0] is parent[0]
     assert rejected[1] is parent[1]
+
+
+def test_python_backend_reads_a_constant_window_operand_as_a_column():
+    pset = gp.make_column_pset(["value"])
+    gp.add_numpy_primitives(pset)
+    gp.add_window_primitives(pset)
+    pset.add_terminal(2.0, gp.Array, name="two")
+    tree = gp.PrimitiveTree.from_string("vadd(value, rolling_mean(two, 3))", pset)
+    column = numpy.arange(6.0)
+
+    result = gp.compile_tree(tree, pset)(column)
+
+    numpy.testing.assert_allclose(result, [numpy.nan, numpy.nan, 4.0, 5.0, 6.0, 7.0])
+    if gp.numba_available():
+        numba_result = gp.compile_tree(tree, pset, backend="numba")(column)
+        numpy.testing.assert_allclose(result, numba_result)

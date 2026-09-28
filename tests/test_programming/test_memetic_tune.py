@@ -139,3 +139,46 @@ def test_tune_ephemerals_boxing_keeps_caller_cma_hparams(ind_cls):
     assert strategy.rank_mu == rank_mu
     numpy.testing.assert_array_equal(strategy.weights, weights)
     assert strategy.bound_mode == "clip"
+
+
+def test_tune_ephemerals_leaves_a_reused_strategy_unboxed(ind_cls):
+    window_pset = gp.make_column_pset(["value"])
+    gp.add_window_primitives(window_pset)
+    gp.add_window_ephemeral(window_pset, "MEMETIC_REUSE_WIN", 2, 5)
+    window = window_pset.terminals[gp.Window][0]()
+    boxed = ind_cls([window_pset.mapping["delay"], window_pset.mapping["value"], window])
+    float_pset = _float_pset("MEMETIC_REUSE_FLOAT")
+    free = _two_leaf_tree(ind_cls, float_pset)
+    gp.assign_ephemerals(free, [100.0])
+
+    def evaluate(individual):
+        return (abs(gp.extract_ephemerals(individual)[0] - 100.0),)
+
+    strategy = tools.Strategy([0.0], 0.1, offsprings=4, survivors=2)
+    before = {name: getattr(strategy, name) for name in ("low", "up", "bound_mode")}
+    tools.rng.seed(11)
+    gp.tune_ephemerals(boxed, strategy, evaluate, n_gen=1)
+    assert {name: getattr(strategy, name) for name in before} == before
+
+    gp.tune_ephemerals(free, strategy, evaluate, n_gen=1)
+    assert gp.extract_ephemerals(free)[0] > 50.0
+
+
+def test_tune_ephemerals_leaves_bool_ephemerals_untouched(ind_cls):
+    pset = _float_pset("MEMETIC_BOOL_FLOAT")
+    number = pset.terminals[object][-1]()
+    pset.add_ephemeral_constant("MEMETIC_BOOL_FLAG", _true)
+    flag = pset.terminals[object][-1]()
+    tree = ind_cls([pset.mapping["add"], flag, number])
+
+    assert gp.numeric_leaves(tree) == [(tree, 2)]
+
+    strategy = tools.Strategy([0.0], 0.5, offsprings=4, survivors=2)
+    tools.rng.seed(5)
+    gp.tune_ephemerals(tree, strategy, lambda _ind: (0.0,), n_gen=1)
+
+    assert tree[1].value is True
+
+
+def _true():
+    return True

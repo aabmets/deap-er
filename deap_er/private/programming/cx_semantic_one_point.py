@@ -16,22 +16,21 @@ from typing import TYPE_CHECKING
 import numpy
 
 if TYPE_CHECKING:
-    from deap_er.private.programming.primitives.primitive_set_typed import PrimitiveSetTyped
     from deap_er.private.typedefs import GPIndividual, GPMates
-from deap_er.private.programming.crossover import (
-    _common_type_candidates,
-    _swap_at,
-)
-from deap_er.private.programming.primitives.primitive_tree import PrimitiveTree
-from deap_er.private.programming.tape_batch import interpret_tapes
-from deap_er.private.programming.tape_lower import lower_tree
+
+    from .primitives.primitive_set_typed import PrimitiveSetTyped
 from deap_er.private.various.rng import rng
 from deap_er.private.various.semantic_neighbors import SemanticMetric, semantic_nearest
 
-__all__: list[str] = ["cx_one_point_semantic"]
+from .crossover import common_type_candidates, swap_at
+from .primitives.primitive_tree import PrimitiveTree
+from .tape_batch import interpret_tapes
+from .tape_lower import lower_tree
+
+__all__: list[str] = ["subtree_tape_rows", "cx_one_point_semantic"]
 
 
-def _subtree_tape_rows(
+def subtree_tape_rows(
     indices: Sequence[int],
     individual: GPIndividual,
     prim_set: PrimitiveSetTyped,
@@ -94,7 +93,7 @@ def cx_one_point_semantic(
     if len(ind1) < 2 or len(ind2) < 2:
         return ind1, ind2
 
-    types1, types2, common_types = _common_type_candidates(ind1, ind2)
+    types1, types2, common_types = common_type_candidates(ind1, ind2)
     if len(common_types) == 0:
         return ind1, ind2
 
@@ -103,10 +102,10 @@ def cx_one_point_semantic(
     cands2 = types2[type_]
     index1 = int(rng.choice(cands1))
 
-    rows1 = _subtree_tape_rows([index1], ind1, prim_set, matrix)
-    rows2 = _subtree_tape_rows(cands2, ind2, prim_set, matrix)
+    rows1 = subtree_tape_rows([index1], ind1, prim_set, matrix)
+    rows2 = subtree_tape_rows(cands2, ind2, prim_set, matrix)
     nearest = semantic_nearest(rows1[0], rows2, k=1, metric=metric, valid=valid)
     index2 = int(rng.choice(cands2)) if nearest.size == 0 else cands2[int(nearest[0])]
 
-    _swap_at(ind1, ind2, index1, index2)
+    swap_at(ind1, ind2, index1, index2)
     return ind1, ind2

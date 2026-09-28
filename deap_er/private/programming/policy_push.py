@@ -12,8 +12,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from deap_er.private.programming.policy_push_interp import interpret_push_policy
-from deap_er.private.programming.policy_push_ops import (
+from deap_er.private.records.policy_observation import PolicyObservation
+
+from .policy_push_interp import interpret_push_policy
+from .policy_push_ops import (
     ADD,
     AND,
     EMIT,
@@ -41,7 +43,6 @@ from deap_er.private.programming.policy_push_ops import (
     PushPolicyOp,
     StackValue,
 )
-from deap_er.private.records.policy_observation import PolicyObservation
 
 __all__: list[str] = [
     "ADD",
@@ -108,7 +109,8 @@ def push_policy_decide(
 
     Raises:
         ValueError: If the program is truncated, references an unknown
-            opcode, or emits an invalid action index.
+            opcode, pops an empty stack, or emits an invalid action
+            index.
     """
     return interpret_push_policy(
         program.code,
