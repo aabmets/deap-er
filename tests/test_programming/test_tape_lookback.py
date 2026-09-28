@@ -60,8 +60,9 @@ def test_tape_lookback_uses_the_window_arg_and_delay_steps():
 
 @pytest.mark.parametrize("expr", ["ema(first, 5)", "vadd(delay(ema(first, 2), 3), second)"])
 def test_tape_lookback_raises_for_the_unbounded_ema(expr):
+    tape = _tape(expr)
     with pytest.raises(gp.UnboundedLookbackError, match="no finite lookback"):
-        gp.tape_lookback(_tape(expr))
+        gp.tape_lookback(tape)
 
 
 def test_opcode_lookback_raises_for_ema():

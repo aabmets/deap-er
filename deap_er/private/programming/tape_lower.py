@@ -88,18 +88,23 @@ def immediate_windows(
             if arg_type is not Window:
                 continue
             child = children[index][position]
-            value = getattr(nodes[child], "value", None)
-            if isinstance(value, str):
-                value = prim_set.context.get(value)
-            positive = isinstance(value, Real) and float(value).is_integer() and value >= 1
-            if nodes[child].arity != 0 or not positive:
-                raise ValueError(
-                    f"The window argument of '{node.name}' must be a leaf holding a "
-                    f"positive integer, so that it can be lowered to an immediate operand."
-                )
-            windows[index] = int(value)
+            windows[index] = _window_length(node, nodes[child], prim_set)
             folded.add(child)
     return windows, folded
+
+
+def _window_length(node: Primitive, child: Any, prim_set: PrimitiveSetTyped) -> int:
+    """Return the positive integer held by the window leaf ``child``."""
+    value = getattr(child, "value", None)
+    if isinstance(value, str):
+        value = prim_set.context.get(value)
+    positive = isinstance(value, Real) and float(value).is_integer() and value >= 1
+    if child.arity != 0 or not positive:
+        raise ValueError(
+            f"The window argument of '{node.name}' must be a leaf holding a "
+            f"positive integer, so that it can be lowered to an immediate operand."
+        )
+    return int(value)
 
 
 def postfix_order(children: list[list[int]], folded: set[int]) -> list[int]:

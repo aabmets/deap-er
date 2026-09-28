@@ -244,6 +244,7 @@ def test_step_islands_validates_every_deme_before_stepping(ind_cls):
     broken = Toolbox()
     broken.register("evaluate", _evaluate)
 
+    valid = _toolbox(list, tools.sel_best)
     with pytest.raises(ValueError, match="vary"):
-        tools.step_islands([(_toolbox(list, tools.sel_best), population), (broken, [])])
+        tools.step_islands([(valid, population), (broken, [])])
     assert not population[0].fitness.is_valid()

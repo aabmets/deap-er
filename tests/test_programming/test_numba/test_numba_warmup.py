@@ -66,21 +66,17 @@ def test_warmup_numba_specializes_the_interpreter_in_a_fresh_process():
 
 @pytest.mark.xdist_group(name="numba")
 @pytest.mark.skipif(not gp.numba_available(), reason="the optional numba extra is not installed")
-def test_ensure_numba_cache_dir_reaches_an_already_imported_numba(tmp_path):
+def test_ensure_numba_cache_dir_reaches_an_already_imported_numba(tmp_path, monkeypatch):
     # Optional extra: numba may be absent, in which case this test is skipped.
     import numba.core.config as config
 
-    saved = {key: os.environ.get(key) for key in ("NUMBA_CACHE_DIR", "XDG_CACHE_HOME")}
-    os.environ.pop("NUMBA_CACHE_DIR", None)
-    os.environ["XDG_CACHE_HOME"] = str(tmp_path)
     try:
-        ensure_numba_cache_dir()
-        expected = (tmp_path / "deap-er" / "numba").resolve()
-        assert Path(getattr(config, "CACHE_DIR")) == expected  # noqa: B009
+        with monkeypatch.context() as patch:
+            # An empty value counts as unset and is restored on exit.
+            patch.setenv("NUMBA_CACHE_DIR", "")
+            patch.setenv("XDG_CACHE_HOME", str(tmp_path))
+            ensure_numba_cache_dir()
+            expected = (tmp_path / "deap-er" / "numba").resolve()
+            assert Path(getattr(config, "CACHE_DIR")) == expected  # noqa: B009
     finally:
-        for key, value in saved.items():
-            if value is None:
-                os.environ.pop(key, None)
-            else:
-                os.environ[key] = value
         config.reload_config()

@@ -130,5 +130,6 @@ def test_race_z_score_follows_alpha():
 
 def test_race_stop_rejects_bad_alpha_before_racing(max_ind_cls):
     """An invalid alpha fails up front, even when no elimination round runs."""
+    population = [max_ind_cls([0])]
     with pytest.raises(ValueError, match="alpha"):
-        tools.race_stop([max_ind_cls([0])], lambda _ind: (0.0,), 1, alpha=1.5)
+        tools.race_stop(population, lambda _ind: (0.0,), 1, alpha=1.5)
