@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- Typed GP crossover (`cx_one_point`, `cx_one_point_leaf_biased`,
+  `cx_homologous`, `cx_one_point_semantic`) drew the swapped return
+  type from a `set` of classes, whose order follows `id()` or the hash
+  seed. One seed bred different children in different processes, and
+  a checkpoint resumed in a fresh process diverged. The shared types
+  are now drawn in first-occurrence order in the first parent.
+  **Seeded output of strongly typed GP changes.** Untyped GP is
+  unaffected
+
 ## [3.1.2] - 2026-09-10
 
 ### Changed

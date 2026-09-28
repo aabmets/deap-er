@@ -48,11 +48,16 @@ def _collect_indices(
 
 def _common_type_candidates(
     ind1: GPIndividual, ind2: GPIndividual
-) -> tuple[defaultdict[type, list[int]], defaultdict[type, list[int]], set[type]]:
-    """Group crossover candidates in both trees and return shared types."""
+) -> tuple[defaultdict[type, list[int]], defaultdict[type, list[int]], list[type]]:
+    """Group crossover candidates in both trees and return shared types.
+
+    Shared types keep their first-occurrence order in ``ind1``. A ``set``
+    would order classes by ``id()``, so one seed would draw a different
+    type in every process.
+    """
     types1 = _collect_indices(ind1)
     types2 = _collect_indices(ind2)
-    common_types = set(types1.keys()).intersection(types2.keys())
+    common_types = [type_ for type_ in types1 if type_ in types2]
     return types1, types2, common_types
 
 
@@ -203,7 +208,7 @@ def cx_one_point_leaf_biased(ind1: GPIndividual, ind2: GPIndividual, term_prob: 
 
     types1 = _collect_indices(ind1, arity_op1)
     types2 = _collect_indices(ind2, arity_op2)
-    common_types = set(types1.keys()).intersection(types2.keys())
+    common_types = [type_ for type_ in types1 if type_ in types2]
     _swap_subtrees(ind1, ind2, types1, types2, common_types)
 
     return ind1, ind2

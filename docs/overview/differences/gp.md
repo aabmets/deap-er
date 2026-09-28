@@ -179,6 +179,12 @@ The following is extra.
     to the anchor subtree via ``semantic_nearest`` on batched
     ``interpret_tapes`` rows. ``cx_one_point`` remains the
     default mate.
+35. Typed crossover (`cx_one_point`, `cx_one_point_leaf_biased`,
+    `cx_homologous`, `cx_one_point_semantic`) draws the swapped
+    return type from the shared types in first-occurrence order in
+    the first parent. DEAP drew it from a `set` of classes, so one
+    seed bred different children in different processes and a
+    checkpoint resumed in a fresh process left the original path.
 
 The columnar contract is in the
 [columnar GP tutorial](../../tutorials/columnar_gp.md). The private

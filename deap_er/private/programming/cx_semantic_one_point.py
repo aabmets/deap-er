@@ -98,7 +98,7 @@ def cx_one_point_semantic(
     if len(common_types) == 0:
         return ind1, ind2
 
-    type_ = rng.choice(list(common_types))
+    type_ = rng.choice(common_types)
     cands1 = types1[type_]
     cands2 = types2[type_]
     index1 = int(rng.choice(cands1))
