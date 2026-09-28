@@ -48,61 +48,10 @@ def _require_slim(individual: Any, op: str) -> SlimTree:
     return individual
 
 
-def _fitness_is_valid(fitness: Any) -> bool:
-    """Return whether ``fitness`` has usable objective values.
-
-    Args:
-        fitness: Fitness object attached to a parent.
-
-    Returns:
-        True when comparison is safe for donor selection.
-    """
-    is_valid = getattr(fitness, "is_valid", None)
-    if callable(is_valid):
-        return bool(is_valid())
-    if hasattr(fitness, "valid"):
-        return bool(fitness.valid)
-    values = getattr(fitness, "values", ())
-    weights = getattr(fitness, "weights", ())
-    return bool(values) and bool(weights) and len(values) == len(weights)
-
-
-def _fitness_is_better(first: Any, second: Any) -> bool:
-    """Return whether ``first`` is strictly better than ``second``.
-
-    Args:
-        first: Candidate fitter parent.
-        second: Other parent.
-
-    Returns:
-        True when ``first`` should be preferred as donor.
-    """
-    greater = getattr(first, "__gt__", None)
-    if callable(greater):
-        result = greater(second)
-        if result is not NotImplemented:
-            return bool(result)
-    first_wvalues = getattr(first, "wvalues", ())
-    second_wvalues = getattr(second, "wvalues", ())
-    if first_wvalues and second_wvalues:
-        return first_wvalues > second_wvalues
-    first_values = getattr(first, "values", ())
-    second_values = getattr(second, "values", ())
-    first_weights = getattr(first, "weights", ())
-    if (
-        first_values
-        and second_values
-        and first_weights
-        and len(first_values) == len(second_values) == len(first_weights)
-    ):
-        first_score = tuple(
-            value * weight for value, weight in zip(first_values, first_weights, strict=True)
-        )
-        second_score = tuple(
-            value * weight for value, weight in zip(second_values, first_weights, strict=True)
-        )
-        return bool(first_score > second_score)
-    return False
+def _has_valid_fitness(slim: SlimTree) -> bool:
+    """Return whether ``slim`` carries a fitness with valid values."""
+    fitness = getattr(slim, "fitness", None)
+    return fitness is not None and bool(fitness.is_valid())
 
 
 def _pick_donor_index(slim1: SlimTree, slim2: SlimTree, best_donor: bool) -> int:
@@ -116,16 +65,10 @@ def _pick_donor_index(slim1: SlimTree, slim2: SlimTree, best_donor: bool) -> int
     Returns:
         ``0`` when ``slim1`` is the donor, otherwise ``1``.
     """
-    if (
-        best_donor
-        and hasattr(slim1, "fitness")
-        and hasattr(slim2, "fitness")
-        and _fitness_is_valid(slim1.fitness)
-        and _fitness_is_valid(slim2.fitness)
-    ):
-        if _fitness_is_better(slim1.fitness, slim2.fitness):
+    if best_donor and _has_valid_fitness(slim1) and _has_valid_fitness(slim2):
+        if slim1.fitness > slim2.fitness:
             return 0
-        if _fitness_is_better(slim2.fitness, slim1.fitness):
+        if slim2.fitness > slim1.fitness:
             return 1
     return rng.randint(0, 1)
 
