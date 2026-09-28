@@ -21,7 +21,7 @@ if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 from deap_er.private.various.rng import rng
 
-from .sel_lexicase_matrix import validate_case_matrix
+from .sel_lexicase_matrix import SOLVE_ATOL, solve_mask, validate_case_matrix
 
 __all__: list[str] = ["sample_informed_cases"]
 
@@ -29,7 +29,7 @@ type CaseSolved = Callable[[Individual, int], bool]
 
 
 def _default_solved(individual: Individual, case: int) -> bool:
-    return isclose(individual.fitness.values[case], 0.0, abs_tol=1e-12)
+    return isclose(individual.fitness.values[case], 0.0, abs_tol=SOLVE_ATOL)
 
 
 def _solve_matrix(individuals: list[Individual], n_cases: int, solved: CaseSolved) -> numpy.ndarray:
@@ -66,10 +66,6 @@ def _farthest_first_cases(solve: numpy.ndarray, case_count: int) -> list[int]:
             if dist < min_dist[case]:
                 min_dist[case] = dist
     return chosen
-
-
-def _solve_from_matrix(matrix: numpy.ndarray) -> numpy.ndarray:
-    return numpy.isclose(matrix.T, 0.0, atol=1e-12)
 
 
 def sample_informed_cases(
@@ -125,7 +121,7 @@ def sample_informed_cases(
     predicate = solved if solved is not None else _default_solved
     if matrix is not None and predicate is _default_solved:
         validate_case_matrix(matrix, individuals, trust=trust_matrix)
-        solve = _solve_from_matrix(matrix)
+        solve = solve_mask(matrix).T
     else:
         solve = _solve_matrix(individuals, len(individuals[0].fitness.values), predicate)
     if solve.shape[0] == 0:

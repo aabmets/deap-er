@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 from deap_er.private.records.case_exam import CaseExam
 from deap_er.private.records.case_exam_pool import CaseExamPool, coerce_case_exam
 
-from .sel_lexicase_matrix import resolve_case_matrix
+from .sel_lexicase_matrix import resolve_case_matrix, solve_mask
 
 __all__: list[str] = [
     "CaseSolved",
@@ -110,7 +110,7 @@ def elite_solve_matrix(
                 bits[row, case] = solved(individual, case)
         return n_cases, bits
     packed = resolve_case_matrix(elites, matrix, trust_matrix=trust_matrix)
-    return n_cases, numpy.isclose(packed, 0.0, atol=1e-12)
+    return n_cases, solve_mask(packed)
 
 
 def exam_difficulty(solve: numpy.ndarray, cases: list[int], mode: DifficultyMode) -> int:

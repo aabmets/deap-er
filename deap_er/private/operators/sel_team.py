@@ -20,18 +20,16 @@ if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 from deap_er.private.various.rng import rng
 
-from .sel_lexicase_matrix import case_subset, require_population, resolve_case_matrix
+from .sel_lexicase_matrix import case_subset, require_population, resolve_case_matrix, solve_mask
 
 __all__: list[str] = ["sel_team", "sel_team_archive"]
-
-_SOLVE_ATOL = 1e-12
 
 
 def _solve_columns(matrix: numpy.ndarray, subset: list[int]) -> numpy.ndarray:
     columns = list(dict.fromkeys(subset))
     if not columns:
         return numpy.zeros((matrix.shape[0], 0), dtype=bool)
-    return numpy.isclose(matrix[:, columns], 0.0, atol=_SOLVE_ATOL)
+    return solve_mask(matrix[:, columns])
 
 
 def _next_member(taken: numpy.ndarray, solve: numpy.ndarray, uncovered: numpy.ndarray) -> int:

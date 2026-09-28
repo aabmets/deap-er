@@ -20,14 +20,18 @@ if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 
 __all__: list[str] = [
+    "SOLVE_ATOL",
     "case_index",
     "case_subset",
     "fitness_case_matrix",
     "require_population",
     "resolve_case_matrix",
     "resolve_case_weights",
+    "solve_mask",
     "validate_case_matrix",
 ]
+
+SOLVE_ATOL = 1e-12
 
 
 def require_population(individuals: list[Individual]) -> None:
@@ -217,3 +221,15 @@ def resolve_case_matrix(
         return fitness_case_matrix(individuals)
     validate_case_matrix(matrix, individuals, trust=trust_matrix)
     return matrix
+
+
+def solve_mask(matrix: numpy.ndarray) -> numpy.ndarray:
+    """Mark case values within ``SOLVE_ATOL`` of zero as solved.
+
+    Args:
+        matrix: Case values of any shape.
+
+    Returns:
+        Boolean array of the same shape.
+    """
+    return numpy.isclose(matrix, 0.0, rtol=0.0, atol=SOLVE_ATOL)
