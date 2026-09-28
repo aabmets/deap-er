@@ -90,9 +90,14 @@ def step_islands(
         migrate(populations)
         return
 
-    owner = {id(ind): key for key, pop in zip(eval_keys, populations, strict=True) for ind in pop}
+    # Each entry holds its individual so no id can be reused by a new
+    # object while ``migrate`` runs.
+    owner = {
+        id(ind): (key, ind) for key, pop in zip(eval_keys, populations, strict=True) for ind in pop
+    }
     migrate(populations)
     for key, pop in zip(eval_keys, populations, strict=True):
         for ind in pop:
-            if owner.get(id(ind)) != key:
+            home = owner.get(id(ind))
+            if home is None or home[0] != key:
                 del ind.fitness.values
