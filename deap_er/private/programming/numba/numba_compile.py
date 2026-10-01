@@ -43,9 +43,15 @@ def ensure_numba_cache_dir() -> None:
     The default location is an absolute path under the user's cache
     directory so spawned workers with a different working directory
     still share the same on-disk JIT cache. It also applies when numba
-    was imported before this call.
+    was imported before this call, and a ``NUMBA_CACHE_DIR`` set after
+    numba was imported is picked up too.
     """
-    if os.environ.get("NUMBA_CACHE_DIR"):
+    configured = os.environ.get("NUMBA_CACHE_DIR")
+    if configured:
+        config = sys.modules.get("numba.core.config")
+        if config is not None and getattr(config, "CACHE_DIR", configured) != configured:
+            # Numba read the variable at import, before the host set it.
+            config.reload_config()
         return
     xdg_cache = os.environ.get("XDG_CACHE_HOME")
     if xdg_cache:

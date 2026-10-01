@@ -16,7 +16,6 @@ import numpy
 
 from ..opcodes import USER_BASE
 from ..tape import Tape, check_tape
-from ..tape_cse import run_opcode_cse
 from . import numba_kernels
 from .numba_compile import build
 from .numba_ops import reserve
@@ -127,9 +126,16 @@ def run_tapes(
 ) -> numpy.ndarray:
     """Evaluate tapes on the compiled interpreter.
 
-    A serial batch of builtin-only tapes runs the shared NumPy CSE
-    plan and compiles nothing. Consumer opcodes and ``parallel=True``
-    run the compiled batch kernels.
+    Every batch runs a compiled batch kernel: the serial one, or the
+    ``prange`` one when ``parallel=True`` and more than one Numba
+    thread is available. Neither shares subexpressions across tapes,
+    and their floating-point rounding differs from the NumPy CSE plan
+    of the ``'opcode'`` backend. NaN patterns match, but values agree
+    only to a tolerance, not bit for bit: about ``rtol=1e-9`` and
+    ``atol=1e-12`` on short series, while running window sums let the
+    gap grow with the row count (about ``1e-8`` relative over
+    ``1e5`` rows). The serial and parallel kernels follow the same
+    per-tape code, so they agree to the same tolerance or better.
 
     Args:
         tapes: Tapes produced by ``lower_tree``.
@@ -159,9 +165,6 @@ def run_tapes(
                 "kernel was given. Pass dispatch= to interpret_tapes."
             )
     use_parallel = parallel and numba.get_num_threads() > 1
-    has_consumer = any(numpy.any(tape.opcodes >= USER_BASE) for tape in tapes)
-    if not use_parallel and not has_consumer:
-        return run_opcode_cse(tapes, matrix)
     return launch_kernels(tapes, matrix, dispatch, use_parallel)
 
 
@@ -169,9 +172,6 @@ def launch_kernels(
     tapes: Sequence[Tape], matrix: numpy.ndarray, dispatch: Any, parallel: bool
 ) -> numpy.ndarray:
     """Run tapes on the serial or ``prange`` compiled batch kernel.
-
-    ``run_tapes`` sends builtin-only serial batches through the CSE
-    plan instead, so this is also how the kernels are specialized.
 
     Args:
         tapes: Tapes to evaluate. Must not be empty.
