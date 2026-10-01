@@ -50,6 +50,7 @@ class CmaCore:
     ss_cum: float
     ss_dmp: float
     cm_cum: float
+    hyperparams: dict[str, Any]
     big_c: numpy.ndarray
     diag_d: numpy.ndarray
     cond: float
@@ -157,13 +158,14 @@ def update_cma_paths(strategy: Any, c_diff: numpy.ndarray, y_mean: numpy.ndarray
     Returns:
         ``1.0`` when the rank-one path should advance, else ``0.0``.
     """
+    sigma = numpy.float64(strategy.sigma)  # a zero sigma gives inf, not ZeroDivisionError
     temp_1 = sqrt(strategy.ss_cum * (2 - strategy.ss_cum) * strategy.mu_eff)
-    strategy.ps = (1 - strategy.ss_cum) * strategy.ps + temp_1 / strategy.sigma * y_mean
+    strategy.ps = (1 - strategy.ss_cum) * strategy.ps + temp_1 / sigma * y_mean
     temp_1 = sqrt(1.0 - (1.0 - strategy.ss_cum) ** (2.0 * (strategy.update_count + 1.0)))
     stalled = numpy.linalg.norm(strategy.ps) / temp_1 / strategy.chi_n
     hsig = float(stalled < (1.4 + 2.0 / (strategy.dim + 1.0)))
     temp_1 = sqrt(strategy.cm_cum * (2 - strategy.cm_cum) * strategy.mu_eff)
-    strategy.pc = (1 - strategy.cm_cum) * strategy.pc + hsig * temp_1 / strategy.sigma * c_diff
+    strategy.pc = (1 - strategy.cm_cum) * strategy.pc + hsig * temp_1 / sigma * c_diff
     return hsig
 
 
@@ -178,7 +180,11 @@ def adapt_cma_sigma(strategy: Any) -> None:
 
 
 def apply_cma_hyperparams(
-    strategy: Any, kwargs: dict[str, Any], *, rank_scale: float = 1.0
+    strategy: Any,
+    kwargs: dict[str, Any],
+    *,
+    rank_scale: float = 1.0,
+    cap_survivors: bool = False,
 ) -> None:
     """Set λ, μ, weights, and CMA learning rates on ``strategy``.
 
@@ -189,6 +195,8 @@ def apply_cma_hyperparams(
         strategy: CMA strategy with a ``dim`` attribute.
         kwargs: Constructor or ``compute_params`` keyword arguments.
         rank_scale: Multiplier for default rank-one and rank-μ rates.
+        cap_survivors: Cap ``survivors`` at ``offsprings`` instead of
+            raising. Used for a ``survivors`` pinned by an earlier call.
 
     Raises:
         ValueError: If ``survivors`` is not in ``[1, offsprings]``.
@@ -198,6 +206,8 @@ def apply_cma_hyperparams(
     dim = strategy.dim
     lamb = int(kwargs.get("offsprings", int(4 + 3 * log(dim))))
     mu = int(kwargs.get("survivors", max(1, lamb // 2)))
+    if cap_survivors:
+        mu = min(mu, lamb)
     if not 1 <= mu <= lamb:
         raise ValueError(
             f"survivors must be between 1 and offsprings; got survivors={mu}, offsprings={lamb}."

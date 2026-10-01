@@ -27,6 +27,7 @@ __all__: list[str] = [
     "resize_offsprings",
     "set_strategy_sigma",
     "target_met",
+    "update_or_flag_collapse",
 ]
 
 
@@ -44,13 +45,31 @@ def resize_offsprings(strategy: Any, lamb: int) -> None:
     ``Strategy`` / ``StrategySeparable`` recombine the best ``mu`` of
     ``lamb`` offspring, so ``mu`` is capped at ``lamb``. MO-CMA selects
     ``mu`` parents from parents plus offspring and keeps its ``mu``.
+    The cap applies to this batch only: the user's pinned
+    hyperparameters are kept, with ``offsprings`` set to ``lamb``.
     """
+    pins = dict(getattr(strategy, "hyperparams", {}))
     kwargs: dict[str, int] = {"offsprings": lamb}
     if isinstance(strategy, StrategyMultiObjective):
         kwargs["survivors"] = int(strategy.mu)
     elif hasattr(strategy, "mu"):
         kwargs["survivors"] = min(int(strategy.mu), lamb)
     strategy.compute_params(**kwargs)
+    strategy.hyperparams = {**pins, "offsprings": lamb}
+
+
+def update_or_flag_collapse(strategy: Any, population: list[Individual]) -> bool:
+    """Update ``strategy`` from ``population``; return whether it collapsed.
+
+    ``Strategy`` and ``StrategySeparable`` raise ``FloatingPointError``
+    when the step size collapses, leaving their state unchanged. The
+    wrapper ends the run so the next restart replaces that state.
+    """
+    try:
+        strategy.update(population)
+    except FloatingPointError:
+        return True
+    return False
 
 
 def target_met(

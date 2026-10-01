@@ -33,6 +33,7 @@ from deap_er.private.strategies.restart_ops import (
     resize_offsprings,
     set_strategy_sigma,
     target_met,
+    update_or_flag_collapse,
 )
 from deap_er.private.strategies.restart_schedule import RestartSchedule
 from deap_er.private.strategies.restart_tracker import RunTracker
@@ -48,7 +49,9 @@ class RestartStrategy:
 
     See constructor keyword arguments for configuration. ``target_f`` is
     expressed in raw objective space for single-objective runs. The first
-    run uses ``sigma_large`` as its initial step size.
+    run uses ``sigma_large`` as its initial step size. A run whose step
+    size collapses (the inner ``update`` raises ``FloatingPointError``) ends
+    and restarts.
 
     ``stagnation_key`` must return a higher-is-better scalar. It is required
     for multi-objective fitness because there is no default scalarization.
@@ -177,7 +180,7 @@ class RestartStrategy:
         if self._fitness_weights is None:
             self._fitness_weights = population[0].fitness.weights
         require_stagnation_key(self._fitness_weights, self.stagnation_key)
-        self.strategy.update(population)
+        self._tracker.terminate |= update_or_flag_collapse(self.strategy, population)
         self._run_evals += len(population)
         self._evals_used += len(population)
         if len(self._fitness_weights) == 1:
@@ -189,11 +192,7 @@ class RestartStrategy:
                 self._best = ind
         cond, sigma, largest = strategy_diagnostics(self.strategy)
         self._tracker.observe(
-            population,
-            self.stagnation_key,
-            condition=cond,
-            sigma=sigma,
-            largest_eig=largest,
+            population, self.stagnation_key, condition=cond, sigma=sigma, largest_eig=largest
         )
         if target_met(self.target_f, self._fitness_weights, self._best_w):
             self._done = True

@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 
 from .common import update_bound_attrs
+from .hyperparams import MO_HYPERPARAMS, merge_hyperparams
 from .mo_generate import clip_offspring, resample_offspring
 from .mo_select import select
 from .mo_update import (
@@ -117,8 +118,10 @@ class StrategyMultiObjective:
 
         Args:
             **kwargs: Optional strategy parameters. See the class
-                docstring.
+                docstring. Parameters given to earlier calls stay
+                pinned unless overridden here.
         """
+        kwargs, self.hyperparams = merge_hyperparams(self, kwargs, MO_HYPERPARAMS)
         self.mu = kwargs.get("survivors", len(self.parents))
         self.lamb = kwargs.get("offsprings", 1)
         self.ss_dmp = kwargs.get("ss_dmp", 1.0 + self.dim / 2.0)
@@ -135,7 +138,10 @@ class StrategyMultiObjective:
         sigma: float,
         **kwargs: Any,
     ) -> None:
-        """Reset mutable CMA state for a restart."""
+        """Reset mutable CMA state for a restart.
+
+        Hyperparameters and bounds from earlier calls are kept.
+        """
         self.compute_params(**kwargs)
         self.parents = parents[: self.mu]
         pop_size = len(self.parents)
