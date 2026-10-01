@@ -75,7 +75,8 @@ def static_limit(limiter: Callable[..., Any], max_value: int | float) -> Callabl
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> list[Any]:
-            parents = [arg for arg in args if isinstance(arg, type(args[0]))]
+            kind = type(args[0]) if args else object
+            parents = [arg for arg in args if isinstance(arg, kind)]
             keep_inds = [clone_individual(ind) for ind in parents]
             new_inds = list(func(*args, **kwargs))
             for i, ind in enumerate(new_inds):

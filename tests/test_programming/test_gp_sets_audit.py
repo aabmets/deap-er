@@ -187,3 +187,11 @@ def test_static_limit_with_positional_prim_set_returns_only_trees():
         (child,) = limited(copy.deepcopy(parent), expr, pset)
         assert isinstance(child, gp.PrimitiveTree)
         assert child.height <= 1
+
+
+def test_static_limit_accepts_keyword_only_arguments():
+    def bloat(*, individual: list[int]) -> tuple[list[int]]:
+        return (individual + [0] * 10,)
+
+    (child,) = gp.static_limit(len, 3)(bloat)(individual=[1])
+    assert child == [1, *[0] * 10]
