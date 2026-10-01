@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   values move by up to about `1e-11` relative and now match the
   opcode backend to about `1e-15`. It costs about 2x at a 48-sample
   window and about 9x at 300 samples against the running sums, and
-  stays faster than the opcode backend at both
+  stays faster than the opcode backend at both ([#148](https://github.com/aabmets/deap-er/pull/148))
 
 ### Fixed
 
@@ -23,11 +23,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `AttributeError` for a `PrimitiveTree` holding an element that is
   not a `Primitive` or `Terminal`, such as `PrimitiveTree(["vadd",
   "a", "b"])`. They now raise `gp.ProgramError`, the documented
-  error for an invalid program
+  error for an invalid program ([#148](https://github.com/aabmets/deap-er/pull/148))
 - Numba `rolling_std` depended on samples before its window: the same
   bar differed by up to about `1e-11` relative depending on where the
   series started. It is now window-local, so a series and any suffix
-  of it give bit-identical values on the overlapping windows
+  of it give bit-identical values on the overlapping windows ([#148](https://github.com/aabmets/deap-er/pull/148))
 - `Strategy.update` ran the eigendecomposition of the new covariance
   outside its rollback, so a finite covariance with entries near
   `1e308`, or an `eigh` that did not converge, left NaN in `diag_d`,
@@ -35,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the next `generate` draw NaN individuals; `RestartStrategy` kept
   running on that state. It now restores the state from before the
   call and raises `FloatingPointError` without counting the update,
-  so `RestartStrategy` restarts
+  so `RestartStrategy` restarts ([#148](https://github.com/aabmets/deap-er/pull/148))
 
 ## [3.1.7] - 2026-10-01
 
