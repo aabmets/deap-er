@@ -164,9 +164,10 @@ The following is extra.
     `rtol=1e-9`. Its rolling sums and means use compensated
     summation that resets when a window holds no finite sample, so
     the gap does not grow with the row count and one packed symbol
-    does not leak into the next. Its `rolling_std` centers each
-    window on its own mean, as the opcode backend does, so a value
-    depends only on the samples in its window. See
+    does not leak into the next. Its `rolling_std`, `rolling_corr`,
+    `rolling_cov`, and `rolling_beta` center each window on its own
+    mean, as the opcode backend does, so a value depends only on the
+    samples in its window. See
     the [columnar GP tutorial](../../tutorials/columnar_gp.md).
 30. HARM `natural_histogram` does not wrap `hist[-1]` when a
     tree has size $0$. The left-neighbor bin is updated only
