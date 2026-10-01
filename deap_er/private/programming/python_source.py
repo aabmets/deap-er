@@ -128,10 +128,7 @@ def _render(
             types = getattr(prim, "args", [])
             if reference is not None and Window in types:
                 wrapped = True
-                args = [
-                    arg if type_ is Window else f"{SERIES_HELPER}({arg}, {reference})"
-                    for arg, type_ in zip(args, types, strict=True)
-                ]
+                args = _wrap_series(args, types, reference)
             text = str(prim.format(*args))
             if statements is not None and prim.arity:
                 local = f"{_LOCAL_PREFIX}{len(statements)}"
@@ -141,6 +138,23 @@ def _render(
                 break
             stack[-1][1].append(text)
     return text, wrapped, depth
+
+
+def _wrap_series(args: list[str], types: list[Any], reference: str) -> list[str]:
+    """Wrap each series operand of a window primitive in :data:`SERIES_HELPER`.
+
+    Args:
+        args: Rendered operands of the primitive.
+        types: Argument types of the primitive.
+        reference: Argument name that supplies the row count.
+
+    Returns:
+        The operands, with every non-``Window`` one wrapped.
+    """
+    return [
+        arg if type_ is Window else f"{SERIES_HELPER}({arg}, {reference})"
+        for arg, type_ in zip(args, types, strict=True)
+    ]
 
 
 def _compile_flat(
