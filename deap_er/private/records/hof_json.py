@@ -9,6 +9,7 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 import json
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Any
 
 from .record_json import json_ready
@@ -23,7 +24,8 @@ def hall_of_fame_to_json(hof: "HallOfFame") -> str:
     """Serialize a hall of fame to JSON.
 
     Each member stores ``genes`` and ``fitness``. NumPy scalars become
-    Python numbers. The ``similar`` predicate is not serialized.
+    Python numbers. The ``similar`` predicate and the ``key``
+    scalariser are not serialized.
 
     Args:
         hof: Archive to serialize.
@@ -45,7 +47,10 @@ def hall_of_fame_to_json(hof: "HallOfFame") -> str:
 
 
 def hall_of_fame_from_json(
-    text: str, ind_cls: type[Any] | None, hof_cls: type["HallOfFame"]
+    text: str,
+    ind_cls: type[Any] | None,
+    hof_cls: type["HallOfFame"],
+    key: Callable[[Any], float] | None = None,
 ) -> "HallOfFame":
     """Rebuild a hall of fame from JSON.
 
@@ -54,6 +59,7 @@ def hall_of_fame_from_json(
         ind_cls: Creator individual type used to rebuild members.
             Required when the archive is non-empty.
         hof_cls: ``HallOfFame`` class used to construct the archive.
+        key: Optional scalariser passed to the restored archive.
 
     Returns:
         A hall of fame with restored members in best-first order.
@@ -62,7 +68,7 @@ def hall_of_fame_from_json(
         ValueError: If members are present and ``ind_cls`` is omitted.
     """
     data = json.loads(text)
-    hof = hof_cls(maxsize=int(data["maxsize"]))
+    hof = hof_cls(maxsize=int(data["maxsize"]), key=key)
     items = data.get("items", [])
     if items:
         if ind_cls is None:

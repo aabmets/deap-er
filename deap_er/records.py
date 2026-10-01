@@ -14,9 +14,10 @@ from .private.records.case_exam_pool import CaseExamPool, coerce_case_exam
 from .private.records.cvt_archive import CvtArchive
 from .private.records.cvt_centroids import cvt_centroids
 from .private.records.grid_archive import GridArchive
-from .private.records.hall_of_fame import HallOfFame, ParetoFront
+from .private.records.hall_of_fame import HallOfFame
 from .private.records.history import History
 from .private.records.logbook import Logbook
+from .private.records.pareto_front import ParetoFront
 from .private.records.policy_generalization import (
     POLICY_GENERALIZATION_GAP_CHAPTER,
     policy_generalization_gap,

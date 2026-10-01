@@ -12,8 +12,8 @@ from collections.abc import Sequence
 from logging import Logger
 from typing import Any
 
-from deap_er.private.records.hall_of_fame import ParetoFront
 from deap_er.private.records.logbook import Logbook
+from deap_er.private.records.pareto_front import ParetoFront
 from deap_er.private.toolbox import Toolbox
 from deap_er.private.typedefs import EvoRecords, EvoStats, Individual
 
