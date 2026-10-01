@@ -18,6 +18,7 @@ import numpy
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 
+from .cma_guard import check_cma_state, snapshot_cma_state
 from .cma_params import (
     CmaCore,
     adapt_cma_sigma,
@@ -29,6 +30,7 @@ from .cma_params import (
     update_cma_paths,
 )
 from .common import update_bound_attrs
+from .hyperparams import CMA_HYPERPARAMS, merge_hyperparams
 
 __all__ = ["Strategy"]
 
@@ -102,7 +104,10 @@ class Strategy(CmaCore):
         """Recompute strategy parameters from ``kwargs``.
 
         Called from the constructor. Call again if ``offsprings``
-        changes during evolution.
+        changes during evolution. Hyperparameters given to earlier
+        calls stay pinned unless ``kwargs`` overrides them; the rest
+        are re-derived from the new ``offsprings``. A pinned
+        ``survivors`` larger than the new ``offsprings`` is capped.
 
         Args:
             **kwargs: Optional strategy parameters. See the class
@@ -113,7 +118,9 @@ class Strategy(CmaCore):
             RuntimeError: If ``weights`` is not ``superlinear``,
                 ``linear``, or ``equal``.
         """
-        apply_cma_hyperparams(self, kwargs)
+        params, pinned = merge_hyperparams(self, kwargs, CMA_HYPERPARAMS)
+        apply_cma_hyperparams(self, params, cap_survivors="survivors" not in kwargs)
+        self.hyperparams = pinned
         if not hasattr(self, "big_c") or "cm_init" in kwargs:
             self.big_c = kwargs.get("cm_init", numpy.identity(self.dim))
             self._decompose()
@@ -125,7 +132,12 @@ class Strategy(CmaCore):
         sigma: float,
         **kwargs: Any,
     ) -> None:
-        """Reset mutable CMA state for a restart."""
+        """Reset mutable CMA state for a restart.
+
+        The centroid, step size, paths, and covariance are reset.
+        Hyperparameters and bounds from earlier calls are kept; see
+        ``compute_params``.
+        """
         reset_cma_state(self, centroid, sigma)
         self.compute_params(cm_init=numpy.identity(self.dim), **kwargs)
 
@@ -149,19 +161,25 @@ class Strategy(CmaCore):
 
         Args:
             population: Evaluated individuals from ``generate``.
+
+        Raises:
+            FloatingPointError: If the update gives a non-finite state,
+                which happens once ``sigma`` collapses to zero. The
+                strategy is left as it was before the call.
         """
-        old_centroid, c_diff, samples = shift_cma_centroid(self, population)
-        y_mean = numpy.dot(self.big_b, (1.0 / self.diag_d) * numpy.dot(self.big_b.T, c_diff))
-        hsig = update_cma_paths(self, c_diff, y_mean)
-        ar_tmp = samples - old_centroid
-        temp_0 = (1 - hsig) * self.rank_one * self.cm_cum * (2 - self.cm_cum)
-        temp_1 = 1 - self.rank_one - self.rank_mu + temp_0
-        temp_2 = numpy.outer(self.pc, self.pc)
-        temp_3 = numpy.dot((self.weights * ar_tmp.T), ar_tmp)
-        self.big_c = (
-            temp_1 * self.big_c + self.rank_one * temp_2 + self.rank_mu * temp_3 / self.sigma**2
-        )
-        adapt_cma_sigma(self)
+        snapshot = snapshot_cma_state(self)
+        with numpy.errstate(divide="ignore", over="ignore", invalid="ignore"):
+            old_centroid, c_diff, samples = shift_cma_centroid(self, population)
+            y_mean = numpy.dot(self.big_b, (1.0 / self.diag_d) * numpy.dot(self.big_b.T, c_diff))
+            hsig = update_cma_paths(self, c_diff, y_mean)
+            steps = (samples - old_centroid) / self.sigma
+            temp_0 = (1 - hsig) * self.rank_one * self.cm_cum * (2 - self.cm_cum)
+            temp_1 = 1 - self.rank_one - self.rank_mu + temp_0
+            temp_2 = numpy.outer(self.pc, self.pc)
+            temp_3 = numpy.dot((self.weights * steps.T), steps)
+            self.big_c = temp_1 * self.big_c + self.rank_one * temp_2 + self.rank_mu * temp_3
+            adapt_cma_sigma(self)
+        check_cma_state(self, snapshot)
         self._decompose()
         self.update_count += 1
 

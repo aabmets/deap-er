@@ -21,6 +21,7 @@ if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 
 from .common import sample_offspring, update_bound_attrs
+from .hyperparams import ONE_PLUS_LAMBDA_HYPERPARAMS, merge_hyperparams
 
 __all__ = ["StrategyOnePlusLambda"]
 
@@ -106,8 +107,10 @@ class StrategyOnePlusLambda:
 
         Args:
             **kwargs: Optional strategy parameters. See the class
-                docstring.
+                docstring. Parameters given to earlier calls stay
+                pinned unless overridden here.
         """
+        kwargs, self.hyperparams = merge_hyperparams(self, kwargs, ONE_PLUS_LAMBDA_HYPERPARAMS)
         self.lamb = int(kwargs.get("offsprings", 1))
         self.thresh_sr = float(kwargs.get("thresh_sr", 0.44))
 
@@ -131,6 +134,8 @@ class StrategyOnePlusLambda:
 
     def reset_state(self, parent: Individual, sigma: float, **kwargs: Any) -> None:
         """Reset mutable CMA state for a restart.
+
+        Hyperparameters and bounds from earlier calls are kept.
 
         Raises:
             TypeError: If ``parent`` has no fitness attribute.

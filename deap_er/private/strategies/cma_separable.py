@@ -18,6 +18,7 @@ import numpy
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 
+from .cma_guard import check_cma_state, snapshot_cma_state
 from .cma_params import (
     CmaCore,
     adapt_cma_sigma,
@@ -29,6 +30,7 @@ from .cma_params import (
     update_cma_paths,
 )
 from .common import update_bound_attrs
+from .hyperparams import CMA_HYPERPARAMS, merge_hyperparams
 
 __all__ = ["StrategySeparable"]
 
@@ -71,6 +73,9 @@ class StrategySeparable(CmaCore):
     def compute_params(self, **kwargs: Any) -> None:
         """Recompute λ, rates, and the diagonal ``cm_init`` vector.
 
+        Hyperparameters from earlier calls stay pinned, as in
+        ``Strategy.compute_params``.
+
         Args:
             **kwargs: Same names as ``Strategy.compute_params``, except
                 ``cm_init`` is a length-``n`` variance vector.
@@ -81,7 +86,14 @@ class StrategySeparable(CmaCore):
                 strictly positive, or ``survivors`` is not in
                 ``[1, offsprings]``.
         """
-        apply_cma_hyperparams(self, kwargs, rank_scale=(self.dim + 2.0) / 3.0)
+        params, pinned = merge_hyperparams(self, kwargs, CMA_HYPERPARAMS)
+        apply_cma_hyperparams(
+            self,
+            params,
+            rank_scale=(self.dim + 2.0) / 3.0,
+            cap_survivors="survivors" not in kwargs,
+        )
+        self.hyperparams = pinned
         if not hasattr(self, "big_c") or "cm_init" in kwargs:
             self.big_c = _variance_vector(kwargs.get("cm_init", numpy.ones(self.dim)), self.dim)
             self.diag_d = numpy.sqrt(self.big_c)
@@ -94,7 +106,10 @@ class StrategySeparable(CmaCore):
         sigma: float,
         **kwargs: Any,
     ) -> None:
-        """Reset mutable CMA state for a restart."""
+        """Reset mutable CMA state for a restart.
+
+        Hyperparameters and bounds from earlier calls are kept.
+        """
         reset_cma_state(self, centroid, sigma)
         self.compute_params(cm_init=numpy.ones(self.dim), **kwargs)
 
@@ -117,19 +132,26 @@ class StrategySeparable(CmaCore):
 
         Args:
             population: Evaluated individuals from ``generate``.
+
+        Raises:
+            FloatingPointError: If the update gives a non-finite state,
+                as ``Strategy.update`` does.
         """
-        old_centroid, c_diff, samples = shift_cma_centroid(self, population)
-        hsig = update_cma_paths(self, c_diff, c_diff / self.diag_d)
-        ar_tmp = samples - old_centroid
-        decay = (1 - hsig) * self.rank_one * self.cm_cum * (2 - self.cm_cum)
-        keep = 1 - self.rank_one - self.rank_mu + decay
-        self.big_c = (
-            keep * self.big_c
-            + self.rank_one * self.pc**2
-            + self.rank_mu * numpy.dot(self.weights, ar_tmp**2) / self.sigma**2
-        )
-        self.big_c = numpy.maximum(self.big_c, numpy.finfo(float).tiny)
-        adapt_cma_sigma(self)
+        snapshot = snapshot_cma_state(self)
+        with numpy.errstate(divide="ignore", over="ignore", invalid="ignore"):
+            old_centroid, c_diff, samples = shift_cma_centroid(self, population)
+            hsig = update_cma_paths(self, c_diff, c_diff / self.diag_d)
+            steps = (samples - old_centroid) / self.sigma
+            decay = (1 - hsig) * self.rank_one * self.cm_cum * (2 - self.cm_cum)
+            keep = 1 - self.rank_one - self.rank_mu + decay
+            self.big_c = (
+                keep * self.big_c
+                + self.rank_one * self.pc**2
+                + self.rank_mu * numpy.dot(self.weights, steps**2)
+            )
+            self.big_c = numpy.maximum(self.big_c, numpy.finfo(float).tiny)
+            adapt_cma_sigma(self)
+        check_cma_state(self, snapshot)
         self.diag_d = numpy.sqrt(self.big_c)
         self.cond = float(numpy.max(self.big_c) / numpy.min(self.big_c))
         self.update_count += 1
