@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.8] - 2026-10-01
+
 ### Changed
 
 - **Numba `rolling_std`, `rolling_corr`, `rolling_cov`, and
@@ -805,7 +807,8 @@ commits that landed on that tag.
 - Hypervolume and least-contributed indicator
 - CMA strategy keyword arguments
 
-[Unreleased]: https://github.com/aabmets/deap-er/compare/3.1.7...HEAD
+[Unreleased]: https://github.com/aabmets/deap-er/compare/3.1.8...HEAD
+[3.1.8]: https://github.com/aabmets/deap-er/compare/3.1.7...3.1.8
 [3.1.7]: https://github.com/aabmets/deap-er/compare/3.1.6...3.1.7
 [3.1.6]: https://github.com/aabmets/deap-er/compare/3.1.5...3.1.6
 [3.1.5]: https://github.com/aabmets/deap-er/compare/3.1.4...3.1.5
