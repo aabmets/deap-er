@@ -132,7 +132,7 @@ def replace_cell_if_better(
     if incumbent is not None:
         if score is None and individual.fitness <= incumbent.fitness:
             return False
-        if score is not None and not score(individual) > score(incumbent):
+        if score is not None and score(individual) <= score(incumbent):
             return False
     cells[key] = deepcopy(individual)
     return True

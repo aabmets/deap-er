@@ -94,14 +94,17 @@ def test_hof_with_key_pickles(ind_cls):
 
 
 def test_grid_archive_accepts_multi_objective_with_key(ind_cls):
+    plain = tools.GridArchive(ranges=[(0.0, 1.0)], bins=2)
+    candidate = _ind(ind_cls, 0, (1.0, 1.0))
     with pytest.raises(ValueError, match="single-objective"):
-        tools.GridArchive(ranges=[(0.0, 1.0)], bins=2).add(_ind(ind_cls, 0, (1.0, 1.0)), (0.1,))
+        plain.add(candidate, (0.1,))
     archive = tools.GridArchive(ranges=[(0.0, 1.0)], bins=2, key=mean_value)
     assert archive.add(_ind(ind_cls, 0, (1.0, 1.0)), (0.1,)) is True
     assert archive.add(_ind(ind_cls, 1, (3.0, -1.0)), (0.1,)) is False
     assert archive.add(_ind(ind_cls, 2, (0.0, 4.0)), (0.1,)) is True
     elite = archive.elite_at((0.1,))
-    assert elite is not None and elite[0] == 2
+    assert elite is not None
+    assert elite[0] == 2
     assert archive.add(_ind(ind_cls, 3, (6.0, 0.0)), (0.9,)) is True
     assert archive.stats.qd_score == pytest.approx(5.0)
 
