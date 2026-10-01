@@ -11,7 +11,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from numbers import Real
+from numbers import Integral, Real
 from typing import Any
 
 from ..columnar import Window
@@ -72,12 +72,27 @@ def check_window(owner: str | None, value: Any) -> None:
     Raises:
         ProgramError: If ``value`` is not an integer in ``[1, WINDOW_MAX]``.
     """
-    integral = isinstance(value, Real) and float(value).is_integer()
-    if not integral or not 1 <= value <= WINDOW_MAX:
+    if not _is_integral(value) or not 1 <= value <= WINDOW_MAX:
         raise ProgramError(
             f"The window argument {value!r} of '{owner}' must be a leaf holding a "
             f"positive integer no larger than {WINDOW_MAX}."
         )
+
+
+def _is_integral(value: Any) -> bool:
+    """Return whether ``value`` is a real number with no fractional part.
+
+    Integers are tested exactly: converting one too large for a float
+    would raise ``OverflowError`` before the range check could refuse it.
+    """
+    if isinstance(value, Integral):
+        return True
+    if not isinstance(value, Real):
+        return False
+    try:
+        return float(value).is_integer()
+    except OverflowError:
+        return False
 
 
 def slot_ephemeral(prim_set: PrimitiveSetTyped, slot: type, value: Any) -> type[Ephemeral] | None:

@@ -9,7 +9,7 @@
 #   SPDX-License-Identifier: Apache-2.0
 #
 from collections.abc import Callable
-from typing import Any
+from typing import Any, override
 
 import numpy
 
@@ -29,7 +29,54 @@ from .window_shift import delay, diff
 
 __all__: list[str] = ["ema", "add_window_primitives", "add_window_ephemeral"]
 
-_samplers: dict[str, tuple[int, int, Callable[[], int]]] = {}
+
+class _WindowSampler:
+    """Draw a window length from ``[low, high]``.
+
+    Pickles by name and bounds and unpickles to the process's memoized
+    sampler, so a tree that holds a window ephemeral loads before the
+    ephemeral is registered and still matches a later registration.
+    """
+
+    __slots__ = ("name", "low", "high")
+
+    def __init__(self, name: str, low: int, high: int) -> None:
+        """Store the sampler name and its inclusive bounds."""
+        self.name = name
+        self.low = low
+        self.high = high
+
+    def __call__(self) -> int:
+        """Return a random window length."""
+        return rng.randint(self.low, self.high)
+
+    @override
+    def __reduce__(self) -> tuple[Any, ...]:
+        """Pickle as a lookup of the memoized sampler."""
+        return _window_sampler, (self.name, self.low, self.high)
+
+
+_samplers: dict[str, _WindowSampler] = {}
+
+
+def _window_sampler(name: str, low: int, high: int) -> _WindowSampler:
+    """Return the sampler memoized under ``name``, creating it on first use.
+
+    Raises:
+        ValueError: If the bounds are invalid, or if ``name`` was
+            already used with different bounds.
+    """
+    if low < 1:
+        raise ValueError(f"The lowest window length must be at least 1, got {low}.")
+    if high < low:
+        raise ValueError(f"Window bounds are inverted: [{low}, {high}].")
+    sampler = _samplers.setdefault(name, _WindowSampler(name, low, high))
+    if (sampler.low, sampler.high) != (low, high):
+        raise ValueError(
+            f"The window ephemeral '{name}' was already registered with "
+            f"bounds [{sampler.low}, {sampler.high}]. Use a different name."
+        )
+    return sampler
 
 
 def ema(value: Any, window: Any) -> numpy.ndarray:
@@ -143,25 +190,4 @@ def add_window_ephemeral(prim_set: PrimitiveSetTyped, name: str, low: int, high:
         ValueError: If the bounds are invalid, or if ``name`` was
             already used with different bounds.
     """
-    if low < 1:
-        raise ValueError(f"The lowest window length must be at least 1, got {low}.")
-    if high < low:
-        raise ValueError(f"Window bounds are inverted: [{low}, {high}].")
-
-    known = _samplers.get(name)
-    if known is None:
-
-        def sampler() -> int:
-            return rng.randint(low, high)
-
-        _samplers[name] = (low, high, sampler)
-    elif known[:2] != (low, high):
-        raise ValueError(
-            f"The window ephemeral '{name}' was already registered with "
-            f"bounds [{known[0]}, {known[1]}]. Use a different name."
-        )
-
-    draw = _samplers[name][2]
-    setattr(draw, "low", low)  # noqa: B010
-    setattr(draw, "high", high)  # noqa: B010
-    prim_set.add_ephemeral_constant(name, draw, Window)
+    prim_set.add_ephemeral_constant(name, _window_sampler(name, low, high), Window)

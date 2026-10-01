@@ -15,9 +15,15 @@ from collections.abc import Callable
 from typing import Any, cast
 
 from .argument_rename import apply_argument_renames
+from .ephemeral_registry import ephemeral_class, registered_ephemeral
 from .primitive_nodes import Ephemeral, Primitive, Terminal
 
 __all__: list[str] = ["PrimitiveSetTyped"]
+
+
+def __getattr__(name: str) -> type[Ephemeral]:
+    """Resolve the ephemeral classes that older pickles reference here."""
+    return registered_ephemeral(name, __name__)
 
 
 class PrimitiveSetTyped:
@@ -207,33 +213,9 @@ class PrimitiveSetTyped:
 
         Raises:
             TypeError: If ``name`` is already used by a different
-                ephemeral or by another class in this module.
+                ephemeral or by a class of the gp module.
         """
-        module_gp = globals()
-        if name not in module_gp:
-            # Name the class where it is stored, so pickle can find it.
-            attrs: dict[str, Any] = {"func": staticmethod(ephemeral), "ret": ret_type}
-            attrs |= {"__module__": __name__, "__qualname__": name}
-            class_ = type(name, (Ephemeral,), attrs)
-            module_gp[name] = class_
-        else:
-            class_ = module_gp[name]
-            if issubclass(class_, Ephemeral):
-                if class_.func is not ephemeral:
-                    raise TypeError(
-                        "Ephemera with different functions should be "
-                        "named differently even between psets."
-                    )
-                elif class_.ret is not ret_type:
-                    raise TypeError(
-                        "Ephemera with the same name and function should "
-                        "have the same type even between psets."
-                    )
-            else:
-                raise TypeError(
-                    "Ephemera should be named differently than classes defined in the gp module."
-                )
-
+        class_ = ephemeral_class(name, ephemeral, ret_type)
         self._add_prim(class_)
         self.terms_count += 1
 
