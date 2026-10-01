@@ -23,7 +23,7 @@ import sys
 os.environ.pop("NUMBA_CACHE_DIR", None)
 import numba
 os.environ["NUMBA_CACHE_DIR"] = sys.argv[1]
-from deap_er.private.programming.numba.numba_compile import ensure_numba_cache_dir
+from deap_er.private.programming.numba.numba_cache import ensure_numba_cache_dir
 ensure_numba_cache_dir()
 from numba.core import config
 print(config.CACHE_DIR)

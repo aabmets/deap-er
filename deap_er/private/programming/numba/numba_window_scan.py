@@ -16,6 +16,7 @@ __all__: list[str] = [
     "TRUST_MARGIN",
     "row_offset",
     "variance_untrusted",
+    "add_compensated",
     "scan_sums",
     "scan_variance",
     "scan_pair_sums",
@@ -73,6 +74,27 @@ def variance_untrusted(variance: float, err_bound: float, arg: int) -> int:  # p
     if err_bound > TRUST_MARGIN * arg * variance:
         return 1
     return 0
+
+
+def add_compensated(
+    total: float, comp: float, value: float
+) -> tuple[float, float]:  # pragma: no cover
+    """Add one sample to a Neumaier-compensated sum.
+
+    Args:
+        total: Running sum.
+        comp: Low-order digits that ``total`` could not hold.
+        value: Sample to add.
+
+    Returns:
+        The updated ``total`` and ``comp``.
+    """
+    updated = total + value
+    if not math.isfinite(updated):
+        return updated, 0.0
+    if abs(total) >= abs(value):
+        return updated, comp + ((total - updated) + value)
+    return updated, comp + ((value - updated) + total)
 
 
 def scan_sums(  # pragma: no cover

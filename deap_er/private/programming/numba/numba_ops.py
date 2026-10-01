@@ -19,7 +19,8 @@ from ..numpy.numpy_ops import add_numpy_primitives
 from ..opcodes import USER_BASE, lower_tree
 from ..primitives.primitive_tree import PrimitiveTree
 from ..tape import Tape, check_tape
-from .numba_compile import build, ensure_numba_cache_dir
+from .numba_cache import ensure_numba_cache_dir
+from .numba_compile import runner
 
 __all__: list[str] = [
     "USER_DISPATCH_SIGNATURE",
@@ -129,7 +130,6 @@ def bind_tape(tape: Tape, dispatch: Any = None) -> Callable[..., numpy.ndarray]:
             "result without them. Use backend='python' or backend='opcode' for a "
             "primitive set that takes no arguments."
         )
-    run, idle = build()
     if dispatch is None:
         unknown = tape.opcodes[tape.opcodes >= USER_BASE]
         if unknown.size:
@@ -137,7 +137,7 @@ def bind_tape(tape: Tape, dispatch: Any = None) -> Callable[..., numpy.ndarray]:
                 f"The tape holds consumer opcode {int(unknown[0])} but no dispatch "
                 "kernel was given. Pass dispatch= to compile_tree."
             )
-        dispatch = idle
+    run = runner(dispatch)
     check_tape(tape)
 
     def call(*columns: Any) -> numpy.ndarray:
@@ -151,7 +151,6 @@ def bind_tape(tape: Tape, dispatch: Any = None) -> Callable[..., numpy.ndarray]:
             tape.fill,
             stack,
             scratch,
-            dispatch,
         )
         return stack[0].copy()
 
@@ -171,8 +170,8 @@ def warmup_numba(*, parallel: bool = False, dispatch: Any = None) -> None:
 
     Args:
         parallel: If True, also specialize the ``prange`` batch kernel.
-        dispatch: Consumer kernel to specialize. ``None`` uses the idle
-            dispatcher.
+        dispatch: Consumer kernel to specialize. ``None`` specializes
+            the builtin interpreter only.
 
     Raises:
         ImportError: If the ``numba`` extra is not installed.

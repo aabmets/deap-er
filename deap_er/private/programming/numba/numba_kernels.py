@@ -17,7 +17,56 @@ from .numba_window import apply_window
 from .numba_window_pair import apply_pair_window
 from .numba_window_ts import apply_ts_window
 
-__all__: list[str] = ["interpret", "idle", "interpret_many"]
+__all__: list[str] = [
+    "apply_builtin",
+    "interpret",
+    "interpret_dispatch",
+    "tape_slices",
+    "interpret_builtins",
+    "interpret_many",
+]
+
+
+def apply_builtin(  # pragma: no cover
+    op: int,
+    arg: int,
+    sp: int,
+    stack: Any,
+    scratch: Any,
+    columns: Any,
+    constants: Any,
+    fill: float,
+) -> int:
+    """Run one builtin instruction.
+
+    Args:
+        op: Builtin opcode.
+        arg: Immediate operand of the instruction.
+        sp: Current stack pointer.
+        stack: Column-length workspace.
+        scratch: Spare row.
+        columns: Packed input matrix.
+        constants: Constant pool.
+        fill: Protected-op fill.
+
+    Returns:
+        The stack pointer after the instruction.
+
+    Raises:
+        ValueError: If the opcode is not a builtin one.
+    """
+    rows = columns.shape[0]
+    if op <= codes.COS:
+        return apply_numeric(op, rows, sp, stack, columns, constants, arg, fill)
+    if op <= codes.WHERE:
+        return apply_predicate(op, rows, sp, stack)
+    if op <= codes.EMA:
+        return apply_window(op, rows, sp, stack, scratch, arg)
+    if op <= codes.ROLL_BETA:
+        return apply_pair_window(op, rows, sp, stack, scratch, arg)
+    if op <= codes.TS_ARGMIN:
+        return apply_ts_window(op, rows, sp, stack, scratch, arg)
+    raise ValueError(codes.UNKNOWN_OPCODE)
 
 
 def interpret(  # pragma: no cover
@@ -28,9 +77,11 @@ def interpret(  # pragma: no cover
     fill: float,
     stack: Any,
     scratch: Any,
-    dispatch: Any,
 ) -> int:
-    """Run one tape through the compiled stack machine.
+    """Run one tape of builtin instructions through the stack machine.
+
+    It takes no consumer kernel, so its compiled form has the same
+    type signature in every process and loads from the disk cache.
 
     Args:
         opcodes: Instruction stream.
@@ -40,7 +91,42 @@ def interpret(  # pragma: no cover
         fill: Protected-op fill.
         stack: Column-length workspace.
         scratch: Spare row.
-        dispatch: Consumer kernel.
+
+    Returns:
+        The stack pointer after the last instruction.
+
+    Raises:
+        ValueError: If an opcode is unknown or a consumer opcode.
+    """
+    sp = 0
+    for step in range(opcodes.size):
+        sp = apply_builtin(
+            opcodes[step], operands[step], sp, stack, scratch, columns, constants, fill
+        )
+    return sp
+
+
+def interpret_dispatch(  # pragma: no cover
+    opcodes: Any,
+    operands: Any,
+    constants: Any,
+    columns: Any,
+    fill: float,
+    stack: Any,
+    scratch: Any,
+    dispatch: Any,
+) -> int:
+    """Run one tape through the stack machine and a consumer kernel.
+
+    Args:
+        opcodes: Instruction stream.
+        operands: Immediate operand of each instruction.
+        constants: Constant pool.
+        columns: Packed input matrix.
+        fill: Protected-op fill.
+        stack: Column-length workspace.
+        scratch: Spare row.
+        dispatch: Consumer kernel for the opcodes at or above ``BASE``.
 
     Returns:
         The stack pointer after the last instruction.
@@ -48,56 +134,67 @@ def interpret(  # pragma: no cover
     Raises:
         ValueError: If an opcode is unknown.
     """
-    rows = columns.shape[0]
     sp = 0
     for step in range(opcodes.size):
         op = opcodes[step]
-        arg = operands[step]
-        if op <= codes.COS:
-            sp = apply_numeric(op, rows, sp, stack, columns, constants, arg, fill)
-        elif op <= codes.WHERE:
-            sp = apply_predicate(op, rows, sp, stack)
-        elif op <= codes.EMA:
-            sp = apply_window(op, rows, sp, stack, scratch, arg)
-        elif op <= codes.ROLL_BETA:
-            sp = apply_pair_window(op, rows, sp, stack, scratch, arg)
-        elif op <= codes.TS_ARGMIN:
-            sp = apply_ts_window(op, rows, sp, stack, scratch, arg)
-        elif op >= codes.BASE:
+        if op >= codes.BASE:
             sp = int(dispatch(op, sp, stack, columns, constants, scratch))
         else:
-            raise ValueError(codes.UNKNOWN_OPCODE)
+            sp = apply_builtin(op, operands[step], sp, stack, scratch, columns, constants, fill)
     return sp
 
 
-def idle(  # pragma: no cover
-    _op: int,
-    _sp: int,
-    _stack: Any,
-    _columns: Any,
-    _constants: Any,
-    _scratch: Any,
-) -> int:
-    """Reject an unexpected consumer opcode.
+def tape_slices(
+    index: int, streams: Any, layout: Any
+) -> tuple[Any, Any, Any, float]:  # pragma: no cover
+    """Cut one tape out of a packed batch.
 
-    The parameter names are unused; they exist so the fallback kernel
-    matches ``USER_DISPATCH_SIGNATURE``.
+    Args:
+        index: Tape index.
+        streams: ``(opcodes, operands, constants)`` concatenated tapes.
+        layout: ``(op_starts, op_lens, c_starts, c_lens, fills)``.
 
     Returns:
-        ``-1``, which is not a valid stack pointer.
+        The tape's opcodes, operands, constants, and fill.
     """
-    return -1
+    opcodes, operands, constants = streams
+    op_starts, op_lens, c_starts, c_lens, fills = layout
+    start = op_starts[index]
+    stop = start + op_lens[index]
+    const_start = c_starts[index]
+    const_stop = const_start + c_lens[index]
+    return (
+        opcodes[start:stop],
+        operands[start:stop],
+        constants[const_start:const_stop],
+        fills[index],
+    )
+
+
+def interpret_builtins(  # pragma: no cover
+    streams: Any, layout: Any, columns: Any, stack: Any, scratch: Any, out: Any
+) -> None:
+    """Run many builtin-only tapes through the cached interpreter.
+
+    It calls the interpreter as a global rather than taking it as an
+    argument, which is what lets Numba cache it on disk.
+
+    Args:
+        streams: ``(opcodes, operands, constants)`` concatenated tapes.
+        layout: ``(op_starts, op_lens, c_starts, c_lens, fills)``.
+        columns: Packed input matrix.
+        stack: Column-length workspace of this call.
+        scratch: Spare row.
+        out: Result of shape ``(n_tapes, n_rows)``.
+    """
+    for index in range(out.shape[0]):
+        opcodes, operands, constants, fill = tape_slices(index, streams, layout)
+        interpret(opcodes, operands, constants, columns, fill, stack, scratch)
+        out[index] = stack[0]
 
 
 def interpret_many(  # pragma: no cover
-    run: Any,
-    streams: Any,
-    layout: Any,
-    columns: Any,
-    stack: Any,
-    scratch: Any,
-    dispatch: Any,
-    out: Any,
+    run: Any, streams: Any, layout: Any, columns: Any, stack: Any, scratch: Any, out: Any
 ) -> None:
     """Run many tapes through one compiled interpreter.
 
@@ -106,28 +203,11 @@ def interpret_many(  # pragma: no cover
         streams: ``(opcodes, operands, constants)`` concatenated tapes.
         layout: ``(op_starts, op_lens, c_starts, c_lens, fills)``.
         columns: Packed input matrix.
-        stack: Shared column-length workspace.
+        stack: Column-length workspace of this call.
         scratch: Spare row.
-        dispatch: Consumer kernel.
         out: Result of shape ``(n_tapes, n_rows)``.
     """
-    opcodes, operands, constants = streams
-    op_starts, op_lens, c_starts, c_lens, fills = layout
-    rows = columns.shape[0]
-    for index in range(op_starts.shape[0]):
-        start = op_starts[index]
-        n_ops = op_lens[index]
-        const_start = c_starts[index]
-        n_consts = c_lens[index]
-        run(
-            opcodes[start : start + n_ops],
-            operands[start : start + n_ops],
-            constants[const_start : const_start + n_consts],
-            columns,
-            fills[index],
-            stack,
-            scratch,
-            dispatch,
-        )
-        for row in range(rows):
-            out[index, row] = stack[0, row]
+    for index in range(out.shape[0]):
+        opcodes, operands, constants, fill = tape_slices(index, streams, layout)
+        run(opcodes, operands, constants, columns, fill, stack, scratch)
+        out[index] = stack[0]

@@ -108,23 +108,23 @@ def test_serial_numba_without_consumer_runs_the_compiled_kernel(monkeypatch):
     matrix = _matrix(columns)
     routed = {"cse": 0, "many": 0}
     original_cse = tape_cse.run_opcode_cse
-    original_serial = numba_batch.serial_kernels
+    original_kernel = numba_batch.batch_kernel
 
     def tracking_cse(tapes, matrix):
         routed["cse"] += 1
         return original_cse(tapes, matrix)
 
-    def tracking_serial():
-        run, idle, many = original_serial()
+    def tracking_kernel(parallel, consumer):
+        many = original_kernel(parallel, consumer)
 
         def wrapped_many(*args, **kwargs):
             routed["many"] += 1
             return many(*args, **kwargs)
 
-        return run, idle, wrapped_many
+        return wrapped_many
 
     monkeypatch.setattr(numba_batch, "run_opcode_cse", tracking_cse, raising=False)
-    monkeypatch.setattr(numba_batch, "serial_kernels", tracking_serial)
+    monkeypatch.setattr(numba_batch, "batch_kernel", tracking_kernel)
     actual = gp.interpret_tapes(tapes, matrix, backend="numba")
     assert routed == {"cse": 0, "many": 1}
     expected = gp.interpret_tapes(tapes, matrix, backend="opcode")
@@ -143,23 +143,23 @@ def test_serial_numba_with_consumer_skips_cse(monkeypatch):
     columns = _samples()
     routed = {"cse": False, "many": 0}
     original_cse = tape_cse.run_opcode_cse
-    original_serial = numba_batch.serial_kernels
+    original_kernel = numba_batch.batch_kernel
 
     def tracking_cse(tapes, matrix):
         routed["cse"] = True
         return original_cse(tapes, matrix)
 
-    def tracking_serial():
-        run, idle, many = original_serial()
+    def tracking_kernel(parallel, consumer):
+        many = original_kernel(parallel, consumer)
 
         def wrapped_many(*args, **kwargs):
             routed["many"] += 1
             return many(*args, **kwargs)
 
-        return run, idle, wrapped_many
+        return wrapped_many
 
     monkeypatch.setattr(numba_batch, "run_opcode_cse", tracking_cse, raising=False)
-    monkeypatch.setattr(numba_batch, "serial_kernels", tracking_serial)
+    monkeypatch.setattr(numba_batch, "batch_kernel", tracking_kernel)
     actual = gp.interpret_tapes(
         [tape],
         _matrix(columns),
