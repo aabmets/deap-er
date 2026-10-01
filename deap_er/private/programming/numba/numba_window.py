@@ -14,6 +14,7 @@ from typing import Any
 from . import numba_codes as codes
 from .numba_window_extreme import roll_minmax
 from .numba_window_roll import roll_stats
+from .numba_window_std import roll_std
 
 __all__: list[str] = ["apply_window"]
 
@@ -40,8 +41,11 @@ def apply_window(  # pragma: no cover
     if op in (codes.DELAY, codes.DIFF):
         apply_shift(op, rows, sp, stack, arg)
         return sp
-    if op in (codes.ROLL_SUM, codes.ROLL_MEAN, codes.ROLL_STD):
+    if op in (codes.ROLL_SUM, codes.ROLL_MEAN):
         roll_stats(op, rows, sp, stack, scratch, arg)
+        return sp
+    if op == codes.ROLL_STD:
+        roll_std(rows, sp, stack, scratch, arg)
         return sp
     if op in (codes.ROLL_MIN, codes.ROLL_MAX):
         roll_minmax(op, rows, sp, stack, scratch, arg)

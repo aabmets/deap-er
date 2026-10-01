@@ -18,7 +18,7 @@ from typing import Any, override
 from .primitive_nodes import Primitive
 from .primitive_set_typed import PrimitiveSetTyped
 from .primitive_tokens import Slot, prefix_tokens, primitive_from_token, terminal_from_token
-from .program_check import ProgramError
+from .program_check import ProgramError, check_node
 
 __all__: list[str] = ["PrimitiveTree"]
 
@@ -27,7 +27,7 @@ class PrimitiveTree(list[Any]):
     """Prefix-ordered tree of primitives and terminals.
 
     A list subclass used by genetic programming operators. Every node
-    must expose an ``arity`` attribute.
+    must be a ``Primitive`` or a ``Terminal``.
 
     Args:
         content: Primitives and terminals that form the tree.
@@ -88,15 +88,17 @@ class PrimitiveTree(list[Any]):
         """Return the tree as a Python expression string.
 
         Raises:
-            ProgramError: If a node follows the complete root
+            ProgramError: If a node is not a ``Primitive`` or
+                ``Terminal``, if a node follows the complete root
                 expression, or if a primitive is missing arguments.
         """
         string = ""
         stack: list[Any] = []
         complete = False
-        for node in self:
+        for index, node in enumerate(self):
             if complete:
                 raise ProgramError("The tree holds nodes after its complete root expression.")
+            check_node(node, index)
             stack.append((node, []))
             while len(stack[-1][1]) == stack[-1][0].arity:
                 prim, args = stack.pop()

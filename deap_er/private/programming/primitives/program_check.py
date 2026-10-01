@@ -23,6 +23,7 @@ __all__: list[str] = [
     "ProgramError",
     "literal_matches",
     "check_window",
+    "check_node",
     "slot_ephemeral",
     "ephemeral_with_value",
     "check_program",
@@ -141,6 +142,22 @@ def ephemeral_with_value(class_: type[Ephemeral], value: Any) -> Ephemeral:
     return node
 
 
+def check_node(node: Any, index: int) -> None:
+    """Raise unless ``node`` is a ``Primitive`` or a ``Terminal``.
+
+    Args:
+        node: Tree element to check.
+        index: Position of ``node`` in its tree, for the message.
+
+    Raises:
+        ProgramError: If ``node`` is any other object.
+    """
+    if not isinstance(node, (Primitive, Terminal)):
+        raise ProgramError(
+            f"Tree element {index} has type {type(node).__name__}, not Primitive or Terminal."
+        )
+
+
 def check_program(nodes: Sequence[Any], prim_set: PrimitiveSetTyped) -> None:
     """Check every leaf of a node sequence against its argument slot.
 
@@ -157,18 +174,20 @@ def check_program(nodes: Sequence[Any], prim_set: PrimitiveSetTyped) -> None:
         prim_set: Primitive set the tree was built from.
 
     Raises:
-        ProgramError: If a leaf does not fit its slot.
+        ProgramError: If a node is not a ``Primitive`` or ``Terminal``,
+            or if a leaf does not fit its slot.
     """
     mapping = prim_set.mapping
     slots: list[tuple[type, str]] = []
     for index, node in enumerate(nodes):
         if index and not slots:
             return
+        check_node(node, index)
         slot, owner = slots.pop() if slots else (None, "")
         if isinstance(node, Primitive):
             name = node.name
             slots += [(arg, name) for arg in reversed(node.args)]
-        elif slot is None or not isinstance(node, Terminal):
+        elif slot is None:
             continue
         elif (
             slot is Window

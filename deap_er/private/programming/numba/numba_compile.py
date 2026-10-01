@@ -66,12 +66,8 @@ JIT_GROUPS: tuple[tuple[Any, tuple[str, ...]], ...] = (
     (
         numba_window_scan,
         (
-            "row_offset",
-            "variance_untrusted",
             "add_compensated",
-            "scan_sums",
             "scan_variance",
-            "scan_pair_sums",
             "scan_pair_moments",
         ),
     ),
@@ -89,15 +85,14 @@ JIT_GROUPS: tuple[tuple[Any, tuple[str, ...]], ...] = (
     ),
     (
         numba_window_std,
-        ("std_window",),
+        ("roll_std",),
     ),
     (
         numba_window_roll,
         (
             "resync_sums",
             "absorb_stat",
-            "window_totals",
-            "reduce_stats",
+            "window_total",
             "roll_stats",
         ),
     ),
@@ -116,7 +111,7 @@ JIT_GROUPS: tuple[tuple[Any, tuple[str, ...]], ...] = (
     ),
     (
         numba_window_pair_roll,
-        ("absorb_pair", "roll_pair_stats"),
+        ("roll_pair_stats",),
     ),
     (
         numba_window_pair,
@@ -137,14 +132,8 @@ def _compile_group(module: Any, names: tuple[str, ...], jit: Any) -> None:
 
 
 def _wire_scan() -> None:
-    for target in (numba_window_std, numba_window_pair_roll):
-        target.row_offset = numba_window_scan.row_offset
-        target.variance_untrusted = numba_window_scan.variance_untrusted
-    numba_window_roll.row_offset = numba_window_scan.row_offset
     numba_window_roll.add_compensated = numba_window_scan.add_compensated
-    numba_window_std.scan_sums = numba_window_scan.scan_sums
     numba_window_std.scan_variance = numba_window_scan.scan_variance
-    numba_window_pair_roll.scan_pair_sums = numba_window_scan.scan_pair_sums
     numba_window_pair_roll.scan_pair_moments = numba_window_scan.scan_pair_moments
 
 
@@ -163,7 +152,7 @@ def _wire_module(module: Any) -> None:
         numba_window_ts.roll_extreme = numba_window_extreme.roll_extreme
         return
     if module is numba_window_std:
-        numba_window_roll.std_window = numba_window_std.std_window
+        numba_window.roll_std = numba_window_std.roll_std
         return
     if module is numba_window_roll:
         numba_window.roll_stats = numba_window_roll.roll_stats

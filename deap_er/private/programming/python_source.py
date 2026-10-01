@@ -16,6 +16,7 @@ import numpy
 
 from .columnar import Window
 from .primitives.primitive_set_typed import PrimitiveSetTyped
+from .primitives.program_check import check_node
 
 __all__: list[str] = ["SERIES_HELPER", "FLAT_DEPTH", "as_series", "python_source", "compile_python"]
 
@@ -115,12 +116,16 @@ def _render(
     Returns:
         The source text, whether it calls :data:`SERIES_HELPER`, and
         the depth of the tree.
+
+    Raises:
+        ProgramError: If a node is not a ``Primitive`` or ``Terminal``.
     """
     wrapped = False
     text = ""
     depth = 0
     stack: list[tuple[Any, list[str]]] = []
-    for node in expr:
+    for index, node in enumerate(expr):
+        check_node(node, index)
         stack.append((node, []))
         depth = max(depth, len(stack))
         while len(stack[-1][1]) == stack[-1][0].arity:

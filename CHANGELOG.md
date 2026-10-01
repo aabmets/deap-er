@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Numba `rolling_std`, `rolling_corr`, `rolling_cov`, and
+  `rolling_beta` results change in their low digits.** On
+  `backend="numba"` every window is now centered on its own mean(s),
+  as on the opcode backend, instead of being read from running sums.
+  `rolling_std` values move by up to about `1e-11` relative and the
+  pair statistics by up to about `1e-7`, and all four now match the
+  opcode backend to about `1e-11` or better. Against the running sums
+  they cost about 2x (`rolling_std`) and 7x (pair) at a 48-sample
+  window and 9x and 36x at 300 samples, and stay 1.5x to 4.5x faster
+  than the opcode backend ([#148](https://github.com/aabmets/deap-er/pull/148))
+
+### Fixed
+
+- `str(tree)` and `compile_tree` on every backend raised
+  `AttributeError` for a `PrimitiveTree` holding an element that is
+  not a `Primitive` or `Terminal`, such as `PrimitiveTree(["vadd",
+  "a", "b"])`. They now raise `gp.ProgramError`, the documented
+  error for an invalid program ([#148](https://github.com/aabmets/deap-er/pull/148))
+- Numba `rolling_std`, `rolling_corr`, `rolling_cov`, and
+  `rolling_beta` depended on samples before their window: the same
+  bar differed by up to about `1e-11` (`rolling_std`) or `2e-8`
+  (pair statistics) relative depending on where the series started.
+  They are now window-local, so a series and any suffix of it give
+  bit-identical values on the overlapping windows ([#148](https://github.com/aabmets/deap-er/pull/148))
+- `Strategy.update` ran the eigendecomposition of the new covariance
+  outside its rollback, so a finite covariance with entries near
+  `1e308`, or an `eigh` that did not converge, left NaN in `diag_d`,
+  `big_b`, and `big_bd` with no error, counted the update, and made
+  the next `generate` draw NaN individuals; `RestartStrategy` kept
+  running on that state. It now restores the state from before the
+  call and raises `FloatingPointError` without counting the update,
+  so `RestartStrategy` restarts ([#148](https://github.com/aabmets/deap-er/pull/148))
+
 ## [3.1.7] - 2026-10-01
 
 Genie-usage bug hunt: 16 fixes in the Numba backend, opcode CSE, GP

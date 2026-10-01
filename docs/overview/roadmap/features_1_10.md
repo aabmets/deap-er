@@ -81,16 +81,13 @@ out” for min / max stay identical. The current Python functions
 remain the definition; new kernels are accepted only with parity
 tests.
 
-**Today.** Numba walks each rolling opcode in $O(\text{rows})$:
-running sums for `rolling_{sum,mean,std}` and the pair moments,
-and a monotonic index ring for `rolling_{min,max}` and
-`ts_argmax` / `ts_argmin`. `ts_rank` is still a per-window scan.
-Python and the `opcode` backend stay the definition —
-`sliding_window_view` plus a ufunc reduce, and for `rolling_std` and
-the pair moments each window is centered on its own mean before
-squaring, in row blocks. The kernel keeps running sums and recenters
-a window only once they have lost too many digits, so its result
-follows the oracle without depending on how either side rounds.
+**Today.** Numba walks `rolling_{sum,mean}` in $O(\text{rows})$
+with compensated running sums, and `rolling_{min,max}` and
+`ts_argmax` / `ts_argmin` with a monotonic index ring. `rolling_std`,
+the pair moments, and `ts_rank` are per-window scans: like Python and
+the `opcode` backend, which stay the definition, they center each
+window on its own mean before squaring, so a value depends only on
+the samples in its window and not on where the series starts.
 Parity tests compare Numba to that oracle, including `nan` recovery,
 $\pm\inf$, columns far from zero, and a variance that collapses.
 

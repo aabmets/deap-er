@@ -75,10 +75,12 @@
     negative. DEAP took the square root of the raw `eigh` output.
 15. `Strategy.update` computes the rank-μ term from
     $(x_i - m)/\sigma$, so it stays finite after $\sigma^2$
-    underflows. When $\sigma$ really collapses, or the state turns
-    non-finite, `update` restores the state it had before the call
-    and raises `FloatingPointError`, and `RestartStrategy` restarts
-    the run; `StrategySeparable` does the same instead of going NaN.
+    underflows. When $\sigma$ really collapses, the state turns
+    non-finite, or the eigendecomposition of the new $C$ fails or
+    is non-finite, `update` restores the state it had before the
+    call and raises `FloatingPointError`, and `RestartStrategy`
+    restarts the run; `StrategySeparable` does the same instead of
+    going NaN.
     DEAP divided by `sigma ** 2` and called `eigh` on the resulting
     non-finite $C$, which raised a raw `LinAlgError` with the
     strategy half-updated.

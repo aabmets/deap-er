@@ -14,7 +14,12 @@ from typing import Any
 
 import numpy
 
-__all__: list[str] = ["CMA_UPDATED_STATE", "check_cma_state", "snapshot_cma_state"]
+__all__: list[str] = [
+    "CMA_UPDATED_STATE",
+    "check_cma_state",
+    "restore_cma_state",
+    "snapshot_cma_state",
+]
 
 CMA_UPDATED_STATE = ("centroid", "sigma", "ps", "pc", "big_c")
 
@@ -22,6 +27,12 @@ CMA_UPDATED_STATE = ("centroid", "sigma", "ps", "pc", "big_c")
 def snapshot_cma_state(strategy: Any) -> dict[str, Any]:
     """Return the state an ``update`` call rebinds, for a rollback."""
     return {name: getattr(strategy, name) for name in CMA_UPDATED_STATE}
+
+
+def restore_cma_state(strategy: Any, snapshot: dict[str, Any]) -> None:
+    """Put back the state that ``snapshot_cma_state`` recorded."""
+    for name, value in snapshot.items():
+        setattr(strategy, name, value)
 
 
 def check_cma_state(strategy: Any, snapshot: dict[str, Any]) -> None:
@@ -45,8 +56,7 @@ def check_cma_state(strategy: Any, snapshot: dict[str, Any]) -> None:
     arrays = (getattr(strategy, name) for name in ("centroid", "ps", "pc", "big_c"))
     if 0.0 < sigma < numpy.inf and all(numpy.isfinite(arr).all() for arr in arrays):
         return
-    for name, value in snapshot.items():
-        setattr(strategy, name, value)
+    restore_cma_state(strategy, snapshot)
     raise FloatingPointError(
         f"CMA-ES update gave a non-finite state (sigma={sigma!r}); "
         "the strategy was left as it was before the update. Restart it "

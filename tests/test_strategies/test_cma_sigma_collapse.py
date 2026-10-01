@@ -68,6 +68,54 @@ def test_collapsed_sigma_raises_and_leaves_state_unchanged(cls, ind_cls):
         numpy.testing.assert_array_equal(getattr(strategy, name), value, err_msg=name)
 
 
+def _evaluated_strategy(ind_cls):
+    strategy = tools.Strategy([0.0, 0.0], 1.0, offsprings=8)
+    population = strategy.generate(ind_cls)
+    for individual in population:
+        individual.fitness.values = (sum(x * x for x in individual),)
+    return strategy, population
+
+
+@pytest.mark.filterwarnings("ignore:overflow encountered:RuntimeWarning")
+def test_update_rolls_back_when_the_covariance_overflows_its_decomposition(ind_cls):
+    strategy, population = _evaluated_strategy(ind_cls)
+    strategy.big_c = numpy.full((2, 2), 1.7e308)
+    before = {name: numpy.copy(getattr(strategy, name)) for name in (*STATE, "big_b", "cond")}
+
+    with pytest.raises(FloatingPointError):
+        strategy.update(population)
+    for name, value in before.items():
+        numpy.testing.assert_array_equal(getattr(strategy, name), value, err_msg=name)
+    assert numpy.isfinite(strategy.generate(ind_cls)).all()
+
+
+def test_update_rolls_back_when_eigh_does_not_converge(ind_cls, monkeypatch):
+    strategy, population = _evaluated_strategy(ind_cls)
+    before = {name: numpy.copy(getattr(strategy, name)) for name in STATE}
+
+    def no_convergence(_matrix):
+        raise numpy.linalg.LinAlgError("Eigenvalues did not converge")
+
+    monkeypatch.setattr(numpy.linalg, "eigh", no_convergence)
+    with pytest.raises(FloatingPointError, match="did not converge"):
+        strategy.update(population)
+    for name, value in before.items():
+        numpy.testing.assert_array_equal(getattr(strategy, name), value, err_msg=name)
+
+
+@pytest.mark.filterwarnings("ignore:overflow encountered:RuntimeWarning")
+def test_restart_strategy_restarts_after_a_failed_decomposition(ind_cls):
+    strategy = tools.Strategy([0.0, 0.0], 1.0, offsprings=8)
+    restart = tools.RestartStrategy(strategy, mode="ipop", budget=1000)
+    population = restart.generate(ind_cls)
+    for individual in population:
+        individual.fitness.values = (sum(x * x for x in individual),)
+    strategy.big_c = numpy.full((2, 2), 1.7e308)
+    restart.update(population)
+    assert strategy.update_count == 0
+    assert restart.should_restart()
+
+
 def test_restart_strategy_restarts_a_collapsed_run(ind_cls):
     strategy = tools.Strategy([0.5] * 4, 1.0, offsprings=8, low=0.0, up=1.0)
     restart = tools.RestartStrategy(strategy, mode="ipop", budget=1000)
