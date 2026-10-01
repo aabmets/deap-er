@@ -33,6 +33,7 @@ __all__: list[str] = [
 ]
 
 SOLVE_ATOL = 1e-12
+_INVALID_FITNESS = "every individual must have a valid fitness of the same length"
 
 
 def require_population(individuals: list[Individual]) -> None:
@@ -61,7 +62,7 @@ def require_evaluated(individuals: list[Individual]) -> None:
         ValueError: If any fitness is not valid.
     """
     if any(len(individual.fitness.values) == 0 for individual in individuals):
-        raise ValueError("every individual must have a valid fitness of the same length")
+        raise ValueError(_INVALID_FITNESS)
 
 
 def case_index(idx: object, n_obj: int) -> int:
@@ -173,7 +174,7 @@ def fitness_case_matrix(individuals: list[Individual]) -> numpy.ndarray:
     for row, individual in enumerate(individuals):
         values = individual.fitness.values
         if len(values) != n_cases:
-            raise ValueError("every individual must have a valid fitness of the same length")
+            raise ValueError(_INVALID_FITNESS)
         if n_cases:
             matrix[row] = values
     return matrix
@@ -210,7 +211,7 @@ def validate_case_matrix(
     for row, individual in enumerate(individuals):
         values = individual.fitness.values
         if len(values) != n_cases:
-            raise ValueError("every individual must have a valid fitness of the same length")
+            raise ValueError(_INVALID_FITNESS)
         if n_cases and not numpy.array_equal(matrix[row], values):
             raise ValueError("matrix does not match fitness.values")
 
