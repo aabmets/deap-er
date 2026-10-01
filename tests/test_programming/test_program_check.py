@@ -65,7 +65,10 @@ def test_compile_tree_refuses_an_empty_expression(expr):
         gp.compile_tree(expr, pset)
 
 
-@pytest.mark.parametrize("window", ["99999999999999999999999", "2147483648"])
+_HUGE_WINDOW = pytest.param("1" + "0" * 400, id="1e400")
+
+
+@pytest.mark.parametrize("window", ["99999999999999999999999", "2147483648", _HUGE_WINDOW])
 def test_from_string_refuses_a_window_past_the_operand_width(window):
     pset, text = _kit(), f"delay(a, {window})"
     with pytest.raises(gp.ProgramError, match="'delay'") as info:
@@ -73,7 +76,7 @@ def test_from_string_refuses_a_window_past_the_operand_width(window):
     assert window in str(info.value)
 
 
-@pytest.mark.parametrize("window", [2**31, 10**23])
+@pytest.mark.parametrize("window", [2**31, 10**23, pytest.param(10**400, id="1e400")])
 def test_lowering_refuses_a_built_window_past_the_operand_width(window):
     pset = _kit()
     tree = gp.PrimitiveTree(
