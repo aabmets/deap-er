@@ -17,9 +17,13 @@ import numpy
 from .columnar import Window
 from .primitives.primitive_set_typed import PrimitiveSetTyped
 
-__all__: list[str] = ["SERIES_HELPER", "as_series", "python_source", "compile_python"]
+__all__: list[str] = ["SERIES_HELPER", "FLAT_DEPTH", "as_series", "python_source", "compile_python"]
 
 SERIES_HELPER = "__deap_as_series"
+FLAT_DEPTH = 64
+_LOCAL_PREFIX = "__deap_t"
+_PROGRAM = "__deap_program"
+_BINDER = "__deap_bind"
 
 
 def as_series(value: Any, reference: Any) -> Any:
@@ -59,29 +63,16 @@ def python_source(expr: Any, reference: str | None) -> tuple[str, bool]:
     """
     if isinstance(expr, str) or reference is None:
         return str(expr), False
-    wrapped = False
-    text = ""
-    stack: list[tuple[Any, list[str]]] = []
-    for node in expr:
-        stack.append((node, []))
-        while len(stack[-1][1]) == stack[-1][0].arity:
-            prim, args = stack.pop()
-            types = getattr(prim, "args", [])
-            if Window in types:
-                wrapped = True
-                args = [
-                    arg if type_ is Window else f"{SERIES_HELPER}({arg}, {reference})"
-                    for arg, type_ in zip(args, types, strict=True)
-                ]
-            text = str(prim.format(*args))
-            if not stack:
-                break
-            stack[-1][1].append(text)
+    text, wrapped, _ = _render(expr, reference, None)
     return text, wrapped
 
 
 def compile_python(expr: Any, prim_set: PrimitiveSetTyped) -> Any:
     """Compile ``expr`` for the ``'python'`` backend.
+
+    A tree nested deeper than :data:`FLAT_DEPTH` compiles to a function
+    that binds each primitive call to a local variable, because Python
+    refuses source nested deeper than 200 parentheses.
 
     Args:
         expr: Source text, or a prefix-ordered tree.
@@ -95,6 +86,10 @@ def compile_python(expr: Any, prim_set: PrimitiveSetTyped) -> Any:
         MemoryError: If evaluation exceeds the recursion limit.
     """
     reference = prim_set.arguments[0] if prim_set.arguments else None
+    if not isinstance(expr, str) and _render(expr, reference, None)[2] > FLAT_DEPTH:
+        statements: list[str] = []
+        result, wrapped, _ = _render(expr, reference, statements)
+        return _compile_flat(statements, result, wrapped, prim_set)
     code, wrapped = python_source(expr, reference)
     if reference is not None:
         code = f"lambda {','.join(prim_set.arguments)}: {code}"
@@ -102,6 +97,92 @@ def compile_python(expr: Any, prim_set: PrimitiveSetTyped) -> Any:
         code = f"lambda {SERIES_HELPER}: {code}"
     compiled = _eval_python(code, prim_set)
     return compiled(as_series) if wrapped else compiled
+
+
+def _render(
+    expr: Any, reference: str | None, statements: list[str] | None
+) -> tuple[str, bool, int]:
+    """Render a prefix-ordered tree as Python source.
+
+    Args:
+        expr: Prefix-ordered tree.
+        reference: Argument name that supplies the row count, or
+            ``None`` to leave window operands unwrapped.
+        statements: When given, each primitive call is appended to it
+            as an assignment to a fresh local, and the local's name
+            stands in for the call.
+
+    Returns:
+        The source text, whether it calls :data:`SERIES_HELPER`, and
+        the depth of the tree.
+    """
+    wrapped = False
+    text = ""
+    depth = 0
+    stack: list[tuple[Any, list[str]]] = []
+    for node in expr:
+        stack.append((node, []))
+        depth = max(depth, len(stack))
+        while len(stack[-1][1]) == stack[-1][0].arity:
+            prim, args = stack.pop()
+            types = getattr(prim, "args", [])
+            if reference is not None and Window in types:
+                wrapped = True
+                args = _wrap_series(args, types, reference)
+            text = str(prim.format(*args))
+            if statements is not None and prim.arity:
+                local = f"{_LOCAL_PREFIX}{len(statements)}"
+                statements.append(f"{local} = {text}")
+                text = local
+            if not stack:
+                break
+            stack[-1][1].append(text)
+    return text, wrapped, depth
+
+
+def _wrap_series(args: list[str], types: list[Any], reference: str) -> list[str]:
+    """Wrap each series operand of a window primitive in :data:`SERIES_HELPER`.
+
+    Args:
+        args: Rendered operands of the primitive.
+        types: Argument types of the primitive.
+        reference: Argument name that supplies the row count.
+
+    Returns:
+        The operands, with every non-``Window`` one wrapped.
+    """
+    return [
+        arg if type_ is Window else f"{SERIES_HELPER}({arg}, {reference})"
+        for arg, type_ in zip(args, types, strict=True)
+    ]
+
+
+def _compile_flat(
+    statements: list[str], result: str, wrapped: bool, prim_set: PrimitiveSetTyped
+) -> Any:
+    """Compile assignment statements into a function over the arguments.
+
+    Args:
+        statements: Assignments in evaluation order.
+        result: Name or source text of the value to return.
+        wrapped: Whether the statements call :data:`SERIES_HELPER`.
+        prim_set: Primitive set that supplies the evaluation context.
+
+    Returns:
+        A function over the set's arguments, or its result when the
+        set has no arguments.
+    """
+    lines = [f"def {_PROGRAM}({','.join(prim_set.arguments)}):"]
+    lines += [f"    {statement}" for statement in statements]
+    lines.append(f"    return {result}")
+    if wrapped:
+        lines = [f"def {_BINDER}({SERIES_HELPER}):", *(f"    {line}" for line in lines)]
+        lines.append(f"    return {_PROGRAM}")
+    namespace: dict[str, Any] = {}
+    # nosemgrep: python.lang.security.audit.exec-detected.exec-detected
+    exec("\n".join(lines), prim_set.context, namespace)
+    program = namespace[_BINDER](as_series) if wrapped else namespace[_PROGRAM]
+    return program if prim_set.arguments else program()
 
 
 def _eval_python(code: str, prim_set: PrimitiveSetTyped) -> Any:

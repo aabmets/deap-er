@@ -141,7 +141,7 @@ Operator reproductions for #655, #740, #527, #472, and #755 live in `1db151f` wi
 
 **Why it was an issue.** The Python compile path is `eval` of `str(tree)`. Without `()`, a 0-arity terminal is a name, not a call, so the compiled program is wrong or raises.
 
-**What we did.** `Terminal.call_zero`. `add_terminal` sets it when the registered context value is a named callable. `format()` emits `name()`. ARG terminals, numbers, and `True`/`False` stay unwrapped. `from_string` still tokenizes on `()`; tokens remain `no_input_func_1`.
+**What we did.** `Terminal.call_zero`. `add_terminal` sets it when the registered context value is a named callable. `format()` emits `name()`. ARG terminals, numbers, and `True`/`False` stay unwrapped. `from_string` reads `no_input_func_1()` back as the terminal.
 
 **Commit.** `e4b9d05984595d4cf990233d866c92bd1d4619a3`
 

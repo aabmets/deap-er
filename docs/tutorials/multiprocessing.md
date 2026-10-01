@@ -186,9 +186,8 @@ def evaluate_batch(individuals):
 toolbox.register("evaluate_batch", evaluate_batch)
 ```
 
-Key unique programs by `str(ind)` and lower the tree object. Do not
-pass the string to `lower_tree`: `PrimitiveTree.from_string` cannot
-round-trip a `Window` ephemeral. The fitness list must have one
+Key unique programs by `str(ind)` and lower the tree object, which
+skips parsing the text again. The fitness list must have one
 entry per individual — `evaluate_invalid` zips without `strict`.
 
 `parallel=True` is in-process Numba threading (one workspace per

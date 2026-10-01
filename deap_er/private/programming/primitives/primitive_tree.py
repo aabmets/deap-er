@@ -11,14 +11,13 @@
 from __future__ import annotations
 
 import copy
-import re
 from collections import deque
 from collections.abc import Iterable
 from typing import Any, override
 
 from .primitive_nodes import Primitive
 from .primitive_set_typed import PrimitiveSetTyped
-from .primitive_tokens import Slot, primitive_from_token, terminal_from_token
+from .primitive_tokens import Slot, prefix_tokens, primitive_from_token, terminal_from_token
 from .program_check import ProgramError
 
 __all__: list[str] = ["PrimitiveTree"]
@@ -86,17 +85,28 @@ class PrimitiveTree(list[Any]):
 
     @override
     def __str__(self) -> str:
-        """Return the tree as a Python expression string."""
+        """Return the tree as a Python expression string.
+
+        Raises:
+            ProgramError: If a node follows the complete root
+                expression, or if a primitive is missing arguments.
+        """
         string = ""
         stack: list[Any] = []
+        complete = False
         for node in self:
+            if complete:
+                raise ProgramError("The tree holds nodes after its complete root expression.")
             stack.append((node, []))
             while len(stack[-1][1]) == stack[-1][0].arity:
                 prim, args = stack.pop()
                 string = prim.format(*args)
                 if len(stack) == 0:
+                    complete = True
                     break
                 stack[-1][1].append(string)
+        if stack:
+            raise ProgramError("The tree is incomplete; a primitive is missing arguments.")
         return str(string)
 
     @classmethod
@@ -117,8 +127,10 @@ class PrimitiveTree(list[Any]):
             A tree populated with the deserialized primitives.
 
         Raises:
-            ProgramError: If the string is empty, if a token is not a
-                registered primitive and is not a Python literal, if a
+            ProgramError: If the string is empty, if its parentheses
+                and commas do not match the primitive arities, if a
+                token is not a registered primitive and is not a
+                Python literal, if a
                 primitive or terminal type does not match its slot (the
                 root's slot is ``prim_set.ret``), if a window length is
                 invalid, if a token arrives after the tree is complete,
@@ -126,12 +138,10 @@ class PrimitiveTree(list[Any]):
                 ``ProgramError`` subclasses ``ValueError`` and
                 ``TypeError``.
         """
-        tokens = re.split("[ \t\n\r\f\v(),]", string)
+        tokens = prefix_tokens(string, prim_set)
         expr = []
         slots: deque[Slot] = deque([(prim_set.ret, None)])
         for token in tokens:
-            if token == "":
-                continue
             if not slots:
                 raise ProgramError(f"Unexpected extra token after a complete expression: {token}.")
             slot = slots.popleft()

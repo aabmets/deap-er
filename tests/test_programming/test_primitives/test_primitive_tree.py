@@ -97,3 +97,46 @@ def test_setitem_stop_only_slice_replaces_whole_tree():
 
     assert str(tree) == "ARG0"
     assert list(tree) == list(replacement)
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "add(ARG0, 2))",
+        "add(ARG0 2)",
+        "add ARG0 2",
+        "add(ARG0,, 2)",
+        "add(ARG0, 2",
+        "(add(ARG0, 2))",
+    ],
+)
+def test_from_string_rejects_malformed_punctuation(text: str):
+    pset = _add_pset()
+    with pytest.raises(gp.ProgramError):
+        gp.PrimitiveTree.from_string(text, pset)
+
+
+def test_from_string_round_trips_a_zero_argument_call_terminal():
+    pset = _add_pset()
+    pset.add_terminal(lambda: 4, name="four", call_zero=True)
+    tree = gp.PrimitiveTree.from_string("add(ARG0, four())", pset)
+
+    assert str(tree) == "add(ARG0, four())"
+    assert gp.compile_tree(tree, pset)(1) == 5
+
+
+def test_str_rejects_a_node_list_missing_arguments():
+    pset = _add_pset()
+    tree = gp.PrimitiveTree([pset.mapping["add"], pset.mapping["ARG0"]])
+
+    with pytest.raises(gp.ProgramError, match="incomplete"):
+        str(tree)
+
+
+def test_str_rejects_nodes_after_the_complete_root():
+    pset = _add_pset()
+    arg = pset.mapping["ARG0"]
+    tree = gp.PrimitiveTree([pset.mapping["add"], arg, arg, arg])
+
+    with pytest.raises(gp.ProgramError, match="after its complete root"):
+        str(tree)

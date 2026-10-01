@@ -119,3 +119,36 @@ def test_python_backend_reads_a_constant_window_operand_as_a_column():
     result = gp.compile_tree(tree, pset)(column)
 
     numpy.testing.assert_allclose(result, [numpy.nan, numpy.nan, 4.0, 5.0, 6.0, 7.0])
+
+
+def _nest(template: str, depth: int) -> str:
+    text = "x"
+    for _ in range(depth):
+        text = template.format(text)
+    return text
+
+
+def test_python_backend_compiles_a_tree_deeper_than_the_parser_limit():
+    # Python refuses source nested deeper than 200 parentheses, while
+    # from_string and lower_tree accept any depth.
+    pset = gp.make_column_pset(["x"])
+    gp.add_numpy_primitives(pset)
+    gp.add_window_primitives(pset)
+    pset.add_terminal(1.0, gp.Array, name="one")
+    column = numpy.arange(6.0)
+    for template in ("vadd({}, one)", "vadd(rolling_mean({}, 1), one)"):
+        tree = gp.PrimitiveTree.from_string(_nest(template, 300), pset)
+
+        result = gp.compile_tree(tree, pset)(column)
+
+        numpy.testing.assert_allclose(result, gp.compile_tree(tree, pset, backend="opcode")(column))
+        numpy.testing.assert_allclose(result, column + 300.0)
+
+
+def test_python_backend_evaluates_a_deep_tree_without_arguments():
+    pset = gp.PrimitiveSet("main", 0)
+    pset.add_primitive(operator.add, 2)
+    pset.add_terminal(1, name="one")
+    tree = gp.PrimitiveTree.from_string(_nest("add({}, one)", 500).replace("x", "one", 1), pset)
+
+    assert gp.compile_tree(tree, pset) == 501

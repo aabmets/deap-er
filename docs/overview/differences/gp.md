@@ -206,6 +206,20 @@ The following is extra.
     An ephemeral registered as `float` but drawing `randint` values
     prints as `add(ARG0, 2)`; DEAP raised `TypeError` parsing its
     own `str(tree)`, and the tree no longer round-tripped.
+38. `PrimitiveTree.from_string` checks every parenthesis and comma
+    against the arity of each primitive, and `str(tree)` raises
+    `gp.ProgramError` for a node list that is missing arguments or
+    holds nodes after its complete root. DEAP split the text on
+    `()` and `,` and dropped them, so `vadd(a, b))` and `vadd(a b)`
+    parsed, and `str()` of `[vadd, a]` printed `a`, silently
+    discarding the primitive.
+39. The default `python` backend of `compile_tree` compiles a tree of
+    any depth. Past 64 levels it binds each primitive call to a local
+    instead of nesting the calls, so Python's 200-level parenthesis
+    limit no longer applies. DEAP `eval`'d one nested expression and
+    documented a 90-level ceiling; current Python raised a raw
+    `SyntaxError` for a tree that `from_string` and `lower_tree`
+    accept.
 
 The columnar contract is in the
 [columnar GP tutorial](../../tutorials/columnar_gp.md). The private

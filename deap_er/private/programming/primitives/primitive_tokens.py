@@ -11,7 +11,8 @@
 from __future__ import annotations
 
 import ast
-from typing import cast
+import re
+from typing import Any, cast
 
 from ..columnar import Window
 from .primitive_nodes import Primitive, Terminal
@@ -24,9 +25,92 @@ from .program_check import (
     slot_ephemeral,
 )
 
-__all__: list[str] = ["Slot", "primitive_from_token", "terminal_from_token"]
+__all__: list[str] = ["Slot", "prefix_tokens", "primitive_from_token", "terminal_from_token"]
 
 type Slot = tuple[type, str | None]
+
+_TOKEN = re.compile(r"[(),]|[^\s(),]+")
+
+
+def prefix_tokens(string: str, prim_set: PrimitiveSetTyped) -> list[str]:
+    """Split a Python call expression into its node tokens in prefix order.
+
+    Checks the parentheses and commas against the arity of each name
+    registered on ``prim_set``. Unregistered tokens are literals and
+    take no arguments. A zero-arity name may be written as ``name()``.
+
+    Args:
+        string: Python expression to split.
+        prim_set: Primitive set that supplies the arities.
+
+    Returns:
+        The node tokens, without punctuation.
+
+    Raises:
+        ProgramError: If a primitive is not followed by ``(``, if its
+            arguments are not separated by commas or closed by ``)``,
+            if it gets too few or too many arguments, or if a token
+            follows the complete expression.
+    """
+    tokens = _TOKEN.findall(string)
+    names: list[str] = []
+    owed: list[list[Any]] = []
+    index = 0
+    while index < len(tokens):
+        token = tokens[index]
+        if token in "(),":
+            raise ProgramError(f"Unexpected '{token}' where an argument was expected.")
+        names.append(token)
+        arity = getattr(prim_set.mapping.get(token), "arity", 0)
+        index = _open_call(tokens, index + 1, token, arity, owed)
+        if arity == 0:
+            index = _close_calls(tokens, index, owed)
+    if owed:
+        raise ProgramError(f"Expression is incomplete; {owed[-1][0]} is missing arguments.")
+    return names
+
+
+def _peek(tokens: list[str], index: int) -> str | None:
+    """Return the token at ``index``, or None past the end."""
+    return tokens[index] if index < len(tokens) else None
+
+
+def _open_call(tokens: list[str], index: int, name: str, arity: int, owed: list[list[Any]]) -> int:
+    """Consume the opening of a call to ``name`` and return the next index."""
+    following = _peek(tokens, index)
+    if arity:
+        if following != "(":
+            raise ProgramError(f"Expression is incomplete; expected '(' after {name}.")
+        owed.append([name, arity])
+        return index + 1
+    if following != "(":
+        return index
+    if _peek(tokens, index + 1) != ")":
+        raise ProgramError(f"{name} takes no arguments.")
+    return index + 2
+
+
+def _close_calls(tokens: list[str], index: int, owed: list[list[Any]]) -> int:
+    """Consume the separators after a complete argument and return the next index."""
+    while owed:
+        call = owed[-1]
+        call[1] -= 1
+        separator = _peek(tokens, index)
+        if call[1]:
+            if separator == ",":
+                return index + 1
+            if separator in (")", None):
+                raise ProgramError(f"Expression is incomplete; {call[0]} is missing arguments.")
+            raise ProgramError(f"Expected ',' between the arguments of {call[0]}, got {separator}.")
+        if separator == ",":
+            raise ProgramError(f"Unexpected extra argument to {call[0]}.")
+        if separator != ")":
+            raise ProgramError(f"Expression is incomplete; {call[0]} is missing ')'.")
+        owed.pop()
+        index += 1
+    if index < len(tokens):
+        raise ProgramError(f"Unexpected extra token after a complete expression: {tokens[index]}.")
+    return index
 
 
 def primitive_from_token(
