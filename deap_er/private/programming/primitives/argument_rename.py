@@ -103,8 +103,8 @@ def apply_argument_renames(prim_set: PrimitiveSetTyped, mapping: dict[str, str])
     for index, _, new_name, terminal in updates:
         prim_set.arguments[index] = new_name
         prim_set.mapping[new_name] = terminal
-        terminal.value = new_name
-        terminal.name = new_name
+        object.__setattr__(terminal, "value", new_name)
+        object.__setattr__(terminal, "name", new_name)
     for _, old_name, _, terminal in updates:
         current = prim_set.mapping.get(old_name)
         if current is terminal:
