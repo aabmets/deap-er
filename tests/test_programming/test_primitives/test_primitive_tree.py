@@ -111,8 +111,9 @@ def test_setitem_stop_only_slice_replaces_whole_tree():
     ],
 )
 def test_from_string_rejects_malformed_punctuation(text: str):
+    pset = _add_pset()
     with pytest.raises(gp.ProgramError):
-        gp.PrimitiveTree.from_string(text, _add_pset())
+        gp.PrimitiveTree.from_string(text, pset)
 
 
 def test_from_string_round_trips_a_zero_argument_call_terminal():
