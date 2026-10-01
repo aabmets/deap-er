@@ -197,15 +197,14 @@ def test_interpret_tapes_accepts_a_generator_of_tapes():
         )
 
 
-def test_a_serial_builtin_batch_compiles_no_batch_kernel():
+def test_a_serial_builtin_batch_compiles_the_serial_batch_kernel():
     pset = _kit("BATCH_NUMBA_SERIAL_ONLY")
     columns = _samples()
     tape = gp.lower_tree(gp.PrimitiveTree([pset.mapping["first"]]), pset)
-    before = compiled_batch_kernels()
 
     gp.interpret_tapes([tape], _matrix(columns), backend="numba")
 
-    assert compiled_batch_kernels() == before
+    assert "many" in compiled_batch_kernels()
 
 
 def _hand_tape(opcodes, operands, depth=2, constants=()):
