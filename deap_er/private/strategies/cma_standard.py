@@ -83,8 +83,9 @@ class Strategy(CmaCore):
           * Optional box bounds on generated individuals.
        * bound_mode - *(str)*
           * ``clip`` (default) or ``resample``. Both are
-            constraint-handling approximations; the update treats the
-            repaired point as the sample.
+            constraint-handling approximations. ``clip`` evaluates the
+            clipped point, but the update learns from the unclipped
+            draw and clips the new centroid into the box.
        * resample_limit - *(int)*
           * Failed redraws before clipping one sample. *Default:* ``100``
     """
@@ -115,12 +116,7 @@ class Strategy(CmaCore):
         apply_cma_hyperparams(self, kwargs)
         if not hasattr(self, "big_c") or "cm_init" in kwargs:
             self.big_c = kwargs.get("cm_init", numpy.identity(self.dim))
-            self.diag_d, self.big_b = numpy.linalg.eigh(self.big_c)
-            indx = numpy.argsort(self.diag_d)
-            self.cond = self.diag_d[indx[-1]] / self.diag_d[indx[0]]
-            self.diag_d = self.diag_d[indx] ** 0.5
-            self.big_b = self.big_b[:, indx]
-            self.big_bd = self.big_b * self.diag_d
+            self._decompose()
         update_bound_attrs(self, kwargs)
 
     def reset_state(
@@ -154,10 +150,10 @@ class Strategy(CmaCore):
         Args:
             population: Evaluated individuals from ``generate``.
         """
-        old_centroid, c_diff = shift_cma_centroid(self, population)
+        old_centroid, c_diff, samples = shift_cma_centroid(self, population)
         y_mean = numpy.dot(self.big_b, (1.0 / self.diag_d) * numpy.dot(self.big_b.T, c_diff))
         hsig = update_cma_paths(self, c_diff, y_mean)
-        ar_tmp = population[0 : self.mu] - old_centroid
+        ar_tmp = samples - old_centroid
         temp_0 = (1 - hsig) * self.rank_one * self.cm_cum * (2 - self.cm_cum)
         temp_1 = 1 - self.rank_one - self.rank_mu + temp_0
         temp_2 = numpy.outer(self.pc, self.pc)
@@ -166,13 +162,24 @@ class Strategy(CmaCore):
             temp_1 * self.big_c + self.rank_one * temp_2 + self.rank_mu * temp_3 / self.sigma**2
         )
         adapt_cma_sigma(self)
-        self.diag_d, self.big_b = numpy.linalg.eigh(self.big_c)
-        indx = numpy.argsort(self.diag_d)
-
-        self.cond = self.diag_d[indx[-1]] / self.diag_d[indx[0]]
-
-        self.diag_d = self.diag_d[indx] ** 0.5
-        self.big_b = self.big_b[:, indx]
-        self.big_bd = self.big_b * self.diag_d
-
+        self._decompose()
         self.update_count += 1
+
+    def _decompose(self) -> None:
+        """Refresh ``big_b``, ``diag_d``, ``big_bd``, and ``cond`` from ``big_c``.
+
+        ``big_c`` is symmetrized first. A singular or nearly singular
+        covariance can give tiny negative eigenvalues, so eigenvalues
+        are floored at ``1e-14`` times the largest one before the
+        square root. ``cond`` is computed from the floored values.
+        """
+        self.big_c = (self.big_c + self.big_c.T) / 2.0
+        eig_vals, eig_vecs = numpy.linalg.eigh(self.big_c)
+        indx = numpy.argsort(eig_vals)
+        eig_vals = eig_vals[indx]
+        floor = max(float(eig_vals[-1]) * 1e-14, numpy.finfo(float).tiny)
+        eig_vals = numpy.maximum(eig_vals, floor)
+        self.cond = float(eig_vals[-1] / eig_vals[0])
+        self.diag_d = eig_vals**0.5
+        self.big_b = eig_vecs[:, indx]
+        self.big_bd = self.big_b * self.diag_d

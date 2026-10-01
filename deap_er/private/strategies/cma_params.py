@@ -16,7 +16,8 @@ from typing import Any
 
 import numpy
 
-from .common import sample_offspring
+from .clip_samples import raw_sample
+from .common import bound_arrays, sample_offspring
 
 __all__ = [
     "CmaCore",
@@ -115,23 +116,34 @@ def generate_cma_offspring(
         up=strategy.up,
         bound_mode=strategy.bound_mode,
         resample_limit=strategy.resample_limit,
+        keep_raw=True,
     )
 
 
-def shift_cma_centroid(strategy: Any, population: list[Any]) -> tuple[numpy.ndarray, numpy.ndarray]:
+def shift_cma_centroid(
+    strategy: Any, population: list[Any]
+) -> tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray]:
     """Rank ``population`` and move the centroid to the weighted mean.
 
+    The mean uses each survivor's unclipped draw. Under
+    ``bound_mode="clip"`` the new centroid is then clipped into the box.
+
     Args:
-        strategy: CMA strategy with ``weights`` and ``mu``.
+        strategy: CMA strategy with ``weights``, ``mu``, and bounds.
         population: Evaluated individuals from ``generate``.
 
     Returns:
-        The previous centroid and the centroid displacement.
+        The previous centroid, the centroid displacement, and the
+        survivors' unclipped draws.
     """
     population.sort(key=lambda ind: ind.fitness, reverse=True)
     old_centroid = strategy.centroid
-    strategy.centroid = numpy.dot(strategy.weights, numpy.asarray(population[0 : strategy.mu]))
-    return old_centroid, strategy.centroid - old_centroid
+    samples = numpy.asarray([raw_sample(ind) for ind in population[0 : strategy.mu]])
+    strategy.centroid = numpy.dot(strategy.weights, samples)
+    bounds = bound_arrays(strategy.low, strategy.up, strategy.dim)
+    if bounds is not None and strategy.bound_mode == "clip":
+        strategy.centroid = numpy.clip(strategy.centroid, bounds[0], bounds[1])
+    return old_centroid, strategy.centroid - old_centroid, samples
 
 
 def update_cma_paths(strategy: Any, c_diff: numpy.ndarray, y_mean: numpy.ndarray) -> float:
