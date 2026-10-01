@@ -10,6 +10,7 @@
 #
 from __future__ import annotations
 
+import math
 from bisect import bisect_right
 from collections.abc import Callable, Iterator, Sequence
 from copy import deepcopy
@@ -23,7 +24,7 @@ from .hof_json import hall_of_fame_from_json, hall_of_fame_to_json
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 
-__all__: list[str] = ["BaseRecordStorage", "HallOfFame", "ParetoFront"]
+__all__: list[str] = ["BaseRecordStorage", "HallOfFame"]
 
 
 class BaseRecordStorage:
@@ -34,18 +35,28 @@ class BaseRecordStorage:
         self.keys = []
         self.items = []
 
+    def _rank(self, individual: Any) -> Any:
+        """Return the sort key of ``individual``; larger is better."""
+        return individual.fitness
+
+    def _is_rankable(self, individual: Any) -> bool:
+        """Return whether ``individual`` can be stored and ordered."""
+        return has_comparable_fitness(individual)
+
     def insert(self, individual: Individual) -> None:
         """Insert an individual while preserving sort order; does not enforce maxsize.
 
         Args:
             individual: Individual to insert. Ignored if fitness is
-                missing, invalid, or non-finite.
+                missing, invalid, or non-finite, or if a ``key`` is set
+                and its value is non-finite.
         """
-        if has_comparable_fitness(individual):
+        if self._is_rankable(individual):
             individual = deepcopy(individual)
-            i = bisect_right(self.keys, individual.fitness)
+            rank = self._rank(individual)
+            i = bisect_right(self.keys, rank)
             self.items.insert(len(self) - i, individual)
-            self.keys.insert(i, individual.fitness)
+            self.keys.insert(i, rank)
 
     def remove(self, index: int) -> None:
         """Remove the individual at ``index``.
@@ -97,24 +108,50 @@ class HallOfFame(BaseRecordStorage):
     """Archive of the best individuals seen during evolution.
 
     Members stay sorted by fitness so the first item is the best
-    individual seen so far, according to the fitness weights.
+    individual seen so far, according to the fitness weights. With
+    ``key``, members are ranked by ``key(individual)`` instead, which
+    lets a multi-objective individual be ranked by one scalar.
 
     Args:
         maxsize: Maximum number of individuals to keep.
         similar: Equality test used to skip duplicates. Defaults to
             ``operator.eq``.
+        key: Optional scalariser mapping an individual to a float where
+            **larger is better** (negate a cost to minimise it). The
+            individual still needs a comparable fitness; individuals
+            whose key value is non-finite are ignored. Defaults to
+            None, which ranks by the fitness weights. A lambda key needs
+            dill (as used by ``Checkpoint``) to be pickled.
 
     Raises:
         ValueError: If ``maxsize`` is negative.
     """
 
-    def __init__(self, maxsize: int, similar: Callable[..., Any] = eq) -> None:
+    def __init__(
+        self,
+        maxsize: int,
+        similar: Callable[..., Any] = eq,
+        key: Callable[[Any], float] | None = None,
+    ) -> None:
         """See the class docstring."""
         if maxsize < 0:
             raise ValueError("maxsize must be non-negative")
         self.maxsize = maxsize
         self.similar = similar
+        self.key = key
         super().__init__()
+
+    @override
+    def _rank(self, individual: Any) -> Any:
+        if self.key is None:
+            return individual.fitness
+        return float(self.key(individual))
+
+    @override
+    def _is_rankable(self, individual: Any) -> bool:
+        if not has_comparable_fitness(individual):
+            return False
+        return self.key is None or math.isfinite(self._rank(individual))
 
     def _similar_index(self, individual: Any) -> int | None:
         """Return the index of a stored member similar to ``individual``.
@@ -136,18 +173,19 @@ class HallOfFame(BaseRecordStorage):
         Args:
             individual: Candidate with or without a fitness attribute.
         """
-        if not has_comparable_fitness(individual):
+        if not self._is_rankable(individual):
             return
         if len(self) == 0:
             self.insert(individual)
             return
+        rank = self._rank(individual)
         similar_index = self._similar_index(individual)
         if similar_index is not None:
-            if individual.fitness > self[similar_index].fitness:
+            if rank > self._rank(self[similar_index]):
                 self.remove(similar_index)
                 self.insert(individual)
             return
-        if individual.fitness > self[-1].fitness or len(self) < self.maxsize:
+        if rank > self._rank(self[-1]) or len(self) < self.maxsize:
             if len(self) >= self.maxsize:
                 self.remove(-1)
             self.insert(individual)
@@ -173,68 +211,15 @@ class HallOfFame(BaseRecordStorage):
         return hall_of_fame_to_json(self)
 
     @classmethod
-    def from_json(cls, text: str, ind_cls: type[Any] | None = None) -> HallOfFame:
-        """Rebuild a hall of fame from :meth:`to_json` output."""
-        return hall_of_fame_from_json(text, ind_cls, cls)
+    def from_json(
+        cls,
+        text: str,
+        ind_cls: type[Any] | None = None,
+        key: Callable[[Any], float] | None = None,
+    ) -> HallOfFame:
+        """Rebuild a hall of fame from :meth:`to_json` output.
 
-
-class ParetoFront(BaseRecordStorage):
-    """Archive of every non-dominated individual seen during evolution.
-
-    The front is unbounded: every unique non-dominated individual is kept.
-
-    Args:
-        similar: Equality test used to skip duplicates. Defaults to
-            ``operator.eq``.
-    """
-
-    def __init__(self, similar: Callable[..., Any] = eq) -> None:
-        """See the class docstring."""
-        self.similar = similar
-        super().__init__()
-
-    def _front_verdict(self, individual: Any) -> tuple[bool, bool, list[int]]:
-        """Compare ``individual`` to the current front.
-
-        Args:
-            individual: Candidate that has a fitness attribute.
-
-        Returns:
-            Whether the front dominates it, whether a twin exists, and
-            indexes of members it dominates.
+        ``key`` is not serialized; pass it again to restore a keyed
+        archive.
         """
-        is_dominated = False
-        dominates_one = False
-        has_twin = False
-        to_remove = []
-        for i, hof_member in enumerate(self):
-            if not dominates_one and hof_member.fitness.dominates(individual.fitness):
-                is_dominated = True
-                break
-            if individual.fitness.dominates(hof_member.fitness):
-                dominates_one = True
-                to_remove.append(i)
-            elif individual.fitness == hof_member.fitness and self.similar(individual, hof_member):
-                has_twin = True
-                break
-        return is_dominated, has_twin, to_remove
-
-    def update(self, population: Sequence[Any]) -> None:
-        """Add non-dominated individuals from ``population``.
-
-        Members dominated by a new individual are removed. Similar
-        individuals with equal fitness are not added again.
-        Individuals without a comparable fitness (missing, invalid,
-        or non-finite) are ignored.
-
-        Args:
-            population: Individuals that may have a fitness attribute.
-        """
-        for ind in population:
-            if not has_comparable_fitness(ind):
-                continue
-            is_dominated, has_twin, to_remove = self._front_verdict(ind)
-            for i in reversed(to_remove):
-                self.remove(i)
-            if not is_dominated and not has_twin:
-                self.insert(ind)
+        return hall_of_fame_from_json(text, ind_cls, cls, key)

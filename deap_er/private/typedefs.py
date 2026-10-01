@@ -13,8 +13,9 @@ from typing import Any, Protocol, Self
 
 from .programming.primitives.primitive_set_typed import PrimitiveSetTyped
 from .programming.primitives.primitive_tree import PrimitiveTree
-from .records.hall_of_fame import HallOfFame, ParetoFront
+from .records.hall_of_fame import HallOfFame
 from .records.logbook import Logbook
+from .records.pareto_front import ParetoFront
 from .records.statistics import MultiStatistics, Statistics
 
 __all__: list[str] = [

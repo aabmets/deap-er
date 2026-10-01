@@ -35,6 +35,8 @@ __all__: list[str] = [
     "sample_random_elites",
 ]
 
+type Scorer = Callable[[Any], float]
+
 
 @dataclass(frozen=True, slots=True)
 class ArchiveStats:
@@ -81,6 +83,8 @@ def check_archive_add(
     descriptor: Sequence[float] | numpy.ndarray,
     dimensions: int,
     archive_name: str,
+    *,
+    multi_objective: bool = False,
 ) -> bool:
     """Return whether ``individual`` is admissible for ``add``.
 
@@ -89,6 +93,7 @@ def check_archive_add(
         descriptor: Continuous behavior coordinates.
         dimensions: Expected descriptor length.
         archive_name: Class name used in the multi-objective error.
+        multi_objective: Skip the single-objective check. Defaults to False.
 
     Returns:
         True when the candidate may compete for a niche.
@@ -102,27 +107,33 @@ def check_archive_add(
             f"descriptor length {len(descriptor)} does not match {dimensions} dimensions"
         )
     fitness = getattr(individual, "fitness", None)
-    if fitness is not None and len(fitness.weights) != 1:
+    if not multi_objective and fitness is not None and len(fitness.weights) != 1:
         raise ValueError(f"{archive_name} requires single-objective fitness")
     if not all(math.isfinite(float(value)) for value in descriptor):
         return False
     return has_comparable_fitness(individual)
 
 
-def replace_cell_if_better(cells: dict[Any, Any], key: Any, individual: Any) -> bool:
+def replace_cell_if_better(
+    cells: dict[Any, Any], key: Any, individual: Any, score: Scorer | None = None
+) -> bool:
     """Insert ``individual`` when the cell is empty or the candidate is better.
 
     Args:
         cells: Archive cell map.
         key: Cell key in ``cells``.
         individual: Candidate with a comparable fitness.
+        score: Optional scalariser, larger is better; None compares fitness.
 
     Returns:
         True when ``cells[key]`` was written.
     """
     incumbent = cells.get(key)
-    if incumbent is not None and individual.fitness <= incumbent.fitness:
-        return False
+    if incumbent is not None:
+        if score is None and individual.fitness <= incumbent.fitness:
+            return False
+        if score is not None and not score(individual) > score(incumbent):
+            return False
     cells[key] = deepcopy(individual)
     return True
 
@@ -158,12 +169,15 @@ def elite_at_descriptor(
     return cells.get(index_of(descriptor))
 
 
-def make_archive_stats(elites: Iterable[Individual], num_cells: int) -> ArchiveStats:
+def make_archive_stats(
+    elites: Iterable[Individual], num_cells: int, score: Scorer | None = None
+) -> ArchiveStats:
     """Build :class:`ArchiveStats` from stored elites.
 
     Args:
         elites: Individuals currently in the archive.
         num_cells: Tessellation size or elite budget used for coverage.
+        score: Optional scalariser summed into ``qd_score`` instead.
 
     Returns:
         Coverage and quality-diversity totals.
@@ -172,7 +186,9 @@ def make_archive_stats(elites: Iterable[Individual], num_cells: int) -> ArchiveS
     num_elites = 0
     for individual in elites:
         num_elites += 1
-        if individual.fitness.is_valid():
+        if score is not None:
+            qd_score += float(score(individual))
+        elif individual.fitness.is_valid():
             qd_score += individual.fitness.wvalues[0]
     coverage = num_elites / num_cells if num_cells else 0.0
     return ArchiveStats(

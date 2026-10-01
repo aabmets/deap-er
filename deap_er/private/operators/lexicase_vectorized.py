@@ -24,6 +24,7 @@ from .epsilon_lexicase_slack import (
     apply_epsilon_filter,
     apply_strict_filter,
     epsilon_mode_uses_pool_elite,
+    epsilon_mode_uses_pool_mad,
     slack_for_case,
 )
 
@@ -78,12 +79,22 @@ def lexicase_select_vectorized(
         if not math.isfinite(epsilon) or epsilon < 0:
             raise ValueError(f"epsilon must be a finite number >= 0, got {epsilon}")
     pool_elite = epsilon_mode_uses_pool_elite(mode)
+    # Population-MAD slack does not depend on the filter pool, so it is
+    # computed at most once per case per call instead of per selection.
+    slack_cache: dict[int, float] | None = None if epsilon_mode_uses_pool_mad(mode) else {}
     selected: list[Individual] = []
     for _ in range(sel_count):
         order = list(subset)
         rng.shuffle(order)
         active = _filter_cases(
-            len(individuals), matrix, order, fit_weights, mode, epsilon, pool_elite
+            len(individuals),
+            matrix,
+            order,
+            fit_weights,
+            mode,
+            epsilon,
+            pool_elite,
+            slack_cache,
         )
         survivors = numpy.flatnonzero(active)
         selected.append(_choice_from_survivors(individuals, survivors))
@@ -98,6 +109,7 @@ def _filter_cases(
     mode: LexicaseMode,
     epsilon: float | None,
     pool_elite: bool,
+    slack_cache: dict[int, float] | None,
 ) -> numpy.ndarray:
     active = numpy.ones(n_individuals, dtype=bool)
     for case in order:
@@ -108,7 +120,7 @@ def _filter_cases(
         if mode == "strict":
             active = apply_strict_filter(active, col, maximize)
         else:
-            slack = slack_for_case(col, active, mode, epsilon)
+            slack = _case_slack(col, active, mode, epsilon, case, slack_cache)
             active = apply_epsilon_filter(
                 active,
                 col,
@@ -117,3 +129,20 @@ def _filter_cases(
                 pool_elite=pool_elite,
             )
     return active
+
+
+def _case_slack(
+    col: numpy.ndarray,
+    active: numpy.ndarray,
+    mode: LexicaseMode,
+    epsilon: float | None,
+    case: int,
+    slack_cache: dict[int, float] | None,
+) -> float:
+    if slack_cache is None:
+        return slack_for_case(col, active, mode, epsilon)
+    slack = slack_cache.get(case)
+    if slack is None:
+        slack = slack_for_case(col, active, mode, epsilon)
+        slack_cache[case] = slack
+    return slack

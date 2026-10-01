@@ -118,8 +118,13 @@ def _valid_rows(
         return predicted_rows
     mask = numpy.asarray(valid, dtype=numpy.bool_)
     n_rows = predicted_rows[0].size
+    if mask.ndim == 2 and mask.shape == (len(predicted_rows), n_rows):
+        return [series[row_mask] for series, row_mask in zip(predicted_rows, mask, strict=True)]
     if mask.ndim != 1 or mask.size != n_rows:
-        raise ValueError(f"valid must be a boolean mask of length {n_rows}, got shape {mask.shape}")
+        raise ValueError(
+            f"valid must be a boolean mask of length {n_rows} or shape "
+            f"{(len(predicted_rows), n_rows)}, got shape {mask.shape}"
+        )
     return [series[mask] for series in predicted_rows]
 
 
@@ -189,10 +194,13 @@ def structural_meta_case_columns(
         predicted: Optional per-individual output series.
         columns: Subset of :data:`STRUCTURAL_META_CASES`. All columns
             are used when omitted.
-        valid: Optional boolean row mask of length ``n_rows``. When
-            given, ``non_finite_fraction`` counts only the ``True``
-            rows (for example the scored rows, leaving out warmup and
-            padding), and is ``nan`` when no row is ``True``.
+        valid: Optional boolean row mask of length ``n_rows``, shared
+            by every individual, or of shape ``(n_individuals, n_rows)``
+            with one mask per individual (for example when each program
+            has its own lookback). When given, ``non_finite_fraction``
+            counts only the ``True`` rows (for example the scored rows,
+            leaving out warmup and padding), and is ``nan`` for an
+            individual with no ``True`` row.
 
     Returns:
         Structural scalars with one row per individual.

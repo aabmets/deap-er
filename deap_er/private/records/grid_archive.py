@@ -10,7 +10,8 @@
 #
 from __future__ import annotations
 
-from collections.abc import Iterator, Sequence
+import math
+from collections.abc import Callable, Iterator, Sequence
 from typing import TYPE_CHECKING, Any
 
 from deap_er.private.records.archive_common import (
@@ -40,25 +41,37 @@ class GridArchive:
     individual. The archive bins descriptors into a uniform grid and
     keeps the best individual per cell according to ``fitness``.
 
-    ``fitness`` must be **single-objective** (one weight). Multi-objective
-    fitness types are rejected by :meth:`add`. ``stats.qd_score`` sums
-    the first weighted objective (:attr:`~deap_er.base.Fitness.wvalues`
-    element zero) across filled cells.
+    Without ``key``, ``fitness`` must be **single-objective** (one
+    weight). Multi-objective fitness types are rejected by :meth:`add`.
+    ``stats.qd_score`` sums the first weighted objective
+    (:attr:`~deap_er.base.Fitness.wvalues` element zero) across filled
+    cells. With ``key``, any number of objectives is accepted, the cell
+    elite is the one with the largest ``key`` value, and ``qd_score``
+    sums ``key`` over the elites.
 
     Args:
         ranges: ``(low, high)`` bounds per behavior dimension.
         bins: Resolution per dimension, or one integer for every
             dimension.
+        key: Optional scalariser mapping an individual to a float where
+            **larger is better** (negate a cost to minimise it). A
+            candidate replaces the cell elite only when its key value is
+            strictly larger; candidates with a non-finite key value are
+            not stored. The individual still needs a comparable fitness.
+            Defaults to None. A lambda key needs dill (as used by
+            ``Checkpoint``) to be pickled.
     """
 
     def __init__(
         self,
         ranges: Sequence[tuple[float, float]],
         bins: Sequence[int] | int,
+        key: Callable[[Any], float] | None = None,
     ) -> None:
         """See the class docstring."""
         self._ranges, self._bins, self._num_cells = parse_grid_config(ranges, bins)
         self._cells: dict[tuple[int, ...], Individual] = {}
+        self.key = key
 
     @property
     def dimensions(self) -> int:
@@ -79,11 +92,11 @@ class GridArchive:
     def stats(self) -> ArchiveStats:
         """Coverage and quality-diversity score of the archive.
 
-        ``qd_score`` is the sum of ``fitness.wvalues[0]`` over elites.
-        It is a MAP-Elites-style scalar quality total, not a sum across
-        multiple objectives.
+        ``qd_score`` is the sum of ``fitness.wvalues[0]`` over elites,
+        or of ``key`` when one is set. It is a MAP-Elites-style scalar
+        quality total, not a sum across multiple objectives.
         """
-        return make_archive_stats(self._cells.values(), self._num_cells)
+        return make_archive_stats(self._cells.values(), self._num_cells, self.key)
 
     def descriptor_to_index(self, descriptor: Sequence[float]) -> tuple[int, ...]:
         """Map a behavior descriptor to its grid cell.
@@ -129,12 +142,18 @@ class GridArchive:
 
         Raises:
             ValueError: If ``descriptor`` length does not match
-                ``dimensions``, or ``fitness`` is not single-objective.
+                ``dimensions``, or ``fitness`` is not single-objective
+                and no ``key`` is set.
         """
-        if not check_archive_add(individual, descriptor, self.dimensions, "GridArchive"):
+        scalar = self.key is not None
+        if not check_archive_add(
+            individual, descriptor, self.dimensions, "GridArchive", multi_objective=scalar
+        ):
+            return False
+        if self.key is not None and not math.isfinite(float(self.key(individual))):
             return False
         cell = self.descriptor_to_index(descriptor)
-        return replace_cell_if_better(self._cells, cell, individual)
+        return replace_cell_if_better(self._cells, cell, individual, self.key)
 
     def elite_at(self, descriptor: Sequence[float]) -> Individual | None:
         """Return the elite in the cell for ``descriptor``.
