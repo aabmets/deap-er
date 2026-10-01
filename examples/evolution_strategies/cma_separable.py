@@ -3,7 +3,7 @@ from deap_er import Fitness, Toolbox, creator, tools
 tools.rng.seed(1234)
 
 DIM = 100
-GENS = 250
+GENS = 300
 TARGET = 1e-6
 
 
