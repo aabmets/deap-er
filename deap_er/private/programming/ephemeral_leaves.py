@@ -139,6 +139,6 @@ def _replaced_leaf(node: Any, value: float) -> Any:
             repaired = min(int(high), repaired)
     else:
         repaired = float(value)
-    replacement.value = repaired
-    replacement.name = str(repaired)
+    object.__setattr__(replacement, "value", repaired)
+    object.__setattr__(replacement, "name", str(repaired))
     return replacement

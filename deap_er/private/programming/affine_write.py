@@ -134,7 +134,7 @@ def _scale_leaf(value: float, ret_type: type, template: type[Ephemeral] | None) 
     cls = template if template is not None else AffineEphemeral
     node = cls.__new__(cls)
     Terminal.__init__(node, float(value), symbolic=False, ret_type=ret_type)
-    node.name = repr(float(value))
+    object.__setattr__(node, "name", repr(float(value)))
     return node
 
 

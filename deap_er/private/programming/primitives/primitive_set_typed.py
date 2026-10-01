@@ -211,7 +211,9 @@ class PrimitiveSetTyped:
         """
         module_gp = globals()
         if name not in module_gp:
-            attrs = {"func": staticmethod(ephemeral), "ret": ret_type}
+            # Name the class where it is stored, so pickle can find it.
+            attrs: dict[str, Any] = {"func": staticmethod(ephemeral), "ret": ret_type}
+            attrs |= {"__module__": __name__, "__qualname__": name}
             class_ = type(name, (Ephemeral,), attrs)
             module_gp[name] = class_
         else:

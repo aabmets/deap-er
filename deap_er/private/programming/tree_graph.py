@@ -59,7 +59,10 @@ def static_limit(limiter: Callable[..., Any], max_value: int | float) -> Callabl
     """Return a decorator that rejects oversized GP offspring.
 
     May wrap crossover or mutation. An offspring whose measurement
-    exceeds ``max_value`` is replaced by a randomly chosen parent.
+    exceeds ``max_value`` is replaced by a clone of a randomly chosen
+    parent. The parents are the positional arguments of the same type
+    as the first one, so a primitive set or generator bound
+    positionally is neither cloned nor returned as a child.
 
     Args:
         limiter: Callable that measures an individual.
@@ -72,7 +75,8 @@ def static_limit(limiter: Callable[..., Any], max_value: int | float) -> Callabl
     def decorator(func: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> list[Any]:
-            keep_inds = [clone_individual(ind) for ind in args]
+            parents = [arg for arg in args if isinstance(arg, type(args[0]))]
+            keep_inds = [clone_individual(ind) for ind in parents]
             new_inds = list(func(*args, **kwargs))
             for i, ind in enumerate(new_inds):
                 if keep_inds and limiter(ind) > max_value:

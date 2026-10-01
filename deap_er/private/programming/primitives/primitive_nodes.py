@@ -15,11 +15,67 @@ from typing import Any, override
 
 __all__: list[str] = ["Terminal", "Ephemeral", "Primitive"]
 
+_UNBOUND = object()
 
-class Terminal:
+
+class _ReadOnlyNode:
+    """Mixin that makes node attributes write-once.
+
+    Nodes registered on a primitive set are shared by every tree over
+    that set, so rebinding an attribute on one tree's node would change
+    the set and every other tree. An attribute may be bound once, which
+    is what construction, copying, and unpickling do; rebinding it to
+    another object or deleting it raises ``AttributeError``.
+    """
+
+    __slots__ = ()
+
+    @override
+    def __setattr__(self, name: str, value: Any) -> None:
+        """Bind ``name`` once; refuse to rebind it."""
+        current = _bound_value(self, name)
+        if current is not _UNBOUND and current is not value:
+            raise AttributeError(_read_only_message(self, name))
+        object.__setattr__(self, name, value)
+
+    @override
+    def __delattr__(self, name: str) -> None:
+        """Refuse to delete a node attribute."""
+        raise AttributeError(_read_only_message(self, name))
+
+
+def _bound_value(node: object, name: str) -> Any:
+    """Return the value ``name`` holds on ``node`` itself, or ``_UNBOUND``.
+
+    Class attributes do not count: an ephemeral class carries ``ret``
+    as a class attribute that each instance binds once for itself.
+    """
+    instance_dict = getattr(node, "__dict__", {})
+    if name in instance_dict:
+        return instance_dict[name]
+    descriptor = getattr(type(node), name, None)
+    if not hasattr(descriptor, "__set__"):
+        return _UNBOUND
+    try:
+        return descriptor.__get__(node, type(node))
+    except AttributeError:
+        return _UNBOUND
+
+
+def _read_only_message(node: object, name: str) -> str:
+    """Return the error text for a refused attribute write."""
+    return (
+        f"{type(node).__name__}.{name} is read-only: GP nodes are shared by "
+        "the primitive set and every tree that holds them."
+    )
+
+
+class Terminal(_ReadOnlyNode):
     """Leaf node in a GP expression.
 
-    A terminal is a value or a zero-arity function.
+    A terminal is a value or a zero-arity function. Its attributes are
+    read-only once set, because the node is shared by the primitive
+    set and every tree that holds it.
 
     Args:
         terminal: Value or zero-arity function stored in the leaf.
@@ -95,10 +151,12 @@ class Ephemeral(Terminal, abc.ABC):
         raise NotImplementedError
 
 
-class Primitive:
+class Primitive(_ReadOnlyNode):
     """Function node in a GP expression.
 
     Formats as a Python call when given formatted child expressions.
+    Its attributes are read-only once set, because the node is shared
+    by the primitive set and every tree that holds it.
 
     Args:
         name: Name of the primitive.

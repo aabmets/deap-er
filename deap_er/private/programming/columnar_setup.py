@@ -18,6 +18,7 @@ import numpy
 from deap_er.private.various.case_errors import case_errors
 
 from .columnar import make_column_pset
+from .numpy.numpy_arith import DEFAULT_FILL
 from .numpy.numpy_ops import add_numpy_primitives
 from .primitives.primitive_set_typed import PrimitiveSetTyped
 from .tape import Tape
@@ -42,6 +43,7 @@ def columnar_pset(
     pair_windows: bool = False,
     ts: bool = False,
     ema: bool = True,
+    fill: float = DEFAULT_FILL,
 ) -> PrimitiveSetTyped:
     """Build a columnar primitive set with the usual kits registered.
 
@@ -64,6 +66,9 @@ def columnar_pset(
             ``ts_argmin``.
         ema: If False, leave out ``ema``, whose output has no finite
             lookback.
+        fill: Value the protected operations (``vdiv``, ``vlog``,
+            ``vsqrt``) substitute for a non-finite result computed
+            from finite operands. Passed to ``add_numpy_primitives``.
 
     Returns:
         A typed primitive set ready for ``register_gp``.
@@ -73,7 +78,7 @@ def columnar_pset(
             are invalid.
     """
     pset = make_column_pset(names, name=name)
-    add_numpy_primitives(pset)
+    add_numpy_primitives(pset, fill=fill)
     add_window_primitives(pset, ema=ema)
     if pair_windows:
         add_pair_window_primitives(pset)
