@@ -127,8 +127,10 @@ class PrimitiveTree(list[Any]):
             A tree populated with the deserialized primitives.
 
         Raises:
-            ProgramError: If the string is empty, if a token is not a
-                registered primitive and is not a Python literal, if a
+            ProgramError: If the string is empty, if its parentheses
+                and commas do not match the primitive arities, if a
+                token is not a registered primitive and is not a
+                Python literal, if a
                 primitive or terminal type does not match its slot (the
                 root's slot is ``prim_set.ret``), if a window length is
                 invalid, if a token arrives after the tree is complete,

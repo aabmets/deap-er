@@ -7,6 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- `PrimitiveTree.from_string` checks parentheses and commas against
+  each primitive's arity and raises `gp.ProgramError` on malformed
+  text it used to accept, such as `vadd(a, b))`, `vadd(a b)`, and
+  `(vadd(a, b))`. A zero-argument terminal can still be written
+  `name()` ([#140](https://github.com/aabmets/deap-er/pull/140))
+
+### Fixed
+
+- `compile_tree` on the default `python` backend raised
+  `SyntaxError: too many nested parentheses` for a tree nested more
+  than about 200 levels deep (about 100 under window primitives),
+  which `from_string` and `lower_tree` accept. Trees deeper than 64
+  levels now compile to a flat function; shallower trees compile as
+  before ([#140](https://github.com/aabmets/deap-er/pull/140))
+- `str()` of a malformed node list silently dropped nodes:
+  `[vadd, a]` printed `a`. It now raises `gp.ProgramError` for a
+  list that is missing arguments or holds nodes after its root
+  ([#140](https://github.com/aabmets/deap-er/pull/140))
+
 ## [3.1.5] - 2026-10-01
 
 Audit follow-up: GP nodes and parsing, the Numba backend, records,

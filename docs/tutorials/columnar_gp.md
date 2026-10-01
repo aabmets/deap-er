@@ -266,8 +266,8 @@ tree. Every compiled tape shares one process-wide workspace, so a
 
 To score a generation against one packed `(n_rows, n_columns)`
 matrix, lower unique trees and call `interpret_tapes`. Cache by
-`str(tree)` and lower the **tree object** —
-`PrimitiveTree.from_string` cannot round-trip a `Window` ephemeral.
+`str(tree)` and lower the **tree object**, which skips parsing the
+text again.
 
 ```python
 def evaluate_batch(individuals):
@@ -626,9 +626,6 @@ return tools.sel_lexicase(
 
 ## Limitations
 
-- `PrimitiveTree.from_string` cannot round-trip an ephemeral of a custom
-  type such as `Window`, because it parses the literal back as an `int`.
-  Checkpoint the trees themselves rather than their text.
 - `compile_adf_tree` runs on the default backend only.
 - The Numba backend shares one workspace across every compiled tape,
   so a `bind_tape` callable must not be run from several threads at

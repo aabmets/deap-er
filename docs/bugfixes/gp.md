@@ -1,7 +1,7 @@
 # Genetic programming
 
 Correctness fixes in crossover, mutation, HARM, typed primitive sets,
-and tree assignment.
+tree assignment, parsing, and compilation.
 
 ---
 
@@ -185,6 +185,49 @@ and reject a stream that still owes argument types.
 - `tests/test_programming/test_primitives/test_primitive_tree.py::test_from_string_rejects_an_extra_argument`
 - `tests/test_programming/test_primitives/test_primitive_tree.py::test_from_string_rejects_a_trailing_literal`
 - `tests/test_programming/test_primitives/test_primitive_tree.py::test_from_string_rejects_an_incomplete_call`
+
+---
+
+## `from_string` ignored punctuation and `str()` dropped nodes
+
+`from_string` split the text on `()` and `,` and threw them away,
+so only the token order mattered. `vadd(a, b))`, `vadd(a b)`, and
+`vadd a b` all parsed as `vadd(a, b)`. `__str__` returned the last
+completed fragment, so a node list missing arguments (`[vadd, a]`)
+printed `a`, and nodes after a complete root printed as the last
+of them. Same tokenizer and formatter as upstream DEAP.
+
+**Fix.** `from_string` walks the parentheses and commas against
+each primitive's arity; a zero-argument terminal may still be
+written `name()`. `__str__` raises `gp.ProgramError` for a node
+list that is not exactly one complete tree.
+
+**Validators.**
+
+- `tests/test_programming/test_primitives/test_primitive_tree.py::test_from_string_rejects_malformed_punctuation`
+- `tests/test_programming/test_primitives/test_primitive_tree.py::test_from_string_round_trips_a_zero_argument_call_terminal`
+- `tests/test_programming/test_primitives/test_primitive_tree.py::test_str_rejects_a_node_list_missing_arguments`
+- `tests/test_programming/test_primitives/test_primitive_tree.py::test_str_rejects_nodes_after_the_complete_root`
+
+---
+
+## The Python backend could not compile deep trees
+
+The default backend `eval`s one nested call expression. Python's
+tokenizer refuses more than 200 nested parentheses, and a window
+operand adds a second level per node, so a tree a little over 100
+levels deep raised a raw `SyntaxError: too many nested parentheses`.
+`from_string`, `lower_tree`, and the tape backends accept the same
+tree. Upstream DEAP documents a 90-level ceiling.
+
+**Fix.** A tree deeper than 64 levels compiles to a function that
+assigns each primitive call to a local in evaluation order and
+returns the root. Shallower trees keep the single expression.
+
+**Validators.**
+
+- `tests/test_programming/test_compilers.py::test_python_backend_compiles_a_tree_deeper_than_the_parser_limit`
+- `tests/test_programming/test_compilers.py::test_python_backend_evaluates_a_deep_tree_without_arguments`
 
 ---
 
