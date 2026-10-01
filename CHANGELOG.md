@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.5] - 2026-10-01
+
 Audit follow-up: GP nodes and parsing, the Numba backend, records,
 and CMA strategies
 ([#133](https://github.com/aabmets/deap-er/pull/133)–[#137](https://github.com/aabmets/deap-er/pull/137)).
@@ -630,7 +632,8 @@ commits that landed on that tag.
 - Hypervolume and least-contributed indicator
 - CMA strategy keyword arguments
 
-[Unreleased]: https://github.com/aabmets/deap-er/compare/3.1.4...HEAD
+[Unreleased]: https://github.com/aabmets/deap-er/compare/3.1.5...HEAD
+[3.1.5]: https://github.com/aabmets/deap-er/compare/3.1.4...3.1.5
 [3.1.4]: https://github.com/aabmets/deap-er/compare/3.1.3...3.1.4
 [3.1.3]: https://github.com/aabmets/deap-er/compare/3.1.2...3.1.3
 [3.1.2]: https://github.com/aabmets/deap-er/compare/3.1.1...3.1.2
