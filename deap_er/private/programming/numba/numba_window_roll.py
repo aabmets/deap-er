@@ -16,36 +16,52 @@ from .numba_window_scan import (
     EPSILON,
     add_compensated,
     row_offset,
-    scan_sums,
-    scan_variance,
-    variance_untrusted,
 )
+from .numba_window_std import std_window
 
-__all__: list[str] = ["roll_stats", "reduce_stats", "scan_total"]
+__all__: list[str] = ["roll_stats", "reduce_stats", "resync_sums"]
 
 
-def scan_total(  # pragma: no cover
-    stack: Any, row: int, begin: int, end: int, offset: float
-) -> tuple[float, float]:
-    """Rebuild one window's compensated sum of finite shifted samples.
+def resync_sums(  # pragma: no cover
+    stack: Any,
+    row: int,
+    t: int,
+    arg: int,
+    offset: float,
+    empty: bool,
+    sums: tuple[float, float, float, float],
+) -> tuple[float, float, float, float]:
+    """Keep the running sums from carrying rounding past a window.
+
+    A window with no finite sample has sums of exactly zero, so they
+    start over, which keeps an earlier symbol's rounding from leaking
+    past NaN padding. A total that overflowed is rescanned from the
+    window, so it comes back once the overflow has left.
 
     Args:
         stack: Column-length workspace.
         row: Stack row that holds the series.
-        begin: Inclusive start index.
-        end: Exclusive stop index.
+        t: Current sample index.
+        arg: Window length.
         offset: Shift subtracted from every sample.
+        empty: Whether the window holds no finite sample.
+        sums: ``total``, its compensation, ``squares``, and ``err_bound``.
 
     Returns:
-        The sum and its compensation term.
+        The resynced ``sums``.
     """
+    if empty:
+        return 0.0, 0.0, 0.0, 0.0
+    total, comp, squares, err_bound = sums
+    if math.isfinite(total + comp):
+        return sums
     total = 0.0
     comp = 0.0
-    for index in range(begin, end):
+    for index in range(max(t - arg + 1, 0), t + 1):
         value = float(stack[row, index]) - offset
         if math.isfinite(value):
             total, comp = add_compensated(total, comp, value)
-    return total, comp
+    return total, comp, squares, err_bound
 
 
 def absorb_stat(  # pragma: no cover
@@ -139,12 +155,11 @@ def roll_stats(  # pragma: no cover
     """Write a rolling sum, mean, or population standard deviation.
 
     Sums and means run on the raw samples with a compensated running
-    sum, which starts over whenever the window holds no finite sample.
-    A standard deviation runs on
-    samples shifted by ``row_offset``, and recenters the window on its
-    own mean whenever the running variance has lost too many digits.
-    A rebuild also takes its shift from the window it rebuilds, so a
-    series that wanders stays on the running path.
+    sum (see ``resync_sums``). A standard deviation runs on samples
+    shifted by ``row_offset``, and recenters the window on its own mean
+    whenever the running variance has lost too many digits. A rebuild
+    also takes its shift from the window it rebuilds, so a series that
+    wanders stays on the running path.
 
     Args:
         op: One of the rolling reduction opcodes.
@@ -173,12 +188,10 @@ def roll_stats(  # pragma: no cover
         counts, total, comp, squares, err_bound = absorb_stat(
             stack[sp - 1, t] - offset, 1, counts, total, comp, squares, err_bound
         )
-        if counts[0] + counts[1] + counts[2] == min(t + 1, arg):
-            # No finite sample is left, so the sums are exactly zero. This
-            # keeps an earlier symbol's rounding from leaking past padding.
-            total = comp = squares = err_bound = 0.0
-        if not math.isfinite(total + comp):
-            total, comp = scan_total(stack, sp - 1, max(t - arg + 1, 0), t + 1, offset)
+        empty = counts[0] + counts[1] + counts[2] == min(t + 1, arg)
+        total, comp, squares, err_bound = resync_sums(
+            stack, sp - 1, t, arg, offset, empty, (total, comp, squares, err_bound)
+        )
         if t + 1 < arg or counts[0] > 0:
             scratch[t] = math.nan
             continue
@@ -203,48 +216,3 @@ def roll_stats(  # pragma: no cover
         scratch[t] = reduce_stats(op, win_total, variance, arg)
     for t in range(rows):
         stack[sp - 1, t] = scratch[t]
-
-
-def std_window(  # pragma: no cover
-    stack: Any,
-    sp: int,
-    t: int,
-    arg: int,
-    win_total: float,
-    win_squares: float,
-    pos_inf: int,
-    neg_inf: int,
-    total: float,
-    squares: float,
-    err_bound: float,
-    offset: float,
-) -> tuple[float, float, float, float, float]:
-    """Rebuild a rolling standard-deviation window when the running path drifts.
-
-    Args:
-        stack: Column-length workspace.
-        sp: Current stack pointer.
-        t: Current sample index.
-        arg: Window length.
-        win_total: IEEE window sum.
-        win_squares: IEEE window sum of squares.
-        pos_inf: Count of ``+inf`` samples.
-        neg_inf: Count of ``-inf`` samples.
-        total: Finite-sample sum.
-        squares: Finite-sample sum of squares.
-        err_bound: Accumulated error bound on ``squares``.
-        offset: Current centering shift.
-
-    Returns:
-        Variance, offset, total, squares, and err_bound.
-    """
-    mean = win_total / arg
-    variance = win_squares / arg - mean * mean
-    if pos_inf > 0 or neg_inf > 0:
-        return scan_variance(stack, sp - 1, t - arg + 1, t + 1), offset, total, squares, err_bound
-    if math.isfinite(variance) and not variance_untrusted(variance, err_bound, arg):
-        return variance, offset, total, squares, err_bound
-    offset = row_offset(stack, sp - 1, t - arg + 1, t + 1)
-    total, squares = scan_sums(stack, sp - 1, t - arg + 1, t + 1, offset)
-    err_bound = EPSILON * squares
-    return scan_variance(stack, sp - 1, t - arg + 1, t + 1), offset, total, squares, err_bound
