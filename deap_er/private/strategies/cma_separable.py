@@ -118,9 +118,9 @@ class StrategySeparable(CmaCore):
         Args:
             population: Evaluated individuals from ``generate``.
         """
-        old_centroid, c_diff = shift_cma_centroid(self, population)
+        old_centroid, c_diff, samples = shift_cma_centroid(self, population)
         hsig = update_cma_paths(self, c_diff, c_diff / self.diag_d)
-        ar_tmp = numpy.asarray(population[0 : self.mu]) - old_centroid
+        ar_tmp = samples - old_centroid
         decay = (1 - hsig) * self.rank_one * self.cm_cum * (2 - self.cm_cum)
         keep = 1 - self.rank_one - self.rank_mu + decay
         self.big_c = (

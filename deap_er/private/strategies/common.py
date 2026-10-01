@@ -21,6 +21,8 @@ if TYPE_CHECKING:
 from deap_er.private.operators.bounds import broadcast_param
 from deap_er.private.various.rng import rng
 
+from .clip_samples import tag_raw_sample
+
 __all__: list[str] = [
     "sample_offspring",
     "step_size_multiplier",
@@ -131,8 +133,8 @@ def apply_box_bounds(
 ) -> numpy.ndarray:
     """Clip or resample ``vector`` into the optional box.
 
-    Both modes are constraint-handling approximations. A later CMA
-    update treats the repaired point as the sample.
+    Both modes are constraint-handling approximations. ``resample``
+    returns an in-box draw; ``clip`` returns the clipped point.
 
     Args:
         vector: Candidate sample.
@@ -170,6 +172,7 @@ def sample_offspring(
     up: NumOrSeq | None = None,
     bound_mode: str = "clip",
     resample_limit: int = 100,
+    keep_raw: bool = False,
 ) -> list[Individual]:
     """Sample individuals from a multivariate normal distribution.
 
@@ -191,6 +194,8 @@ def sample_offspring(
         up: Upper box bound. Optional.
         bound_mode: ``clip`` or ``resample`` when bounds are set.
         resample_limit: Failed redraws before clipping one sample.
+        keep_raw: If True, a clipped individual also stores its
+            unclipped draw for the CMA update (see ``raw_sample``).
 
     Returns:
         Newly sampled individuals.
@@ -203,11 +208,13 @@ def sample_offspring(
 
     bounds = bound_arrays(low, up, dim)
     if bounds is None or bound_mode == "clip":
-        arz = rng.standard_normal((lamb, dim))
-        arz = _map_z(arz)
-        if bounds is not None:
-            arz = numpy.clip(arz, bounds[0], bounds[1])
-        return list(map(ind_init, arz))
+        arz = _map_z(rng.standard_normal((lamb, dim)))
+        if bounds is None:
+            return list(map(ind_init, arz))
+        clipped = numpy.clip(arz, bounds[0], bounds[1])
+        if not keep_raw:
+            return list(map(ind_init, clipped))
+        return [tag_raw_sample(ind_init(c), raw, c) for c, raw in zip(clipped, arz, strict=True)]
 
     individuals = []
     for _ in range(lamb):
