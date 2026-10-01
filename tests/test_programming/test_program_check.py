@@ -176,3 +176,26 @@ def test_a_window_literal_stays_a_terminal_without_a_window_ephemeral():
 
     assert type(window) is gp.Terminal
     assert window.ret is gp.Window
+
+
+def _non_node_trees(pset):
+    vadd = pset.mapping["vadd"]
+    return [["vadd", "a", "b"], [1, 2], [[1]], [vadd, pset.mapping["a"], "b"]]
+
+
+@pytest.mark.parametrize("index", range(4))
+def test_str_of_a_tree_with_a_non_node_element_raises_program_error(index):
+    tree = gp.PrimitiveTree(_non_node_trees(_kit())[index])
+
+    with pytest.raises(gp.ProgramError, match="not Primitive or Terminal"):
+        str(tree)
+
+
+@pytest.mark.parametrize("backend", ["python", "opcode"])
+@pytest.mark.parametrize("index", range(4))
+def test_compile_tree_rejects_a_non_node_element_with_program_error(backend, index):
+    pset = _kit()
+    tree = gp.PrimitiveTree(_non_node_trees(pset)[index])
+
+    with pytest.raises(gp.ProgramError, match="not Primitive or Terminal"):
+        gp.compile_tree(tree, pset, backend=backend)

@@ -200,7 +200,10 @@ of them. Same tokenizer and formatter as upstream DEAP.
 **Fix.** `from_string` walks the parentheses and commas against
 each primitive's arity; a zero-argument terminal may still be
 written `name()`. `__str__` raises `gp.ProgramError` for a node
-list that is not exactly one complete tree.
+list that is not exactly one complete tree, or that holds an
+element other than a `Primitive` or `Terminal`. `compile_tree`
+rejects such an element with `gp.ProgramError` on every backend,
+instead of failing with `AttributeError` on its missing `arity`.
 
 **Validators.**
 
@@ -208,6 +211,8 @@ list that is not exactly one complete tree.
 - `tests/test_programming/test_primitives/test_primitive_tree.py::test_from_string_round_trips_a_zero_argument_call_terminal`
 - `tests/test_programming/test_primitives/test_primitive_tree.py::test_str_rejects_a_node_list_missing_arguments`
 - `tests/test_programming/test_primitives/test_primitive_tree.py::test_str_rejects_nodes_after_the_complete_root`
+- `tests/test_programming/test_program_check.py::test_str_of_a_tree_with_a_non_node_element_raises_program_error`
+- `tests/test_programming/test_program_check.py::test_compile_tree_rejects_a_non_node_element_with_program_error`
 
 ---
 

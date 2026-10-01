@@ -18,7 +18,7 @@ import numpy
 if TYPE_CHECKING:
     from deap_er.private.typedefs import Individual
 
-from .cma_guard import check_cma_state, snapshot_cma_state
+from .cma_guard import check_cma_state, restore_cma_state, snapshot_cma_state
 from .cma_params import (
     CmaCore,
     adapt_cma_sigma,
@@ -117,6 +117,8 @@ class Strategy(CmaCore):
             ValueError: If ``survivors`` is not in ``[1, offsprings]``.
             RuntimeError: If ``weights`` is not ``superlinear``,
                 ``linear``, or ``equal``.
+            FloatingPointError: If ``cm_init`` has no finite
+                eigendecomposition.
         """
         params, pinned = merge_hyperparams(self, kwargs, CMA_HYPERPARAMS)
         apply_cma_hyperparams(self, params, cap_survivors="survivors" not in kwargs)
@@ -164,8 +166,9 @@ class Strategy(CmaCore):
 
         Raises:
             FloatingPointError: If the update gives a non-finite state,
-                which happens once ``sigma`` collapses to zero. The
-                strategy is left as it was before the call.
+                which happens once ``sigma`` collapses to zero, or if
+                the new covariance cannot be decomposed. The strategy
+                is left as it was before the call.
         """
         snapshot = snapshot_cma_state(self)
         with numpy.errstate(divide="ignore", over="ignore", invalid="ignore"):
@@ -180,7 +183,11 @@ class Strategy(CmaCore):
             self.big_c = temp_1 * self.big_c + self.rank_one * temp_2 + self.rank_mu * temp_3
             adapt_cma_sigma(self)
         check_cma_state(self, snapshot)
-        self._decompose()
+        try:
+            self._decompose()
+        except FloatingPointError:
+            restore_cma_state(self, snapshot)
+            raise
         self.update_count += 1
 
     def _decompose(self) -> None:
@@ -190,14 +197,38 @@ class Strategy(CmaCore):
         covariance can give tiny negative eigenvalues, so eigenvalues
         are floored at ``1e-14`` times the largest one before the
         square root. ``cond`` is computed from the floored values.
+        Nothing is assigned unless the decomposition is finite.
+
+        Raises:
+            FloatingPointError: If ``eigh`` does not converge, or if
+                the eigenvalues, eigenvectors, or ``cond`` are not
+                finite.
         """
-        self.big_c = (self.big_c + self.big_c.T) / 2.0
-        eig_vals, eig_vecs = numpy.linalg.eigh(self.big_c)
-        indx = numpy.argsort(eig_vals)
-        eig_vals = eig_vals[indx]
-        floor = max(float(eig_vals[-1]) * 1e-14, numpy.finfo(float).tiny)
-        eig_vals = numpy.maximum(eig_vals, floor)
-        self.cond = float(eig_vals[-1] / eig_vals[0])
+        with numpy.errstate(over="ignore", invalid="ignore"):
+            big_c = self.big_c * 0.5 + self.big_c.T * 0.5
+            try:
+                eig_vals, eig_vecs = numpy.linalg.eigh(big_c)
+            except numpy.linalg.LinAlgError as error:
+                raise FloatingPointError(
+                    f"CMA-ES covariance decomposition failed: {error}."
+                ) from error
+            indx = numpy.argsort(eig_vals)
+            eig_vals = eig_vals[indx]
+            floor = max(float(eig_vals[-1]) * 1e-14, numpy.finfo(float).tiny)
+            eig_vals = numpy.maximum(eig_vals, floor)
+            cond = float(eig_vals[-1] / eig_vals[0])
+        if not (
+            numpy.isfinite(eig_vals).all()
+            and numpy.isfinite(eig_vecs).all()
+            and numpy.isfinite(cond)
+        ):
+            raise FloatingPointError(
+                "CMA-ES covariance decomposition gave a non-finite result; "
+                "the covariance is too large or ill-formed. Restart the "
+                "strategy with reset_state."
+            )
+        self.big_c = big_c
+        self.cond = cond
         self.diag_d = eig_vals**0.5
         self.big_b = eig_vecs[:, indx]
         self.big_bd = self.big_b * self.diag_d

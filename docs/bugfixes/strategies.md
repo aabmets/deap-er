@@ -202,17 +202,26 @@ geometrically. $\sigma^2$ underflows to $0$ near
 $\sigma \approx 1.4\times10^{-162}$, the rank-μ term divided by it,
 $C$ went NaN, and `eigh` raised "Eigenvalues did not converge" after
 the centroid, paths, $\sigma$, and $C$ were already overwritten.
-`StrategySeparable` silently went NaN. Same division and unguarded
-`eigh` as upstream DEAP.
+`StrategySeparable` silently went NaN. A finite $C$ with entries
+near $10^{308}$ decomposed to NaN or infinite eigenvalues without
+any error, and the next `generate` drew NaN individuals. Same
+division and unguarded `eigh` as upstream DEAP.
 
 **Fix.** Compute the rank-μ term from $(x_i - m)/\sigma$. Snapshot
 the state before `update`; if $\sigma$ is not positive and finite, or
 the centroid, paths, or $C$ are not finite afterwards, restore the
-snapshot and raise `FloatingPointError`. `RestartStrategy` ends that
-run and restarts.
+snapshot and raise `FloatingPointError`. The eigendecomposition runs
+under the same rollback: $C$ is symmetrized as $C/2 + C^T/2$, which
+cannot overflow, and if `eigh` does not converge or its result is
+not finite, nothing is assigned, the snapshot is restored,
+`update_count` is not incremented, and `FloatingPointError` is
+raised. `RestartStrategy` ends that run and restarts.
 
 **Validators.**
 
 - `tests/test_strategies/test_cma_sigma_collapse.py::test_update_stays_finite_after_sigma_squared_underflows`
 - `tests/test_strategies/test_cma_sigma_collapse.py::test_collapsed_sigma_raises_and_leaves_state_unchanged`
 - `tests/test_strategies/test_cma_sigma_collapse.py::test_restart_strategy_restarts_a_collapsed_run`
+- `tests/test_strategies/test_cma_sigma_collapse.py::test_update_rolls_back_when_the_covariance_overflows_its_decomposition`
+- `tests/test_strategies/test_cma_sigma_collapse.py::test_update_rolls_back_when_eigh_does_not_converge`
+- `tests/test_strategies/test_cma_sigma_collapse.py::test_restart_strategy_restarts_after_a_failed_decomposition`

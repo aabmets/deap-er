@@ -11,57 +11,35 @@
 import math
 from typing import Any
 
-from .numba_window_scan import (
-    EPSILON,
-    row_offset,
-    scan_sums,
-    scan_variance,
-    variance_untrusted,
-)
+from .numba_window_scan import scan_variance
 
-__all__: list[str] = ["std_window"]
+__all__: list[str] = ["roll_std"]
 
 
-def std_window(  # pragma: no cover
-    stack: Any,
-    sp: int,
-    t: int,
-    arg: int,
-    win_total: float,
-    win_squares: float,
-    pos_inf: int,
-    neg_inf: int,
-    total: float,
-    squares: float,
-    err_bound: float,
-    offset: float,
-) -> tuple[float, float, float, float, float]:
-    """Rebuild a rolling standard-deviation window when the running path drifts.
+def roll_std(  # pragma: no cover
+    rows: int, sp: int, stack: Any, scratch: Any, arg: int
+) -> None:
+    """Write a rolling population standard deviation.
+
+    Every window is centered on its own mean (see ``scan_variance``),
+    so an output depends only on the samples in its window, as on the
+    opcode backend. A window that holds a ``nan`` or an infinity is
+    ``nan``, and the first ``arg - 1`` samples are ``nan``.
 
     Args:
-        stack: Column-length workspace.
+        rows: Number of samples.
         sp: Current stack pointer.
-        t: Current sample index.
+        stack: Column-length workspace.
+        scratch: Spare row of ``rows`` values.
         arg: Window length.
-        win_total: IEEE window sum.
-        win_squares: IEEE window sum of squares.
-        pos_inf: Count of ``+inf`` samples.
-        neg_inf: Count of ``-inf`` samples.
-        total: Finite-sample sum.
-        squares: Finite-sample sum of squares.
-        err_bound: Accumulated error bound on ``squares``.
-        offset: Current centering shift.
-
-    Returns:
-        Variance, offset, total, squares, and err_bound.
     """
-    mean = win_total / arg
-    variance = win_squares / arg - mean * mean
-    if pos_inf > 0 or neg_inf > 0:
-        return scan_variance(stack, sp - 1, t - arg + 1, t + 1), offset, total, squares, err_bound
-    if math.isfinite(variance) and not variance_untrusted(variance, err_bound, arg):
-        return variance, offset, total, squares, err_bound
-    offset = row_offset(stack, sp - 1, t - arg + 1, t + 1)
-    total, squares = scan_sums(stack, sp - 1, t - arg + 1, t + 1, offset)
-    err_bound = EPSILON * squares
-    return scan_variance(stack, sp - 1, t - arg + 1, t + 1), offset, total, squares, err_bound
+    for t in range(rows):
+        if t + 1 < arg:
+            scratch[t] = math.nan
+            continue
+        variance = scan_variance(stack, sp - 1, t - arg + 1, t + 1)
+        if variance < 0.0:
+            variance = 0.0
+        scratch[t] = math.sqrt(variance)
+    for t in range(rows):
+        stack[sp - 1, t] = scratch[t]

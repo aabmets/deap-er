@@ -70,3 +70,15 @@ def test_windows_after_an_overflowing_window_match_the_python_oracle(name):
     series[20] = -1e308
     pset = window_kit(3, "unary")
     check_parity(window_tree(pset, name, "unary"), pset, (series,))
+
+
+def test_rolling_std_depends_only_on_the_samples_in_its_window():
+    # The same window must give the same bits whatever came before it.
+    series = numpy.cumsum(numpy.random.default_rng(7).normal(size=20_000)) + 100.0
+    pset = window_kit(48, "unary")
+    run = gp.compile_tree(window_tree(pset, "rolling_std", "unary"), pset, backend="numba")
+    start = 15_000
+
+    full = run(series, series, series)[start + 47 :]
+    tail = series[start:]
+    numpy.testing.assert_array_equal(full, run(tail, tail, tail)[47:])
