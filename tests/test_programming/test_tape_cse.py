@@ -8,11 +8,14 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+import itertools
+import weakref
+
 import numpy
 import pytest
 from deap_er import gp, tools
 from deap_er.private.programming import tape_cse
-from deap_er.private.programming.opcodes import apply_opcode
+from deap_er.private.programming.opcodes import apply_opcode, interpret_tape
 
 COLUMNS = ["first", "second", "third"]
 
@@ -150,30 +153,57 @@ def test_identical_full_tapes_share_one_root_node():
     assert plan.roots == (2, 2, 2)
 
 
-def testevaluate_cse_nodes_returns_one_slot_per_node_id():
+def test_identical_roots_each_get_their_row():
     matrix = _matrix(_samples())
-    plan = tape_cse.build_cse_plan([_tape_add_shared_mul(column) for column in COLUMNS])
-    values = tape_cse.evaluate_cse_nodes(plan.nodes, matrix)
-    assert len(values) == len(plan.nodes)
-    for node_id in range(len(plan.nodes)):
-        assert isinstance(values[node_id], numpy.ndarray)
-        assert values[node_id].shape == (matrix.shape[0],)
+    tape = _tape("vadd(first, second)")
+    actual = tape_cse.run_opcode_cse([tape, tape, tape], matrix)
+    expected = numpy.asarray(gp.interpret_tape(tape, matrix), dtype=numpy.float64)
+    for row in actual:
+        numpy.testing.assert_allclose(row, expected, equal_nan=True)
 
 
-def test_run_opcode_cse_requires_uncompacted_node_values(monkeypatch):
+def _track_live_columns(monkeypatch):
+    """Count the node columns still referenced each time a node is evaluated."""
+    produced: list[weakref.ref[numpy.ndarray]] = []
+    peak = {"live": 0}
+
+    def note_live():
+        live = sum(ref() is not None for ref in produced)
+        peak["live"] = max(peak["live"], live)
+
+    def tracked_interpret(tape, columns):
+        note_live()
+        value = interpret_tape(tape, columns)
+        if isinstance(value, numpy.ndarray):
+            produced.append(weakref.ref(value))
+        return value
+
+    def tracked_apply(stack, columns, tape, opcode, operand):
+        note_live()
+        apply_opcode(stack, columns, tape, opcode, operand)
+        produced.append(weakref.ref(stack[-1]))
+
+    monkeypatch.setattr(tape_cse, "interpret_tape", tracked_interpret)
+    monkeypatch.setattr(tape_cse, "apply_opcode", tracked_apply)
+    return peak
+
+
+def test_cse_frees_each_node_column_after_its_last_consumer(monkeypatch):
     matrix = _matrix(_samples())
-    tapes = [_tape_add_shared_mul("third")]
+    exprs = [
+        f"rolling_mean(vadd(first, rolling_mean(second, {inner})), {outer})"
+        for inner, outer in itertools.product(range(1, 5), range(1, 5))
+    ]
+    tapes = [_tape(expr) for expr in exprs]
     plan = tape_cse.build_cse_plan(tapes)
-    original = tape_cse.evaluate_cse_nodes
-
-    def legacy_compacting(nodes, matrix):
-        values = original(nodes, matrix)
-        return values[1:]
-
-    monkeypatch.setattr(tape_cse, "evaluate_cse_nodes", legacy_compacting)
-    with pytest.raises(IndexError):
-        tape_cse.run_opcode_cse(tapes, matrix)
-    assert plan.roots[0] == len(plan.nodes) - 1
+    assert len(plan.nodes) == 26
+    expected = numpy.stack([numpy.asarray(gp.interpret_tape(tape, matrix)) for tape in tapes])
+    peak = _track_live_columns(monkeypatch)
+    actual = tape_cse.run_opcode_cse(tapes, matrix)
+    numpy.testing.assert_array_equal(actual, expected)
+    # Only the two leaves, the vadd shared by four tapes and the
+    # current tape's stack may be live; keeping every node gives 25.
+    assert peak["live"] <= 4
 
 
 def _constant_kit():

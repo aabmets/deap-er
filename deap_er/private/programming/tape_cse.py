@@ -106,10 +106,7 @@ def run_opcode_cse(tapes: Sequence[Tape], matrix: numpy.ndarray) -> numpy.ndarra
     out = numpy.empty((len(tapes), rows), dtype=numpy.float64)
     if not tapes:
         return out
-    plan = build_cse_plan(tapes)
-    values = evaluate_cse_nodes(plan.nodes, matrix)
-    for index, root in enumerate(plan.roots):
-        out[index] = values[root]
+    evaluate_cse_nodes(build_cse_plan(tapes), matrix, out)
     return out
 
 
@@ -171,35 +168,59 @@ def _tape_depth(opcodes: list[int]) -> int:
     return depth
 
 
-def evaluate_cse_nodes(
-    nodes: tuple[CseNode, ...],
-    matrix: numpy.ndarray,
-) -> list[numpy.ndarray]:
+def evaluate_cse_nodes(plan: CsePlan, matrix: numpy.ndarray, out: numpy.ndarray) -> None:
     """Evaluate unique nodes bottom-up with the Python oracle.
 
-    Args:
-        nodes: Node table of a ``CsePlan``.
-        matrix: Packed ``(n_rows, n_columns)`` column table.
+    Node ids are already topological, because ``build_cse_plan`` interns
+    children before their parents. Each node's column is dropped after
+    its last consumer has run, and each root is copied into ``out`` as
+    soon as it exists. Peak memory therefore follows stack depth plus
+    the nodes still shared with later tapes, not the node count.
 
-    Returns:
-        One value per node id, aligned with ``nodes``.
+    Args:
+        plan: Plan built by ``build_cse_plan``.
+        matrix: Packed ``(n_rows, n_columns)`` column table.
+        out: ``(len(plan.roots), n_rows)`` array that receives one row
+            per root.
 
     Raises:
-        ValueError: If a node was left unevaluated.
+        ValueError: If a node is consumed before it was evaluated.
     """
-    values: list[numpy.ndarray | None] = [None] * len(nodes)
-    order = sorted(range(len(nodes)), key=lambda index: nodes[index].tape.opcodes.size)
-    for index in order:
-        node = nodes[index]
-        if not node.children:
-            values[index] = interpret_tape(node.tape, matrix)
-            continue
-        stack = [values[child] for child in node.children]
-        opcode = int(node.tape.opcodes[-1])
-        operand = int(node.tape.operands[-1])
-        apply_opcode(stack, matrix, node.tape, opcode, operand)
-        values[index] = numpy.asarray(stack[-1], dtype=numpy.float64)
-    for index, value in enumerate(values):
-        if value is None:
-            raise ValueError(f"CSE node {index} was not evaluated.")
-    return [numpy.asarray(value, dtype=numpy.float64) for value in values]
+    pending = [0] * len(plan.nodes)
+    for node in plan.nodes:
+        for child in node.children:
+            pending[child] += 1
+    rows_of: dict[int, list[int]] = {}
+    for index, root in enumerate(plan.roots):
+        rows_of.setdefault(root, []).append(index)
+    values: list[numpy.ndarray | None] = [None] * len(plan.nodes)
+    for node_id, node in enumerate(plan.nodes):
+        value = _evaluate_node(node_id, node, values, matrix)
+        for index in rows_of.get(node_id, ()):
+            out[index] = value
+        for child in node.children:
+            pending[child] -= 1
+            if pending[child] == 0:
+                values[child] = None
+        if pending[node_id]:
+            values[node_id] = value
+
+
+def _evaluate_node(
+    node_id: int,
+    node: CseNode,
+    values: list[numpy.ndarray | None],
+    matrix: numpy.ndarray,
+) -> numpy.ndarray:
+    """Evaluate one node from its children's live values."""
+    if not node.children:
+        return numpy.asarray(interpret_tape(node.tape, matrix), dtype=numpy.float64)
+    stack: list[Any] = []
+    for child in node.children:
+        if values[child] is None:
+            raise ValueError(f"CSE node {child} was not evaluated before node {node_id}.")
+        stack.append(values[child])
+    opcode = int(node.tape.opcodes[-1])
+    operand = int(node.tape.operands[-1])
+    apply_opcode(stack, matrix, node.tape, opcode, operand)
+    return numpy.asarray(stack[-1], dtype=numpy.float64)
