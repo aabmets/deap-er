@@ -7,6 +7,90 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Audit follow-up: GP nodes and parsing, the Numba backend, records,
+and CMA strategies
+([#133](https://github.com/aabmets/deap-er/pull/133)–[#137](https://github.com/aabmets/deap-er/pull/137)).
+The public names on `deap_er`, `tools`, and `gp` are unchanged;
+`gp.ProgramError` is new.
+
+### Added
+
+- `HallOfFame` and `GridArchive` take an optional `key=` scalariser
+  (larger is better), so a multi-objective individual can be ranked
+  by one scalar. A non-finite key value is not stored, and
+  `GridArchive` sums `key` into `qd_score`. `HallOfFame.from_json`
+  takes `key` as well; it is not serialized
+  ([#135](https://github.com/aabmets/deap-er/pull/135))
+- `structural_meta_case_columns` accepts a 2-D `valid` mask of shape
+  `(n_individuals, n_rows)`, one mask per individual. 1-D masks work
+  as before ([#135](https://github.com/aabmets/deap-er/pull/135))
+- `columnar_pset` takes `fill=` and forwards it to
+  `add_numpy_primitives` ([#133](https://github.com/aabmets/deap-er/pull/133))
+- `gp.ProgramError`, a subclass of both `ValueError` and `TypeError`,
+  for programs that are not valid for their primitive set
+  ([#137](https://github.com/aabmets/deap-er/pull/137))
+
+### Changed
+
+- GP nodes are read-only: rebinding or deleting an attribute of a
+  `Primitive`, `Terminal`, or `Ephemeral` raises `AttributeError`.
+  Nodes are shared by the primitive set and every tree that holds
+  them, so editing one tree's node used to change the set and every
+  other tree. Copy, deepcopy, pickle, dill, and `Checkpoint` still
+  work ([#133](https://github.com/aabmets/deap-er/pull/133))
+- GP raises `ProgramError` on programs it used to accept:
+  `PrimitiveTree.from_string` for every parse failure, including an
+  empty string, and for a root that does not return a subtype of
+  `prim_set.ret`; `compile_tree` for an empty expression; and
+  `compile_tree` and `lower_tree` for a leaf that does not fit its
+  argument slot. A window length must be an integer in
+  `[1, 2**31 - 1]` at parse, compile, and lowering time; `lower_tree`
+  raised `OverflowError` above that range. `ProgramError` subclasses
+  `ValueError` and `TypeError`, so existing `except` clauses keep
+  working ([#137](https://github.com/aabmets/deap-er/pull/137))
+- `from_string` restores a window literal as the set's window
+  ephemeral, and a number whose type does not fit its slot as that
+  slot's ephemeral, so `mut_ephemeral` and `tune_ephemerals` can resample it.
+  A literal at the root takes `prim_set.ret` as its type
+  ([#137](https://github.com/aabmets/deap-er/pull/137))
+- ε-lexicase computes each case's MAD slack once per call in the
+  non-dynamic epsilon modes instead of once per selection; the picks
+  are identical ([#135](https://github.com/aabmets/deap-er/pull/135))
+
+### Fixed
+
+- `backend="numba"` ran serial batches of builtin-only tapes on the
+  NumPy CSE plan of the opcode backend and compiled nothing. Every
+  Numba batch, serial or parallel, now runs the compiled kernel.
+  **Numeric output of serial Numba evaluation changes** by about
+  `1e-9` relative on short series and about `1e-8` over `1e5` rows;
+  NaN patterns are identical. The tolerance between the Numba serial,
+  parallel, and opcode paths is documented on `interpret_tapes` and
+  `run_tapes` ([#134](https://github.com/aabmets/deap-er/pull/134))
+- A `NUMBA_CACHE_DIR` set after numba was imported was ignored; it is
+  now picked up ([#134](https://github.com/aabmets/deap-er/pull/134))
+- `Strategy` could take the square root of a tiny negative
+  eigenvalue of a singular or nearly singular covariance, giving NaN
+  in `diag_d` and a negative `cond`. It now symmetrizes the matrix
+  and floors the eigenvalues at `1e-14` times the largest one
+  ([#136](https://github.com/aabmets/deap-er/pull/136))
+- With `bound_mode="clip"`, `Strategy` and `StrategySeparable`
+  updated the mean and covariance from the clipped point, which
+  zeroed the variance across box faces and drove the state
+  non-finite on corner optima. They still evaluate the clipped point,
+  but learn from the unclipped draw and clip the new centroid into
+  the box. **Seeded trajectories with `bound_mode="clip"` change**
+  ([#136](https://github.com/aabmets/deap-er/pull/136))
+- `static_limit` deep-copied every positional argument as a
+  candidate parent, so a primitive set or generator bound
+  positionally could be returned as a child. It now clones only the
+  positional arguments of the first argument's type
+  ([#133](https://github.com/aabmets/deap-er/pull/133))
+- A tree holding an ephemeral or a window ephemeral from
+  `add_ephemeral_constant` could not be pickled with the standard
+  library; the generated class now names the module that stores it
+  ([#133](https://github.com/aabmets/deap-er/pull/133))
+
 ## [3.1.4] - 2026-09-28
 
 Bug-hunt release: records, variation, algorithms, strategies and

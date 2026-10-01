@@ -173,6 +173,12 @@
     no longer grows a duplicate column.
 39. `HallOfFame` rejects a negative `maxsize` with `ValueError`
     instead of silently archiving one member.
+40. `HallOfFame` and `GridArchive` take an optional `key=`
+    scalariser (larger is better), so a multi-objective individual
+    can be ranked by one scalar. A non-finite key value is not
+    stored, `GridArchive` sums `key` into `qd_score`, and
+    `HallOfFame.from_json` takes the same `key`. DEAP ranks the hall
+    of fame only lexicographically by the fitness weights.
 
 [deap-25]: https://github.com/DEAP/deap/issues/25
 [deap-121]: https://github.com/DEAP/deap/issues/121
