@@ -65,6 +65,7 @@ def _place_emigrants(
     incoming_filled: list[int],
     replacement: Callable[..., Any] | None,
 ) -> None:
+    moved: list[tuple[int, int, int, Individual]] = []
     for from_deme, to_deme in enumerate(mig_indices):
         dest = populations[to_deme]
         for offset, (indx, immigrant) in enumerate(
@@ -75,7 +76,17 @@ def _place_emigrants(
                 mover = clone_individual(immigrant)
             else:
                 mover = immigrant
+                moved.append((from_deme, to_deme, indx, mover))
             dest[indx] = mover
+    # A source deme can hold one object in several slots, for example after
+    # a selection with replacement. Only the emigrant's own slot is refilled,
+    # so a mover still present at home is cloned to keep each deme distinct.
+    for from_deme, to_deme, indx, mover in moved:
+        dest = populations[to_deme]
+        if from_deme == to_deme or dest[indx] is not mover:
+            continue
+        if any(member is mover for member in populations[from_deme]):
+            dest[indx] = clone_individual(mover)
 
 
 def _mig_edge_emigrants(
@@ -187,7 +198,8 @@ def mig_ring(
     vacancies, or a deme is smaller than ``mig_count``, only as
     many individuals as both sides can hold are moved. Deme
     lengths are unchanged. When ``replacement`` is omitted, an
-    emigrant whose home vacancy is not filled is cloned so the
+    emigrant whose home vacancy is not filled, or which still
+    occupies another slot of its home deme, is cloned so the
     same object is not left in two demes. A duplicate emigrant
     already present in the destination is cloned so two dest
     slots do not share one object. Populations are modified

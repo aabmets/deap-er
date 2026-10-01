@@ -209,6 +209,21 @@ def test_mig_ring_replacement_does_not_alias_across_demes(ind_cls):
     assert [member[0] for member in demes[0]] == source_before
 
 
+def test_mig_ring_home_duplicate_emigrant_is_cloned(ind_cls):
+    # REC-1: a selection with replacement can put one object in several home
+    # slots. Only one slot is refilled, so the mover must leave as a clone.
+    demes = _demes(ind_cls, nbr_demes=2, size=4)
+    best = demes[0][3]
+    demes[0][2] = best
+
+    tools.mig_ring(demes, 1, tools.sel_best)
+
+    home = {id(member) for member in demes[0]}
+    assert all(id(member) not in home for member in demes[1])
+    assert any(member is best for member in demes[0])
+    assert [member[0] for member in demes[1]].count(3) == 1
+
+
 def test_mig_ring_no_demes_is_noop():
     populations: list[list[Individual]] = []
     tools.mig_ring(populations, 1, tools.sel_best)

@@ -20,6 +20,7 @@ __all__: list[str] = [
     "apply_strict_filter",
     "epsilon_mode_uses_pool_elite",
     "epsilon_mode_uses_pool_mad",
+    "rank_non_finite_worst",
     "slack_for_case",
 ]
 
@@ -43,7 +44,33 @@ def epsilon_mode_uses_pool_elite(mode: LexicaseMode) -> bool:
     return mode in ("epsilon_semi", "epsilon_dynamic", "epsilon_fixed")
 
 
+def rank_non_finite_worst(
+    matrix: numpy.ndarray,
+    fit_weights: tuple[float, ...],
+) -> numpy.ndarray:
+    """Replace every non-finite case value with the worst value for its case.
+
+    NaN and ``±inf`` become ``+inf`` on minimized cases and ``-inf`` on
+    maximized ones, so they never pass a case that a finite value passes.
+
+    Args:
+        matrix: ``(n_individuals, n_cases)`` case matrix.
+        fit_weights: Per-column maximize/minimize signs.
+
+    Returns:
+        ``matrix`` itself when every value is finite, otherwise a copy.
+    """
+    finite = numpy.isfinite(matrix)
+    if finite.all():
+        return matrix
+    worst = numpy.where(numpy.asarray(fit_weights, dtype=float) > 0, -numpy.inf, numpy.inf)
+    return numpy.where(finite, matrix, worst)
+
+
 def _mad(vals: numpy.ndarray) -> float:
+    vals = vals[numpy.isfinite(vals)]
+    if vals.size == 0:
+        return 0.0
     median = float(numpy.median(vals))
     return float(numpy.median(numpy.abs(vals - median)))
 
@@ -63,7 +90,8 @@ def slack_for_case(
         epsilon: Fixed slack when ``mode`` is ``epsilon_fixed``.
 
     Returns:
-        Slack around the elite error for this case.
+        Slack around the elite error for this case. The MAD ignores
+        non-finite values and is ``0.0`` when none are finite.
 
     Raises:
         ValueError: If ``epsilon`` is missing for ``epsilon_fixed``.

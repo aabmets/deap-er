@@ -55,6 +55,10 @@ def mut_uniform(
 def mut_node_replacement(individual: GPIndividual, prim_set: PrimitiveSetTyped) -> GPMutant:
     """Replace a random node with a compatible node from ``prim_set``.
 
+    Every node, the root included, can be drawn. A terminal is replaced
+    by a terminal of the same type, and a primitive by one with the same
+    signature, so the tree stays type-valid.
+
     Args:
         individual: GP tree to mutate.
         prim_set: Primitive set to sample the replacement from.
@@ -62,10 +66,10 @@ def mut_node_replacement(individual: GPIndividual, prim_set: PrimitiveSetTyped) 
     Returns:
         A one-element tuple containing the mutated individual.
     """
-    if len(individual) < 2:
+    if len(individual) == 0:
         return (individual,)
 
-    index = rng.randrange(1, len(individual))
+    index = rng.randrange(len(individual))
     node = individual[index]
 
     if node.arity == 0:
@@ -190,6 +194,11 @@ def mut_insert(individual: GPIndividual, prim_set: PrimitiveSetTyped) -> GPMutan
 def mut_shrink(individual: GPIndividual) -> GPMutant:
     """Replace a random branch with one of its arguments.
 
+    Every primitive with an argument of its own return type, the root
+    included, can be drawn. The tree is unchanged when there is none,
+    or when it has fewer than three nodes or a height of one, so a
+    program never shrinks to a lone terminal.
+
     Args:
         individual: GP tree to mutate.
 
@@ -200,7 +209,7 @@ def mut_shrink(individual: GPIndividual) -> GPMutant:
         return (individual,)
 
     i_prims = []
-    for i, node in enumerate(individual[1:], 1):
+    for i, node in enumerate(individual):
         if isinstance(node, Primitive) and node.ret in node.args:
             i_prims.append((i, node))
 

@@ -25,6 +25,7 @@ from .epsilon_lexicase_slack import (
     apply_strict_filter,
     epsilon_mode_uses_pool_elite,
     epsilon_mode_uses_pool_mad,
+    rank_non_finite_worst,
     slack_for_case,
 )
 
@@ -52,6 +53,9 @@ def lexicase_select_vectorized(
 ) -> list[Individual]:
     """Select individuals by vectorized lexicase filtering.
 
+    Non-finite case values (NaN and ``±inf``) rank worst on their case,
+    so they never pass a case that a finite value passes.
+
     Args:
         individuals: Individuals to select from.
         sel_count: Number of individuals to select.
@@ -78,10 +82,18 @@ def lexicase_select_vectorized(
             raise ValueError("epsilon must be set for epsilon_fixed mode")
         if not math.isfinite(epsilon) or epsilon < 0:
             raise ValueError(f"epsilon must be a finite number >= 0, got {epsilon}")
+    matrix = rank_non_finite_worst(matrix, fit_weights)
     pool_elite = epsilon_mode_uses_pool_elite(mode)
+    pool_mad = epsilon_mode_uses_pool_mad(mode)
     # Population-MAD slack does not depend on the filter pool, so it is
     # computed at most once per case per call instead of per selection.
-    slack_cache: dict[int, float] | None = None if epsilon_mode_uses_pool_mad(mode) else {}
+    slack_cache: dict[int, float] | None = None if pool_mad else {}
+    # With a population MAD and a population elite, whether an individual
+    # passes a case is fixed for the whole call, so each pass mask is built
+    # once per case and reused by every selection.
+    pass_cache: dict[int, numpy.ndarray] | None = (
+        {} if mode != "strict" and not pool_mad and not pool_elite else None
+    )
     selected: list[Individual] = []
     for _ in range(sel_count):
         order = list(subset)
@@ -95,6 +107,7 @@ def lexicase_select_vectorized(
             epsilon,
             pool_elite,
             slack_cache,
+            pass_cache,
         )
         survivors = numpy.flatnonzero(active)
         selected.append(_choice_from_survivors(individuals, survivors))
@@ -110,6 +123,7 @@ def _filter_cases(
     epsilon: float | None,
     pool_elite: bool,
     slack_cache: dict[int, float] | None,
+    pass_cache: dict[int, numpy.ndarray] | None,
 ) -> numpy.ndarray:
     active = numpy.ones(n_individuals, dtype=bool)
     for case in order:
@@ -119,6 +133,15 @@ def _filter_cases(
         maximize = fit_weights[case] > 0
         if mode == "strict":
             active = apply_strict_filter(active, col, maximize)
+        elif pass_cache is not None:
+            passes = pass_cache.get(case)
+            if passes is None:
+                slack = _case_slack(col, active, mode, epsilon, case, slack_cache)
+                everyone = numpy.ones(n_individuals, dtype=bool)
+                passes = apply_epsilon_filter(everyone, col, maximize, slack, pool_elite=False)
+                pass_cache[case] = passes
+            survivors = numpy.logical_and(active, passes)
+            active = survivors if survivors.any() else active
         else:
             slack = _case_slack(col, active, mode, epsilon, case, slack_cache)
             active = apply_epsilon_filter(

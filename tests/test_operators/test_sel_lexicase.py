@@ -95,27 +95,21 @@ def test_lexicase_float_case_index_raises_index_error(multi_obj, make):
         tools.sel_lexicase(population, 1, cases=bad_cases)
 
 
-def test_lexicase_unevaluated_fitness_random_draw(single_obj):
-    """Unevaluated individuals (zero cases) draw from the pool without error."""
-    ind = single_obj([0])
-    population = [ind]
+@pytest.mark.parametrize("select", [tools.sel_lexicase, tools.sel_epsilon_lexicase])
+def test_lexicase_all_unevaluated_population_raises(single_obj, select):
+    # OP-3: an all-unevaluated population used to pick uniformly at random.
+    population = [single_obj([i]) for i in range(5)]
 
-    tools.rng.seed(7)
-    chosen = tools.sel_lexicase(population, 3)
-
-    assert len(chosen) == 3
-    assert all(item is ind for item in chosen)
+    with pytest.raises(ValueError, match="valid fitness"):
+        select(population, 3)
 
 
-def test_epsilon_lexicase_unevaluated_fitness_random_draw(single_obj):
-    ind = single_obj([0])
-    population = [ind]
+@pytest.mark.parametrize("select", [tools.sel_lexicase, tools.sel_epsilon_lexicase])
+def test_lexicase_unevaluated_first_individual_raises(single_obj, make, select):
+    population = [single_obj([0]), make(single_obj, [1], (1.0,))]
 
-    tools.rng.seed(7)
-    chosen = tools.sel_epsilon_lexicase(population, 3)
-
-    assert len(chosen) == 3
-    assert all(item is ind for item in chosen)
+    with pytest.raises(ValueError, match="valid fitness"):
+        select(population, 3)
 
 
 def test_lexicase_empty_pool_with_positive_sel_count_raises_index_error():
