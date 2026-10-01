@@ -22,6 +22,7 @@ from .epsilon_lexicase_slack import LexicaseMode
 from .lexicase_vectorized import lexicase_select_vectorized
 from .sel_lexicase_matrix import (
     case_subset,
+    require_evaluated,
     require_population,
     resolve_case_matrix,
     resolve_case_weights,
@@ -75,11 +76,15 @@ def sel_lexicase(
     Raises:
         IndexError: If the population is empty or a case index is
             outside the fitness length.
-        ValueError: If ``matrix`` shape or values do not match fitness.
+        ValueError: If any fitness is not valid while ``matrix`` is
+            omitted or untrusted, or ``matrix`` shape or values do not
+            match fitness.
     """
     if sel_count <= 0:
         return []
     require_population(individuals)
+    if matrix is None or not trust_matrix:
+        require_evaluated(individuals)
     packed = resolve_case_matrix(individuals, matrix, trust_matrix=trust_matrix)
     n_cases = int(packed.shape[1])
     subset = case_subset(individuals, cases, n_cases=n_cases)
@@ -141,12 +146,15 @@ def sel_epsilon_lexicase(
     Raises:
         IndexError: If the population is empty or a case index is
             outside the fitness length.
-        ValueError: If ``matrix`` shape or values do not match fitness,
-            or ``epsilon`` is negative or not finite.
+        ValueError: If any fitness is not valid while ``matrix`` is
+            omitted or untrusted, ``matrix`` shape or values do not
+            match fitness, or ``epsilon`` is negative or not finite.
     """
     if sel_count <= 0:
         return []
     require_population(individuals)
+    if matrix is None or not trust_matrix:
+        require_evaluated(individuals)
     packed = resolve_case_matrix(individuals, matrix, trust_matrix=trust_matrix)
     n_cases = int(packed.shape[1])
     subset = case_subset(individuals, cases, n_cases=n_cases)

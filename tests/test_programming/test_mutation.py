@@ -171,3 +171,30 @@ def test_mut_ephemeral_modes(ind_cls):
     assert len(unchanged) == 1
     with pytest.raises(ValueError, match="Mode must be"):
         gp.mut_ephemeral(tree, mode="neither")
+
+
+def test_mut_node_replacement_can_replace_the_root(ind_cls):
+    # OP-2: the root was never drawn, so a lone root primitive could not change.
+    pset = _untyped_pset()
+    roots = set()
+    for seed in range(40):
+        tools.rng.seed(seed)
+        tree = ind_cls(gp.PrimitiveTree.from_string("add(ARG0, ARG0)", pset))
+        (mutant,) = gp.mut_node_replacement(tree, pset)
+        roots.add(mutant[0].name)
+
+    assert roots == {"add", "mul"}
+
+
+def test_mut_shrink_can_shrink_the_root(ind_cls):
+    # OP-2: only non-root branches were candidates, so the outer wrapper stayed.
+    pset = _untyped_pset()
+    pset.add_primitive(operator.neg, 1)
+    results = set()
+    for seed in range(40):
+        tools.rng.seed(seed)
+        tree = ind_cls(gp.PrimitiveTree.from_string("neg(add(ARG0, ARG0))", pset))
+        (mutant,) = gp.mut_shrink(tree)
+        results.add(str(mutant))
+
+    assert results == {"neg(ARG0)", "add(ARG0, ARG0)"}
