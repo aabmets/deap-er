@@ -15,9 +15,8 @@ from collections.abc import Iterator
 from pathlib import Path
 from typing import Any, override
 
-import dill
-
 from .checkpoint_read import CheckpointError, read_checkpoint
+from .checkpoint_write import serialize_state, write_atomic
 from .records.hall_of_fame import HallOfFame
 from .various.rng import rng
 
@@ -131,15 +130,19 @@ class Checkpoint:
     def save(self) -> bool:
         """Write this instance's attributes to the checkpoint file.
 
-        Overwrites an existing file. Creates parent directories when
-        ``make_dir`` is True.
+        Overwrites an existing file through a uniquely named staging
+        file that is fsynced before the rename, so concurrent writers
+        and power loss never leave a torn checkpoint. Creates parent
+        directories when ``make_dir`` is True.
 
         Returns:
             True on success, False on failure when ``raise_errors`` is False.
 
         Raises:
             OSError: If the file cannot be written and ``raise_errors`` is True.
-            dill.PickleError: If serialization fails and ``raise_errors`` is True.
+            Exception: Whatever serialization raises (for example
+                ``dill.PickleError``, ``ValueError``, or ``RecursionError``)
+                when ``raise_errors`` is True.
         """
         try:
             self._rng_state_ = rng.get_state()
@@ -152,16 +155,10 @@ class Checkpoint:
             if self._hof_ind_cls_ is not None and isinstance(hof, HallOfFame):
                 _dict_["_hof_json_"] = hof.to_json()
                 del _dict_["hof"]
-            tmp_path = self.file_path.with_name(self.file_path.name + ".tmp")
-            with open(tmp_path, "wb") as f:
-                # nosemgrep: python.lang.security.deserialization.pickle.avoid-dill
-                dill.dump(_dict_, f)
-            os.replace(tmp_path, self.file_path)
-        except (OSError, dill.PickleError, EOFError, TypeError) as ex:
-            tmp_path = self.file_path.with_name(self.file_path.name + ".tmp")
-            tmp_path.unlink(missing_ok=True)
+            write_atomic(self.file_path, serialize_state(_dict_))
+        except Exception:
             if self.raise_errors:
-                raise ex
+                raise
             self._last_op_ = "save_error"
             return False
         self._last_op_ = "save_success"
