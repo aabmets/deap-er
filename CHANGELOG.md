@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.6] - 2026-10-01
+
 ### Changed
 
 - `PrimitiveTree.from_string` checks parentheses and commas against
@@ -653,7 +655,8 @@ commits that landed on that tag.
 - Hypervolume and least-contributed indicator
 - CMA strategy keyword arguments
 
-[Unreleased]: https://github.com/aabmets/deap-er/compare/3.1.5...HEAD
+[Unreleased]: https://github.com/aabmets/deap-er/compare/3.1.6...HEAD
+[3.1.6]: https://github.com/aabmets/deap-er/compare/3.1.5...3.1.6
 [3.1.5]: https://github.com/aabmets/deap-er/compare/3.1.4...3.1.5
 [3.1.4]: https://github.com/aabmets/deap-er/compare/3.1.3...3.1.4
 [3.1.3]: https://github.com/aabmets/deap-er/compare/3.1.2...3.1.3
