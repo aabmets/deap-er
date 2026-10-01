@@ -153,7 +153,9 @@ with multiprocessing.Pool(initializer=init_worker) as pool:
 
 Pass the same `dispatch` kernel to `warmup_numba(dispatch=...)` when
 the primitive set uses consumer opcodes. Give consumer kernels
-`cache=True` so workers reload them from disk as well.
+`cache=True` so workers reload them from disk as well. The builtin
+interpreter loads from the cache, but each consumer kernel binds its
+own interpreter, which every worker compiles once.
 
 ## Evaluating a whole generation at once
 

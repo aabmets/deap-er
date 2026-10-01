@@ -192,3 +192,27 @@ $\mu=\min(4,3)=3$. MO-CMA already passed
 
 - `tests/test_strategies/test_restart_edges.py::test_partial_batch_resizes_offspring_count`
 - `tests/test_strategies/test_restart_ops.py::test_resize_offsprings_keeps_survivors_on_standard_cma`
+
+---
+
+## `Strategy.update` raised `LinAlgError` after $\sigma^2$ underflowed
+
+With clip bounds and a corner optimum, $\sigma$ shrinks
+geometrically. $\sigma^2$ underflows to $0$ near
+$\sigma \approx 1.4\times10^{-162}$, the rank-μ term divided by it,
+$C$ went NaN, and `eigh` raised "Eigenvalues did not converge" after
+the centroid, paths, $\sigma$, and $C$ were already overwritten.
+`StrategySeparable` silently went NaN. Same division and unguarded
+`eigh` as upstream DEAP.
+
+**Fix.** Compute the rank-μ term from $(x_i - m)/\sigma$. Snapshot
+the state before `update`; if $\sigma$ is not positive and finite, or
+the centroid, paths, or $C$ are not finite afterwards, restore the
+snapshot and raise `FloatingPointError`. `RestartStrategy` ends that
+run and restarts.
+
+**Validators.**
+
+- `tests/test_strategies/test_cma_sigma_collapse.py::test_update_stays_finite_after_sigma_squared_underflows`
+- `tests/test_strategies/test_cma_sigma_collapse.py::test_collapsed_sigma_raises_and_leaves_state_unchanged`
+- `tests/test_strategies/test_cma_sigma_collapse.py::test_restart_strategy_restarts_a_collapsed_run`

@@ -7,6 +7,119 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+Genie-usage bug hunt: 16 fixes in the Numba backend, opcode CSE, GP
+checks and ephemerals, checkpoints, operators, and CMA strategies
+([#141](https://github.com/aabmets/deap-er/pull/141)–[#146](https://github.com/aabmets/deap-er/pull/146)).
+The public names on `deap_er`, `tools`, and `gp` are unchanged.
+
+### Changed
+
+- **Numba `rolling_sum` and `rolling_mean` results change.** On
+  `backend="numba"` they now use compensated summation that resets
+  when the window holds no finite sample, so every series changes in
+  its low digits, and a series that held a large value or followed
+  another packed symbol changes by a lot (see Fixed). `rolling_std`
+  changes slightly as well, because its running total is compensated
+  too ([#146](https://github.com/aabmets/deap-er/pull/146))
+- `mut_node_replacement` and `mut_shrink` can now pick the root. Node
+  replacement swaps the root for a primitive of the same signature,
+  or a lone terminal for another terminal of its type; shrink can drop
+  the outermost primitive. `mut_shrink` still leaves trees of fewer
+  than three nodes or height one alone. **Seeded GP runs that use
+  either mutation change** ([#144](https://github.com/aabmets/deap-er/pull/144))
+- **Lexicase picks change when a case holds NaN or `±inf`.**
+  `sel_lexicase`, `sel_epsilon_lexicase`, and
+  `sel_batch_epsilon_lexicase` rank a non-finite case value as the
+  worst value for that case, so it never passes a case that a finite
+  value passes, and the ε-lexicase MAD is taken over the finite values
+  only ([#144](https://github.com/aabmets/deap-er/pull/144))
+- The three lexicase selectors raise `ValueError` when any individual
+  is unevaluated, the first one included. A pool where every
+  individual was unevaluated used to return uniform random picks
+  ([#144](https://github.com/aabmets/deap-er/pull/144))
+- `Strategy.update` and `StrategySeparable.update` raise
+  `FloatingPointError` when sigma collapses to zero or the state
+  turns non-finite, and restore the state they had before the call.
+  `RestartStrategy` treats that as the end of a run and restarts
+  ([#145](https://github.com/aabmets/deap-er/pull/145))
+- CMA hyperparameters given to a constructor, `compute_params`, or
+  `reset_state` stay pinned until a later call overrides them, as
+  bounds already did, and are listed on `strategy.hyperparams`.
+  `reset_state`, every IPOP/BIPOP restart, and every leftover-budget
+  resize used to reset the ones a call did not repeat, such as
+  `weights=` and the rank and cumulation rates, to their defaults.
+  **Restarted runs with custom hyperparameters change**
+  ([#145](https://github.com/aabmets/deap-er/pull/145))
+- `Checkpoint.save` pickles with the standard C pickler and falls back
+  to dill only for state the C pickler refuses (lambdas, local
+  functions) or that references `__main__`. Saving is about 15-19x
+  faster on large populations; `load` reads both
+  ([#141](https://github.com/aabmets/deap-er/pull/141))
+- `interpret_tapes(backend="opcode")` frees each common-subexpression
+  column after its last consumer has run instead of holding every
+  unique node until the batch ends. A 32-tape batch over 200k rows
+  peaks at 97 MB instead of 447 MB; results are bit-identical
+  ([#142](https://github.com/aabmets/deap-er/pull/142))
+- Static and automatic ε-lexicase build each case's pass mask once per
+  call instead of once per selection; the picks under a seed are
+  identical ([#144](https://github.com/aabmets/deap-er/pull/144))
+
+### Fixed
+
+- Numba `rolling_sum` and `rolling_mean` kept one running total over
+  the whole packed matrix and never rebuilt it, so one large value
+  corrupted every later window, and the error carried through the
+  NaN padding into the next packed symbols. They now match the
+  python and opcode backends window by window, and a symbol packed
+  after padding at least one window long gives the same values as
+  that symbol alone. `rolling_std` no longer stays NaN for the rest of
+  a series after one window overflows
+  ([#146](https://github.com/aabmets/deap-er/pull/146))
+- The Numba interpreter missed its disk cache in every new process,
+  recompiling for about 2.5 s and adding about 260 KB to the cache
+  each time. The interpreter and the builtin batch kernels now load
+  from the cache, and a consumer `dispatch` kernel binds its own
+  uncached interpreter once per process
+  ([#146](https://github.com/aabmets/deap-er/pull/146))
+- Serial `interpret_tapes(backend="numba")` shared one process-wide
+  workspace, so calls from several threads at once returned wrong
+  numbers without an error. Each call now allocates its own
+  workspace ([#146](https://github.com/aabmets/deap-er/pull/146))
+- `PrimitiveTree.from_string` raised `OverflowError` instead of
+  `gp.ProgramError` for a window literal too large to convert to a
+  float, such as a 400-digit integer
+  ([#143](https://github.com/aabmets/deap-er/pull/143))
+- A pickled tree holding an ephemeral from `add_ephemeral_constant`
+  could only be loaded after a primitive set had registered that
+  ephemeral, which failed in a fresh worker or on resume. The
+  ephemeral now pickles its name, return type, and sampler and
+  rebuilds its class on load. Pickles written by 3.1.6 still load
+  once the ephemeral is registered, as before
+  ([#143](https://github.com/aabmets/deap-er/pull/143))
+- `Checkpoint.save` staged every writer under the same `.tmp` name
+  and never fsynced, so two writers could publish a torn file and a
+  power loss could leave an empty one. Each save now writes a
+  uniquely named staging file, fsyncs it, replaces the target, and
+  fsyncs the directory ([#141](https://github.com/aabmets/deap-er/pull/141))
+- `Checkpoint.save` let a `ValueError` from `__reduce__` or a
+  `RecursionError` escape `raise_errors=False` and left the `.tmp`
+  file behind. Any exception while saving is now a save error, and
+  the staging file is always removed
+  ([#141](https://github.com/aabmets/deap-er/pull/141))
+- `Strategy.update` divided the rank-μ term by `sigma**2`, which
+  underflows to zero long before sigma does, and then raised a raw
+  `LinAlgError` from `eigh` with the strategy half-updated. The term
+  is now computed from `(samples - centroid) / sigma`, and a real
+  collapse raises `FloatingPointError` as described under Changed.
+  `StrategySeparable` silently went NaN in the same case
+  ([#145](https://github.com/aabmets/deap-er/pull/145))
+- `mig_ring` with `replacement=None` moved an emigrant by reference
+  but refilled only one of its home slots, so a deme that held the
+  same object twice ended up sharing it with the next deme, and
+  `step_islands(eval_keys=...)` scored it with the wrong deme's
+  fitness. A mover still present at home is now cloned
+  ([#144](https://github.com/aabmets/deap-er/pull/144))
+
 ## [3.1.6] - 2026-10-01
 
 ### Changed

@@ -1,8 +1,13 @@
 # Persistence
 
-1. `Checkpoint.save` writes a sibling `.tmp` file and replaces the
-   destination. A dump that fails part-way through does not truncate
-   the last good checkpoint.
+1. `Checkpoint.save` writes a uniquely named sibling staging file,
+   fsyncs it, replaces the destination, and fsyncs the directory. A
+   dump that fails part-way through does not truncate the last good
+   checkpoint, two writers of one file cannot publish a torn
+   checkpoint, and any exception while saving is a save error that
+   removes the staging file. State is pickled with the C pickler
+   first and with dill only when that fails or references
+   `__main__`.
 2. `Checkpoint.load` restores the constructor's `file_path`,
    `raise_errors`, and `make_dir` after unpickling, so moving a
    checkpoint file does not send the next save back to the old path.

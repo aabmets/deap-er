@@ -118,13 +118,14 @@ def interpret_tapes(
     The ``'opcode'`` backend unpacks the matrix columns once and runs
     the NumPy stack machine with common-subexpression elimination
     across the batch. The ``'numba'`` backend runs a compiled per-tape
-    loop, serial or, with ``parallel=True``, one workspace per thread.
+    loop on a workspace of its own, serial or, with ``parallel=True``,
+    one workspace per thread, so several threads can call it at once.
     ``parallel=True`` is not available on the opcode backend. The
     backends round differently: NaN patterns match, but values agree
-    to about ``rtol=1e-9`` and ``atol=1e-12`` on short series, and
-    running window sums let the gap grow with the row count (about
-    ``1e-8`` relative over ``1e5`` rows). The serial and parallel
-    Numba paths agree to the same tolerance or better.
+    to about ``rtol=1e-9`` and ``atol=1e-12`` on unit-scale data.
+    Numba window sums and means use compensated summation, so the gap
+    does not grow with the row count. The serial and parallel Numba
+    paths agree to the same tolerance or better.
 
     Args:
         tapes: Tapes produced by ``lower_tree``, in the order of the

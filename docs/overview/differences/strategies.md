@@ -27,7 +27,11 @@
 5. `RestartStrategy` wraps standard, separable, $(1+\lambda)$, or
    MO-CMA with IPOP or BIPOP restart scheduling. `ea_generate_update_restarts`
    runs the generate/update loop and logs restart regime, population
-   size, and evaluation budget each generation.
+   size, and evaluation budget each generation. Hyperparameters given
+   to the constructor, `compute_params`, or `reset_state` stay pinned
+   across restarts and leftover-budget resizes until a later call
+   overrides them; only what depends on $\lambda$ and is not pinned
+   is re-derived.
 6. `sample_centroid` replaces a non-finite box end with the
    unbounded default $[-5, 5]$, so a one-sided bound no longer
    writes `inf` or `NaN` as an IPOP/BIPOP restart mean.
@@ -69,5 +73,14 @@
     singular or nearly singular covariance no longer gives a tiny
     negative eigenvalue, so `diag_d` is not NaN and `cond` is not
     negative. DEAP took the square root of the raw `eigh` output.
+15. `Strategy.update` computes the rank-μ term from
+    $(x_i - m)/\sigma$, so it stays finite after $\sigma^2$
+    underflows. When $\sigma$ really collapses, or the state turns
+    non-finite, `update` restores the state it had before the call
+    and raises `FloatingPointError`, and `RestartStrategy` restarts
+    the run; `StrategySeparable` does the same instead of going NaN.
+    DEAP divided by `sigma ** 2` and called `eigh` on the resulting
+    non-finite $C$, which raised a raw `LinAlgError` with the
+    strategy half-updated.
 
 [deap-500]: https://github.com/DEAP/deap/issues/500

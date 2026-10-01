@@ -220,6 +220,24 @@ from the original sources.
     point takes the population worst instead (Blank, Deb and Roy,
     2019), so a flat axis is not normalized by a near-zero gap.
     `sel_age_moea_2` shares the correction.
+44. `mig_ring` with `replacement=None` clones an emigrant that is
+    still present in its source deme, so a deme holding the same
+    object twice does not end up sharing it with the next deme, and
+    `step_islands(eval_keys=...)` cannot score it with the wrong
+    deme's fitness. DEAP's `migRing` moved the emigrant by reference
+    and replaced only one home slot.
+45. `sel_lexicase`, `sel_epsilon_lexicase`, and
+    `sel_batch_epsilon_lexicase` rank a NaN or `±inf` case value as
+    the worst value for its case, and the ε-lexicase MAD is taken
+    over finite values only. One NaN, or `inf` in most of a case,
+    used to empty the pool and turn selection uniformly random. DEAP's
+    `selLexicase`, `selEpsilonLexicase`, and
+    `selAutomaticEpsilonLexicase` emptied the pool the same way and
+    raised `IndexError` from `random.choice`.
+46. The lexicase selectors raise `ValueError` when any individual is
+    unevaluated, the first one included. DEAP read the case count
+    from the first individual, so a pool with no valid fitness had
+    no cases and was picked uniformly at random.
 
 [deap-321]: https://github.com/DEAP/deap/issues/321
 [deap-472]: https://github.com/DEAP/deap/issues/472

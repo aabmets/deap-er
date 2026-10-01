@@ -231,6 +231,27 @@ returns the root. Shallower trees keep the single expression.
 
 ---
 
+## `mut_node_replacement` and `mut_shrink` never touched the root
+
+`mut_node_replacement` drew its index from
+`randrange(1, len(individual))`, and `mut_shrink` collected
+candidates from `individual[1:]`. Neither docstring said the root was
+excluded, and replacing it with a primitive of the same signature, or
+shrinking it to a same-typed argument, is always type-safe. A program
+whose only primitive is the root could never have its operator
+changed. Same draws as upstream DEAP.
+
+**Fix.** Draw from every index in `mut_node_replacement`, and let
+index 0 be a `mut_shrink` candidate. The small-tree guard of
+`mut_shrink` stays, so a program never shrinks to a lone terminal.
+
+**Validators.**
+
+- `tests/test_programming/test_mutation.py::test_mut_node_replacement_can_replace_the_root`
+- `tests/test_programming/test_mutation.py::test_mut_shrink_can_shrink_the_root`
+
+---
+
 ## HARM `natural_histogram` wrapped `hist[-1]` at size 0
 
 A size-0 tree (`PrimitiveTree([])`) is valid.

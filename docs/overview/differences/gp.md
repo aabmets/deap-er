@@ -80,8 +80,11 @@ The following is extra.
 19. `interpret_tapes` scores many tapes against one packed
     `(rows, columns)` matrix and returns `(n_individuals, n_rows)`.
     The opcode path unpacks columns once. The Numba path is a
-    compiled loop; `parallel=True` gives each thread its own
-    workspace. Unique programs are compiled once by `str(tree)`
+    compiled loop; each serial call allocates its own workspace, so
+    several threads can call it at once, and `parallel=True` gives
+    each thread its own workspace. The interpreter and the builtin
+    batch kernels load from Numba's disk cache in later processes.
+    Unique programs are compiled once by `str(tree)`
     and lowered from the tree object. `tape_lookback` returns
     the program's causal bound; `suffix_rescore` writes a
     dirty suffix onto a cached prefix so the series matches
@@ -121,7 +124,9 @@ The following is extra.
     text, and a stringified windowed tree round-trips. The literal
     restores as the set's window ephemeral, so `mut_ephemeral` can
     resample it. Window lengths must be integers in
-    $[1, 2^{31} - 1]$ at parse, compile, and lowering time.
+    $[1, 2^{31} - 1]$ at parse, compile, and lowering time; a literal
+    too large for a float raises `gp.ProgramError`, not
+    `OverflowError`.
 26. `PrimitiveTree.from_string` rejects extra tokens and incomplete
     calls. `add(ARG0, 2, 3)` and `add(ARG0)` no longer stringify
     as a leftover leaf and compile as the constant $3$ or the
@@ -149,11 +154,17 @@ The following is extra.
 29. On the opcode backend, `interpret_tapes` hash-conses postfix
     subexpressions across a batch and evaluates each unique
     sub-tape once against the packed matrix. Shared suffixes are
-    stitched from one oracle result per node. The return shape,
-    warmup ``nan`` contract, and per-tape ``fill`` semantics are
-    unchanged. The Numba backend runs every batch, serial or
-    parallel, on its compiled per-tape kernel; NaN patterns match
-    the opcode backend and values agree to about `rtol=1e-9`. See
+    stitched from one oracle result per node, and each node's column
+    is freed after its last consumer has run, so peak memory follows
+    the stack depth rather than the number of unique nodes. The
+    return shape, warmup ``nan`` contract, and per-tape ``fill``
+    semantics are unchanged. The Numba backend runs every batch,
+    serial or parallel, on its compiled per-tape kernel; NaN
+    patterns match the opcode backend and values agree to about
+    `rtol=1e-9`. Its rolling sums and means use compensated
+    summation that resets when a window holds no finite sample, so
+    the gap does not grow with the row count and one packed symbol
+    does not leak into the next. See
     the [columnar GP tutorial](../../tutorials/columnar_gp.md).
 30. HARM `natural_histogram` does not wrap `hist[-1]` when a
     tree has size $0$. The left-neighbor bin is updated only
@@ -220,6 +231,13 @@ The following is extra.
     documented a 90-level ceiling; current Python raised a raw
     `SyntaxError` for a tree that `from_string` and `lower_tree`
     accept.
+40. `mut_node_replacement` and `mut_shrink` can pick the root. Node
+    replacement swaps it for a primitive with the same signature, and
+    shrink can drop the outermost primitive in favour of a same-typed
+    argument; both stay type-valid. DEAP drew from
+    `randrange(1, len(individual))` and skipped index 0 when
+    shrinking, so a program whose only primitive is the root could
+    never have its operator changed by node replacement.
 
 The columnar contract is in the
 [columnar GP tutorial](../../tutorials/columnar_gp.md). The private
