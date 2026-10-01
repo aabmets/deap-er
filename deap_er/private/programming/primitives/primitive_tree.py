@@ -10,81 +10,18 @@
 #
 from __future__ import annotations
 
-import ast
 import copy
 import re
 from collections import deque
 from collections.abc import Iterable
-from typing import Any, cast, override
+from typing import Any, override
 
-from ..columnar import Window
-from .primitive_nodes import Primitive, Terminal
+from .primitive_nodes import Primitive
 from .primitive_set_typed import PrimitiveSetTyped
+from .primitive_tokens import Slot, primitive_from_token, terminal_from_token
+from .program_check import ProgramError
 
-__all__: list[str] = ["primitive_from_token", "terminal_from_token", "PrimitiveTree"]
-
-
-def primitive_from_token(
-    token: str, prim_set: PrimitiveSetTyped, ret_type: type | None
-) -> Primitive | Terminal:
-    """Resolve a token that is registered on ``prim_set``.
-
-    Args:
-        token: Primitive or terminal name.
-        prim_set: Primitive set used to resolve names.
-        ret_type: Expected return type, or None at the root.
-
-    Returns:
-        The registered primitive or terminal.
-
-    Raises:
-        TypeError: If the return type does not match ``ret_type``.
-    """
-    primitive = cast(Primitive | Terminal, prim_set.mapping[token])
-    if ret_type is not None and not issubclass(primitive.ret, ret_type):
-        raise TypeError(
-            f"Primitive {primitive} return type {primitive.ret} "
-            f"does not match the expected one: {ret_type}."
-        )
-    return primitive
-
-
-def terminal_from_token(token: str, ret_type: type | None) -> Terminal:
-    """Parse an unregistered token as a Python literal terminal.
-
-    A ``Window`` slot accepts a Python ``int`` literal. ``Window`` is a
-    type tag whose runtime value is ``int``, and ``str(tree)`` writes
-    those leaves as integers.
-
-    Args:
-        token: Literal text from the expression.
-        ret_type: Expected type, or None to take the literal's type.
-
-    Returns:
-        A terminal wrapping the evaluated literal.
-
-    Raises:
-        TypeError: If the token is not a Python literal, or if its
-            type does not match ``ret_type``.
-    """
-    try:
-        value = ast.literal_eval(token)
-    except (ValueError, SyntaxError) as err:
-        raise TypeError(f"Unable to evaluate terminal: {token}.") from err
-    if ret_type is None:
-        ret_type = type(value)
-    if not _literal_matches(value, ret_type):
-        raise TypeError(
-            f"Terminal {value} type {type(value)} does not match the expected one: {ret_type}."
-        )
-    return Terminal(value, False, ret_type)
-
-
-def _literal_matches(value: Any, ret_type: type) -> bool:
-    """Return whether a parsed literal may occupy ``ret_type``."""
-    if ret_type is Window:
-        return type(value) is int
-    return issubclass(type(value), ret_type)
+__all__: list[str] = ["PrimitiveTree"]
 
 
 class PrimitiveTree(list[Any]):
@@ -167,7 +104,10 @@ class PrimitiveTree(list[Any]):
         """Build a tree from a Python expression string.
 
         ``prim_set`` must contain every primitive that appears in
-        ``string``.
+        ``string``. The root must return a subtype of ``prim_set.ret``.
+        A ``Window`` slot takes an ``int`` literal in ``[1, WINDOW_MAX]``.
+        When the set has an ephemeral for a slot, a number in that slot
+        restores as that ephemeral; see ``terminal_from_token``.
 
         Args:
             string: Python expression to deserialize.
@@ -177,31 +117,35 @@ class PrimitiveTree(list[Any]):
             A tree populated with the deserialized primitives.
 
         Raises:
-            TypeError: If a token is not a registered primitive
-                and is not a Python literal, if a primitive or
-                terminal type does not match the expected type, if
-                a token arrives after the tree is complete, or if
-                the stream still owes argument types. A ``Window``
-                slot accepts an ``int`` literal.
+            ProgramError: If the string is empty, if a token is not a
+                registered primitive and is not a Python literal, if a
+                primitive or terminal type does not match its slot (the
+                root's slot is ``prim_set.ret``), if a window length is
+                invalid, if a token arrives after the tree is complete,
+                or if the stream still owes argument types.
+                ``ProgramError`` subclasses ``ValueError`` and
+                ``TypeError``.
         """
         tokens = re.split("[ \t\n\r\f\v(),]", string)
         expr = []
-        ret_types = deque()
+        slots: deque[Slot] = deque([(prim_set.ret, None)])
         for token in tokens:
             if token == "":
                 continue
-            if expr and not ret_types:
-                raise TypeError(f"Unexpected extra token after a complete expression: {token}.")
-            ret_type = ret_types.popleft() if ret_types else None
+            if not slots:
+                raise ProgramError(f"Unexpected extra token after a complete expression: {token}.")
+            slot = slots.popleft()
             if token in prim_set.mapping:
-                primitive = primitive_from_token(token, prim_set, ret_type)
+                primitive = primitive_from_token(token, prim_set, slot)
                 expr.append(primitive)
                 if isinstance(primitive, Primitive):
-                    ret_types.extendleft(reversed(primitive.args))
+                    slots.extendleft((arg, primitive.name) for arg in reversed(primitive.args))
                 continue
-            expr.append(terminal_from_token(token, ret_type))
-        if ret_types:
-            raise TypeError("Expression is incomplete; missing arguments.")
+            expr.append(terminal_from_token(token, prim_set, slot))
+        if not expr:
+            raise ProgramError("An empty string is not a program.")
+        if slots:
+            raise ProgramError("Expression is incomplete; missing arguments.")
         return cls(expr)
 
     def search_subtree(self, begin: int) -> slice:

@@ -23,6 +23,7 @@ from .numba.numba_ops import bind_tape
 from .opcodes import USER_BASE, interpret_tape, lower_tree
 from .primitives.primitive_nodes import Primitive
 from .primitives.primitive_set_typed import PrimitiveSetTyped
+from .primitives.program_check import ProgramError, check_program
 from .python_source import compile_python
 from .tree_graph import build_tree_graph, static_limit
 
@@ -92,21 +93,29 @@ def _compile_tape(
     return runner
 
 
-def _reject_unknown_primitive(expr: GPExprTypes, prim_set: PrimitiveSetTyped) -> None:
-    """Raise if a tree node names a primitive missing from ``context``.
+def _reject_invalid_program(expr: GPExprTypes, prim_set: PrimitiveSetTyped) -> None:
+    """Raise if ``expr`` is empty, or if a tree does not fit ``prim_set``.
 
     Args:
         expr: Expression about to be compiled.
         prim_set: Primitive set that must own every primitive name.
 
     Raises:
+        ProgramError: If ``expr`` is empty, or if a leaf of a tree does
+            not fit its slot.
         NameError: If a primitive is not registered on the set.
     """
     if isinstance(expr, str):
+        if not expr.strip():
+            raise ProgramError("An empty expression cannot be compiled.")
         return
-    for node in expr:
+    nodes = list(expr)
+    if not nodes:
+        raise ProgramError("An empty expression cannot be compiled.")
+    for node in nodes:
         if isinstance(node, Primitive) and node.name not in prim_set.context:
             raise NameError(f"The primitive '{node.name}' is not registered on the primitive set.")
+    check_program(nodes, prim_set)
 
 
 def compile_tree(
@@ -147,6 +156,10 @@ def compile_tree(
         MemoryError: If evaluation exceeds the recursion limit.
         NameError: If ``expr`` holds a primitive missing from
             ``prim_set.context``.
+        ProgramError: If ``expr`` is empty, if a leaf does not fit its
+            argument slot, or if a window length is not an integer in
+            ``[1, WINDOW_MAX]`` (see ``check_program``). It subclasses
+            ``ValueError``.
         ValueError: If the backend is unknown, or if a tape backend
             cannot lower the expression.
     """
@@ -159,7 +172,7 @@ def compile_tree(
     if cached is not None:
         return cached
 
-    _reject_unknown_primitive(expr, prim_set)
+    _reject_invalid_program(expr, prim_set)
     if backend == "python":
         compiled = compile_python(expr, prim_set)
     elif backend in ("opcode", "numba"):
