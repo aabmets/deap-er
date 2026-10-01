@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from numbers import Real
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy
 
@@ -25,6 +25,7 @@ from .opcode_set import OPCODES_ARITY, USER_BASE, Opcode
 from .primitives.primitive_nodes import Primitive
 from .primitives.primitive_set_typed import PrimitiveSetTyped
 from .primitives.primitive_tree import PrimitiveTree
+from .primitives.program_check import ProgramError, check_program, check_window
 from .promote_lower import expand_promoted
 from .tape import Tape, opcode_of
 
@@ -76,8 +77,8 @@ def immediate_windows(
         indices that must not be pushed onto the stack.
 
     Raises:
-        ValueError: If a window argument is not a leaf, or if its value
-            is not a positive integer.
+        ProgramError: If a window argument is not a leaf, or if its
+            value is not an integer in ``[1, WINDOW_MAX]``.
     """
     windows: dict[int, int] = {}
     folded: set[int] = set()
@@ -94,17 +95,17 @@ def immediate_windows(
 
 
 def _window_length(node: Primitive, child: Any, prim_set: PrimitiveSetTyped) -> int:
-    """Return the positive integer held by the window leaf ``child``."""
-    value = getattr(child, "value", None)
-    if isinstance(value, str):
-        value = prim_set.context.get(value)
-    positive = isinstance(value, Real) and float(value).is_integer() and value >= 1
-    if child.arity != 0 or not positive:
-        raise ValueError(
+    """Return the window length held by the window leaf ``child``."""
+    if child.arity != 0:
+        raise ProgramError(
             f"The window argument of '{node.name}' must be a leaf holding a "
             f"positive integer, so that it can be lowered to an immediate operand."
         )
-    return int(value)
+    value = getattr(child, "value", None)
+    if isinstance(value, str):
+        value = prim_set.context.get(value)
+    check_window(node.name, value)
+    return int(cast(int, value))
 
 
 def postfix_order(children: list[list[int]], folded: set[int]) -> list[int]:
@@ -189,23 +190,27 @@ def lower_tree(
         The lowered tape.
 
     Raises:
-        ValueError: If a primitive has no opcode, if a window argument
-            is not a positive integer leaf, if a terminal is neither a column
-            nor a number, or if the tree is empty, holds unreachable
-            nodes, or does not balance the evaluation stack.
+        ProgramError: If the tree is empty, if a leaf does not fit its
+            slot (see ``check_program``), if a window argument is not a
+            leaf holding an integer in ``[1, WINDOW_MAX]``, or if the
+            tree holds unreachable nodes or does not balance the
+            evaluation stack. ``ProgramError`` subclasses ``ValueError``.
+        ValueError: If a primitive has no opcode, or if a terminal is
+            neither a column nor a number.
     """
     if isinstance(expr, str):
         expr = PrimitiveTree.from_string(expr, prim_set)
     nodes = list(expr)
     if not nodes:
-        raise ValueError("An empty expression cannot be lowered.")
+        raise ProgramError("An empty expression cannot be lowered.")
+    check_program(nodes, prim_set)
     nodes = expand_promoted(nodes, prim_set)
 
     children = child_indices(nodes)
     windows, folded = immediate_windows(nodes, children, prim_set)
     order = postfix_order(children, folded)
     if len(order) + len(folded) != len(nodes):
-        raise ValueError("The expression holds nodes that are not reachable from the root.")
+        raise ProgramError("The expression holds nodes that are not reachable from the root.")
 
     opcodes: list[int] = []
     operands: list[int] = []
@@ -227,13 +232,13 @@ def lower_tree(
             # kernel takes every argument from the stack.
             pointer -= OPCODES_ARITY.get(opcode, node.arity) - 1
         if pointer < 1:
-            raise ValueError("The expression is malformed and underflows the evaluation stack.")
+            raise ProgramError("The expression is malformed and underflows the evaluation stack.")
         depth = max(depth, pointer)
         opcodes.append(opcode)
         operands.append(operand)
 
     if pointer != 1:
-        raise ValueError("The expression is malformed and leaves more than one result.")
+        raise ProgramError("The expression is malformed and leaves more than one result.")
 
     return Tape(
         opcodes=numpy.array(opcodes, dtype=numpy.int32),

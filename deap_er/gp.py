@@ -87,6 +87,7 @@ from .private.programming.primitives.primitive_nodes import Ephemeral, Primitive
 from .private.programming.primitives.primitive_set import PrimitiveSet
 from .private.programming.primitives.primitive_set_typed import PrimitiveSetTyped
 from .private.programming.primitives.primitive_tree import PrimitiveTree
+from .private.programming.primitives.program_check import ProgramError
 from .private.programming.promote import promote_subtree, promoted_names
 from .private.programming.register_gp import register_gp
 from .private.programming.semantic import cx_semantic, mut_semantic
@@ -229,6 +230,7 @@ __all__ = [
     "PrimitiveSet",
     "PrimitiveSetTyped",
     "PrimitiveTree",
+    "ProgramError",
     "cx_semantic",
     "mut_semantic",
     "SlimTree",
