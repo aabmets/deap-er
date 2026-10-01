@@ -36,8 +36,9 @@ def test_program_error_is_a_value_and_type_error():
 
 @pytest.mark.parametrize("text", ["vgt(a, b)", "True"])
 def test_from_string_refuses_a_root_of_the_wrong_type(text):
+    pset = _kit()
     with pytest.raises(gp.ProgramError, match="at the root") as info:
-        gp.PrimitiveTree.from_string(text, _kit())
+        gp.PrimitiveTree.from_string(text, pset)
     assert "Mask" in str(info.value)
     assert "Array" in str(info.value)
 
@@ -52,20 +53,23 @@ def test_from_string_keeps_accepting_literal_roots_of_untyped_sets():
 
 @pytest.mark.parametrize("text", ["", "  \n", "vadd(a,", "vadd(a, b) a", "vadd(a, foo)"])
 def test_from_string_raises_program_error_for_every_parse_failure(text):
+    pset = _kit()
     with pytest.raises(gp.ProgramError):
-        gp.PrimitiveTree.from_string(text, _kit())
+        gp.PrimitiveTree.from_string(text, pset)
 
 
 @pytest.mark.parametrize("expr", [gp.PrimitiveTree([]), "", " "])
 def test_compile_tree_refuses_an_empty_expression(expr):
+    pset = _kit()
     with pytest.raises(gp.ProgramError, match="empty"):
-        gp.compile_tree(expr, _kit())
+        gp.compile_tree(expr, pset)
 
 
 @pytest.mark.parametrize("window", ["99999999999999999999999", "2147483648"])
 def test_from_string_refuses_a_window_past_the_operand_width(window):
+    pset, text = _kit(), f"delay(a, {window})"
     with pytest.raises(gp.ProgramError, match="'delay'") as info:
-        gp.PrimitiveTree.from_string(f"delay(a, {window})", _kit())
+        gp.PrimitiveTree.from_string(text, pset)
     assert window in str(info.value)
 
 
@@ -81,8 +85,9 @@ def test_lowering_refuses_a_built_window_past_the_operand_width(window):
 
 @pytest.mark.parametrize("window", ["0", "-2"])
 def test_from_string_refuses_a_window_below_one(window):
+    pset, text = _kit(), f"rolling_mean(a, {window})"
     with pytest.raises(gp.ProgramError, match="'rolling_mean'") as info:
-        gp.PrimitiveTree.from_string(f"rolling_mean(a, {window})", _kit())
+        gp.PrimitiveTree.from_string(text, pset)
     assert f"window argument {window} " in str(info.value)
 
 
