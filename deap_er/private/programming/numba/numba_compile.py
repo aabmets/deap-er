@@ -8,9 +8,7 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-import os
-import sys
-from pathlib import Path
+import threading
 from typing import Any
 
 from . import (
@@ -26,46 +24,17 @@ from . import (
     numba_window_scan,
     numba_window_ts,
 )
+from .numba_cache import ensure_numba_cache_dir
 
-__all__: list[str] = ["build", "ensure_numba_cache_dir"]
+__all__: list[str] = ["build", "runner"]
 
 _MISSING = (
     "The numba backend needs the optional 'numba' dependency. "
     "Install it with: pip install deap-er[numba]"
 )
 
-_built: dict[str, Any] = {}
-
-
-def ensure_numba_cache_dir() -> None:
-    """Point Numba at a writable on-disk cache when none is configured.
-
-    The default location is an absolute path under the user's cache
-    directory so spawned workers with a different working directory
-    still share the same on-disk JIT cache. It also applies when numba
-    was imported before this call, and a ``NUMBA_CACHE_DIR`` set after
-    numba was imported is picked up too.
-    """
-    configured = os.environ.get("NUMBA_CACHE_DIR")
-    if configured:
-        config = sys.modules.get("numba.core.config")
-        if config is not None and getattr(config, "CACHE_DIR", configured) != configured:
-            # Numba read the variable at import, before the host set it.
-            config.reload_config()
-        return
-    xdg_cache = os.environ.get("XDG_CACHE_HOME")
-    if xdg_cache:
-        cache = Path(xdg_cache) / "deap-er" / "numba"
-    else:
-        cache = Path.home() / ".cache" / "deap-er" / "numba"
-    cache = cache.resolve()
-    cache.mkdir(parents=True, exist_ok=True)
-    os.environ["NUMBA_CACHE_DIR"] = str(cache)
-    config = sys.modules.get("numba.core.config")
-    if config is not None:
-        # Numba reads the variable at import. A consumer kernel module
-        # usually imports numba first, so refresh its config here.
-        config.reload_config()
+_built: dict[Any, Any] = {}
+_lock = threading.RLock()
 
 
 JIT_GROUPS: tuple[tuple[Any, tuple[str, ...]], ...] = (
@@ -98,6 +67,7 @@ JIT_GROUPS: tuple[tuple[Any, tuple[str, ...]], ...] = (
         (
             "row_offset",
             "variance_untrusted",
+            "add_compensated",
             "scan_sums",
             "scan_variance",
             "scan_pair_sums",
@@ -118,7 +88,14 @@ JIT_GROUPS: tuple[tuple[Any, tuple[str, ...]], ...] = (
     ),
     (
         numba_window_roll,
-        ("absorb_stat", "window_totals", "reduce_stats", "std_window", "roll_stats"),
+        (
+            "scan_total",
+            "absorb_stat",
+            "window_totals",
+            "reduce_stats",
+            "std_window",
+            "roll_stats",
+        ),
     ),
     (
         numba_window,
@@ -159,6 +136,7 @@ def _wire_scan() -> None:
     for target in (numba_window_roll, numba_window_pair_roll):
         target.row_offset = numba_window_scan.row_offset
         target.variance_untrusted = numba_window_scan.variance_untrusted
+    numba_window_roll.add_compensated = numba_window_scan.add_compensated
     numba_window_roll.scan_sums = numba_window_scan.scan_sums
     numba_window_roll.scan_variance = numba_window_scan.scan_variance
     numba_window_pair_roll.scan_pair_sums = numba_window_scan.scan_pair_sums
@@ -186,32 +164,71 @@ def _wire_module(module: Any) -> None:
         numba_window_pair.roll_pair_stats = numba_window_pair_roll.roll_pair_stats
 
 
-def build() -> tuple[Any, Any]:
-    """Compile the tape interpreter and the fallback dispatcher.
+def build() -> Any:
+    """Compile the builtin tape interpreter.
 
-    Both are built once per process and reused for every tape. Callees
+    It is built once per process and reused for every tape. Callees
     are compiled first so the interpreter sees compiled globals.
 
     Returns:
-        The interpreter and the no-op dispatcher.
+        The interpreter for tapes without consumer opcodes.
 
     Raises:
         ImportError: If the ``numba`` extra is not installed.
     """
-    if "run" in _built:
-        return _built["run"], _built["idle"]
-    ensure_numba_cache_dir()
-    try:
-        import numba  # optional extra, imported only when the backend is asked for
-    except ImportError as err:
-        raise ImportError(_MISSING) from err
+    with _lock:
+        if "run" in _built:
+            return _built["run"]
+        ensure_numba_cache_dir()
+        try:
+            import numba  # optional extra, imported only when the backend is asked for
+        except ImportError as err:
+            raise ImportError(_MISSING) from err
 
-    jit = numba.njit(cache=True, nogil=True, error_model="numpy")
-    # Numba compiles these from bytecode, so the CPython tracer never
-    # sees them. The parity tests exercise every instruction.
-    for module, names in JIT_GROUPS:
-        _compile_group(module, names, jit)
-        _wire_module(module)
-    _built["run"] = jit(numba_kernels.interpret)
-    _built["idle"] = jit(numba_kernels.idle)
-    return _built["run"], _built["idle"]
+        jit = numba.njit(cache=True, nogil=True, error_model="numpy")
+        # Numba compiles these from bytecode, so the CPython tracer never
+        # sees them. The parity tests exercise every instruction.
+        for module, names in JIT_GROUPS:
+            _compile_group(module, names, jit)
+            _wire_module(module)
+        _compile_group(numba_kernels, ("apply_builtin", "tape_slices", "interpret"), jit)
+        _built["run"] = numba_kernels.interpret
+        return _built["run"]
+
+
+def runner(dispatch: Any) -> Any:
+    """Compile the tape interpreter for one consumer kernel.
+
+    A consumer kernel's numba type differs in every process, so an
+    interpreter that took it as an argument would miss the disk cache
+    and add another entry to it each time. The kernel is bound by
+    closure instead, compiled without the disk cache once per kernel,
+    while the builtin interpreter stays cached.
+
+    Args:
+        dispatch: Consumer kernel, or None for builtin-only tapes.
+
+    Returns:
+        A compiled ``(opcodes, operands, constants, columns, fill,
+        stack, scratch)`` interpreter.
+
+    Raises:
+        ImportError: If the ``numba`` extra is not installed.
+    """
+    run = build()
+    if dispatch is None:
+        return run
+    with _lock:
+        if dispatch in _built:
+            return _built[dispatch]
+        import numba  # optional extra, already imported by build()
+
+        interpret = numba.njit(cache=False, nogil=True, error_model="numpy")(
+            numba_kernels.interpret_dispatch
+        )
+
+        def bound(opcodes, operands, constants, columns, fill, stack, scratch):  # pragma: no cover
+            return interpret(opcodes, operands, constants, columns, fill, stack, scratch, dispatch)
+
+        _built[dispatch] = numba.njit(cache=False, nogil=True, error_model="numpy")(bound)
+        return _built[dispatch]

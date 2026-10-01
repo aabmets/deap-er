@@ -8,6 +8,7 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+import threading
 from collections.abc import Sequence
 from typing import Any
 
@@ -17,11 +18,10 @@ import numpy
 from ..opcodes import USER_BASE
 from ..tape import Tape, check_tape
 from . import numba_kernels
-from .numba_compile import build
-from .numba_ops import reserve
+from .numba_compile import build, runner
 from .numba_pack import pack_tapes
 
-__all__: list[str] = ["compiled_batch_kernels", "launch_kernels", "run_tapes", "serial_kernels"]
+__all__: list[str] = ["batch_kernel", "compiled_batch_kernels", "launch_kernels", "run_tapes"]
 
 _NO_COLUMNS = (
     "The numba backend evaluates a tape over columns and cannot size a "
@@ -30,26 +30,43 @@ _NO_COLUMNS = (
 )
 
 _batch: dict[str, Any] = {}
+_lock = threading.Lock()
 
 
 def compiled_batch_kernels() -> frozenset[str]:
     """Names of batch kernels compiled in this process.
 
     Returns:
-        ``many`` and/or ``many_parallel`` once each kernel has been built.
+        ``many``, ``many_parallel``, ``many_dispatch``, and/or
+        ``many_dispatch_parallel`` once each kernel has been built.
     """
     return frozenset(_batch)
 
 
+def interpret_builtins_parallel(  # pragma: no cover
+    streams: Any, layout: Any, columns: Any, stacks: Any, scratches: Any, out: Any
+) -> None:
+    """Run many builtin-only tapes with one workspace per thread.
+
+    Args:
+        streams: ``(opcodes, operands, constants)`` concatenated tapes.
+        layout: ``(op_starts, op_lens, c_starts, c_lens, fills)``.
+        columns: Packed input matrix.
+        stacks: Per-thread workspaces.
+        scratches: Per-thread scratch rows.
+        out: Result of shape ``(n_tapes, n_rows)``.
+    """
+    for index in numba.prange(out.shape[0]):  # ty: ignore[not-iterable]
+        slot = numba.get_thread_id()
+        opcodes, operands, constants, fill = numba_kernels.tape_slices(index, streams, layout)
+        numba_kernels.interpret(
+            opcodes, operands, constants, columns, fill, stacks[slot], scratches[slot]
+        )
+        out[index] = stacks[slot, 0]
+
+
 def interpret_many_parallel(  # pragma: no cover
-    run: Any,
-    streams: Any,
-    layout: Any,
-    columns: Any,
-    stacks: Any,
-    scratches: Any,
-    dispatch: Any,
-    out: Any,
+    run: Any, streams: Any, layout: Any, columns: Any, stacks: Any, scratches: Any, out: Any
 ) -> None:
     """Run many tapes with one workspace per thread.
 
@@ -60,62 +77,42 @@ def interpret_many_parallel(  # pragma: no cover
         columns: Packed input matrix.
         stacks: Per-thread workspaces.
         scratches: Per-thread scratch rows.
-        dispatch: Consumer kernel.
         out: Result of shape ``(n_tapes, n_rows)``.
     """
-    opcodes, operands, constants = streams
-    op_starts, op_lens, c_starts, c_lens, fills = layout
-    rows = columns.shape[0]
-    for index in numba.prange(op_starts.shape[0]):  # ty: ignore[not-iterable]
+    for index in numba.prange(out.shape[0]):  # ty: ignore[not-iterable]
         slot = numba.get_thread_id()
-        start = op_starts[index]
-        n_ops = op_lens[index]
-        const_start = c_starts[index]
-        n_consts = c_lens[index]
-        run(
-            opcodes[start : start + n_ops],
-            operands[start : start + n_ops],
-            constants[const_start : const_start + n_consts],
-            columns,
-            fills[index],
-            stacks[slot],
-            scratches[slot],
-            dispatch,
-        )
-        for row in range(rows):
-            out[index, row] = stacks[slot, 0, row]
+        opcodes, operands, constants, fill = numba_kernels.tape_slices(index, streams, layout)
+        run(opcodes, operands, constants, columns, fill, stacks[slot], scratches[slot])
+        out[index] = stacks[slot, 0]
 
 
-def serial_kernels() -> tuple[Any, Any, Any]:
-    """Compile the serial batch interpreter once per process.
+def batch_kernel(parallel: bool, consumer: bool) -> Any:
+    """Compile one batch interpreter once per process.
+
+    The builtin-only kernels call the cached interpreter as a global,
+    so they load from the disk cache too. The consumer kernels take a
+    closure-bound interpreter as an argument, which Numba cannot cache.
+
+    Args:
+        parallel: If True, the ``prange`` kernel.
+        consumer: If True, the kernel for tapes with consumer opcodes.
 
     Returns:
-        Single-tape runner, idle dispatcher, and serial batch kernel.
+        The compiled batch kernel.
     """
-    run, idle = build()
-    if "many" not in _batch:
-        # These wrappers take other compiled functions as arguments.
-        # Numba's disk cache pickles those Dispatcher types via weakrefs
-        # and raises ReferenceError when a consumer kernel is passed.
-        compiled = numba.njit(cache=False, nogil=True, error_model="numpy")(
-            numba_kernels.interpret_many
-        )
-        _batch["many"] = compiled
-    return run, idle, _batch["many"]
-
-
-def _parallel_kernel() -> Any:
-    """Compile the parallel batch interpreter once per process.
-
-    Returns:
-        The ``prange`` batch kernel.
-    """
-    if "many_parallel" not in _batch:
-        compiled = numba.njit(cache=False, nogil=True, error_model="numpy", parallel=True)(
-            interpret_many_parallel
-        )
-        _batch["many_parallel"] = compiled
-    return _batch["many_parallel"]
+    name = ("many_dispatch" if consumer else "many") + ("_parallel" if parallel else "")
+    with _lock:
+        if name not in _batch:
+            build()
+            if consumer:
+                kernel = interpret_many_parallel if parallel else numba_kernels.interpret_many
+            else:
+                kernel = (
+                    interpret_builtins_parallel if parallel else numba_kernels.interpret_builtins
+                )
+            jit = numba.njit(cache=not consumer, nogil=True, error_model="numpy", parallel=parallel)
+            _batch[name] = jit(kernel)
+        return _batch[name]
 
 
 def run_tapes(
@@ -132,15 +129,19 @@ def run_tapes(
     and their floating-point rounding differs from the NumPy CSE plan
     of the ``'opcode'`` backend. NaN patterns match, but values agree
     only to a tolerance, not bit for bit: about ``rtol=1e-9`` and
-    ``atol=1e-12`` on short series, while running window sums let the
-    gap grow with the row count (about ``1e-8`` relative over
-    ``1e5`` rows). The serial and parallel kernels follow the same
-    per-tape code, so they agree to the same tolerance or better.
+    ``atol=1e-12``. Running window sums are compensated and start over
+    when a window holds no finite sample, so the gap does not grow
+    with the row count, and the rolling sum or mean of a series packed
+    after NaN padding at least one window long equals that of the
+    series alone. The serial and parallel kernels follow the same per-tape
+    code, so they agree to the same tolerance or better. Each call
+    allocates its own workspace, so concurrent calls from several
+    threads are safe.
 
     Args:
         tapes: Tapes produced by ``lower_tree``.
         matrix: C-contiguous ``(n_rows, n_columns)`` ``float64`` table.
-        dispatch: Consumer kernel, or None to use the idle dispatcher.
+        dispatch: Consumer kernel, or None for builtin-only tapes.
         parallel: If True, use one workspace per Numba thread when
             more than one thread is available.
 
@@ -176,7 +177,7 @@ def launch_kernels(
     Args:
         tapes: Tapes to evaluate. Must not be empty.
         matrix: C-contiguous ``(n_rows, n_columns)`` ``float64`` table.
-        dispatch: Consumer kernel, or None to use the idle dispatcher.
+        dispatch: Consumer kernel, or None for builtin-only tapes.
         parallel: If True, use one workspace per Numba thread.
 
     Returns:
@@ -189,9 +190,6 @@ def launch_kernels(
         check_tape(tape)
     rows = matrix.shape[0]
     out = numpy.empty((len(tapes), rows), dtype=numpy.float64)
-    run, idle, many = serial_kernels()
-    if dispatch is None:
-        dispatch = idle
     packed = pack_tapes(tapes)
     streams = (packed["opcodes"], packed["operands"], packed["constants"])
     layout = (
@@ -201,12 +199,15 @@ def launch_kernels(
         packed["c_lens"],
         packed["fills"],
     )
-    if parallel:
-        n_threads = numba.get_num_threads()
-        stacks = numpy.empty((n_threads, int(packed["max_depth"]) + 1, rows), dtype=numpy.float64)
-        scratches = numpy.empty((n_threads, rows), dtype=numpy.float64)
-        _parallel_kernel()(run, streams, layout, matrix, stacks, scratches, dispatch, out)
-        return out
-    stack, scratch = reserve(int(packed["max_depth"]), rows)
-    many(run, streams, layout, matrix, stack, scratch, dispatch, out)
+    # Every call gets its own workspace, so concurrent calls from
+    # several threads cannot overwrite each other's stack rows.
+    slots = numba.get_num_threads() if parallel else 1
+    stacks = numpy.empty((slots, int(packed["max_depth"]) + 1, rows), dtype=numpy.float64)
+    scratches = numpy.empty((slots, rows), dtype=numpy.float64)
+    workspace = (stacks, scratches) if parallel else (stacks[0], scratches[0])
+    kernel = batch_kernel(parallel, dispatch is not None)
+    if dispatch is None:
+        kernel(streams, layout, matrix, *workspace, out)
+    else:
+        kernel(runner(dispatch), streams, layout, matrix, *workspace, out)
     return out

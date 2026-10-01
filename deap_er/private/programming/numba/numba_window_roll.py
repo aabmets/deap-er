@@ -14,56 +14,78 @@ from typing import Any
 from . import numba_codes as codes
 from .numba_window_scan import (
     EPSILON,
+    add_compensated,
     row_offset,
     scan_sums,
     scan_variance,
     variance_untrusted,
 )
 
-__all__: list[str] = ["roll_stats", "reduce_stats"]
+__all__: list[str] = ["roll_stats", "reduce_stats", "scan_total"]
+
+
+def scan_total(  # pragma: no cover
+    stack: Any, row: int, begin: int, end: int, offset: float
+) -> tuple[float, float]:
+    """Rebuild one window's compensated sum of finite shifted samples.
+
+    Args:
+        stack: Column-length workspace.
+        row: Stack row that holds the series.
+        begin: Inclusive start index.
+        end: Exclusive stop index.
+        offset: Shift subtracted from every sample.
+
+    Returns:
+        The sum and its compensation term.
+    """
+    total = 0.0
+    comp = 0.0
+    for index in range(begin, end):
+        value = float(stack[row, index]) - offset
+        if math.isfinite(value):
+            total, comp = add_compensated(total, comp, value)
+    return total, comp
 
 
 def absorb_stat(  # pragma: no cover
     value: float,
     sign: int,
-    nan_count: int,
-    pos_inf: int,
-    neg_inf: int,
+    counts: tuple[int, int, int],
     total: float,
+    comp: float,
     squares: float,
     err_bound: float,
-) -> tuple[int, int, int, float, float, float]:
+) -> tuple[tuple[int, int, int], float, float, float, float]:
     """Add or remove one shifted sample from the running moment state.
+
+    The sum is compensated, so a sample far larger than the rest of
+    the window leaves no rounding behind once it has left.
 
     Args:
         value: Shifted sample to apply.
         sign: ``1`` to add, ``-1`` to remove.
-        nan_count: Number of ``nan`` samples in the window.
-        pos_inf: Number of ``+inf`` samples in the window.
-        neg_inf: Number of ``-inf`` samples in the window.
+        counts: Numbers of ``nan``, ``+inf``, and ``-inf`` samples in
+            the window.
         total: Sum of the finite samples.
+        comp: Compensation term of ``total``.
         squares: Sum of squares of the finite samples.
         err_bound: Accumulated bound on the error of ``squares``.
 
     Returns:
-        The updated ``nan_count``, ``pos_inf``, ``neg_inf``, ``total``,
-        ``squares``, and ``err_bound``.
+        The updated ``counts``, ``total``, ``comp``, ``squares``, and
+        ``err_bound``.
     """
+    nan_count, pos_inf, neg_inf = counts
     if math.isnan(value):
-        return nan_count + sign, pos_inf, neg_inf, total, squares, err_bound
+        return (nan_count + sign, pos_inf, neg_inf), total, comp, squares, err_bound
     if math.isinf(value):
         if value > 0.0:
-            return nan_count, pos_inf + sign, neg_inf, total, squares, err_bound
-        return nan_count, pos_inf, neg_inf + sign, total, squares, err_bound
+            return (nan_count, pos_inf + sign, neg_inf), total, comp, squares, err_bound
+        return (nan_count, pos_inf, neg_inf + sign), total, comp, squares, err_bound
     square = value * value
-    return (
-        nan_count,
-        pos_inf,
-        neg_inf,
-        total + sign * value,
-        squares + sign * square,
-        err_bound + EPSILON * square,
-    )
+    total, comp = add_compensated(total, comp, sign * value)
+    return counts, total, comp, squares + sign * square, err_bound + EPSILON * square
 
 
 def window_totals(  # pragma: no cover
@@ -116,7 +138,9 @@ def roll_stats(  # pragma: no cover
 ) -> None:
     """Write a rolling sum, mean, or population standard deviation.
 
-    Sums and means run on the raw samples. A standard deviation runs on
+    Sums and means run on the raw samples with a compensated running
+    sum, which starts over whenever the window holds no finite sample.
+    A standard deviation runs on
     samples shifted by ``row_offset``, and recenters the window on its
     own mean whenever the running variance has lost too many digits.
     A rebuild also takes its shift from the window it rebuilds, so a
@@ -136,31 +160,29 @@ def roll_stats(  # pragma: no cover
             stack[sp - 1, t] = math.nan
         return
     offset = row_offset(stack, sp - 1, 0, rows) if op == codes.ROLL_STD else 0.0
-    nan_count = 0
-    pos_inf = 0
-    neg_inf = 0
+    counts = (0, 0, 0)
     total = 0.0
+    comp = 0.0
     squares = 0.0
     err_bound = 0.0
     for t in range(rows):
         if t >= arg:
-            nan_count, pos_inf, neg_inf, total, squares, err_bound = absorb_stat(
-                stack[sp - 1, t - arg] - offset,
-                -1,
-                nan_count,
-                pos_inf,
-                neg_inf,
-                total,
-                squares,
-                err_bound,
+            counts, total, comp, squares, err_bound = absorb_stat(
+                stack[sp - 1, t - arg] - offset, -1, counts, total, comp, squares, err_bound
             )
-        nan_count, pos_inf, neg_inf, total, squares, err_bound = absorb_stat(
-            stack[sp - 1, t] - offset, 1, nan_count, pos_inf, neg_inf, total, squares, err_bound
+        counts, total, comp, squares, err_bound = absorb_stat(
+            stack[sp - 1, t] - offset, 1, counts, total, comp, squares, err_bound
         )
-        if t + 1 < arg or nan_count > 0:
+        if counts[0] + counts[1] + counts[2] == min(t + 1, arg):
+            # No finite sample is left, so the sums are exactly zero. This
+            # keeps an earlier symbol's rounding from leaking past padding.
+            total = comp = squares = err_bound = 0.0
+        if not math.isfinite(total + comp):
+            total, comp = scan_total(stack, sp - 1, max(t - arg + 1, 0), t + 1, offset)
+        if t + 1 < arg or counts[0] > 0:
             scratch[t] = math.nan
             continue
-        win_total, win_squares = window_totals(pos_inf, neg_inf, total, squares)
+        win_total, win_squares = window_totals(counts[1], counts[2], total + comp, squares)
         variance = math.nan
         if op == codes.ROLL_STD:
             variance, offset, total, squares, err_bound = std_window(
@@ -170,13 +192,14 @@ def roll_stats(  # pragma: no cover
                 arg,
                 win_total,
                 win_squares,
-                pos_inf,
-                neg_inf,
-                total,
+                counts[1],
+                counts[2],
+                total + comp,
                 squares,
                 err_bound,
                 offset,
             )
+            comp = 0.0
         scratch[t] = reduce_stats(op, win_total, variance, arg)
     for t in range(rows):
         stack[sp - 1, t] = scratch[t]
@@ -219,7 +242,7 @@ def std_window(  # pragma: no cover
     variance = win_squares / arg - mean * mean
     if pos_inf > 0 or neg_inf > 0:
         return scan_variance(stack, sp - 1, t - arg + 1, t + 1), offset, total, squares, err_bound
-    if not variance_untrusted(variance, err_bound, arg):
+    if math.isfinite(variance) and not variance_untrusted(variance, err_bound, arg):
         return variance, offset, total, squares, err_bound
     offset = row_offset(stack, sp - 1, t - arg + 1, t + 1)
     total, squares = scan_sums(stack, sp - 1, t - arg + 1, t + 1, offset)

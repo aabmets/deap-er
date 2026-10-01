@@ -15,7 +15,7 @@ from pathlib import Path
 
 import pytest
 from deap_er import gp
-from deap_er.private.programming.numba.numba_compile import ensure_numba_cache_dir
+from deap_er.private.programming.numba.numba_cache import ensure_numba_cache_dir
 
 
 def test_warmup_numba_is_exported_from_gp():
@@ -50,7 +50,7 @@ _WARM_PROBE = """
 from deap_er import gp
 from deap_er.private.programming.numba.numba_compile import build
 gp.warmup_numba()
-run, _ = build()
+run = build()
 assert run.signatures, "the tape interpreter was not specialized"
 """
 
@@ -80,3 +80,43 @@ def test_ensure_numba_cache_dir_reaches_an_already_imported_numba(tmp_path, monk
             assert Path(getattr(config, "CACHE_DIR")) == expected  # noqa: B009
     finally:
         config.reload_config()
+
+
+_CACHE_PROBE = """
+import numpy
+from deap_er import gp
+from deap_er.private.programming.numba.numba_batch import batch_kernel
+from deap_er.private.programming.numba.numba_compile import build
+pset = gp.make_column_pset(["first"])
+gp.add_numpy_primitives(pset)
+tape = gp.lower_tree(gp.PrimitiveTree([pset.mapping["first"]]), pset)
+gp.bind_tape(tape)(numpy.zeros((2, 1)))
+gp.interpret_tapes([tape], numpy.zeros((2, 1)), backend="numba")
+for kernel in (build(), batch_kernel(False, False)):
+    stats = kernel.stats
+    print(sum(stats.cache_hits.values()), sum(stats.cache_misses.values()))
+"""
+
+
+def _interpreter_cache_files():
+    cache = Path(os.environ["NUMBA_CACHE_DIR"])
+    return sorted(path.name for path in cache.rglob("numba_kernels.interpret*"))
+
+
+@pytest.mark.xdist_group(name="numba")
+@pytest.mark.skipif(not gp.numba_available(), reason="the optional numba extra is not installed")
+def test_a_fresh_process_loads_the_interpreter_from_the_disk_cache():
+    # The interpreter used to take the dispatcher as an argument, whose
+    # type differs in every process, so each one missed the cache and
+    # appended another compiled copy to it. The batch kernel took the
+    # interpreter as an argument and was never cached at all.
+    gp.warmup_numba()
+    before = _interpreter_cache_files()
+
+    completed = subprocess.run(
+        [sys.executable, "-c", _CACHE_PROBE], capture_output=True, text=True, timeout=600
+    )
+
+    assert completed.returncode == 0, completed.stderr
+    assert completed.stdout.split() == ["1", "0", "1", "0"]
+    assert _interpreter_cache_files() == before
