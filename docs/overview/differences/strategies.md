@@ -6,8 +6,11 @@
    sampled vector before `ind_init`. Resample rejects the whole
    vector; after `resample_limit` failed draws the offspring is
    clipped so `generate` always returns `lamb` individuals. Both
-   modes are constraint-handling approximations: the CMA update then
-   treats the repaired point as the sample.
+   modes are constraint-handling approximations. Under `"clip"`,
+   `Strategy` and `StrategySeparable` evaluate the clipped point but
+   learn the mean and covariance from the unclipped draw, then clip
+   the new centroid into the box, so a corner optimum does not zero
+   the variance across a box face.
 2. MO-CMA's rank-one covariance update gates on $\lVert w \rVert$,
    not on `w.max()`. A negative evolution path no longer skips the
    update. When $w \approx 0$ the factors still scale by
@@ -61,5 +64,10 @@
     keeps its parent count the same way: a short last batch no
     longer collapses the parent set, and restart survivors grow
     back with $\lambda$ instead of only ratcheting down.
+14. `Strategy` symmetrizes $C$ before the eigendecomposition and
+    floors its eigenvalues at $10^{-14}$ times the largest one. A
+    singular or nearly singular covariance no longer gives a tiny
+    negative eigenvalue, so `diag_d` is not NaN and `cond` is not
+    negative. DEAP took the square root of the raw `eigh` output.
 
 [deap-500]: https://github.com/DEAP/deap/issues/500

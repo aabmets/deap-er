@@ -26,7 +26,7 @@ from the original sources.
 6. [`assign_crowding_dist`][deap-321] can crowd on `wvalues` via
    `use_weights=True`. The default, and `sel_nsga_2`, still use raw
    `values`.
-7. [`sel_tournament_dcd`][deap-641] accepts any
+7. [`sel_tournament_dcd`][deap-641] ([also][deap-247]) accepts any
    `1 ≤ k ≤ len(individuals)`. When `k` is a multiple of 4 the
    original paired-shuffle path is used; other counts run pairwise
    contests until `k` winners are collected. `k ≤ 0` returns an empty
@@ -224,6 +224,7 @@ from the original sources.
 [deap-321]: https://github.com/DEAP/deap/issues/321
 [deap-472]: https://github.com/DEAP/deap/issues/472
 [deap-527]: https://github.com/DEAP/deap/issues/527
+[deap-247]: https://github.com/DEAP/deap/issues/247
 [deap-641]: https://github.com/DEAP/deap/issues/641
 [deap-655]: https://github.com/DEAP/deap/issues/655
 [deap-740]: https://github.com/DEAP/deap/issues/740

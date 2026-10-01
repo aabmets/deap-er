@@ -7,9 +7,9 @@ drop-in rename: function names, parameter order, and a few contracts
 changed, and the surface now includes families DEAP does not ship.
 Counted from the pages in this section:
 
-- **18** still-open [DEAP](https://github.com/DEAP/deap) issues
+- **21** still-open [DEAP](https://github.com/DEAP/deap) issues
   [implemented](../../bugfixes/deap_fixes.md) (some older than a decade)
-- **98** correctness bugs fixed — [operators](../../bugfixes/operators.md),
+- **100** correctness bugs fixed — [operators](../../bugfixes/operators.md),
   [GP](../../bugfixes/gp.md),
   [CMA](../../bugfixes/strategies.md),
   [records](../../bugfixes/records.md),
@@ -18,7 +18,7 @@ Counted from the pages in this section:
   [creator](../../bugfixes/creator.md),
   [utilities](../../bugfixes/utilities.md),
   and [algorithms](../../bugfixes/algorithms.md)
-- **66** capabilities DEAP does not have, including boxed CMA,
+- **67** capabilities DEAP does not have, including boxed CMA,
   mixed-gene mutation, logbook JSON,
   [columnar GP](../../tutorials/columnar_gp.md), and
   [Push GP](../../tutorials/push_gp.md)

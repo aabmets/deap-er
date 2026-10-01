@@ -88,9 +88,9 @@ Same toolbox model. Counted from the
 [differences](https://aabmets.github.io/deap-er/overview/differences/)
 inventory:
 
-- **18** still-open [DEAP](https://github.com/DEAP/deap) issues
+- **21** still-open [DEAP](https://github.com/DEAP/deap) issues
   [implemented](https://aabmets.github.io/deap-er/bugfixes/deap_fixes/) (some older than a decade)
-- **98** correctness bugs fixed — [operators](https://aabmets.github.io/deap-er/bugfixes/operators/),
+- **100** correctness bugs fixed — [operators](https://aabmets.github.io/deap-er/bugfixes/operators/),
   [GP](https://aabmets.github.io/deap-er/bugfixes/gp/),
   [CMA](https://aabmets.github.io/deap-er/bugfixes/strategies/),
   [records](https://aabmets.github.io/deap-er/bugfixes/records/),
@@ -99,7 +99,7 @@ inventory:
   [creator](https://aabmets.github.io/deap-er/bugfixes/creator/),
   [utilities](https://aabmets.github.io/deap-er/bugfixes/utilities/),
   and [algorithms](https://aabmets.github.io/deap-er/bugfixes/algorithms/)
-- **66** capabilities DEAP does not have, including boxed CMA,
+- **67** capabilities DEAP does not have, including boxed CMA,
   mixed-gene mutation, logbook JSON,
   [columnar GP](https://aabmets.github.io/deap-er/tutorials/columnar_gp/),
   and [Push GP](https://aabmets.github.io/deap-er/tutorials/push_gp/)

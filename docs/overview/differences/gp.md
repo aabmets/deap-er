@@ -54,7 +54,10 @@ The following is extra.
     matching.
 13. `static_limit` replaces an oversized offspring with a
     `clone_individual` copy of a parent, so the two offspring slots
-    never share one parent object.
+    never share one parent object. Only the positional arguments of
+    the first argument's type are parents, so a primitive set or
+    generator bound positionally is neither deep-copied nor returned
+    as a child.
 14. HARM places the size cutoff on evaluated individuals only, scales
     the half-life by the cutoff (not by each individual's size), and
     does not crash on an empty candidate slice.
@@ -115,11 +118,18 @@ The following is extra.
 25. `PrimitiveTree.from_string` accepts an `int` literal in a
     `Window` slot. `str(tree)` writes window lengths as integers;
     the opcode backend no longer `TypeError`s when compiling that
-    text, and a stringified windowed tree round-trips.
+    text, and a stringified windowed tree round-trips. The literal
+    restores as the set's window ephemeral, so `mut_ephemeral` can
+    resample it. Window lengths must be integers in
+    $[1, 2^{31} - 1]$ at parse, compile, and lowering time.
 26. `PrimitiveTree.from_string` rejects extra tokens and incomplete
     calls. `add(ARG0, 2, 3)` and `add(ARG0)` no longer stringify
     as a leftover leaf and compile as the constant $3$ or the
-    identity.
+    identity. The root must return a subtype of `prim_set.ret`;
+    DEAP accepted any root type. Invalid programs raise
+    `gp.ProgramError`, a subclass of `ValueError` and `TypeError`,
+    and `compile_tree` / `lower_tree` check every leaf against its
+    slot with the same rules, so a compiled tree's text parses back.
 27. `affine_scale` fits Keijzer $a + b\,f(x)$ on the same
     `valid=` mask as `case_errors`. Darwinian callers use the
     scaled series only for fitness / case errors. Lamarckian
@@ -136,12 +146,15 @@ The following is extra.
     `PushTree` on `gp` or `tools`. Tapes remain the only
     `interpret_tapes` target. Not a second public genome
     ([Push GP P19](../roadmap/push_gp.md#p19-push-gp-as-the-loop)).
-29. `interpret_tapes` hash-conses postfix subexpressions across a
-    batch and evaluates each unique sub-tape once against the
-    packed matrix. Shared suffixes are stitched from one oracle
-    result per node. The return shape, warmup ``nan`` contract,
-    and per-tape ``fill`` semantics are unchanged. See the
-    [columnar GP tutorial](../../tutorials/columnar_gp.md).
+29. On the opcode backend, `interpret_tapes` hash-conses postfix
+    subexpressions across a batch and evaluates each unique
+    sub-tape once against the packed matrix. Shared suffixes are
+    stitched from one oracle result per node. The return shape,
+    warmup ``nan`` contract, and per-tape ``fill`` semantics are
+    unchanged. The Numba backend runs every batch, serial or
+    parallel, on its compiled per-tape kernel; NaN patterns match
+    the opcode backend and values agree to about `rtol=1e-9`. See
+    the [columnar GP tutorial](../../tutorials/columnar_gp.md).
 30. HARM `natural_histogram` does not wrap `hist[-1]` when a
     tree has size $0$. The left-neighbor bin is updated only
     for `ind_size >= 1`, matching the existing `ind_size - 2`
@@ -188,6 +201,11 @@ The following is extra.
 36. `rename_arguments` renames the argument terminal's `name` as
     well as its `value`. DEAP updated only `value`, so the terminal
     kept reporting the old `ARG0` name after the rename.
+37. `PrimitiveTree.from_string` restores a number whose type does
+    not fit its slot as that slot's ephemeral when the set has one.
+    An ephemeral registered as `float` but drawing `randint` values
+    prints as `add(ARG0, 2)`; DEAP raised `TypeError` parsing its
+    own `str(tree)`, and the tree no longer round-tripped.
 
 The columnar contract is in the
 [columnar GP tutorial](../../tutorials/columnar_gp.md). The private
