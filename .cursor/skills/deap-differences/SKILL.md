@@ -85,7 +85,7 @@ Rules:
 
 Baseline that these rules reproduce (do not hard-code; re-derive):
 
-`21` issues · `27` bugs · `21` features
+`21` issues · `107` bugs · `67` features (174 items)
 
 ## Scoreboard copy
 

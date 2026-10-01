@@ -430,3 +430,60 @@ produced an empty result via `range(0)`.
 
 **Validator.**
 `tests/test_operators/test_sel_tournament.py::test_double_tournament_empty_pool_returns_empty`
+
+---
+
+## `mig_ring` left a home duplicate emigrant in two demes
+
+`step_islands` refills a deme with `select(...)`, so a selector that
+samples with replacement puts one object in several slots. With
+`replacement=None`, `mig_ring` moved the emigrant by reference but
+refilled only one of its home slots, so the other copies stayed home
+and one object lived in two demes. With distinct `eval_keys`, the
+second deme then found it already valid and selected on the first
+deme's fitness. Upstream `migRing` left the object in both demes the
+same way.
+
+**Fix.** After placing the emigrants, clone any by-reference mover
+that is still present in its source deme.
+
+**Validator.**
+`tests/test_operators/test_mig_ring.py::test_mig_ring_home_duplicate_emigrant_is_cloned`
+
+---
+
+## Lexicase turned random on NaN or mostly infinite cases
+
+One NaN made the ε-lexicase median, and so the bound, NaN, and
+`col <= nan` is all `False`. More than half the column at `inf` made
+the MAD `inf - inf`. Strict `sel_lexicase` took `min` over a NaN.
+Each emptied the pool, and the selector then picked from the whole
+population, NaN individual included. Upstream DEAP emptied the pool
+the same way and raised `IndexError` from `random.choice`.
+
+**Fix.** Map NaN and `±inf` to the worst value for each case before
+filtering, and take the MAD over finite values only (`0.0` if none).
+
+**Validators.**
+
+- `tests/test_operators/test_lexicase_non_finite.py::test_one_nan_does_not_randomize_lexicase`
+- `tests/test_operators/test_lexicase_non_finite.py::test_mostly_infinite_case_does_not_randomize_lexicase`
+- `tests/test_operators/test_lexicase_non_finite.py::test_non_finite_values_rank_worst`
+
+---
+
+## Lexicase picked at random from an unevaluated pool
+
+`fitness_case_matrix` read the case count from the first individual,
+whose `fitness.values` is `()` when it is unevaluated. A pool with
+no evaluated individual gave a matrix with no cases, and both lexicase
+variants returned uniform picks, while a mixed pool already raised.
+Upstream DEAP read the cases the same way.
+
+**Fix.** The lexicase selectors raise `ValueError` when any
+individual's fitness is invalid, unless a trusted matrix is passed.
+
+**Validators.**
+
+- `tests/test_operators/test_sel_lexicase.py::test_lexicase_all_unevaluated_population_raises`
+- `tests/test_operators/test_sel_lexicase.py::test_lexicase_unevaluated_first_individual_raises`

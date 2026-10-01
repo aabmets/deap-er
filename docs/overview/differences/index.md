@@ -9,7 +9,7 @@ Counted from the pages in this section:
 
 - **21** still-open [DEAP](https://github.com/DEAP/deap) issues
   [implemented](../../bugfixes/deap_fixes.md) (some older than a decade)
-- **102** correctness bugs fixed — [operators](../../bugfixes/operators.md),
+- **107** correctness bugs fixed — [operators](../../bugfixes/operators.md),
   [GP](../../bugfixes/gp.md),
   [CMA](../../bugfixes/strategies.md),
   [records](../../bugfixes/records.md),

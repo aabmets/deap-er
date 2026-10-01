@@ -6,16 +6,18 @@ algorithms. This library has a helper class named
 current state of an evolution algorithm to disk and restore it later to resume
 the computation.
 
-Checkpoint objects use the [dill](https://pypi.org/project/dill/) library for
-object (de-)serialization, because it supports more Python types like lambdas
-than the default `pickle` library. Checkpoints can be used either manually with
+Checkpoint objects save with the standard `pickle` C pickler and fall back to
+the [dill](https://pypi.org/project/dill/) library for state it refuses, such
+as lambdas and local functions, or that references `__main__`. Loading always
+goes through dill, which reads both. Checkpoints can be used either manually with
 the `save()` and `load()` methods or automatically with the custom `range()`
 generator. The builtin algorithms don't implement automatic checkpointing due
 to their simplistic nature, but the user is able to implement manual
 checkpointing around them.
 
-`save()` writes a sibling `.tmp` file and replaces the destination, so
-a dump that fails part-way through does not truncate a good file. The
+`save()` writes a uniquely named sibling staging file, fsyncs it, and
+replaces the destination, so a dump that fails part-way through does
+not truncate a good file and two writers cannot publish a torn one. The
 process-wide `tools.rng` state is persisted with the attributes you
 set on the checkpoint. Child streams from `spawn_rng` are not — those
 are derived again from the run seed. `save_freq = -1` disables

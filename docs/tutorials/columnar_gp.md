@@ -260,9 +260,11 @@ the first sample is touched. Both accept the columns positionally or
 as one prepacked `(n_rows, n_columns)` matrix, which avoids repacking
 them on every call.
 
-The Numba interpreter is compiled once per process, never once per
-tree. Every compiled tape shares one process-wide workspace, so a
-`bind_tape` callable must not be run from several threads at once.
+The Numba interpreter is compiled once, never once per tree, and later
+processes load it from Numba's disk cache. Every `bind_tape` callable
+shares one process-wide workspace, so it must not be run from several
+threads at once. `interpret_tapes` allocates a workspace for each call
+and is safe to call from several threads.
 
 To score a generation against one packed `(n_rows, n_columns)`
 matrix, lower unique trees and call `interpret_tapes`. Cache by
@@ -629,8 +631,8 @@ return tools.sel_lexicase(
 - `compile_adf_tree` runs on the default backend only.
 - The Numba backend shares one workspace across every compiled tape,
   so a `bind_tape` callable must not be run from several threads at
-  once. `interpret_tapes(..., parallel=True)` allocates thread-local
-  stacks for that call only.
+  once. `interpret_tapes` allocates its own workspace for each call,
+  and with `parallel=True` one per thread.
 
 ## Related
 
