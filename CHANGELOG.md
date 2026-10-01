@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [3.1.7] - 2026-10-01
+
 Genie-usage bug hunt: 16 fixes in the Numba backend, opcode CSE, GP
 checks and ephemerals, checkpoints, operators, and CMA strategies
 ([#141](https://github.com/aabmets/deap-er/pull/141)–[#146](https://github.com/aabmets/deap-er/pull/146)).
@@ -768,7 +770,8 @@ commits that landed on that tag.
 - Hypervolume and least-contributed indicator
 - CMA strategy keyword arguments
 
-[Unreleased]: https://github.com/aabmets/deap-er/compare/3.1.6...HEAD
+[Unreleased]: https://github.com/aabmets/deap-er/compare/3.1.7...HEAD
+[3.1.7]: https://github.com/aabmets/deap-er/compare/3.1.6...3.1.7
 [3.1.6]: https://github.com/aabmets/deap-er/compare/3.1.5...3.1.6
 [3.1.5]: https://github.com/aabmets/deap-er/compare/3.1.4...3.1.5
 [3.1.4]: https://github.com/aabmets/deap-er/compare/3.1.3...3.1.4
