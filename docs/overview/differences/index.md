@@ -7,7 +7,7 @@ drop-in rename: function names, parameter order, and a few contracts
 changed, and the surface now includes families DEAP does not ship.
 Counted from the pages in this section:
 
-- **20** still-open [DEAP](https://github.com/DEAP/deap) issues
+- **21** still-open [DEAP](https://github.com/DEAP/deap) issues
   [implemented](../../bugfixes/deap_fixes.md) (some older than a decade)
 - **100** correctness bugs fixed — [operators](../../bugfixes/operators.md),
   [GP](../../bugfixes/gp.md),

@@ -78,14 +78,14 @@ Rules:
   the number of those issues.
 - A DEAP issue that is a crash/wrong-result ticket counts as a **bug**
   and as an **issue**. A feature-request ticket counts as a **feature**
-  and as an **issue**. The 18 is not a third pile of work.
+  and as an **issue**. The 21 is not a third pile of work.
 - `generate()` closing a leaf-only type is a **feature**.
 - `sel_tournament_dcd` accepting any valid `k` is a **feature**.
 - Empty `Logbook` printing its header is a **feature**.
 
 Baseline that these rules reproduce (do not hard-code; re-derive):
 
-`18` issues · `27` bugs · `21` features
+`21` issues · `27` bugs · `21` features
 
 ## Scoreboard copy
 

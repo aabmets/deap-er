@@ -24,8 +24,30 @@ These are ports of the agreed **Should implement** and **Could implement** items
 | [#426](https://github.com/DEAP/deap/issues/426) | Per-generation wall time | [`3cb9555b62a78c18f69ad9eed290bbc90237bea5`](https://github.com/aabmets/deap-er/commit/3cb9555b62a78c18f69ad9eed290bbc90237bea5) |
 | [#750](https://github.com/DEAP/deap/issues/750) | Logger instead of `print` | [`3cb9555b62a78c18f69ad9eed290bbc90237bea5`](https://github.com/aabmets/deap-er/commit/3cb9555b62a78c18f69ad9eed290bbc90237bea5) |
 | [#735](https://github.com/DEAP/deap/issues/735) | Pareto front every generation | [`3cb9555b62a78c18f69ad9eed290bbc90237bea5`](https://github.com/aabmets/deap-er/commit/3cb9555b62a78c18f69ad9eed290bbc90237bea5) |
+| [#25](https://github.com/DEAP/deap/issues/25) | Hall of fame text serialization | [`e46040b75aaf412d4975a46a8b07f87b3a21d208`](https://github.com/aabmets/deap-er/commit/e46040b75aaf412d4975a46a8b07f87b3a21d208) |
+| [#75](https://github.com/DEAP/deap/issues/75) | User-provided random streams for parallel maps | [`e46040b75aaf412d4975a46a8b07f87b3a21d208`](https://github.com/aabmets/deap-er/commit/e46040b75aaf412d4975a46a8b07f87b3a21d208) |
 
 Operator reproductions for #655, #740, #527, #472, and #755 live in `1db151f` with the public exports.
+
+---
+
+## #25 — Hall of fame text serialization
+
+**Issue.** [DEAP#25](https://github.com/DEAP/deap/issues/25). The hall of fame could only be saved by pickling the whole archive.
+
+**What we did.** `HallOfFame.to_json` / `from_json` round-trip `maxsize` and each member's genes and fitness values, and `Checkpoint(..., hof_ind_cls=)` stores the hall of fame as JSON. See the [records differences](../overview/differences/records.md).
+
+**Commit.** `e46040b75aaf412d4975a46a8b07f87b3a21d208`
+
+---
+
+## #75 — User-provided random streams for parallel maps
+
+**Issue.** [DEAP#75](https://github.com/DEAP/deap/issues/75). Mapped workers shared one global random state, so parallel results depended on pool scheduling.
+
+**What we did.** `spawn_rng(seed, worker_id)` and `map_spawned` give each mapped item an independent, seedable stream that does not collide with `tools.rng`. See the [utilities differences](../overview/differences/utilities.md).
+
+**Commit.** `e46040b75aaf412d4975a46a8b07f87b3a21d208`
 
 ---
 

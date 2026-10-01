@@ -88,7 +88,7 @@ Same toolbox model. Counted from the
 [differences](https://aabmets.github.io/deap-er/overview/differences/)
 inventory:
 
-- **20** still-open [DEAP](https://github.com/DEAP/deap) issues
+- **21** still-open [DEAP](https://github.com/DEAP/deap) issues
   [implemented](https://aabmets.github.io/deap-er/bugfixes/deap_fixes/) (some older than a decade)
 - **100** correctness bugs fixed — [operators](https://aabmets.github.io/deap-er/bugfixes/operators/),
   [GP](https://aabmets.github.io/deap-er/bugfixes/gp/),
