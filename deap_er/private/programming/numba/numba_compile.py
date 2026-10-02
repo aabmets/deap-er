@@ -66,7 +66,9 @@ JIT_GROUPS: tuple[tuple[Any, tuple[str, ...]], ...] = (
     (
         numba_window_scan,
         (
-            "add_compensated",
+            "block_sum",
+            "pairwise_sum",
+            "scan_sum",
             "scan_variance",
             "scan_pair_moments",
         ),
@@ -89,12 +91,7 @@ JIT_GROUPS: tuple[tuple[Any, tuple[str, ...]], ...] = (
     ),
     (
         numba_window_roll,
-        (
-            "resync_sums",
-            "absorb_stat",
-            "window_total",
-            "roll_stats",
-        ),
+        ("roll_stats",),
     ),
     (
         numba_window,
@@ -132,7 +129,7 @@ def _compile_group(module: Any, names: tuple[str, ...], jit: Any) -> None:
 
 
 def _wire_scan() -> None:
-    numba_window_roll.add_compensated = numba_window_scan.add_compensated
+    numba_window_roll.scan_sum = numba_window_scan.scan_sum
     numba_window_std.scan_variance = numba_window_scan.scan_variance
     numba_window_pair_roll.scan_pair_moments = numba_window_scan.scan_pair_moments
 

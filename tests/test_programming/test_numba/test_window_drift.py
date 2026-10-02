@@ -60,6 +60,21 @@ def test_a_packed_symbol_at_another_scale_matches_that_symbol_alone(name):
     numpy.testing.assert_allclose(tail, expected, equal_nan=True, rtol=1e-12, atol=1e-12)
 
 
+@pytest.mark.parametrize("name", ROLLING)
+def test_huge_samples_that_do_not_cancel_leave_nothing_behind(name):
+    # 1e30 + 3e29 rounds, and a running total kept that rounding (about
+    # 1e14) for good, so every later window of ~4.5 was off by up to 0.9.
+    series = numpy.random.default_rng(1).normal(4.5, 0.3, size=400)
+    series[100] = 1e30
+    series[103] = 3e29
+    pset = window_kit(5, "unary")
+    tree = window_tree(pset, name, "unary")
+    expected = numpy.asarray(gp.compile_tree(tree, pset)(series, series, series))
+    actual = gp.compile_tree(tree, pset, backend="numba")(series, series, series)
+
+    numpy.testing.assert_allclose(actual[108:], expected[108:], rtol=1e-12, atol=0.0)
+
+
 @pytest.mark.filterwarnings("ignore:overflow encountered:RuntimeWarning")
 @pytest.mark.parametrize("name", [*ROLLING, "rolling_std"])
 def test_windows_after_an_overflowing_window_match_the_python_oracle(name):
@@ -75,13 +90,15 @@ def test_windows_after_an_overflowing_window_match_the_python_oracle(name):
 @pytest.mark.parametrize(
     ("name", "kind"),
     [
+        ("rolling_sum", "unary"),
+        ("rolling_mean", "unary"),
         ("rolling_std", "unary"),
         ("rolling_corr", "pair"),
         ("rolling_cov", "pair"),
         ("rolling_beta", "pair"),
     ],
 )
-def test_moment_windows_depend_only_on_the_samples_in_the_window(name, kind):
+def test_rolling_windows_depend_only_on_the_samples_in_the_window(name, kind):
     # The same window must give the same bits whatever came before it.
     generator = numpy.random.default_rng(7)
     first = numpy.cumsum(generator.normal(size=20_000)) + 100.0

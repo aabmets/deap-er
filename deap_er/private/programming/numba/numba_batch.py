@@ -129,11 +129,10 @@ def run_tapes(
     and their floating-point rounding differs from the NumPy CSE plan
     of the ``'opcode'`` backend. NaN patterns match, but values agree
     only to a tolerance, not bit for bit: about ``rtol=1e-9`` and
-    ``atol=1e-12``. Running window sums are compensated and start over
-    when a window holds no finite sample, so the gap does not grow
-    with the row count, and the rolling sum or mean of a series packed
-    after NaN padding at least one window long equals that of the
-    series alone. The serial and parallel kernels follow the same per-tape
+    ``atol=1e-12``. Rolling sums and means add each window on its own,
+    so the gap does not grow with the row count, and the rolling sum
+    or mean of a series packed after NaN padding at least one window
+    long equals that of the series alone. The serial and parallel kernels follow the same per-tape
     code, so they agree to the same tolerance or better. Each call
     allocates its own workspace, so concurrent calls from several
     threads are safe.

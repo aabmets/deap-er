@@ -8,35 +8,114 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-import math
 from typing import Any
 
 __all__: list[str] = [
-    "add_compensated",
+    "block_sum",
+    "pairwise_sum",
+    "scan_sum",
     "scan_variance",
     "scan_pair_moments",
 ]
 
 
-def add_compensated(
-    total: float, comp: float, value: float
-) -> tuple[float, float]:  # pragma: no cover
-    """Add one sample to a Neumaier-compensated sum.
+def block_sum(stack: Any, row: int, begin: int, count: int) -> float:  # pragma: no cover
+    """Sum up to 128 samples in the order NumPy's pairwise ``add`` uses.
+
+    Fewer than 8 samples are added in turn; more go to eight
+    interleaved partial sums, and the remainder is added in turn.
 
     Args:
-        total: Running sum.
-        comp: Low-order digits that ``total`` could not hold.
-        value: Sample to add.
+        stack: Column-length workspace.
+        row: Stack row that holds the series.
+        begin: Inclusive start index.
+        count: Number of samples, at most 128.
 
     Returns:
-        The updated ``total`` and ``comp``.
+        The sum of the samples.
     """
-    updated = total + value
-    if not math.isfinite(updated):
-        return updated, 0.0
-    if abs(total) >= abs(value):
-        return updated, comp + ((total - updated) + value)
-    return updated, comp + ((value - updated) + total)
+    if count < 8:
+        total = 0.0
+        for index in range(begin, begin + count):
+            total += float(stack[row, index])
+        return total
+    r0 = float(stack[row, begin])
+    r1 = float(stack[row, begin + 1])
+    r2 = float(stack[row, begin + 2])
+    r3 = float(stack[row, begin + 3])
+    r4 = float(stack[row, begin + 4])
+    r5 = float(stack[row, begin + 5])
+    r6 = float(stack[row, begin + 6])
+    r7 = float(stack[row, begin + 7])
+    step = 8
+    while step < count - count % 8:
+        at = begin + step
+        r0 += float(stack[row, at])
+        r1 += float(stack[row, at + 1])
+        r2 += float(stack[row, at + 2])
+        r3 += float(stack[row, at + 3])
+        r4 += float(stack[row, at + 4])
+        r5 += float(stack[row, at + 5])
+        r6 += float(stack[row, at + 6])
+        r7 += float(stack[row, at + 7])
+        step += 8
+    total = ((r0 + r1) + (r2 + r3)) + ((r4 + r5) + (r6 + r7))
+    for index in range(begin + step, begin + count):
+        total += float(stack[row, index])
+    return total
+
+
+def pairwise_sum(stack: Any, row: int, begin: int, count: int) -> float:  # pragma: no cover
+    """Sum more than 128 samples in the order NumPy's pairwise ``add`` uses.
+
+    The run splits in half on a multiple of 8 until each part fits
+    ``block_sum``.
+
+    Args:
+        stack: Column-length workspace.
+        row: Stack row that holds the series.
+        begin: Inclusive start index.
+        count: Number of samples.
+
+    Returns:
+        The sum of the samples.
+    """
+    half = count // 2
+    half -= half % 8
+    left = (
+        block_sum(stack, row, begin, half) if half <= 128 else pairwise_sum(stack, row, begin, half)
+    )
+    rest = count - half
+    right = (
+        block_sum(stack, row, begin + half, rest)
+        if rest <= 128
+        else pairwise_sum(stack, row, begin + half, rest)
+    )
+    return left + right
+
+
+def scan_sum(stack: Any, row: int, begin: int, end: int) -> float:  # pragma: no cover
+    """Sum one window from its own samples.
+
+    Nothing carries over from earlier windows, so a value depends only
+    on the samples in its window. The samples are added in the order
+    of ``add.reduce`` (see ``block_sum`` and ``pairwise_sum``), so the
+    sum matches the opcode backend bit for bit, ``nan`` and infinities
+    included.
+
+    Args:
+        stack: Column-length workspace.
+        row: Stack row that holds the series.
+        begin: Inclusive start index.
+        end: Exclusive stop index.
+
+    Returns:
+        The sum of the window.
+    """
+    count = end - begin
+    if count <= 128:
+        return 0.0 + block_sum(stack, row, begin, count)
+    return 0.0 + pairwise_sum(stack, row, begin, count)
 
 
 def scan_variance(stack: Any, row: int, begin: int, end: int) -> float:  # pragma: no cover

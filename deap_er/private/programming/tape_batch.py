@@ -123,10 +123,10 @@ def interpret_tapes(
     ``parallel=True`` is not available on the opcode backend. The
     backends round differently: NaN patterns match, but values agree
     to about ``rtol=1e-9`` and ``atol=1e-12`` on unit-scale data.
-    Numba window sums and means use compensated summation, so the gap
-    does not grow with the row count. Numba ``rolling_std`` and the
-    pair statistics center each window on its own mean, so their
-    values depend only on that window. The serial and parallel Numba paths agree to the same
+    Numba rolling sums and means add each window on its own, and
+    Numba ``rolling_std`` and the pair statistics center each window
+    on its own mean, so their values depend only on that window and
+    the gap does not grow with the row count. The serial and parallel Numba paths agree to the same
     tolerance or better.
 
     Args:
