@@ -8,19 +8,67 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
+import math
 from typing import Any
 
+from ..window_moments import SCALE_LIMIT, SQUARES_HIGH, SQUARES_LOW
+
 __all__: list[str] = [
+    "out_of_range",
+    "scan_inverse",
     "scan_variance",
     "scan_pair_moments",
 ]
 
 
-def scan_variance(stack: Any, row: int, begin: int, end: int) -> float:  # pragma: no cover
+def out_of_range(squares: float) -> bool:  # pragma: no cover
+    """Tell whether a mean square deviation needs scaling.
+
+    Mirrors ``scaled_moments`` on the Python backend: a mean square
+    inside ``[SQUARES_LOW, SQUARES_HIGH]`` needs none, and ``nan``
+    never does.
+
+    Args:
+        squares: Unscaled mean square deviation of a window.
+
+    Returns:
+        True when the window's squares overflow or underflow.
+    """
+    return squares < SQUARES_LOW or squares > SQUARES_HIGH
+
+
+def scan_inverse(  # pragma: no cover
+    stack: Any, row: int, begin: int, end: int, mean: float
+) -> float:
+    """Pick the power of two that brings a window's largest deviation near 1.
+
+    Args:
+        stack: Column-length workspace.
+        row: Stack row that holds the series.
+        begin: Inclusive start index.
+        end: Exclusive stop index.
+        mean: Window mean.
+
+    Returns:
+        The factor to multiply the deviations by.
+    """
+    peak = 0.0
+    for index in range(begin, end):
+        peak = max(peak, abs(float(stack[row, index]) - mean))
+    exponent = -math.frexp(peak)[1]
+    exponent = min(max(exponent, -SCALE_LIMIT), SCALE_LIMIT)
+    return math.ldexp(1.0, exponent)
+
+
+def scan_variance(  # pragma: no cover
+    stack: Any, row: int, begin: int, end: int
+) -> tuple[float, float]:
     """Take one window's variance around its own mean.
 
     Centering on the window mean is what the Python backend does, so
-    the two agree without either of them having to round alike.
+    the two agree without either of them having to round alike. A
+    window whose squares would overflow or underflow is taken again
+    with its deviations scaled by a power of two (see ``out_of_range``).
 
     Args:
         stack: Column-length workspace.
@@ -29,27 +77,38 @@ def scan_variance(stack: Any, row: int, begin: int, end: int) -> float:  # pragm
         end: Exclusive stop index.
 
     Returns:
-        The population variance of the window.
+        The scaled population variance of the window and the scale;
+        the true variance is the first times the square of the second.
     """
     count = float(end - begin)
     total = 0.0
     for index in range(begin, end):
         total += float(stack[row, index])
     mean = total / count
+    inverse = 1.0
     residue = 0.0
     squares = 0.0
-    for index in range(begin, end):
-        deviation = float(stack[row, index]) - mean
-        residue += deviation
-        squares += deviation * deviation
-    residue /= count
-    return squares / count - residue * residue
+    for scaled in range(2):
+        residue = 0.0
+        squares = 0.0
+        for index in range(begin, end):
+            deviation = (float(stack[row, index]) - mean) * inverse
+            residue += deviation
+            squares += deviation * deviation
+        residue /= count
+        squares /= count
+        if scaled or not out_of_range(squares):
+            break
+        inverse = scan_inverse(stack, row, begin, end, mean)
+    return squares - residue * residue, 1.0 / inverse
 
 
 def scan_pair_moments(  # pragma: no cover
     stack: Any, left_row: int, right_row: int, begin: int, end: int
-) -> tuple[float, float, float]:
+) -> tuple[float, float, float, float, float]:
     """Take one pair window's moments around their own means.
+
+    Each series is scaled on its own, as in ``scan_variance``.
 
     Args:
         stack: Column-length workspace.
@@ -59,7 +118,10 @@ def scan_pair_moments(  # pragma: no cover
         end: Exclusive stop index.
 
     Returns:
-        The covariance and the two variances of the window.
+        The scaled covariance, the two scaled variances, and the left
+        and right scales of the window. The true covariance is the
+        scaled one times both scales, and a true variance is its
+        scaled one times its scale squared.
     """
     count = float(end - begin)
     mean_x = 0.0
@@ -69,23 +131,44 @@ def scan_pair_moments(  # pragma: no cover
         mean_y += float(stack[right_row, index])
     mean_x /= count
     mean_y /= count
+    inverse_x = 1.0
+    inverse_y = 1.0
     residue_x = 0.0
     residue_y = 0.0
     squares_x = 0.0
     squares_y = 0.0
     products = 0.0
-    for index in range(begin, end):
-        dev_x = float(stack[left_row, index]) - mean_x
-        dev_y = float(stack[right_row, index]) - mean_y
-        residue_x += dev_x
-        residue_y += dev_y
-        squares_x += dev_x * dev_x
-        squares_y += dev_y * dev_y
-        products += dev_x * dev_y
-    residue_x /= count
-    residue_y /= count
+    for scaled in range(2):
+        residue_x = 0.0
+        residue_y = 0.0
+        squares_x = 0.0
+        squares_y = 0.0
+        products = 0.0
+        for index in range(begin, end):
+            dev_x = (float(stack[left_row, index]) - mean_x) * inverse_x
+            dev_y = (float(stack[right_row, index]) - mean_y) * inverse_y
+            residue_x += dev_x
+            residue_y += dev_y
+            squares_x += dev_x * dev_x
+            squares_y += dev_y * dev_y
+            products += dev_x * dev_y
+        residue_x /= count
+        residue_y /= count
+        squares_x /= count
+        squares_y /= count
+        products /= count
+        extreme_x = out_of_range(squares_x)
+        extreme_y = out_of_range(squares_y)
+        if scaled or not (extreme_x or extreme_y):
+            break
+        if extreme_x:
+            inverse_x = scan_inverse(stack, left_row, begin, end, mean_x)
+        if extreme_y:
+            inverse_y = scan_inverse(stack, right_row, begin, end, mean_y)
     return (
-        products / count - residue_x * residue_y,
-        squares_x / count - residue_x * residue_x,
-        squares_y / count - residue_y * residue_y,
+        products - residue_x * residue_y,
+        squares_x - residue_x * residue_x,
+        squares_y - residue_y * residue_y,
+        1.0 / inverse_x,
+        1.0 / inverse_y,
     )

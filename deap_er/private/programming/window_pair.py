@@ -16,7 +16,8 @@ from numpy.lib.stride_tricks import sliding_window_view
 
 from .columnar import Array, Window, reject_shadowed
 from .primitives.primitive_set_typed import PrimitiveSetTyped
-from .window_roll import CHUNK_ROWS, as_series, window_deviations
+from .window_moments import scaled_moments, window_deviations
+from .window_roll import CHUNK_ROWS, as_series
 
 __all__: list[str] = [
     "as_pair_series",
@@ -27,9 +28,8 @@ __all__: list[str] = [
     "add_pair_window_primitives",
 ]
 
-type PairMoments = tuple[
-    numpy.ndarray, int, numpy.ndarray | None, numpy.ndarray | None, numpy.ndarray | None
-]
+type ScaledPair = tuple[numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray, numpy.ndarray]
+type PairMoments = tuple[numpy.ndarray, int, ScaledPair | None]
 
 
 def as_pair_series(left: Any, right: Any, window: Any) -> tuple[numpy.ndarray, numpy.ndarray, int]:
@@ -73,7 +73,9 @@ def pair_moments(left: Any, right: Any, window: Any) -> PairMoments:
     is clamped to zero, matching ``rolling_std``. Every window is
     centered on its own mean before squaring, in row blocks, so the
     moments stay accurate however far the samples sit from zero. A
-    window that holds an infinity is ``nan``.
+    series whose squares would overflow or underflow is scaled by a
+    power of two first (see ``scaled_moments``), so the moments come
+    back scaled. A window that holds an infinity is ``nan``.
 
     Args:
         left: First series.
@@ -81,9 +83,12 @@ def pair_moments(left: Any, right: Any, window: Any) -> PairMoments:
         window: Trailing window length. At least 1.
 
     Returns:
-        The ``nan``-prefilled output, the window length, and the
-        covariance and variances of each full window, or None when
-        the series is shorter than the window.
+        The ``nan``-prefilled output, the window length, and the scaled
+        covariance, the two scaled variances, and the left and right
+        scales of each full window, or None when the series is shorter
+        than the window. The true covariance is the scaled one times
+        both scales, and a true variance is its scaled one times its
+        scale squared.
 
     Raises:
         ValueError: If the window length is less than 1, or if the
@@ -92,28 +97,25 @@ def pair_moments(left: Any, right: Any, window: Any) -> PairMoments:
     left_series, right_series, length = as_pair_series(left, right, window)
     result = numpy.full(left_series.shape, numpy.nan, dtype=numpy.float64)
     if length > left_series.size:
-        return result, length, None, None, None
+        return result, length, None
     left_view = sliding_window_view(left_series, length)
     right_view = sliding_window_view(right_series, length)
     rows = left_view.shape[0]
-    cov = numpy.empty(rows, dtype=numpy.float64)
-    var_x = numpy.empty(rows, dtype=numpy.float64)
-    var_y = numpy.empty(rows, dtype=numpy.float64)
+    moments = tuple(numpy.empty(rows, dtype=numpy.float64) for _ in range(5))
+    cov, var_x, var_y, scale_x, scale_y = moments
     count = float(length)
     for start in range(0, rows, CHUNK_ROWS):
         stop = start + CHUNK_ROWS
         dev_x = window_deviations(left_view[start:stop], length)
         dev_y = window_deviations(right_view[start:stop], length)
+        residue_x, squares_x, scale_x[start:stop] = scaled_moments(dev_x, length)
+        residue_y, squares_y, scale_y[start:stop] = scaled_moments(dev_y, length)
         with numpy.errstate(invalid="ignore"):
-            residue_x = numpy.add.reduce(dev_x, axis=-1) / count
-            residue_y = numpy.add.reduce(dev_y, axis=-1) / count
             products = numpy.add.reduce(dev_x * dev_y, axis=-1) / count
-            squares_x = numpy.add.reduce(dev_x * dev_x, axis=-1) / count
-            squares_y = numpy.add.reduce(dev_y * dev_y, axis=-1) / count
             cov[start:stop] = products - residue_x * residue_y
             var_x[start:stop] = numpy.maximum(squares_x - residue_x * residue_x, 0.0)
             var_y[start:stop] = numpy.maximum(squares_y - residue_y * residue_y, 0.0)
-    return result, length, cov, var_x, var_y
+    return result, length, (cov, var_x, var_y, scale_x, scale_y)
 
 
 def rolling_cov(left: Any, right: Any, window: Any) -> numpy.ndarray:
@@ -134,9 +136,11 @@ def rolling_cov(left: Any, right: Any, window: Any) -> numpy.ndarray:
         ValueError: If the window length is less than 1, or if the
             operands are not one-dimensional series of the same length.
     """
-    result, length, cov, _, _ = pair_moments(left, right, window)
-    if cov is not None:
-        result[length - 1 :] = cov
+    result, length, moments = pair_moments(left, right, window)
+    if moments is not None:
+        cov, _, _, scale_x, scale_y = moments
+        with numpy.errstate(over="ignore", invalid="ignore"):
+            result[length - 1 :] = cov * scale_x * scale_y
     return result
 
 
@@ -159,9 +163,10 @@ def rolling_corr(left: Any, right: Any, window: Any) -> numpy.ndarray:
         ValueError: If the window length is less than 1, or if the
             operands are not one-dimensional series of the same length.
     """
-    result, length, cov, var_x, var_y = pair_moments(left, right, window)
-    if cov is None or var_x is None or var_y is None:
+    result, length, moments = pair_moments(left, right, window)
+    if moments is None:
         return result
+    cov, var_x, var_y, _, _ = moments
     denom = numpy.sqrt(var_x * var_y)
     with numpy.errstate(invalid="ignore", divide="ignore"):
         values = cov / denom
@@ -189,11 +194,12 @@ def rolling_beta(left: Any, right: Any, window: Any) -> numpy.ndarray:
         ValueError: If the window length is less than 1, or if the
             operands are not one-dimensional series of the same length.
     """
-    result, length, cov, _, var_y = pair_moments(left, right, window)
-    if cov is None or var_y is None:
+    result, length, moments = pair_moments(left, right, window)
+    if moments is None:
         return result
-    with numpy.errstate(invalid="ignore", divide="ignore"):
-        values = cov / var_y
+    cov, _, var_y, scale_x, scale_y = moments
+    with numpy.errstate(invalid="ignore", divide="ignore", over="ignore"):
+        values = cov / var_y * scale_x / scale_y
     values[var_y <= 0.0] = numpy.nan
     result[length - 1 :] = values
     return result

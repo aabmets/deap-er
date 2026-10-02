@@ -12,6 +12,14 @@ import numpy
 import pytest
 from deap_er import gp
 
+from ..test_window_scaling import (
+    WINDOW,
+    expected_pair,
+    expected_std,
+    partner_series,
+    spiked_series,
+    tiny_series,
+)
 from .window_parity import PAIR, check_parity, window_kit, window_tree
 
 pytestmark = pytest.mark.skipif(
@@ -25,6 +33,29 @@ def test_large_magnitude_rolling_std_matches_the_python_oracle():
     series = numpy.concatenate([numpy.linspace(1e8, 1e8 + 80, 40), numpy.full(40, 1e8)])
     pset = window_kit(16, "unary")
     check_parity(window_tree(pset, "rolling_std", "unary"), pset, (series,))
+
+
+@pytest.mark.parametrize("make", [spiked_series, tiny_series])
+def test_numba_rolling_std_of_an_extreme_scale_window_is_its_true_value(make):
+    # A ~3.4e300 sample overflowed the squared deviations to inf, and
+    # the leftover mean deviation squared to inf too, so inf - inf was
+    # nan; ~1e-170 deviations squared to 0.
+    series = make()
+    pset = window_kit(WINDOW, "unary")
+    run = gp.compile_tree(window_tree(pset, "rolling_std", "unary"), pset, backend="numba")
+    actual = run(series, series, series)[WINDOW - 1 :]
+    numpy.testing.assert_allclose(actual, expected_std(series), rtol=1e-12)
+
+
+@pytest.mark.parametrize("make", [spiked_series, tiny_series])
+@pytest.mark.parametrize("name", PAIR)
+def test_numba_pair_stats_of_an_extreme_scale_window_are_their_true_values(make, name):
+    left = make()
+    right = partner_series()
+    pset = window_kit(WINDOW, "pair")
+    run = gp.compile_tree(window_tree(pset, name, "pair"), pset, backend="numba")
+    actual = run(left, right, right)[WINDOW - 1 :]
+    numpy.testing.assert_allclose(actual, expected_pair(name, left, right), rtol=1e-12)
 
 
 def test_ema_across_nan_gaps_matches_the_python_oracle():

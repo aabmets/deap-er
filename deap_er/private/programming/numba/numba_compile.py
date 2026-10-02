@@ -67,6 +67,8 @@ JIT_GROUPS: tuple[tuple[Any, tuple[str, ...]], ...] = (
     (
         numba_window_scan,
         (
+            "out_of_range",
+            "scan_inverse",
             "scan_variance",
             "scan_pair_moments",
         ),

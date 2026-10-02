@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `rolling_std`, `rolling_corr`, and `rolling_beta` returned `nan`,
+  `inf`, or `0` for a window whose squared deviations overflow or
+  underflow, on both backends. A 129-sample window holding one
+  `3.4e300` sample gave `nan` on `backend="numba"` and `inf` or `nan`
+  on the opcode backend, depending on rounding, although its standard
+  deviation is about `3e299`, and deviations of `1e-170` gave a
+  standard deviation of `0` and a `nan` correlation. Such a window is
+  now scaled by a power of two before squaring, so both backends
+  return its true value. Every other window keeps its bits
+  ([#150](https://github.com/aabmets/deap-er/pull/150))
+
 ## [3.1.9] - 2026-10-02
 
 ### Changed
