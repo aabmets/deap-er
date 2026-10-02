@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   backend bit for bit. Against the running total they cost about 2x
   at a 5-sample window, 3.5x at 48, and 17x at 300 samples, and run
   about 2x to 2.5x slower than the opcode backend on a lone rolling
-  primitive ([#PR](https://github.com/aabmets/deap-er/pull/PR))
+  primitive ([#149](https://github.com/aabmets/deap-er/pull/149))
 
 ### Fixed
 
@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   later window of values near `4.5` stayed off by up to about `0.9`
   for the rest of the series. They
   are now window-local, so a value depends only on the samples in its
-  window ([#PR](https://github.com/aabmets/deap-er/pull/PR))
+  window ([#149](https://github.com/aabmets/deap-er/pull/149))
 
 ## [3.1.8] - 2026-10-01
 
