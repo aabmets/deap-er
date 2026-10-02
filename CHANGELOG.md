@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   standard deviation of `0` and a `nan` correlation. Such a window is
   now scaled by a power of two before squaring, so both backends
   return its true value. Every other window keeps its bits
-  ([#PR](https://github.com/aabmets/deap-er/pull/PR))
+  ([#150](https://github.com/aabmets/deap-er/pull/150))
 
 ## [3.1.9] - 2026-10-02
 
