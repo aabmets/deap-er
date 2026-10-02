@@ -84,11 +84,13 @@ tests.
 **Today.** Numba walks `rolling_{min,max}` and `ts_argmax` /
 `ts_argmin` in $O(\text{rows})$ with a monotonic index ring.
 `rolling_{sum,mean}`, `rolling_std`, the pair moments, and `ts_rank`
-are per-window scans, so a value depends only on the samples in its
-window and not on where the series starts. The sums add each window
-in NumPy's pairwise order, so they match Python and the `opcode`
-backend, which stay the definition, bit for bit; the moments center
-each window on its own mean before squaring, as those backends do.
+are computed per window, so a value depends only on the samples in
+its window and not on where the series starts. The sums add each
+window in NumPy's pairwise order, sharing the eight partial sums that
+neighbouring windows have in common, so they match Python and the
+`opcode` backend, which stay the definition, bit for bit; the moments
+center each window on its own mean before squaring, as those
+backends do.
 Parity tests compare Numba to that oracle, including `nan` recovery,
 $\pm\inf$, columns far from zero, and a variance that collapses.
 

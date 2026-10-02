@@ -13,10 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   digits.** On `backend="numba"` every window is now summed on its own
   in the pairwise order of NumPy's `add.reduce`, instead of being read
   from a compensated running total, so they now match the opcode
-  backend bit for bit. Against the running total they cost about 2x
-  at a 5-sample window, 3.5x at 48, and 17x at 300 samples, and run
-  about 2x to 2.5x slower than the opcode backend on a lone rolling
-  primitive ([#149](https://github.com/aabmets/deap-er/pull/149))
+  backend bit for bit. Windows that share NumPy's eight partial sums
+  share their computation, so on 200k rows a lone `rolling_sum` takes
+  about 2.8 ms at a 5-sample window, 5 ms at 48, 6 ms at 128, and
+  15 ms at 300, against 4.9, 3.6, 3.0, and 2.9 ms for the running total
+  and 4.2, 6.1, 9.2, and 21 ms on the opcode backend
+  ([#149](https://github.com/aabmets/deap-er/pull/149))
 
 ### Fixed
 
@@ -24,9 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   samples into every later window: once two huge samples such as
   `1e30` and `3e29` that do not add exactly had shared a window, every
   later window of values near `4.5` stayed off by up to about `0.9`
-  for the rest of the series. They
-  are now window-local, so a value depends only on the samples in its
-  window ([#149](https://github.com/aabmets/deap-er/pull/149))
+  for the rest of the series. They are now window-local, so a value
+  depends only on the samples in its window ([#149](https://github.com/aabmets/deap-er/pull/149))
 
 ## [3.1.8] - 2026-10-01
 

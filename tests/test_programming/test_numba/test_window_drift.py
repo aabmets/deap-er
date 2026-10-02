@@ -75,6 +75,25 @@ def test_huge_samples_that_do_not_cancel_leave_nothing_behind(name):
     numpy.testing.assert_allclose(actual[108:], expected[108:], rtol=1e-12, atol=0.0)
 
 
+@pytest.mark.filterwarnings("ignore:invalid value encountered:RuntimeWarning")
+@pytest.mark.parametrize("window", [7, 8, 13, 128, 129, 300])
+@pytest.mark.parametrize("name", ROLLING)
+def test_rolling_sums_match_the_opcode_backend_bit_for_bit(name, window):
+    # Windows of 8 or more share NumPy's lane partial sums, and windows
+    # over 128 split into blocks as NumPy does, so no bit may differ.
+    generator = numpy.random.default_rng(5)
+    series = generator.normal(size=1500) * numpy.exp(5.0 * generator.normal(size=1500))
+    series[[200, 600, 640]] = [numpy.nan, numpy.inf, -numpy.inf]
+    series[900:1300] = -0.0
+    pset = window_kit(window, "unary")
+    tree = window_tree(pset, name, "unary")
+    expected = numpy.asarray(gp.compile_tree(tree, pset, backend="opcode")(series, series, series))
+    actual = gp.compile_tree(tree, pset, backend="numba")(series, series, series)
+
+    numpy.testing.assert_array_equal(actual, expected)
+    numpy.testing.assert_array_equal(numpy.signbit(actual), numpy.signbit(expected))
+
+
 @pytest.mark.filterwarnings("ignore:overflow encountered:RuntimeWarning")
 @pytest.mark.parametrize("name", [*ROLLING, "rolling_std"])
 def test_windows_after_an_overflowing_window_match_the_python_oracle(name):
