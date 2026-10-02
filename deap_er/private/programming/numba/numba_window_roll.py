@@ -16,7 +16,7 @@ import numpy
 from . import numba_codes as codes
 from .numba_window_sum import BLOCK, block_total, fill_lanes, plan_split, window_total
 
-__all__: list[str] = ["roll_stats", "window_lanes"]
+__all__: list[str] = ["window_lanes", "sum_short", "sum_blocks", "roll_stats"]
 
 
 def window_lanes(  # pragma: no cover
@@ -83,25 +83,50 @@ def roll_stats(  # pragma: no cover
         arg: Window length.
     """
     series = stack[sp - 1]
-    last = arg - 2
     if arg < 8:
-        for t in range(rows - 1, last, -1):
-            total = 0.0
-            for index in range(t - arg + 1, t + 1):
-                total += series[index]
-            series[t] = total
+        sum_short(series, rows, arg)
     elif arg <= rows:
-        lanes, slots, plan = window_lanes(rows, sp, stack, scratch, arg)
-        if arg <= BLOCK:
-            for t in range(rows - 1, last, -1):
-                series[t] = 0.0 + block_total(series, lanes, 0, t - arg + 1, arg)
-        else:
-            values = numpy.empty(plan.size, dtype=numpy.float64)
-            for t in range(rows - 1, last, -1):
-                begin = t - arg + 1
-                series[t] = 0.0 + window_total(series, lanes, slots, plan, values, begin)
+        sum_blocks(rows, sp, stack, scratch, arg)
     if op == codes.ROLL_MEAN:
-        for t in range(rows - 1, last, -1):
+        for t in range(rows - 1, arg - 2, -1):
             series[t] /= arg
     for t in range(min(arg - 1, rows)):
         series[t] = math.nan
+
+
+def sum_short(series: Any, rows: int, arg: int) -> None:  # pragma: no cover
+    """Sum windows of fewer than 8 samples in place, adding in turn.
+
+    Args:
+        series: Samples, overwritten from the last window back.
+        rows: Number of samples.
+        arg: Window length, below 8.
+    """
+    for t in range(rows - 1, arg - 2, -1):
+        total = 0.0
+        for index in range(t - arg + 1, t + 1):
+            total += series[index]
+        series[t] = total
+
+
+def sum_blocks(  # pragma: no cover
+    rows: int, sp: int, stack: Any, scratch: Any, arg: int
+) -> None:
+    """Sum windows of 8 to ``rows`` samples in place from lane sums.
+
+    Args:
+        rows: Number of samples.
+        sp: Current stack pointer.
+        stack: Column-length workspace.
+        scratch: Spare row of ``rows`` values.
+        arg: Window length.
+    """
+    series = stack[sp - 1]
+    lanes, slots, plan = window_lanes(rows, sp, stack, scratch, arg)
+    if arg <= BLOCK:
+        for t in range(rows - 1, arg - 2, -1):
+            series[t] = 0.0 + block_total(series, lanes, 0, t - arg + 1, arg)
+        return
+    values = numpy.empty(plan.size, dtype=numpy.float64)
+    for t in range(rows - 1, arg - 2, -1):
+        series[t] = 0.0 + window_total(series, lanes, slots, plan, values, t - arg + 1)

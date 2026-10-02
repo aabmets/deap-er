@@ -93,7 +93,7 @@ JIT_GROUPS: tuple[tuple[Any, tuple[str, ...]], ...] = (
     ),
     (
         numba_window_roll,
-        ("window_lanes", "roll_stats"),
+        ("window_lanes", "sum_short", "sum_blocks", "roll_stats"),
     ),
     (
         numba_window,
