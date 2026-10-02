@@ -167,7 +167,11 @@ The following is extra.
     later window. Its `rolling_std`, `rolling_corr`,
     `rolling_cov`, and `rolling_beta` center each window on its own
     mean, as the opcode backend does, so a value depends only on the
-    samples in its window. See
+    samples in its window. On both backends a window whose squared
+    deviations would overflow or underflow, such as one holding a
+    single `3.4e300` sample or only `1e-170` deviations, is scaled by
+    a power of two first, so it gets its true finite value instead of
+    `inf`, `nan`, or `0`. See
     the [columnar GP tutorial](../../tutorials/columnar_gp.md).
 30. HARM `natural_histogram` does not wrap `hist[-1]` when a
     tree has size $0$. The left-neighbor bin is updated only
