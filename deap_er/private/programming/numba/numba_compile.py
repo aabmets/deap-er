@@ -23,6 +23,7 @@ from . import (
     numba_window_roll,
     numba_window_scan,
     numba_window_std,
+    numba_window_sum,
     numba_window_ts,
 )
 from .numba_cache import ensure_numba_cache_dir
@@ -66,7 +67,6 @@ JIT_GROUPS: tuple[tuple[Any, tuple[str, ...]], ...] = (
     (
         numba_window_scan,
         (
-            "add_compensated",
             "scan_variance",
             "scan_pair_moments",
         ),
@@ -88,13 +88,12 @@ JIT_GROUPS: tuple[tuple[Any, tuple[str, ...]], ...] = (
         ("roll_std",),
     ),
     (
+        numba_window_sum,
+        ("fill_lanes", "plan_split", "block_total", "window_total"),
+    ),
+    (
         numba_window_roll,
-        (
-            "resync_sums",
-            "absorb_stat",
-            "window_total",
-            "roll_stats",
-        ),
+        ("window_lanes", "sum_short", "sum_blocks", "roll_stats"),
     ),
     (
         numba_window,
@@ -132,7 +131,6 @@ def _compile_group(module: Any, names: tuple[str, ...], jit: Any) -> None:
 
 
 def _wire_scan() -> None:
-    numba_window_roll.add_compensated = numba_window_scan.add_compensated
     numba_window_std.scan_variance = numba_window_scan.scan_variance
     numba_window_pair_roll.scan_pair_moments = numba_window_scan.scan_pair_moments
 
@@ -153,6 +151,10 @@ def _wire_module(module: Any) -> None:
         return
     if module is numba_window_std:
         numba_window.roll_std = numba_window_std.roll_std
+        return
+    if module is numba_window_sum:
+        for name in ("fill_lanes", "plan_split", "block_total", "window_total"):
+            setattr(numba_window_roll, name, getattr(numba_window_sum, name))
         return
     if module is numba_window_roll:
         numba_window.roll_stats = numba_window_roll.roll_stats
