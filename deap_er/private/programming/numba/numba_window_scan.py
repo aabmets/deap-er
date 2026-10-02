@@ -14,20 +14,33 @@ from typing import Any
 from ..window_moments import SCALE_LIMIT, SQUARES_HIGH, SQUARES_LOW
 
 __all__: list[str] = [
+    "out_of_range",
     "scan_inverse",
     "scan_variance",
     "scan_pair_moments",
 ]
 
 
-def scan_inverse(  # pragma: no cover
-    stack: Any, row: int, begin: int, end: int, mean: float, squares: float
-) -> float:
-    """Pick the power of two that keeps one window's squares in range.
+def out_of_range(squares: float) -> bool:  # pragma: no cover
+    """Tell whether a mean square deviation needs scaling.
 
     Mirrors ``scaled_moments`` on the Python backend: a mean square
-    inside ``[SQUARES_LOW, SQUARES_HIGH]`` needs no scaling, and any
-    other brings the window's largest deviation near 1.
+    inside ``[SQUARES_LOW, SQUARES_HIGH]`` needs none, and ``nan``
+    never does.
+
+    Args:
+        squares: Unscaled mean square deviation of a window.
+
+    Returns:
+        True when the window's squares overflow or underflow.
+    """
+    return squares < SQUARES_LOW or squares > SQUARES_HIGH
+
+
+def scan_inverse(  # pragma: no cover
+    stack: Any, row: int, begin: int, end: int, mean: float
+) -> float:
+    """Pick the power of two that brings a window's largest deviation near 1.
 
     Args:
         stack: Column-length workspace.
@@ -35,13 +48,10 @@ def scan_inverse(  # pragma: no cover
         begin: Inclusive start index.
         end: Exclusive stop index.
         mean: Window mean.
-        squares: Unscaled mean square deviation of the window.
 
     Returns:
-        The factor to multiply the deviations by, 1.0 when none is needed.
+        The factor to multiply the deviations by.
     """
-    if not (squares < SQUARES_LOW or squares > SQUARES_HIGH):
-        return 1.0
     peak = 0.0
     for index in range(begin, end):
         peak = max(peak, abs(float(stack[row, index]) - mean))
@@ -58,7 +68,7 @@ def scan_variance(  # pragma: no cover
     Centering on the window mean is what the Python backend does, so
     the two agree without either of them having to round alike. A
     window whose squares would overflow or underflow is taken again
-    with its deviations scaled by a power of two (see ``scan_inverse``).
+    with its deviations scaled by a power of two (see ``out_of_range``).
 
     Args:
         stack: Column-length workspace.
@@ -78,7 +88,7 @@ def scan_variance(  # pragma: no cover
     inverse = 1.0
     residue = 0.0
     squares = 0.0
-    for _ in range(2):
+    for scaled in range(2):
         residue = 0.0
         squares = 0.0
         for index in range(begin, end):
@@ -87,11 +97,9 @@ def scan_variance(  # pragma: no cover
             squares += deviation * deviation
         residue /= count
         squares /= count
-        if inverse != 1.0:
+        if scaled or not out_of_range(squares):
             break
-        inverse = scan_inverse(stack, row, begin, end, mean, squares)
-        if inverse == 1.0:
-            break
+        inverse = scan_inverse(stack, row, begin, end, mean)
     return squares - residue * residue, 1.0 / inverse
 
 
@@ -130,7 +138,7 @@ def scan_pair_moments(  # pragma: no cover
     squares_x = 0.0
     squares_y = 0.0
     products = 0.0
-    for _ in range(2):
+    for scaled in range(2):
         residue_x = 0.0
         residue_y = 0.0
         squares_x = 0.0
@@ -149,12 +157,14 @@ def scan_pair_moments(  # pragma: no cover
         squares_x /= count
         squares_y /= count
         products /= count
-        if inverse_x != 1.0 or inverse_y != 1.0:
+        extreme_x = out_of_range(squares_x)
+        extreme_y = out_of_range(squares_y)
+        if scaled or not (extreme_x or extreme_y):
             break
-        inverse_x = scan_inverse(stack, left_row, begin, end, mean_x, squares_x)
-        inverse_y = scan_inverse(stack, right_row, begin, end, mean_y, squares_y)
-        if inverse_x == 1.0 and inverse_y == 1.0:
-            break
+        if extreme_x:
+            inverse_x = scan_inverse(stack, left_row, begin, end, mean_x)
+        if extreme_y:
+            inverse_y = scan_inverse(stack, right_row, begin, end, mean_y)
     return (
         products - residue_x * residue_y,
         squares_x - residue_x * residue_x,
