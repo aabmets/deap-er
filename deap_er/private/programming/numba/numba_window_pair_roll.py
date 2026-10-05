@@ -41,7 +41,9 @@ def roll_pair_stats(  # pragma: no cover
         if t + 1 < arg:
             scratch[t] = math.nan
             continue
-        cov, var_x, var_y = scan_pair_moments(stack, sp - 2, sp - 1, t - arg + 1, t + 1)
-        scratch[t] = reduce_pair(op, cov, var_x, var_y)
+        cov, var_x, var_y, scale_x, scale_y = scan_pair_moments(
+            stack, sp - 2, sp - 1, t - arg + 1, t + 1
+        )
+        scratch[t] = reduce_pair(op, cov, var_x, var_y, scale_x, scale_y)
     for t in range(rows):
         stack[sp - 2, t] = scratch[t]

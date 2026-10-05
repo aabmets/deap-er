@@ -152,7 +152,11 @@ and one `Window`: `rolling_corr`, `rolling_cov`, and `rolling_beta`.
 Moments use the same population divisor as `rolling_std`. Beta is the
 OLS slope of the first series on the second
 ($\mathrm{cov}(x, y) / \mathrm{var}(y)$). A window whose denominator
-variance is zero is `nan`, not the protected-op fill.
+variance is zero is `nan`, not the protected-op fill. A window whose
+squared deviations would overflow or underflow, here and in
+`rolling_std`, is scaled by a power of two before squaring, so a single
+`3e300` sample or a series of `1e-170` deviations still gets its true
+finite value.
 
 ```python
 gp.add_pair_window_primitives(pset)

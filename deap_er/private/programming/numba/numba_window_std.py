@@ -23,8 +23,10 @@ def roll_std(  # pragma: no cover
 
     Every window is centered on its own mean (see ``scan_variance``),
     so an output depends only on the samples in its window, as on the
-    opcode backend. A window that holds a ``nan`` or an infinity is
-    ``nan``, and the first ``arg - 1`` samples are ``nan``.
+    opcode backend. A window whose squares would overflow or underflow
+    is scaled by a power of two first. A window that holds a ``nan``
+    or an infinity is ``nan``, and the first ``arg - 1`` samples are
+    ``nan``.
 
     Args:
         rows: Number of samples.
@@ -37,9 +39,9 @@ def roll_std(  # pragma: no cover
         if t + 1 < arg:
             scratch[t] = math.nan
             continue
-        variance = scan_variance(stack, sp - 1, t - arg + 1, t + 1)
+        variance, scale = scan_variance(stack, sp - 1, t - arg + 1, t + 1)
         if variance < 0.0:
             variance = 0.0
-        scratch[t] = math.sqrt(variance)
+        scratch[t] = math.sqrt(variance) * scale
     for t in range(rows):
         stack[sp - 1, t] = scratch[t]
