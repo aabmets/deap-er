@@ -248,6 +248,13 @@ The following is extra.
     `randrange(1, len(individual))` and skipped index 0 when
     shrinking, so a program whose only primitive is the root could
     never have its operator changed by node replacement.
+41. `make_column_pset` and `columnar_pset` take `strides=`, the rows
+    per step of each column that holds its value for several rows. A
+    window then counts steps of its series: a pointwise node takes the
+    gcd of its arguments' strides, and `delay` and `diff` keep theirs.
+    Lowering scales the window to rows on every backend, so the text
+    form, pickles, and every stride-1 set are unchanged. DEAP has no
+    columnar windows.
 
 The columnar contract is in the
 [columnar GP tutorial](../../tutorials/columnar_gp.md). The private

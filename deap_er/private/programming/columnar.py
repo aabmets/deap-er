@@ -10,7 +10,8 @@
 #
 import keyword
 import re
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
+from numbers import Integral
 
 from .primitives.primitive_set_typed import PrimitiveSetTyped
 
@@ -20,6 +21,7 @@ __all__: list[str] = [
     "Window",
     "reject_shadowed",
     "validate_names",
+    "attach_strides",
     "make_column_pset",
 ]
 
@@ -102,7 +104,45 @@ def validate_names(names: Sequence[str]) -> None:
         seen.add(name)
 
 
-def make_column_pset(names: Sequence[str], name: str = "MAIN") -> PrimitiveSetTyped:
+def attach_strides(
+    prim_set: PrimitiveSetTyped, names: Sequence[str], strides: Mapping[str, int] | None
+) -> None:
+    """Store the per-column strides on a columnar primitive set.
+
+    The strides are stored by argument position as ``column_strides``,
+    so a later argument rename does not detach them. Nothing is stored
+    when every stride is 1, which leaves the set exactly as it was
+    before strides existed.
+
+    Args:
+        prim_set: Set built over ``names``.
+        names: Column names, in argument order.
+        strides: Column name to stride, in rows per step. Columns that
+            are not listed have stride 1.
+
+    Raises:
+        ValueError: If a key is not a column name, or if a stride is
+            not a positive integer.
+    """
+    if not strides:
+        return
+    index = {column: position for position, column in enumerate(names)}
+    values = [1] * len(names)
+    for column, stride in strides.items():
+        if column not in index:
+            raise ValueError(f"The stride of '{column}' names no column of the set.")
+        if isinstance(stride, bool) or not isinstance(stride, Integral) or stride < 1:
+            raise ValueError(
+                f"The stride of '{column}' must be a positive integer, got {stride!r}."
+            )
+        values[index[column]] = int(stride)
+    if any(value != 1 for value in values):
+        object.__setattr__(prim_set, "column_strides", tuple(values))
+
+
+def make_column_pset(
+    names: Sequence[str], name: str = "MAIN", *, strides: Mapping[str, int] | None = None
+) -> PrimitiveSetTyped:
     """Build a typed primitive set with one ``Array`` input per column.
 
     The resulting set expects and returns ``Array``. Argument order is
@@ -120,16 +160,26 @@ def make_column_pset(names: Sequence[str], name: str = "MAIN") -> PrimitiveSetTy
             identifier that is not a keyword and does not look like
             the default ``ARG<n>`` argument prefix.
         name: Name of the primitive set.
+        strides: Rows per step of each listed column, for a column
+            that holds every value for a fixed number of rows. A
+            window over such a column counts its steps, not rows.
+            Unlisted columns have stride 1, and a set where every
+            stride is 1 behaves exactly like one built without
+            strides. The tree text does not record strides, so keep
+            the map with the column list when storing programs.
 
     Returns:
         A typed primitive set with one renamed input terminal per
         column.
 
     Raises:
-        ValueError: If ``names`` is empty or holds an unusable name.
+        ValueError: If ``names`` is empty or holds an unusable name,
+            or if ``strides`` names an unknown column or holds a
+            stride that is not a positive integer.
     """
     validate_names(names)
     in_types: list[type] = [Array] * len(names)
     prim_set = PrimitiveSetTyped(name, in_types, Array)
     prim_set.rename_arguments(**{f"ARG{i}": column for i, column in enumerate(names)})
+    attach_strides(prim_set, names, strides)
     return prim_set

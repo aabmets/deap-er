@@ -177,6 +177,54 @@ gp.ts_rank(level, 8)
 gp.ts_argmax(flow, 8)
 ```
 
+### Column strides
+
+A column can hold each value for a fixed number of rows, such as a
+4-hour bar joined onto 1-hour rows and held until the next 4-hour
+close. Declare that with `strides`, in rows per step:
+
+```python
+pset = gp.columnar_pset(["close", "close_4h"], strides={"close_4h": 4})
+```
+
+A window then counts steps of its series, not rows: `delay(close_4h, 1)`
+is the value one 4-hour bar back (4 rows), and `diff(close_4h, 2)`
+compares with two bars back (8 rows). Unlisted columns have stride 1,
+and a set where every stride is 1 behaves exactly like one built
+without strides. Lowering converts each window to rows, so tapes,
+both backends, and `tape_lookback` work in rows.
+
+A node's stride is how often its value can change:
+
+| Node | Stride |
+|---|---|
+| Column | its declared stride (default 1) |
+| Constant | neutral, ignored by the gcd |
+| Pointwise primitive, comparison, `vwhere` | gcd of its arguments |
+| `delay`, `diff` | stride of its series |
+| `rolling_*`, `ema`, `ts_*`, pair windows | 1 |
+| Consumer kernel | 1 |
+| Promoted primitive | that of its expanded body |
+
+A window counts steps of the gcd of its series arguments, or rows when
+they are all constant. So `delay(vadd(close_4h, close_6h), 1)` reaches
+2 rows back, because the sum changes every 2 hours, while
+`delay(rolling_mean(close_4h, 3), 1)` reaches 1 row back.
+
+`delay` and `diff` are exact when every held value spans exactly its
+stride of rows, with no missing base rows. A rolling statistic over
+`w` steps is the row window of `w * s` rows, so over a held series it
+weighs each step by the rows it occupies in that window, which depends
+on where the window starts within a step.
+
+The tree text keeps window lengths in steps, so `str(tree)` and
+`from_string` round-trip unchanged, but the same text means different
+rows under different strides. Store the stride map with the column
+list. A window ephemeral `[low, high]` is drawn in steps of whatever
+series it ends up under, so warm-up and the `nan` padding between
+packed blocks must cover `tape_lookback`, which can reach
+`high * max(strides)` rows per window.
+
 !!! attention
     A comparison hides the warmup. `numpy.nan > x` is `False`, so
     `vwhere(vgt(rolling_mean(level, 20), flow), a, b)` returns a real

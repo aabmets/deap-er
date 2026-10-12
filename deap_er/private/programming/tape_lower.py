@@ -12,26 +12,25 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from numbers import Real
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 import numpy
 
 if TYPE_CHECKING:
     from deap_er.private.typedefs import GPExprTypes
 
-from .columnar import Window
+from .column_strides import immediate_windows
 from .numpy import numpy_ops
-from .opcode_set import OPCODES_ARITY, USER_BASE, Opcode
+from .opcode_set import OPCODES_ARITY, Opcode
 from .primitives.primitive_nodes import Primitive
 from .primitives.primitive_set_typed import PrimitiveSetTyped
 from .primitives.primitive_tree import PrimitiveTree
-from .primitives.program_check import ProgramError, check_program, check_window
+from .primitives.program_check import ProgramError, check_program
 from .promote_lower import expand_promoted
 from .tape import Tape, opcode_of
 
 __all__: list[str] = [
     "child_indices",
-    "immediate_windows",
     "postfix_order",
     "leaf_instruction",
     "lower_tree",
@@ -57,55 +56,6 @@ def child_indices(nodes: Sequence[Any]) -> list[list[int]]:
         while stack and stack[-1][1] == 0:
             stack.pop()
     return children
-
-
-def immediate_windows(
-    nodes: Sequence[Any], children: list[list[int]], prim_set: PrimitiveSetTyped
-) -> tuple[dict[int, int], set[int]]:
-    """Fold the window argument of every builtin rolling node inline.
-
-    A named window terminal is resolved through the set's evaluation
-    context, as ``leaf_instruction`` does for numeric terminals.
-
-    Args:
-        nodes: Tree nodes in prefix order.
-        children: Child indices of every node.
-        prim_set: Primitive set the tree was built from.
-
-    Returns:
-        The window length of each rolling node, and the set of child
-        indices that must not be pushed onto the stack.
-
-    Raises:
-        ProgramError: If a window argument is not a leaf, or if its
-            value is not an integer in ``[1, WINDOW_MAX]``.
-    """
-    windows: dict[int, int] = {}
-    folded: set[int] = set()
-    for index, node in enumerate(nodes):
-        if not isinstance(node, Primitive) or opcode_of(node.name) >= USER_BASE:
-            continue
-        for position, arg_type in enumerate(node.args):
-            if arg_type is not Window:
-                continue
-            child = children[index][position]
-            windows[index] = _window_length(node, nodes[child], prim_set)
-            folded.add(child)
-    return windows, folded
-
-
-def _window_length(node: Primitive, child: Any, prim_set: PrimitiveSetTyped) -> int:
-    """Return the window length held by the window leaf ``child``."""
-    if child.arity != 0:
-        raise ProgramError(
-            f"The window argument of '{node.name}' must be a leaf holding a "
-            f"positive integer, so that it can be lowered to an immediate operand."
-        )
-    value = getattr(child, "value", None)
-    if isinstance(value, str):
-        value = prim_set.context.get(value)
-    check_window(node.name, value)
-    return int(cast(int, value))
 
 
 def postfix_order(children: list[list[int]], folded: set[int]) -> list[int]:
@@ -177,6 +127,9 @@ def lower_tree(
     Only primitives with a builtin opcode or a binding made through
     ``bind_numba_opcode`` can be lowered. Everything else fails here
     rather than at evaluation time.
+
+    When the set declares column ``strides`` (see ``make_column_pset``),
+    a window counts steps of its series, and the tape holds it in rows.
 
     Args:
         expr: Expression to lower. A ``PrimitiveTree``, a sequence of

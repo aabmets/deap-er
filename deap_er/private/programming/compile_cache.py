@@ -67,6 +67,7 @@ def compile_cache_key(
     arguments: Sequence[str],
     context: Mapping[str, Any],
     generation: int,
+    strides: tuple[int, ...] | None = None,
 ) -> CacheKey:
     """Build the process-wide compile-cache key for one expression.
 
@@ -77,6 +78,8 @@ def compile_cache_key(
         arguments: Primitive-set argument names, in order.
         context: Evaluation context whose value identities matter.
         generation: Promoted-library generation, or 0.
+        strides: Declared column strides of the set, or None. Two sets
+            that differ only in strides lower windows differently.
 
     Returns:
         The LRU key used by ``compile_tree``.
@@ -89,6 +92,7 @@ def compile_cache_key(
         tuple(arguments),
         ctx_key,
         generation,
+        strides,
     )
 
 

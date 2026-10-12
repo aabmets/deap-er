@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `make_column_pset` and `columnar_pset` take `strides=`, a map from
+  column name to rows per step, for a column that holds each value for
+  several rows (a 4-hour bar over 1-hour rows has stride 4). A window
+  over such a column counts its steps: `delay(x, 1)` is one step back,
+  `w * s` rows. A derived node's stride is the gcd of its inputs,
+  `delay` and `diff` keep their series' stride, and the other window
+  primitives return stride 1. Lowering converts windows to rows, so
+  `tape_lookback` reports rows, and the opcode, numba, and python
+  backends agree. The tree text, pickles, the `window_{low}_{high}`
+  ephemeral, and every set without strides are unchanged
+  ([#151](https://github.com/aabmets/deap-er/pull/151))
+
 ### Fixed
 
 - `rolling_std`, `rolling_corr`, and `rolling_beta` returned `nan`,

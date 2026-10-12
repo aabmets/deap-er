@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 
 from deap_er.private.various.eval_cache import clear_eval_caches, invalidate_eval
 
+from .column_strides import argument_strides
 from .compile_cache import CompileCache, compile_cache_key, expression_key
 from .matrix_pack import as_matrix, is_packed_matrix
 from .numba.numba_ops import bind_tape
@@ -136,8 +137,8 @@ def compile_tree(
 
     Compiled results are cached, keyed by a structural tree key or
     the source text, the argument names, the contents of the primitive
-    set, the backend, the dispatcher, and the promoted-library
-    generation. ``clear_compile_cache`` drops the table;
+    set, its column strides, the backend, the dispatcher, and the
+    promoted-library generation. ``clear_compile_cache`` drops the table;
     ``promote_subtree`` does that on every mutation.
 
     Args:
@@ -166,7 +167,13 @@ def compile_tree(
     library = getattr(prim_set, "promoted_library", None)
     generation = 0 if library is None else library.generation
     cache_key = compile_cache_key(
-        backend, dispatch, expr, prim_set.arguments, prim_set.context, generation
+        backend,
+        dispatch,
+        expr,
+        prim_set.arguments,
+        prim_set.context,
+        generation,
+        argument_strides(prim_set),
     )
     cached = shared_compile_cache.get(cache_key)
     if cached is not None:

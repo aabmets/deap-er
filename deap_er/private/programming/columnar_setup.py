@@ -10,7 +10,7 @@
 #
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 import numpy
@@ -44,6 +44,7 @@ def columnar_pset(
     ts: bool = False,
     ema: bool = True,
     fill: float = DEFAULT_FILL,
+    strides: Mapping[str, int] | None = None,
 ) -> PrimitiveSetTyped:
     """Build a columnar primitive set with the usual kits registered.
 
@@ -69,15 +70,18 @@ def columnar_pset(
         fill: Value the protected operations (``vdiv``, ``vlog``,
             ``vsqrt``) substitute for a non-finite result computed
             from finite operands. Passed to ``add_numpy_primitives``.
+        strides: Rows per step of each listed column. Window bounds
+            then count steps of the window's series. Passed to
+            ``make_column_pset``.
 
     Returns:
         A typed primitive set ready for ``register_gp``.
 
     Raises:
-        ValueError: If ``names`` is unusable or the window bounds
-            are invalid.
+        ValueError: If ``names`` or ``strides`` is unusable, or the
+            window bounds are invalid.
     """
-    pset = make_column_pset(names, name=name)
+    pset = make_column_pset(names, name=name, strides=strides)
     add_numpy_primitives(pset, fill=fill)
     add_window_primitives(pset, ema=ema)
     if pair_windows:
