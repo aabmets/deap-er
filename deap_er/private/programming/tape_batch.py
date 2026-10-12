@@ -113,7 +113,10 @@ def interpret_tapes(
     new array: it does not alias ``matrix`` or the interpreter
     workspace. Cache unique programs by ``str(tree)``. A stringified
     ``Window`` leaf is an ``int``; ``from_string`` restores that tag,
-    but an ephemeral class identity is not part of the text.
+    but an ephemeral class identity is not part of the text. Under
+    column strides the text holds windows in steps and the tape holds
+    rows, so the same text needs the same stride map to lower to the
+    same tape; keep the map with the column list.
 
     The ``'opcode'`` backend unpacks the matrix columns once and runs
     the NumPy stack machine with common-subexpression elimination

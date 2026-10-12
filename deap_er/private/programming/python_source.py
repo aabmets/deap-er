@@ -15,7 +15,7 @@ from typing import Any
 
 import numpy
 
-from .column_strides import argument_strides, strided_nodes, window_scales
+from .column_strides import stride_plan
 from .columnar import Window
 from .primitives.primitive_set_typed import PrimitiveSetTyped
 from .primitives.program_check import check_node
@@ -91,12 +91,11 @@ def compile_python(expr: Any, prim_set: PrimitiveSetTyped) -> Any:
 
     Raises:
         MemoryError: If evaluation exceeds the recursion limit.
+        ProgramError: If a window scaled by the set's column strides
+            holds more rows than ``WINDOW_MAX``.
     """
     reference = prim_set.arguments[0] if prim_set.arguments else None
-    scales: dict[int, int] = {}
-    if argument_strides(prim_set) is not None:
-        expr = strided_nodes(expr, prim_set)
-        scales = window_scales(expr, prim_set)
+    expr, scales = stride_plan(expr, prim_set)
     if not isinstance(expr, str) and _render(expr, reference, None, scales)[2] > FLAT_DEPTH:
         statements: list[str] = []
         result, wrapped, _ = _render(expr, reference, statements, scales)

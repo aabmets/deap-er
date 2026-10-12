@@ -18,7 +18,7 @@ from .primitives.primitive_nodes import Primitive
 from .primitives.primitive_set_typed import PrimitiveSetTyped
 from .primitives.primitive_tree import PrimitiveTree
 from .primitives.program_check import ProgramError, check_window
-from .promote_lower import expand_promoted
+from .promote_lower import expand_promoted, subtree_slice
 from .tape import opcode_of
 
 __all__: list[str] = [
@@ -27,7 +27,7 @@ __all__: list[str] = [
     "window_scales",
     "scaled_window",
     "immediate_windows",
-    "strided_nodes",
+    "stride_plan",
 ]
 
 STEP_KEEPERS = frozenset({"delay", "diff"})
@@ -172,7 +172,7 @@ def _window_length(node: Primitive, child: Any, prim_set: PrimitiveSetTyped) -> 
     return int(cast(int, value))
 
 
-def strided_nodes(expr: Any, prim_set: PrimitiveSetTyped) -> list[Any]:
+def _strided_nodes(expr: Any, prim_set: PrimitiveSetTyped) -> list[Any]:
     """Parse ``expr`` and expand promoted primitives, so strides can be read.
 
     A promoted primitive is a compiled body whose formals carry no
@@ -188,3 +188,50 @@ def strided_nodes(expr: Any, prim_set: PrimitiveSetTyped) -> list[Any]:
     if isinstance(expr, str):
         expr = PrimitiveTree.from_string(expr, prim_set)
     return expand_promoted(list(expr), prim_set)
+
+
+def _check_scaled_windows(
+    nodes: Sequence[Any], scales: dict[int, int], prim_set: PrimitiveSetTyped
+) -> None:
+    """Check that every scaled window fits ``WINDOW_MAX``, as lowering does.
+
+    Args:
+        nodes: Prefix-ordered tree nodes that ``scales`` indexes.
+        scales: Rows per window step by node index.
+        prim_set: Primitive set the tree was built from.
+
+    Raises:
+        ProgramError: If a window holds more rows than ``WINDOW_MAX``.
+    """
+    for index, step in scales.items():
+        node = nodes[index]
+        position = index + 1
+        for kind in node.args:
+            bound = subtree_slice(nodes, position)
+            if kind is Window:
+                length = _window_length(node, nodes[position], prim_set)
+                scaled_window(node.name, length, step)
+            position = bound.stop
+
+
+def stride_plan(expr: Any, prim_set: PrimitiveSetTyped) -> tuple[Any, dict[int, int]]:
+    """Prepare ``expr`` for the ``'python'`` backend under column strides.
+
+    Args:
+        expr: Source text, or a prefix-ordered tree.
+        prim_set: Primitive set that supplies the strides.
+
+    Returns:
+        ``expr`` and no scales when the set declares no strides, else
+        the parsed and expanded nodes and their window scales.
+
+    Raises:
+        ProgramError: If a scaled window holds more rows than
+            ``WINDOW_MAX``.
+    """
+    if argument_strides(prim_set) is None:
+        return expr, {}
+    nodes = _strided_nodes(expr, prim_set)
+    scales = window_scales(nodes, prim_set)
+    _check_scaled_windows(nodes, scales, prim_set)
+    return nodes, scales

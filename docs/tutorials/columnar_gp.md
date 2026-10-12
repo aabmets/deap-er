@@ -203,7 +203,7 @@ A node's stride is how often its value can change:
 | Pointwise primitive, comparison, `vwhere` | gcd of its arguments |
 | `delay`, `diff` | stride of its series |
 | `rolling_*`, `ema`, `ts_*`, pair windows | 1 |
-| Consumer kernel | 1 |
+| Consumer kernel, or a primitive with no builtin opcode | 1 |
 | Promoted primitive | that of its expanded body |
 
 A window counts steps of the gcd of its series arguments, or rows when

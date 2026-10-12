@@ -88,7 +88,8 @@ def tape_lookback(tape: Tape) -> int:
     instructions add their bound to the child, and pointwise
     instructions take the max of their arguments. The result is the
     shortest prefix of earlier rows that a legal suffix rescore must
-    keep as history.
+    keep as history. Windows over a strided column were scaled to rows
+    while lowering, so the bound is in rows, not steps.
 
     Args:
         tape: Tape produced by ``lower_tree``.

@@ -178,3 +178,11 @@ def test_scaled_window_past_the_operand_range_is_rejected():
     pset = _pset({"s": 2**20})
     with pytest.raises(gp.ProgramError, match="no larger than"):
         gp.lower_tree("delay(s, 4096)", pset)
+
+
+@pytest.mark.parametrize("backend", BACKENDS)
+def test_every_backend_rejects_a_scaled_window_past_the_operand_range(backend):
+    pset = _pset({"s": 4})
+    tree = gp.PrimitiveTree.from_string("delay(s, 536870912)", pset)
+    with pytest.raises(gp.ProgramError, match="no larger than"):
+        gp.compile_tree(tree, pset, backend=backend)
