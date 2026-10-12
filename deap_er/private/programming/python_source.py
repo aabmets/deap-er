@@ -15,12 +15,10 @@ from typing import Any
 
 import numpy
 
-from .column_strides import argument_strides, window_scales
+from .column_strides import argument_strides, strided_nodes, window_scales
 from .columnar import Window
 from .primitives.primitive_set_typed import PrimitiveSetTyped
-from .primitives.primitive_tree import PrimitiveTree
 from .primitives.program_check import check_node
-from .promote_lower import expand_promoted
 
 __all__: list[str] = ["SERIES_HELPER", "FLAT_DEPTH", "as_series", "python_source", "compile_python"]
 
@@ -97,7 +95,7 @@ def compile_python(expr: Any, prim_set: PrimitiveSetTyped) -> Any:
     reference = prim_set.arguments[0] if prim_set.arguments else None
     scales: dict[int, int] = {}
     if argument_strides(prim_set) is not None:
-        expr = _strided_nodes(expr, prim_set)
+        expr = strided_nodes(expr, prim_set)
         scales = window_scales(expr, prim_set)
     if not isinstance(expr, str) and _render(expr, reference, None, scales)[2] > FLAT_DEPTH:
         statements: list[str] = []
@@ -110,17 +108,6 @@ def compile_python(expr: Any, prim_set: PrimitiveSetTyped) -> Any:
         code = f"lambda {SERIES_HELPER}: {code}"
     compiled = _eval_python(code, prim_set)
     return compiled(as_series) if wrapped else compiled
-
-
-def _strided_nodes(expr: Any, prim_set: PrimitiveSetTyped) -> list[Any]:
-    """Parse ``expr`` and expand promoted primitives, so strides can be read.
-
-    A promoted primitive is a compiled body whose formals carry no
-    stride, so it is replaced by its body as the tape lowering does.
-    """
-    if isinstance(expr, str):
-        expr = PrimitiveTree.from_string(expr, prim_set)
-    return expand_promoted(list(expr), prim_set)
 
 
 def _render(
@@ -159,12 +146,7 @@ def _render(
         while len(stack[-1][1]) == stack[-1][0].arity:
             prim, args, position = stack.pop()
             types = getattr(prim, "args", [])
-            step = scales.get(position, 1)
-            if step != 1:
-                args = [
-                    f"{arg} * {step}" if type_ is Window else arg
-                    for arg, type_ in zip(args, types, strict=True)
-                ]
+            args = _scale_windows(args, types, scales.get(position, 1))
             if reference is not None and Window in types:
                 wrapped = True
                 args = _wrap_series(args, types, reference)
@@ -177,6 +159,25 @@ def _render(
                 break
             stack[-1][1].append(text)
     return text, wrapped, depth
+
+
+def _scale_windows(args: list[str], types: list[Any], step: int) -> list[str]:
+    """Multiply each ``Window`` operand of a primitive by ``step`` rows.
+
+    Args:
+        args: Rendered operands of the primitive.
+        types: Argument types of the primitive.
+        step: Rows per window step.
+
+    Returns:
+        The operands, unchanged when ``step`` is 1.
+    """
+    if step == 1:
+        return args
+    return [
+        f"{arg} * {step}" if type_ is Window else arg
+        for arg, type_ in zip(args, types, strict=True)
+    ]
 
 
 def _wrap_series(args: list[str], types: list[Any], reference: str) -> list[str]:

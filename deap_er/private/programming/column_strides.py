@@ -16,7 +16,9 @@ from .columnar import Window
 from .opcode_set import BUILTIN_OPCODES, USER_BASE
 from .primitives.primitive_nodes import Primitive
 from .primitives.primitive_set_typed import PrimitiveSetTyped
+from .primitives.primitive_tree import PrimitiveTree
 from .primitives.program_check import ProgramError, check_window
+from .promote_lower import expand_promoted
 from .tape import opcode_of
 
 __all__: list[str] = [
@@ -25,6 +27,7 @@ __all__: list[str] = [
     "window_scales",
     "scaled_window",
     "immediate_windows",
+    "strided_nodes",
 ]
 
 STEP_KEEPERS = frozenset({"delay", "diff"})
@@ -167,3 +170,21 @@ def _window_length(node: Primitive, child: Any, prim_set: PrimitiveSetTyped) -> 
         value = prim_set.context.get(value)
     check_window(node.name, value)
     return int(cast(int, value))
+
+
+def strided_nodes(expr: Any, prim_set: PrimitiveSetTyped) -> list[Any]:
+    """Parse ``expr`` and expand promoted primitives, so strides can be read.
+
+    A promoted primitive is a compiled body whose formals carry no
+    stride, so it is replaced by its body as the tape lowering does.
+
+    Args:
+        expr: Source text, or a prefix-ordered tree.
+        prim_set: Primitive set the expression was built from.
+
+    Returns:
+        The prefix-ordered nodes, with promoted primitives expanded.
+    """
+    if isinstance(expr, str):
+        expr = PrimitiveTree.from_string(expr, prim_set)
+    return expand_promoted(list(expr), prim_set)
