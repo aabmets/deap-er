@@ -28,7 +28,8 @@ Timed hot paths versus DEAP are on the
   and differential-evolution variation
 - Genetic programming: prefix trees (loosely typed, strongly typed,
   ADFs), SlimGP, columnar programs over named `float64` columns
-  with vectorized, causal-window, tape / Numba backends (population
+  with vectorized, causal-window (per-column strides for held,
+  slower-cadence columns), tape / Numba backends (population
   tape CSE), and a
   private [Push GP](../tutorials/push_gp.md) policy loop that evolves
   the search around those tapes

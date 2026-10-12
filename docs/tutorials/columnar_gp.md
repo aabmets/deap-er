@@ -191,8 +191,10 @@ A window then counts steps of its series, not rows: `delay(close_4h, 1)`
 is the value one 4-hour bar back (4 rows), and `diff(close_4h, 2)`
 compares with two bars back (8 rows). Unlisted columns have stride 1,
 and a set where every stride is 1 behaves exactly like one built
-without strides. Lowering converts each window to rows, so tapes,
-both backends, and `tape_lookback` work in rows.
+without strides. Each window is converted to rows when the tree is
+compiled or lowered, so tapes, all three backends, and `tape_lookback`
+work in rows, and a window whose row count exceeds the `int32` tape
+operand raises `gp.ProgramError` on every backend.
 
 A node's stride is how often its value can change:
 

@@ -158,7 +158,8 @@ def compile_tree(
         NameError: If ``expr`` holds a primitive missing from
             ``prim_set.context``.
         ProgramError: If ``expr`` is empty, if a leaf does not fit its
-            argument slot, or if a window length is not an integer in
+            argument slot, or if a window length, or its row count
+            under the set's column strides, is not an integer in
             ``[1, WINDOW_MAX]`` (see ``check_program``). It subclasses
             ``ValueError``.
         ValueError: If the backend is unknown, or if a tape backend
