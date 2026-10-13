@@ -8,13 +8,13 @@
 #
 #   SPDX-License-Identifier: Apache-2.0
 #
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from typing import Any
 
 import numpy
 
 from ..columnar import make_column_pset
-from ..matrix_pack import as_matrix
+from ..matrix_pack import DISPATCH_FLOAT32, MatrixPrecision, as_matrix, matrix_dtype
 from ..numpy.numpy_ops import add_numpy_primitives
 from ..opcodes import USER_BASE, lower_tree
 from ..primitives.primitive_tree import PrimitiveTree
@@ -52,7 +52,9 @@ of ``n_rows`` values that a kernel may clobber freely, and ``stack[sp]``
 is always allocated and free to use as well. Builtin rolling primitives
 fold their window length into the instruction, but a consumer primitive
 receives every argument on the stack, so a window arrives as a
-broadcast row and can be read from ``stack[sp - 1][0]``.
+broadcast row and can be read from ``stack[sp - 1][0]``. The columns
+are always ``float64``, so a dispatch kernel cannot run with
+``precision='float32'``.
 """
 
 _workspace: dict[str, numpy.ndarray] = {}
@@ -97,7 +99,9 @@ def reserve(depth: int, rows: int) -> tuple[numpy.ndarray, numpy.ndarray]:
     return stack[: depth + 1], _workspace["scratch"]
 
 
-def bind_tape(tape: Tape, dispatch: Any = None) -> Callable[..., numpy.ndarray]:
+def bind_tape(
+    tape: Tape, dispatch: Any = None, *, precision: MatrixPrecision = "float64"
+) -> Callable[..., numpy.ndarray]:
     """Bind a tape to the compiled interpreter.
 
     The interpreter is compiled once per process and once more for each
@@ -113,6 +117,9 @@ def bind_tape(tape: Tape, dispatch: Any = None) -> Callable[..., numpy.ndarray]:
         tape: Tape produced by ``lower_tree``.
         dispatch: Compiled kernel implementing the opcodes at or above
             ``USER_BASE``, following ``USER_DISPATCH_SIGNATURE``.
+        precision: Storage dtype the callable packs its columns into,
+            as in ``interpret_tapes``. A C-contiguous matrix of that
+            dtype is used without a copy; the result is ``float64``.
 
     Returns:
         A callable that takes one array per column, or a single
@@ -121,9 +128,14 @@ def bind_tape(tape: Tape, dispatch: Any = None) -> Callable[..., numpy.ndarray]:
     Raises:
         ImportError: If the ``numba`` extra is not installed.
         ValueError: If the tape expects no columns, if it holds
-            consumer opcodes but no dispatcher was given, or if it is
-            malformed (see ``check_tape``).
+            consumer opcodes but no dispatcher was given, if
+            ``precision`` is unknown or is ``'float32'`` with a
+            dispatcher, or if the tape is malformed (see
+            ``check_tape``).
     """
+    matrix_dtype(precision)
+    if dispatch is not None and precision == "float32":
+        raise ValueError(DISPATCH_FLOAT32)
     if tape.columns == 0:
         raise ValueError(
             "The numba backend evaluates a tape over columns and cannot size a "
@@ -141,7 +153,7 @@ def bind_tape(tape: Tape, dispatch: Any = None) -> Callable[..., numpy.ndarray]:
     check_tape(tape)
 
     def call(*columns: Any) -> numpy.ndarray:
-        matrix = as_matrix(columns, tape.columns)
+        matrix = as_matrix(columns, tape.columns, precision)
         stack, scratch = reserve(tape.depth, matrix.shape[0])
         run(
             tape.opcodes,
@@ -157,7 +169,12 @@ def bind_tape(tape: Tape, dispatch: Any = None) -> Callable[..., numpy.ndarray]:
     return call
 
 
-def warmup_numba(*, parallel: bool = False, dispatch: Any = None) -> None:
+def warmup_numba(
+    *,
+    parallel: bool = False,
+    dispatch: Any = None,
+    precisions: Sequence[MatrixPrecision] = ("float64",),
+) -> None:
     """Compile the Numba tape interpreter for this process.
 
     Runs a trivial column-load tape so the interpreter and the serial
@@ -172,22 +189,32 @@ def warmup_numba(*, parallel: bool = False, dispatch: Any = None) -> None:
         parallel: If True, also specialize the ``prange`` batch kernel.
         dispatch: Consumer kernel to specialize. ``None`` specializes
             the builtin interpreter only.
+        precisions: Matrix storage dtypes to specialize for, any of
+            ``'float64'`` and ``'float32'``. A ``float32`` matrix needs
+            its own compiled kernels, which also go to the disk cache.
 
     Raises:
         ImportError: If the ``numba`` extra is not installed.
+        ValueError: If a precision is unknown, or if ``'float32'`` is
+            asked for together with ``dispatch``.
     """
+    for precision in precisions:
+        matrix_dtype(precision)
+    if dispatch is not None and "float32" in precisions:
+        raise ValueError(DISPATCH_FLOAT32)
     ensure_numba_cache_dir()
     pset = make_column_pset(["first"])
     add_numpy_primitives(pset)
     tape = lower_tree(PrimitiveTree([pset.mapping["first"]]), pset)
-    matrix = numpy.zeros((2, 1), dtype=numpy.float64)
-    # bind_tape raises the ImportError when the numba extra is missing.
-    bind_tape(tape, dispatch)(matrix)
-    # Optional extra: numba_batch imports numba at module level. The
-    # serial batch path of interpret_tapes runs the CSE plan and would
-    # leave these kernels uncompiled, so they are launched directly.
-    from .numba_batch import launch_kernels
+    for precision in precisions:
+        matrix = numpy.zeros((2, 1), dtype=matrix_dtype(precision))
+        # bind_tape raises the ImportError when the numba extra is missing.
+        bind_tape(tape, dispatch, precision=precision)(matrix)
+        # Optional extra: numba_batch imports numba at module level. The
+        # serial batch path of interpret_tapes runs the CSE plan and would
+        # leave these kernels uncompiled, so they are launched directly.
+        from .numba_batch import launch_kernels
 
-    launch_kernels([tape], matrix, dispatch, False)
-    if parallel:
-        launch_kernels([tape], matrix, dispatch, True)
+        launch_kernels([tape], matrix, dispatch, False)
+        if parallel:
+            launch_kernels([tape], matrix, dispatch, True)

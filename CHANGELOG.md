@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- `interpret_tapes`, `evaluate_columnar`, `suffix_rescore`,
+  `cx_one_point_semantic`, and `bind_tape` take
+  `precision="float32"` for opt-in `float32` storage of the column
+  matrix. A C-contiguous `float32` matrix is used without a copy,
+  where every call used to copy it to `float64`, so a large table
+  takes half the memory; a `float64` matrix is rounded to `float32`
+  once. Computation stays `float64`: each column is widened as it is
+  read, and stacks, constants, fills, and the result stay `float64`,
+  so results equal those of the same values stored as `float64` bit
+  for bit on the opcode and Numba backends, serial and parallel.
+  `warmup_numba` takes `precisions=` to compile the `float32` Numba
+  kernels ahead of time. A consumer `dispatch` kernel only takes
+  `float64` columns, so `dispatch=` with `precision="float32"`
+  raises `ValueError`, as does any other precision than `"float64"`
+  or `"float32"`. The default `precision="float64"` is unchanged:
+  every result, error, and copy is the same as in 3.2.9
+
 ## [3.2.9] - 2026-10-12
 
 ### Added

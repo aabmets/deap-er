@@ -11,11 +11,43 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from typing import Any
+from typing import Any, Literal
 
 import numpy
 
-__all__: list[str] = ["as_matrix", "is_packed_matrix"]
+__all__: list[str] = [
+    "DISPATCH_FLOAT32",
+    "MatrixPrecision",
+    "as_matrix",
+    "is_packed_matrix",
+    "matrix_dtype",
+]
+
+type MatrixPrecision = Literal["float64", "float32"]
+
+DISPATCH_FLOAT32 = (
+    "precision='float32' cannot be combined with a dispatch kernel: "
+    "USER_DISPATCH_SIGNATURE types the columns as float64. Use precision='float64'."
+)
+
+_DTYPES = {"float64": numpy.float64, "float32": numpy.float32}
+
+
+def matrix_dtype(precision: MatrixPrecision) -> type[numpy.floating]:
+    """Return the storage dtype of a packed column matrix.
+
+    Args:
+        precision: Either ``'float64'`` or ``'float32'``.
+
+    Returns:
+        ``numpy.float64`` or ``numpy.float32``.
+
+    Raises:
+        ValueError: If ``precision`` is not one of the two names.
+    """
+    if not isinstance(precision, str) or precision not in _DTYPES:
+        raise ValueError(f"precision must be 'float64' or 'float32', got {precision!r}.")
+    return _DTYPES[precision]
 
 
 def is_packed_matrix(columns: Any) -> bool:
@@ -30,26 +62,33 @@ def is_packed_matrix(columns: Any) -> bool:
     return isinstance(columns, numpy.ndarray) and columns.ndim == 2
 
 
-def as_matrix(columns: Sequence[Any], expected: int) -> numpy.ndarray:
+def as_matrix(
+    columns: Sequence[Any], expected: int, precision: MatrixPrecision = "float64"
+) -> numpy.ndarray:
     """Pack runner arguments into one contiguous column matrix.
 
     Args:
         columns: Either one two-dimensional matrix, or one array per
             column.
         expected: Number of columns the tape expects.
+        precision: Storage dtype of the matrix, ``'float64'`` or
+            ``'float32'``. A matrix that already has it and is
+            C-contiguous is used without a copy.
 
     Returns:
-        A C-contiguous ``(n_rows, n_columns)`` ``float64`` matrix.
+        A C-contiguous ``(n_rows, n_columns)`` matrix of ``precision``.
 
     Raises:
-        ValueError: If the column count does not match the tape.
+        ValueError: If the column count does not match the tape, or if
+            ``precision`` is unknown.
     """
+    dtype = matrix_dtype(precision)
     if len(columns) == 1 and is_packed_matrix(columns[0]):
-        matrix = numpy.ascontiguousarray(columns[0], dtype=numpy.float64)
+        matrix = numpy.ascontiguousarray(columns[0], dtype=dtype)
     else:
         if len(columns) != expected:
             raise ValueError(f"The tape expects {expected} columns, got {len(columns)}.")
-        parts = [numpy.asarray(column, dtype=numpy.float64) for column in columns]
+        parts = [numpy.asarray(column, dtype=dtype) for column in columns]
         matrix = numpy.ascontiguousarray(numpy.stack(parts, axis=1))
     if matrix.shape[1] != expected:
         raise ValueError(f"The tape expects {expected} columns, got {matrix.shape[1]}.")

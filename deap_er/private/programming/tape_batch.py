@@ -13,6 +13,7 @@ from typing import Any
 
 import numpy
 
+from .matrix_pack import MatrixPrecision, matrix_dtype
 from .opcodes import USER_BASE
 from .tape import Tape
 from .tape_cse import run_opcode_cse
@@ -28,19 +29,22 @@ _NUMBA_MISSING = (
 )
 
 
-def _as_batch_matrix(matrix: Any) -> numpy.ndarray:
+def _as_batch_matrix(matrix: Any, precision: MatrixPrecision) -> numpy.ndarray:
     """Validate and pack the batch input matrix.
 
     Args:
         matrix: Caller-supplied column table.
+        precision: Storage dtype of the packed matrix.
 
     Returns:
-        A C-contiguous ``(n_rows, n_columns)`` ``float64`` matrix.
+        A C-contiguous ``(n_rows, n_columns)`` matrix of ``precision``,
+        the caller's own array when it already is one.
 
     Raises:
         ValueError: If ``matrix`` is a sequence of columns or is not
-            two-dimensional.
+            two-dimensional, or if ``precision`` is unknown.
     """
+    dtype = matrix_dtype(precision)
     if isinstance(matrix, (list, tuple)):
         raise ValueError(_MATRIX_SHAPE)
     packed = numpy.asarray(matrix)
@@ -48,7 +52,7 @@ def _as_batch_matrix(matrix: Any) -> numpy.ndarray:
         raise ValueError(
             f"interpret_tapes expects a packed (n_rows, n_columns) matrix, got ndim={packed.ndim}."
         )
-    return numpy.ascontiguousarray(packed, dtype=numpy.float64)
+    return numpy.ascontiguousarray(packed, dtype=dtype)
 
 
 def _check_tapes(tapes: tuple[Tape, ...], columns: int) -> None:
@@ -106,6 +110,7 @@ def interpret_tapes(
     backend: str = "opcode",
     dispatch: Any = None,
     parallel: bool = False,
+    precision: MatrixPrecision = "float64",
 ) -> numpy.ndarray:
     """Run many tapes over one packed column matrix.
 
@@ -132,6 +137,22 @@ def interpret_tapes(
     the gap does not grow with the row count. The serial and parallel Numba paths agree to the same
     tolerance or better.
 
+    ``precision`` sets how the matrix is stored, not how it is
+    computed. The default ``'float64'`` packs the matrix as a
+    C-contiguous ``float64`` array, copying any other input, a
+    ``float32`` one included. ``'float32'`` takes a C-contiguous
+    ``float32`` matrix as is, without a copy, which halves the memory
+    of a large table; any other input is converted once, so ``float64``
+    values are rounded to ``float32``. Either way every column is
+    widened to ``float64`` where it is read, and stacks, constants,
+    fills, and the result stay ``float64``, so
+    ``interpret_tapes(tapes, m32, precision='float32')`` equals
+    ``interpret_tapes(tapes, m32.astype(numpy.float64))`` bit for bit
+    on both backends. The opcode backend widens each column the first
+    time a batch reads it. The Numba backend compiles its kernels once
+    more for a ``float32`` matrix; ``warmup_numba(precisions=...)``
+    can do that ahead of time.
+
     Args:
         tapes: Tapes produced by ``lower_tree``, in the order of the
             output rows. A one-shot iterable is consumed once.
@@ -144,20 +165,27 @@ def interpret_tapes(
             at once — no process-global buffer.
         parallel: If True, run the Numba path with one workspace per
             thread. Requires ``backend='numba'``.
+        precision: Storage dtype of the matrix, ``'float64'`` or
+            ``'float32'``. Results are ``float64`` either way. The
+            ``'numba'`` backend does not take ``'float32'`` together
+            with ``dispatch``, whose signature types the columns as
+            ``float64``.
 
     Returns:
         A C-contiguous ``float64`` array of shape
         ``(len(tapes), n_rows)``.
 
     Raises:
-        ValueError: If the backend is unknown, if ``parallel`` is set
-            on the opcode backend, if ``matrix`` is not a packed
-            table, or if a tape does not match the matrix.
+        ValueError: If the backend or ``precision`` is unknown, if
+            ``parallel`` is set on the opcode backend, if ``dispatch``
+            is combined with ``precision='float32'`` on the Numba
+            backend, if ``matrix`` is not a packed table, or if a tape
+            does not match the matrix.
         ImportError: If ``backend='numba'`` and the ``numba`` extra
             is not installed.
     """
     tapes = tuple(tapes)
-    packed = _as_batch_matrix(matrix)
+    packed = _as_batch_matrix(matrix, precision)
     _check_tapes(tapes, packed.shape[1])
     if backend == "opcode":
         if parallel:

@@ -345,6 +345,41 @@ def evaluate_batch(individuals):
 shared suffixes are evaluated once and stitched back. The return shape,
 warmup `nan` contract, and per-tape `fill` semantics are unchanged.
 
+### Matrix precision
+
+By default every entry point packs the matrix as `float64`, so a
+`float32` table is copied to twice its size on every call. Pass
+`precision="float32"` to store the table as `float32` instead: a
+C-contiguous `float32` matrix is then used as is, and a `float64` one
+is rounded to `float32` once. Only the storage changes. Each column is
+widened to `float64` where it is read, and stacks, constants, and the
+result stay `float64`, so the scores equal those of the same values
+held as `float64`, bit for bit, on both tape backends.
+
+```python
+matrix = numpy.ascontiguousarray(table, dtype=numpy.float32)
+predicted = gp.interpret_tapes(tapes, matrix, backend="numba", precision="float32")
+
+toolbox.register(
+    "evaluate_batch",
+    gp.evaluate_columnar,
+    pset=pset,
+    matrix=matrix,
+    target=target,
+    backend="numba",
+    precision="float32",
+)
+gp.warmup_numba(precisions=("float64", "float32"))
+```
+
+`evaluate_columnar`, `suffix_rescore`, `cx_one_point_semantic`, and
+`bind_tape` take the same argument, and the default `"float64"` keeps
+every earlier result. The Numba backend compiles its kernels once more
+for a `float32` table; `warmup_numba(precisions=...)` does that up
+front and stores them in the disk cache. A [custom compiled
+kernel](#custom-compiled-kernels) receives `float64` columns, so
+`dispatch=` with `precision="float32"` raises `ValueError`.
+
 When new rows arrive, grow the packed table and **rescore the full
 matrix**. Do not score only the new rows: a causal window needs the
 preceding samples, and a suffix-only call treats the first new row as
@@ -629,7 +664,8 @@ time.
     Fees, portfolio state, penalties, and anything else that allocates
     Python objects belong in the fitness function, not in a kernel.
     The dispatch signature only carries `float64` columns, constants,
-    and scratch space.
+    and scratch space, so a dispatch kernel needs the default
+    `precision="float64"`.
 
 ### Growing the language
 

@@ -229,6 +229,7 @@ def _dispatch_interpret_tapes(**kwargs: Any) -> PolicyActionResult:
         backend=kwargs.get("backend", "opcode"),
         dispatch=kwargs.get("dispatch"),
         parallel=kwargs.get("parallel", False),
+        precision=kwargs.get("precision", "float64"),
     )
     return _apply(value)
 

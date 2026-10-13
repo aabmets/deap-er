@@ -15,6 +15,7 @@ from typing import Any
 import numba  # optional extra; this module is imported only for backend='numba'
 import numpy
 
+from ..matrix_pack import DISPATCH_FLOAT32
 from ..opcodes import USER_BASE
 from ..tape import Tape, check_tape
 from . import numba_kernels
@@ -139,7 +140,9 @@ def run_tapes(
 
     Args:
         tapes: Tapes produced by ``lower_tree``.
-        matrix: C-contiguous ``(n_rows, n_columns)`` ``float64`` table.
+        matrix: C-contiguous ``(n_rows, n_columns)`` ``float64`` or
+            ``float32`` table. Columns are widened to ``float64`` as
+            they are loaded onto the ``float64`` stack.
         dispatch: Consumer kernel, or None for builtin-only tapes.
         parallel: If True, use one workspace per Numba thread when
             more than one thread is available.
@@ -149,8 +152,9 @@ def run_tapes(
 
     Raises:
         ValueError: If a tape has no columns, holds a consumer opcode
-            without a dispatcher, or is malformed on a path that runs
-            the compiled kernels (see ``check_tape``).
+            without a dispatcher, if a dispatcher meets a ``float32``
+            table, or if a tape is malformed on a path that runs the
+            compiled kernels (see ``check_tape``).
     """
     rows = matrix.shape[0]
     if not tapes:
@@ -175,7 +179,9 @@ def launch_kernels(
 
     Args:
         tapes: Tapes to evaluate. Must not be empty.
-        matrix: C-contiguous ``(n_rows, n_columns)`` ``float64`` table.
+        matrix: C-contiguous ``(n_rows, n_columns)`` ``float64`` or
+            ``float32`` table. Columns are widened to ``float64`` as
+            they are loaded onto the ``float64`` stack.
         dispatch: Consumer kernel, or None for builtin-only tapes.
         parallel: If True, use one workspace per Numba thread.
 
@@ -183,8 +189,11 @@ def launch_kernels(
         ``(n_tapes, n_rows)`` results.
 
     Raises:
-        ValueError: If a tape is malformed (see ``check_tape``).
+        ValueError: If a dispatcher meets a ``float32`` table, or if a
+            tape is malformed (see ``check_tape``).
     """
+    if dispatch is not None and matrix.dtype != numpy.float64:
+        raise ValueError(DISPATCH_FLOAT32)
     for tape in tapes:
         check_tape(tape)
     rows = matrix.shape[0]

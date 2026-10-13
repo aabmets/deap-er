@@ -23,6 +23,7 @@ from deap_er.private.various.rng import rng
 from deap_er.private.various.semantic_neighbors import SemanticMetric, semantic_nearest
 
 from .crossover import common_type_candidates, swap_at
+from .matrix_pack import MatrixPrecision, matrix_dtype
 from .primitives.primitive_tree import PrimitiveTree
 from .tape_batch import interpret_tapes
 from .tape_lower import lower_tree
@@ -35,6 +36,7 @@ def subtree_tape_rows(
     individual: GPIndividual,
     prim_set: PrimitiveSetTyped,
     matrix: numpy.ndarray,
+    precision: MatrixPrecision = "float64",
 ) -> numpy.ndarray:
     """Lower and score each subtree index against ``matrix``.
 
@@ -43,6 +45,8 @@ def subtree_tape_rows(
         individual: Tree that owns the subtrees.
         prim_set: Primitive set used to lower each subtree.
         matrix: Packed ``(n_rows, n_columns)`` input matrix.
+        precision: Storage dtype of ``matrix``, forwarded to
+            :func:`~deap_er.gp.interpret_tapes`.
 
     Returns:
         Semantic rows of shape ``(len(indices), n_rows)``.
@@ -51,7 +55,7 @@ def subtree_tape_rows(
     for index in indices:
         subtree = PrimitiveTree(individual[individual.search_subtree(index)])
         tapes.append(lower_tree(subtree, prim_set))
-    return interpret_tapes(tapes, matrix)
+    return interpret_tapes(tapes, matrix, precision=precision)
 
 
 def cx_one_point_semantic(
@@ -62,6 +66,7 @@ def cx_one_point_semantic(
     *,
     valid: numpy.ndarray | None = None,
     metric: SemanticMetric = "euclidean",
+    precision: MatrixPrecision = "float64",
 ) -> GPMates:
     """Exchange subtrees at a semantically close type-matched pair.
 
@@ -83,13 +88,18 @@ def cx_one_point_semantic(
             :func:`~deap_er.gp.interpret_tapes`.
         valid: Optional per-row warmup mask of length ``n_rows``.
         metric: ``euclidean`` or ``cosine`` distance on finite rows.
+        precision: Storage dtype of ``matrix``, forwarded to
+            :func:`~deap_er.gp.interpret_tapes`. ``'float32'`` scores a
+            ``float32`` matrix without copying it to ``float64``.
 
     Returns:
         The two individuals after subtree exchange.
 
     Raises:
-        ValueError: If a subtree cannot be lowered to a tape.
+        ValueError: If a subtree cannot be lowered to a tape, or if
+            ``precision`` is unknown.
     """
+    matrix_dtype(precision)
     if len(ind1) < 2 or len(ind2) < 2:
         return ind1, ind2
 
@@ -102,8 +112,8 @@ def cx_one_point_semantic(
     cands2 = types2[type_]
     index1 = int(rng.choice(cands1))
 
-    rows1 = subtree_tape_rows([index1], ind1, prim_set, matrix)
-    rows2 = subtree_tape_rows(cands2, ind2, prim_set, matrix)
+    rows1 = subtree_tape_rows([index1], ind1, prim_set, matrix, precision)
+    rows2 = subtree_tape_rows(cands2, ind2, prim_set, matrix, precision)
     nearest = semantic_nearest(rows1[0], rows2, k=1, metric=metric, valid=valid)
     index2 = int(rng.choice(cands2)) if nearest.size == 0 else cands2[int(nearest[0])]
 

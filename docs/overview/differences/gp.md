@@ -255,6 +255,14 @@ The following is extra.
     Lowering scales the window to rows on every backend, so the text
     form, pickles, and every stride-1 set are unchanged. DEAP has no
     columnar windows.
+42. `interpret_tapes`, `evaluate_columnar`, `suffix_rescore`,
+    `cx_one_point_semantic`, and `bind_tape` take
+    `precision="float32"`, which keeps a `float32` column matrix
+    without the `float64` copy, halving its memory. Columns widen to
+    `float64` as they are read, so the scores match the `float64`
+    table bit for bit, and `warmup_numba(precisions=...)` compiles the
+    `float32` kernels ahead of time. The default `"float64"` is
+    unchanged. DEAP has no packed column matrix.
 
 The columnar contract is in the
 [columnar GP tutorial](../../tutorials/columnar_gp.md). The private

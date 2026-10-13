@@ -97,10 +97,11 @@ def run_opcode_cse(tapes: Sequence[Tape], matrix: numpy.ndarray) -> numpy.ndarra
 
     Args:
         tapes: Tapes to score.
-        matrix: Packed ``(n_rows, n_columns)`` column table.
+        matrix: Packed ``(n_rows, n_columns)`` ``float64`` or
+            ``float32`` column table.
 
     Returns:
-        ``(n_tapes, n_rows)`` results.
+        ``(n_tapes, n_rows)`` ``float64`` results.
     """
     rows = matrix.shape[0]
     out = numpy.empty((len(tapes), rows), dtype=numpy.float64)
@@ -214,6 +215,8 @@ def _evaluate_node(
 ) -> numpy.ndarray:
     """Evaluate one node from its children's live values."""
     if not node.children:
+        # A float32 matrix column is widened here, once per leaf, so the
+        # arithmetic above it runs in float64 without a full-matrix copy.
         return numpy.asarray(interpret_tape(node.tape, matrix), dtype=numpy.float64)
     stack: list[Any] = []
     for child in node.children:

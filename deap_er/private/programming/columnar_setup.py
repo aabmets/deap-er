@@ -18,6 +18,7 @@ import numpy
 from deap_er.private.various.case_errors import case_errors
 
 from .columnar import make_column_pset
+from .matrix_pack import MatrixPrecision, matrix_dtype
 from .numpy.numpy_arith import DEFAULT_FILL
 from .numpy.numpy_ops import add_numpy_primitives
 from .primitives.primitive_set_typed import PrimitiveSetTyped
@@ -108,6 +109,7 @@ def evaluate_columnar(
     min_valid: int | None = None,
     reduce: bool = True,
     static_filter: bool = True,
+    precision: MatrixPrecision = "float64",
 ) -> list[tuple[float, ...]]:
     """Score trees against one packed column matrix.
 
@@ -143,19 +145,22 @@ def evaluate_columnar(
         static_filter: When true, skip ``interpret_tapes`` for
             tapes that fail the static certificates from
             ``tape_flags``.
+        precision: Storage dtype of ``matrix``, forwarded to
+            ``interpret_tapes``; ``'float32'`` scores a C-contiguous
+            ``float32`` matrix without a copy.
 
     Returns:
         One fitness tuple per individual, in input order.
 
     Raises:
         ValueError: If ``target`` is not a one-dimensional series
-            whose length matches ``matrix`` rows, or if ``matrix`` has
-            no rows.
+            whose length matches ``matrix`` rows, if ``matrix`` has
+            no rows, or if ``precision`` is unknown.
     """
     expected = numpy.asarray(target, dtype=numpy.float64)
     if expected.ndim != 1:
         raise ValueError("target must be a one-dimensional series")
-    packed = numpy.asarray(matrix, dtype=numpy.float64)
+    packed = numpy.asarray(matrix, dtype=matrix_dtype(precision))
     if packed.ndim != 2 or packed.shape[0] != expected.shape[0]:
         raise ValueError("matrix rows must match the target length")
     if packed.shape[0] == 0:
@@ -170,7 +175,9 @@ def evaluate_columnar(
         skip = [tape_skip_score(tape, bounds, n_rows=n_rows) for tape in tapes]
         score_tapes = [tape for tape, bad in zip(tapes, skip, strict=True) if not bad]
         predicted = (
-            interpret_tapes(score_tapes, packed, backend=backend, parallel=parallel)
+            interpret_tapes(
+                score_tapes, packed, backend=backend, parallel=parallel, precision=precision
+            )
             if score_tapes
             else numpy.empty((0, n_rows), dtype=numpy.float64)
         )
@@ -187,7 +194,9 @@ def evaluate_columnar(
             )
             for slot in index
         ]
-    predicted = interpret_tapes(tapes, packed, backend=backend, parallel=parallel)
+    predicted = interpret_tapes(
+        tapes, packed, backend=backend, parallel=parallel, precision=precision
+    )
     return [
         _score_prediction(predicted[slot], expected, cases, empty, floor, reduce) for slot in index
     ]

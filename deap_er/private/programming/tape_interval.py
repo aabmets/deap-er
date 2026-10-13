@@ -46,7 +46,8 @@ def bounds_from_matrix(matrix: numpy.ndarray | Sequence[Sequence[float]]) -> num
     """Return empirical ``(low, high)`` bounds for each matrix column.
 
     Args:
-        matrix: Packed ``(n_rows, n_columns)`` table.
+        matrix: Packed ``(n_rows, n_columns)`` table. A ``float32``
+            table is read as is, without a ``float64`` copy.
 
     Returns:
         A ``(n_columns, 2)`` ``float64`` array of column bounds.
@@ -54,7 +55,9 @@ def bounds_from_matrix(matrix: numpy.ndarray | Sequence[Sequence[float]]) -> num
     Raises:
         ValueError: If ``matrix`` is not two-dimensional or has no rows.
     """
-    packed = numpy.asarray(matrix, dtype=numpy.float64)
+    packed = numpy.asarray(matrix)
+    if packed.dtype != numpy.float32:
+        packed = packed.astype(numpy.float64, copy=False)
     if packed.ndim != 2:
         raise ValueError("matrix must be a two-dimensional array")
     if packed.shape[0] == 0:

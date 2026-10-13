@@ -13,6 +13,7 @@ from typing import Any
 
 import numpy
 
+from .matrix_pack import MatrixPrecision, matrix_dtype
 from .opcode_set import Opcode
 from .tape import Tape
 from .tape_batch import interpret_tapes
@@ -36,6 +37,7 @@ def suffix_rescore(
     backend: str = "opcode",
     dispatch: Any = None,
     parallel: bool = False,
+    precision: MatrixPrecision = "float64",
 ) -> numpy.ndarray:
     """Rescore ``lookback + n_new`` trailing rows onto a cached prefix.
 
@@ -62,6 +64,9 @@ def suffix_rescore(
         backend: Forwarded to :func:`interpret_tapes`.
         dispatch: Forwarded to :func:`interpret_tapes`.
         parallel: Forwarded to :func:`interpret_tapes`.
+        precision: Storage dtype of ``matrix``, forwarded to
+            :func:`interpret_tapes`. With ``'float32'`` a C-contiguous
+            ``float32`` matrix is rescored without a copy.
 
     Returns:
         A new ``(n_tapes, n_rows)`` series. It does not alias
@@ -69,11 +74,12 @@ def suffix_rescore(
 
     Raises:
         ValueError: If ``n_new`` or ``lookback`` is invalid, if
-            ``prefix`` does not line up with the tapes and matrix, or
-            if ``lookback`` is below a tape's bound.
+            ``prefix`` does not line up with the tapes and matrix, if
+            ``lookback`` is below a tape's bound, or if ``precision``
+            is unknown.
     """
     tapes = tuple(tapes)
-    packed = _as_grown_matrix(matrix)
+    packed = _as_grown_matrix(matrix, precision)
     rows = packed.shape[0]
     added = _new_rows(n_new, rows, prefix)
     has_ema = _has_ema(tapes)
@@ -91,14 +97,20 @@ def suffix_rescore(
     if added:
         span = rows if has_ema else min(rows, used + added)
         scored = interpret_tapes(
-            tapes, packed[-span:], backend=backend, dispatch=dispatch, parallel=parallel
+            tapes,
+            packed[-span:],
+            backend=backend,
+            dispatch=dispatch,
+            parallel=parallel,
+            precision=precision,
         )
         out[:, kept:] = scored[:, -added:]
     return out
 
 
-def _as_grown_matrix(matrix: Any) -> numpy.ndarray:
-    """Pack the grown column table as C-contiguous ``float64``."""
+def _as_grown_matrix(matrix: Any, precision: MatrixPrecision) -> numpy.ndarray:
+    """Pack the grown column table as C-contiguous ``precision``."""
+    dtype = matrix_dtype(precision)
     if isinstance(matrix, (list, tuple)):
         raise ValueError(
             "suffix_rescore expects a packed (n_rows, n_columns) matrix, not a sequence of columns."
@@ -108,7 +120,7 @@ def _as_grown_matrix(matrix: Any) -> numpy.ndarray:
         raise ValueError(
             f"suffix_rescore expects a packed (n_rows, n_columns) matrix, got ndim={packed.ndim}."
         )
-    return numpy.ascontiguousarray(packed, dtype=numpy.float64)
+    return numpy.ascontiguousarray(packed, dtype=dtype)
 
 
 def _new_rows(n_new: int | None, rows: int, prefix: numpy.ndarray) -> int:
