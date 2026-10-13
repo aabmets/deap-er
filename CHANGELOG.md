@@ -25,6 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   raises `ValueError`, as does any other precision than `"float64"`
   or `"float32"`. The default `precision="float64"` is unchanged:
   every result, error, and copy is the same as in 3.2.9
+  ([#152](https://github.com/aabmets/deap-er/pull/152))
 
 ## [3.2.9] - 2026-10-12
 
