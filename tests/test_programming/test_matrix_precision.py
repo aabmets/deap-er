@@ -96,8 +96,9 @@ def test_a_float64_matrix_is_rounded_to_float32_once():
 def test_an_unknown_precision_is_rejected(precision):
     pset = precision_pset()
     tapes = text_tapes(pset, GOLDEN_TEXTS[:1])
+    matrix = precision_matrix()
     with pytest.raises(ValueError, match="precision must be 'float64' or 'float32'"):
-        gp.interpret_tapes(tapes, precision_matrix(), precision=precision)
+        gp.interpret_tapes(tapes, matrix, precision=precision)
 
 
 def test_the_opcode_backend_widens_columns_without_a_matrix_copy():

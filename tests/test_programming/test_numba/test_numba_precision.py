@@ -114,10 +114,11 @@ def test_a_dispatch_kernel_rejects_float32_storage():
 
 @pytest.mark.parametrize("precisions", [("float16",), ("float64", "f4"), "float32"])
 def test_warmup_numba_rejects_an_unknown_precision(precisions):
+    tape = text_tapes(precision_pset(), GOLDEN_TEXTS[:1])[0]
     with pytest.raises(ValueError, match="precision must be 'float64' or 'float32'"):
         gp.warmup_numba(precisions=precisions)
     with pytest.raises(ValueError, match="precision must be 'float64' or 'float32'"):
-        gp.bind_tape(text_tapes(precision_pset(), GOLDEN_TEXTS[:1])[0], precision=BAD_PRECISION)
+        gp.bind_tape(tape, precision=BAD_PRECISION)
 
 
 _CACHE_PROBE = """
